@@ -482,4 +482,4 @@ FSL-1.1-Apache-2.0 - Same as the TypeScript SDK
 
 **Built with ❤️ for the AI agent community**
 
-Python port by [Anu-Code07](https://saintnick.ai) | Original SDK by [Nicholas Geil](https://github.com/SaintNick1214)
+Copyright 2025 Nicholas Geil

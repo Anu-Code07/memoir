@@ -1,7 +1,7 @@
 Memoir - Persistent Memory for AI Agents
-Copyright 2025 Nicholas Geil / Saint Nick LLC
+Copyright 2025 Nicholas Geil
 
-This product includes software developed by Saint Nick LLC.
+This product includes software developed by Nicholas Geil.
 
 This product is built on top of Convex (https://convex.dev), which is licensed
 under the Functional Source License 1.1 with Apache 2.0 Future License.
@@ -11,7 +11,7 @@ under the Functional Source License 1.1 with Apache 2.0 Future License.
 ACKNOWLEDGMENTS
 
 This project was inspired by concepts pioneered in Project Constellation,
-an enterprise AI agent platform developed by Nicholas Geil / Saint Nick LLC.
+an enterprise AI agent platform developed by Nicholas Geil.
 
 Special thanks to:
 - The Convex team for creating the reactive backend platform that powers Memoir

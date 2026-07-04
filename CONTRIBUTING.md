@@ -523,7 +523,7 @@ Contributors are recognized in:
 - **General Questions**: [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
 - **Bug Reports**: [GitHub Issues](https://github.com/Anu-Code07/memoir/issues)
 - **Real-time Chat**: [Discord](https://discord.gg/memoir)
-- **Email**: contribute@github.com/Anu-Code07/memoir
+- **Email**: contribute@memoir.dev
 
 ## 📄 License
 

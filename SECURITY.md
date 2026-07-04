@@ -32,7 +32,7 @@ Report security vulnerabilities through one of these channels:
 
 #### 2. Email
 
-Send an email to: **security@github.com/Anu-Code07/memoir**
+Send an email to: **security@memoir.dev**
 
 Include:
 
@@ -328,7 +328,7 @@ Get notified of security updates:
 
 1. **GitHub**: Watch our repository and enable security alerts
 2. **Discord**: Join #security-announcements channel
-3. **Email**: Subscribe to security mailing list at security-announce@github.com/Anu-Code07/memoir
+3. **Email**: Subscribe to security mailing list at security-announce@memoir.dev
 4. **RSS**: Subscribe to our security feed
 
 ### Severity Levels
@@ -369,9 +369,9 @@ Note: Compliance ultimately depends on how you deploy and configure Memoir.
 
 ## Contact
 
-- **Security Team**: security@github.com/Anu-Code07/memoir
-- **General Inquiries**: hello@github.com/Anu-Code07/memoir
-- **Emergency**: security+urgent@github.com/Anu-Code07/memoir (include "URGENT" in subject)
+- **Security Team**: security@memoir.dev
+- **General Inquiries**: hello@memoir.dev
+- **Emergency**: security+urgent@memoir.dev (include "URGENT" in subject)
 
 ## Hall of Fame
 

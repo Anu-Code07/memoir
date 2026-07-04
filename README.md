@@ -450,7 +450,7 @@ Socket.dev may flag "network access" in this package. This is **expected and saf
 
 **Report Security Issues:**
 
-- 🔒 Email: [security@github.com/Anu-Code07/memoir](mailto:security@github.com/Anu-Code07/memoir)
+- 🔒 Email: [security@memoir.dev](mailto:security@memoir.dev)
 - 🔐 See [SECURITY.md](https://github.com/Anu-Code07/memoir/blob/main/SECURITY.md) for our security policy
 
 ## 📦 Publishing Releases
@@ -528,6 +528,8 @@ Memoir was born out of building [Project Constellation](https://github.com/Saint
 
 **⭐ Star this repo if you're building AI agents with persistent memory ⭐**
 
-Built with ❤️ for the AI agent community by [Nicholas Geil](https://github.com/SaintNick1214) / [Anu-Code07](https://saintnick.ai)
+Built with ❤️ for the AI agent community by Nicholas Geil
+
+*Copyright 2025 Nicholas Geil*
 
 *Memoir is production-ready. Join [Discussions](https://github.com/Anu-Code07/memoir/discussions) to share your use case and help shape the future of AI agent memory.*
