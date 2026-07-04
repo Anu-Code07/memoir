@@ -47,11 +47,11 @@ Memoir's graph integration extends your memory system with relationship-aware ca
 ## Quick Start
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 // 1. Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
@@ -325,7 +325,7 @@ async function buildEnrichedContext(memorySpaceId: string, query: string) {
 import {
   syncFactSupersession,
   getFactSupersessionChainFromGraph,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 // When a fact is superseded, sync to graph
 await syncFactSupersession(
@@ -507,7 +507,7 @@ import {
   GraphConnectionError,
   GraphAuthenticationError,
   GraphQueryError,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 try {
   await graphAdapter.connect(config);

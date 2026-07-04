@@ -21,7 +21,7 @@
 [TypeScript SDK](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
 [Python SDK](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
 [Vercel AI Provider](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
-[Socket.dev](https://socket.dev/npm/package/@memoir/sdk)
+[Socket.dev](https://socket.dev/npm/package/@getmemoir/sdk)
 
 **🌐 [github.com/Anu-Code07/memoir](https://github.com/Anu-Code07/memoir) | 📚 [github.com/Anu-Code07/memoir/tree/main/Documentation**](https://github.com/Anu-Code07/memoir/tree/main/Documentation)
 
@@ -69,7 +69,7 @@ Get started in under 5 minutes:
 
 ```bash
 # Install CLI
-npm install -g @memoir/cli
+npm install -g @getmemoir/cli
 
 # Create project
 memoir init my-agent
@@ -114,7 +114,7 @@ npm install && npm run dev
 ### Your First Memory
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,

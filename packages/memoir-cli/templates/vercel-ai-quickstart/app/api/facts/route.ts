@@ -1,4 +1,4 @@
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 export const dynamic = "force-dynamic";
 

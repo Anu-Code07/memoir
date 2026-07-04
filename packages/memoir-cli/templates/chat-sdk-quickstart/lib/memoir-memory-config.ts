@@ -9,7 +9,7 @@
 import type {
   MemoirMemoryConfig,
   LayerObserver,
-} from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 

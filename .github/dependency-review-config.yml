@@ -30,10 +30,10 @@ allow-licenses:
 # on how the scanner resolves them, so we include both formats.
 allow-dependencies-licenses:
   # Internal packages by npm name
-  - "pkg:npm/@memoir/sdk"
-  - "pkg:npm/@memoir/cli"
-  - "pkg:npm/@memoir/vercel-ai-provider"
-  - "pkg:npm/@memoir/vercel-ai-quickstart"
+  - "pkg:npm/@getmemoir/sdk"
+  - "pkg:npm/@getmemoir/cli"
+  - "pkg:npm/@getmemoir/vercel-ai-provider"
+  - "pkg:npm/@getmemoir/vercel-ai-quickstart"
   # Internal packages by workspace path (scanner sometimes uses lockfile paths)
   - "pkg:npm/packages/memoir-cli"
   - "pkg:npm/packages/vercel-ai-provider"

@@ -22,7 +22,7 @@ The fastest way to get started with Memoir:
         <Terminal>brew install memoir/tap/cli</Terminal>
       </TabItem>
       <TabItem value="npm" label="npm">
-        <Terminal>npm install -g @memoir/cli</Terminal>
+        <Terminal>npm install -g @getmemoir/cli</Terminal>
       </TabItem>
     </Tabs>
   </Step>
@@ -90,13 +90,13 @@ Install the CLI globally to use it from anywhere:
     Homebrew handles PATH configuration automatically and makes updates easy with `brew upgrade`.
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @memoir/cli</Terminal>
+    <Terminal>npm install -g @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global add @memoir/cli</Terminal>
+    <Terminal>yarn global add @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -g @memoir/cli</Terminal>
+    <Terminal>pnpm add -g @getmemoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
@@ -114,7 +114,7 @@ The CLI uses persistent config with absolute paths, so `cd` is not required.
 
 Use the CLI without installing it globally:
 
-<Terminal>npx @memoir/cli init my-agent</Terminal>
+<Terminal>npx @getmemoir/cli init my-agent</Terminal>
 
 <Callout type="info" title="When to use npx">
 - One-time project creation
@@ -130,13 +130,13 @@ Install as a dev dependency in your project:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm">
-    <Terminal>npm install --save-dev @memoir/cli</Terminal>
+    <Terminal>npm install --save-dev @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn add --dev @memoir/cli</Terminal>
+    <Terminal>yarn add --dev @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -D @memoir/cli</Terminal>
+    <Terminal>pnpm add -D @getmemoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
@@ -205,7 +205,7 @@ After installation, verify everything works:
 
     **Alternative (npm):**
 
-    <Terminal>npm install -g @memoir/cli</Terminal>
+    <Terminal>npm install -g @getmemoir/cli</Terminal>
 
     If using npm, check global bin path is in your PATH:
 
@@ -226,10 +226,10 @@ After installation, verify everything works:
 
     **Alternative (npm):**
 
-    <Terminal>npm cache clean --force && npm install -g @memoir/cli</Terminal>
+    <Terminal>npm cache clean --force && npm install -g @getmemoir/cli</Terminal>
   </AccordionItem>
 
-  <AccordionItem title="Cannot find module @memoir/sdk">
+  <AccordionItem title="Cannot find module @getmemoir/sdk">
     **Cause:** Dependencies not installed in project
 
     **Fix:**
@@ -284,13 +284,13 @@ To upgrade to the latest version:
     <Terminal>brew upgrade memoir/tap/cli</Terminal>
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @memoir/cli@latest</Terminal>
+    <Terminal>npm install -g @getmemoir/cli@latest</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global upgrade @memoir/cli</Terminal>
+    <Terminal>yarn global upgrade @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -g @memoir/cli@latest</Terminal>
+    <Terminal>pnpm add -g @getmemoir/cli@latest</Terminal>
   </TabItem>
 </Tabs>
 
@@ -304,7 +304,7 @@ Update SDK and Convex in your projects:
 
 <Callout type="info">
 The `memoir update` command will:
-- Check for newer versions of `@memoir/sdk`
+- Check for newer versions of `@getmemoir/sdk`
 - Check for newer versions of `convex`
 - Offer to update all projects
 - Redeploy backend if needed
@@ -318,19 +318,19 @@ If you need to uninstall:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm">
-    <Terminal>npm uninstall -g @memoir/cli</Terminal>
+    <Terminal>npm uninstall -g @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global remove @memoir/cli</Terminal>
+    <Terminal>yarn global remove @getmemoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm remove -g @memoir/cli</Terminal>
+    <Terminal>pnpm remove -g @getmemoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
 Remove from a project:
 
-<Terminal>cd your-project && npm uninstall @memoir/sdk convex</Terminal>
+<Terminal>cd your-project && npm uninstall @getmemoir/sdk convex</Terminal>
 
 Clean up configuration (optional):
 

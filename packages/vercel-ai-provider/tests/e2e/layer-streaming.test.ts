@@ -13,7 +13,7 @@ import {
   LAYER_STREAM_EVENTS,
   type StreamWriter,
 } from "../../src/streaming-helpers";
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import type { LayerEvent, OrchestrationSummary } from "../../src/types";
 import {
   createTestMemorySpaceId,

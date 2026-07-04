@@ -171,7 +171,7 @@ const share = await memoir.conversations.share({
 });
 
 // Build shareable URL
-import { buildShareUrl } from '@memoir/sdk';
+import { buildShareUrl } from '@getmemoir/sdk';
 const url = buildShareUrl(share.shareId, {
   baseUrl: 'https://myapp.com/shared',
 });
@@ -423,7 +423,7 @@ New AI tools for artifact management within chat interfaces:
 A helper function that creates an `OrchestrationObserver` pre-wired to emit layer events to a Vercel AI SDK stream writer:
 
 ```typescript
-import { createLayerStreamObserver, createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
+import { createLayerStreamObserver, createMemoirMemoryAsync } from '@getmemoir/vercel-ai-provider';
 import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 
 export async function POST(req: Request) {
@@ -449,7 +449,7 @@ export async function POST(req: Request) {
 A React hook that manages layer tracking state and provides a `handleDataPart` callback for `useChat`:
 
 ```typescript
-import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
+import { useLayerTracking } from '@getmemoir/vercel-ai-provider/react';
 import { useChat } from '@ai-sdk/react';
 
 function ChatComponent() {
@@ -492,7 +492,7 @@ Three transient stream events are emitted during memory orchestration:
 
 The Vercel AI Quickstart template now uses these new helpers out of the box:
 - `app/api/chat-v6/route.ts` uses `createLayerStreamObserver()` 
-- `lib/layer-tracking.ts` re-exports from `@memoir/vercel-ai-provider/react`
+- `lib/layer-tracking.ts` re-exports from `@getmemoir/vercel-ai-provider/react`
 
 Run `memoir update --sync-template` to get the updated quickstart files.
 
@@ -518,8 +518,8 @@ Run `memoir update --sync-template` to get the updated quickstart files.
 The `update` command now scans deployment directories for Memoir apps that aren't registered in `~/.memoirrc`. This helps users who created apps before the `.memoir` registration system was introduced.
 
 Detected patterns:
-- `quickstart/` folders with Next.js + `@memoir/vercel-ai-provider`
-- Any subdirectory with `@memoir/sdk` dependencies
+- `quickstart/` folders with Next.js + `@getmemoir/vercel-ai-provider`
+- Any subdirectory with `@getmemoir/sdk` dependencies
 
 ```bash
 $ memoir update --sync-template
@@ -563,9 +563,9 @@ Once registered, apps receive template updates via `--sync-template`.
 - `next` ^16.1.1 → ^16.1.4
 
 **Version bumps:**
-- `@memoir/sdk` 0.31.0 → 0.31.1
-- `@memoir/cli` 0.31.0 → 0.31.1
-- `@memoir/vercel-ai-provider` 0.29.0 → 0.29.1
+- `@getmemoir/sdk` 0.31.0 → 0.31.1
+- `@getmemoir/cli` 0.31.0 → 0.31.1
+- `@getmemoir/vercel-ai-provider` 0.29.0 → 0.29.1
 - `memoir` (Python) 0.31.0 → 0.31.1
 
 </details>
@@ -1094,7 +1094,7 @@ APIs affected:
 
 #### Added
 
-- **Automatic shell tab completion** - Tab completion auto-installs during `npm install -g @memoir/cli`:
+- **Automatic shell tab completion** - Tab completion auto-installs during `npm install -g @getmemoir/cli`:
   - Completes all commands, subcommands, and options with descriptions
   - Dynamic completion of deployment and app names from `~/.memoirrc`
   - Completion scripts installed to `~/.memoir/completions/`
@@ -1253,7 +1253,7 @@ import {
   MemoryInjectionConfig,
   isV6Available,                  // v6 feature detection
   InferAgentUIMessage,            // Type inference for UI messages
-} from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
 ```
 
 #### Usage with ToolLoopAgent
@@ -1538,7 +1538,7 @@ await memoir.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 #### Changed
 
-- **Extended peerDependencies** - `@memoir/vercel-ai-provider` now accepts `ai` versions `^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0`
+- **Extended peerDependencies** - `@getmemoir/vercel-ai-provider` now accepts `ai` versions `^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0`
 - Users on Vercel AI SDK v6.x will no longer see peer dependency warnings
 
 </details>
@@ -1549,7 +1549,7 @@ await memoir.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 **Memoir CLI Integration**
 
-🔧 Optional `@memoir/cli` installation during setup  
+🔧 Optional `@getmemoir/cli` installation during setup  
 📜 Adds CLI scripts to generated package.json  
 ✨ Enhanced success messages with CLI commands
 
@@ -1559,7 +1559,7 @@ await memoir.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 #### Added
 
 - **Memoir CLI Integration**:
-  - New optional step to install `@memoir/cli` during project setup
+  - New optional step to install `@getmemoir/cli` during project setup
   - Automatic CLI installation as dev dependency when selected
   - Adds scripts: `npm run memoir`, `memoir:setup`, `memoir:stats`, `memoir:spaces`
 
@@ -2085,7 +2085,7 @@ const memoirMemory = createMemoirMemory({
 ### Create v0.1.0 · Nov 2, 2025
 
 <Callout type="warning">
-**Deprecated**: The `create-memoir-memories` package has been superseded by `@memoir/cli`. Use `npx @memoir/cli init` instead.
+**Deprecated**: The `create-memoir-memories` package has been superseded by `@getmemoir/cli`. Use `npx @getmemoir/cli init` instead.
 </Callout>
 
 **Initial Release**
@@ -2099,7 +2099,7 @@ const memoirMemory = createMemoirMemory({
 
 #### Features
 
-- ~~`npm create memoir-memories`~~ → Use `npx @memoir/cli init`
+- ~~`npm create memoir-memories`~~ → Use `npx @getmemoir/cli init`
 - Three Convex setup modes (local/new cloud/existing)
 - Optional graph database integration (Neo4j/Memgraph)
 - Docker detection with platform-specific instructions
@@ -2114,7 +2114,7 @@ const memoirMemory = createMemoirMemory({
 
 **Initial Release**
 
-🎉 First release of @memoir/cli  
+🎉 First release of @getmemoir/cli  
 📋 Complete command suite for memory management  
 🔧 Multi-deployment support
 
@@ -2357,7 +2357,7 @@ const memoirMemory = createMemoirMemory({
 
 🧠 New `createLayerStreamObserver()` helper for server-side layer streaming  
 ⚛️ New `useLayerTracking` React hook for client-side state management  
-📦 New `/react` subpath export: `@memoir/vercel-ai-provider/react`  
+📦 New `/react` subpath export: `@getmemoir/vercel-ai-provider/react`  
 📉 Reduces memory visualization boilerplate from ~170 lines to ~6 lines  
 🚀 Quickstart template updated to use new helpers (`memoir update --sync-template`)
 
@@ -2394,7 +2394,7 @@ const memoirMemory = createMemoirMemory({
 
 ### v0.26.0 · Dec 23 - CLI Integration
 
-🔧 Optional `@memoir/cli` installation
+🔧 Optional `@getmemoir/cli` installation
 
 ---
 

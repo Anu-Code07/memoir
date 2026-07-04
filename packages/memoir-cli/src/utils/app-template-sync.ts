@@ -557,7 +557,7 @@ export function printTemplateSyncResult(
 
   const source = result.isDevOverride
     ? `local CLI${devIndicator}`
-    : `@memoir/cli v${result.cliVersion}`;
+    : `@getmemoir/cli v${result.cliVersion}`;
   console.log(pc.cyan(`   ↓ Synced template from ${source}`));
 
   if (result.isDevOverride) {

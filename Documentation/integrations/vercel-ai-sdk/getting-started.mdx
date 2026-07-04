@@ -56,7 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) and:
 ### Step 1: Install Dependencies
 
 <Terminal>
-npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
+npm install @getmemoir/vercel-ai-provider @getmemoir/sdk ai convex
 npm install @ai-sdk/openai
 </Terminal>
 
@@ -65,7 +65,7 @@ You can also use `@ai-sdk/anthropic`, `@ai-sdk/google`, or other providers.
 ### Step 2: Set Up Convex Backend
 
 <Terminal>
-npx @memoir/cli init
+npx @getmemoir/cli init
 </Terminal>
 
 Follow the wizard to set up Convex with Memoir backend automatically.
@@ -108,7 +108,7 @@ MEMOIR_FACT_EXTRACTION_MODEL=gpt-4o-mini
 
 ```typescript
 // app/api/chat/route.ts
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
@@ -302,7 +302,7 @@ For authentication systems:
 
 ```typescript
 import { auth } from "@clerk/nextjs";
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -329,7 +329,7 @@ export async function POST(req: Request) {
 Different memory space per team/tenant:
 
 ```typescript
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 

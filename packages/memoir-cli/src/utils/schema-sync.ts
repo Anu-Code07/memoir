@@ -1,7 +1,7 @@
 /**
  * Schema Sync Utility
  *
- * Syncs Convex schema files from @memoir/sdk to the project's convex folder.
+ * Syncs Convex schema files from @getmemoir/sdk to the project's convex folder.
  * This ensures the project always has the latest schema that matches the SDK version.
  *
  * For CLI development, you can override the SDK path using the MEMOIR_SDK_DEV_PATH
@@ -10,7 +10,7 @@
  *   export MEMOIR_SDK_DEV_PATH=/path/to/Project-Memoir
  *
  * This will use the schema files from that directory's convex-dev folder instead
- * of the installed @memoir/sdk package.
+ * of the installed @getmemoir/sdk package.
  */
 
 import { existsSync, readFileSync, readdirSync } from "fs";
@@ -62,11 +62,11 @@ function discoverSchemaFiles(sdkConvexPath: string): string[] {
 }
 
 /**
- * Find the @memoir/sdk package
+ * Find the @getmemoir/sdk package
  *
  * Order of precedence:
  * 1. MEMOIR_SDK_DEV_PATH environment variable (for CLI development)
- * 2. Project's node_modules/@memoir/sdk
+ * 2. Project's node_modules/@getmemoir/sdk
  * 3. Walk up directory tree looking for node_modules
  */
 function findSdkPath(projectPath: string): string | null {
@@ -167,7 +167,7 @@ export async function syncConvexSchema(
   const sdkPath = findSdkPath(projectPath);
   if (!sdkPath) {
     result.error =
-      "@memoir/sdk not found in node_modules. Please install it first.";
+      "@getmemoir/sdk not found in node_modules. Please install it first.";
     return result;
   }
 
@@ -261,7 +261,7 @@ export function printSyncResult(
 
   const source = result.isDevOverride
     ? `local SDK${devIndicator}`
-    : `@memoir/sdk v${result.sdkVersion}`;
+    : `@getmemoir/sdk v${result.sdkVersion}`;
   console.log(pc.cyan(`   ↓ Synced schema from ${source}`));
 
   if (result.isDevOverride) {

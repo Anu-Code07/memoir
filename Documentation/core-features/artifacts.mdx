@@ -232,7 +232,7 @@ const sheetArtifact = await memoir.artifacts.create({
 ## TypeScript SDK
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
 
@@ -308,7 +308,7 @@ await memoir.artifacts.finalize_streaming(
 The Vercel AI Provider includes tools for AI-driven artifact management:
 
 ```typescript
-import { createArtifactTools } from "@memoir/vercel-ai-provider";
+import { createArtifactTools } from "@getmemoir/vercel-ai-provider";
 import { streamText } from "ai";
 
 // Create tools for AI to use
@@ -330,7 +330,7 @@ const result = streamText({
 React hooks for artifact state management:
 
 ```tsx
-import { useArtifacts, useArtifact } from "@memoir/vercel-ai-provider/react";
+import { useArtifacts, useArtifact } from "@getmemoir/vercel-ai-provider/react";
 
 function ArtifactPanel() {
   const { artifactList, activeArtifact, handleDataPart } = useArtifacts();

@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { createLayerStreamObserver } from '@memoir/vercel-ai-provider';
+ * import { createLayerStreamObserver } from '@getmemoir/vercel-ai-provider';
  *
  * const { observer, emitTo } = createLayerStreamObserver();
  *
@@ -114,7 +114,7 @@ export interface PhaseStreamObserverResult {
  * @example
  * ```typescript
  * // In your API route
- * import { createLayerStreamObserver, createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
+ * import { createLayerStreamObserver, createMemoirMemoryAsync } from '@getmemoir/vercel-ai-provider';
  * import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
  *
  * export async function POST(req: Request) {
@@ -225,7 +225,7 @@ export function createLayerStreamObserver(): LayerStreamObserverResult {
  *
  * @example
  * ```typescript
- * import { createRecallStreamObserver, createRememberStreamObserver } from '@memoir/vercel-ai-provider';
+ * import { createRecallStreamObserver, createRememberStreamObserver } from '@getmemoir/vercel-ai-provider';
  *
  * export async function POST(req: Request) {
  *   const recallObserver = createRecallStreamObserver();
@@ -316,7 +316,7 @@ export function createRecallStreamObserver(): PhaseStreamObserverResult {
  *
  * @example
  * ```typescript
- * import { createRecallStreamObserver, createRememberStreamObserver } from '@memoir/vercel-ai-provider';
+ * import { createRecallStreamObserver, createRememberStreamObserver } from '@getmemoir/vercel-ai-provider';
  *
  * export async function POST(req: Request) {
  *   const recallObserver = createRecallStreamObserver();

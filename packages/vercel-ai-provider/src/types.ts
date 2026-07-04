@@ -7,7 +7,7 @@ import type {
   MemoryEntry,
   RememberOptions,
   RememberStreamResult,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 /**
  * Supported LLM providers
@@ -345,7 +345,7 @@ export interface MemoirMemoryConfig {
    *
    * @example
    * ```typescript
-   * import { createRecallStreamObserver } from '@memoir/vercel-ai-provider';
+   * import { createRecallStreamObserver } from '@getmemoir/vercel-ai-provider';
    * const { observer: recallObserver, emitTo } = createRecallStreamObserver();
    * emitTo(writer);
    * // Pass recallObserver to config.recallObserver
@@ -362,7 +362,7 @@ export interface MemoirMemoryConfig {
    *
    * @example
    * ```typescript
-   * import { createRememberStreamObserver } from '@memoir/vercel-ai-provider';
+   * import { createRememberStreamObserver } from '@getmemoir/vercel-ai-provider';
    * const { observer: rememberObserver, emitTo } = createRememberStreamObserver();
    * emitTo(writer);
    * // Pass rememberObserver to config.rememberObserver
@@ -667,7 +667,7 @@ export type {
   OrchestrationSummary,
   OrchestrationObserver,
   RecallSummary,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 /**
  * Observer for memory layer orchestration (Vercel provider alias)
@@ -675,6 +675,6 @@ export type {
  * This is an alias for OrchestrationObserver from the core SDK.
  * Maintained for backward compatibility with existing Vercel provider users.
  *
- * @deprecated Use OrchestrationObserver from @memoir/sdk instead
+ * @deprecated Use OrchestrationObserver from @getmemoir/sdk instead
  */
-export type LayerObserver = import("@memoir/sdk").OrchestrationObserver;
+export type LayerObserver = import("@getmemoir/sdk").OrchestrationObserver;

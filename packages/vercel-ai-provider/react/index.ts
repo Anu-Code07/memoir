@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { useLayerTracking, useArtifacts } from '@memoir/vercel-ai-provider/react';
+ * import { useLayerTracking, useArtifacts } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {

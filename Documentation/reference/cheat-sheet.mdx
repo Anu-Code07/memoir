@@ -16,8 +16,8 @@ Quick reference for the most common Memoir operations. Copy-paste ready!
 ### Import
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
-import type { MemoryEntry, UserProfile, Context } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
+import type { MemoryEntry, UserProfile, Context } from "@getmemoir/sdk";
 ```
 
 ### Initialize
@@ -421,7 +421,7 @@ const memory = memoir.memory.get("agent-1", memoryId); // Returns Promise!
 ## Error Handling
 
 ```typescript
-import { MemoryValidationError, CircuitOpenError } from "@memoir/sdk";
+import { MemoryValidationError, CircuitOpenError } from "@getmemoir/sdk";
 
 try {
   await memoir.memory.store("agent-1", data);

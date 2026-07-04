@@ -371,8 +371,8 @@ await initializeGraphSchema();
 Use Memoir's built-in graph sync:
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
-import { CypherGraphAdapter } from "@memoir/sdk/graph";
+import { Memoir } from "@getmemoir/sdk";
+import { CypherGraphAdapter } from "@getmemoir/sdk/graph";
 
 // Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
@@ -412,7 +412,7 @@ import {
   syncContextToGraph,
   syncMemoryToGraph,
   syncFactToGraph,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 // Sync a context
 const context = await memoir.contexts.get("ctx-001");
@@ -919,11 +919,11 @@ Here's a full working example:
 
 ```typescript
 // app.ts
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 // Initialize graph adapter
 const graphAdapter = new CypherGraphAdapter();

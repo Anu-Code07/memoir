@@ -16,7 +16,7 @@
  * so the server must be running on localhost:3000.
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 // Skip if required env vars not set
 const SKIP_E2E =

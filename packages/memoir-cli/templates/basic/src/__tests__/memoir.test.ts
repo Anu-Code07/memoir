@@ -88,7 +88,7 @@ describe("memoir", () => {
       process.env.CONVEX_URL = "https://test.convex.cloud";
 
       // Mock Memoir SDK
-      vi.doMock("@memoir/sdk", () => ({
+      vi.doMock("@getmemoir/sdk", () => ({
         Memoir: vi.fn().mockImplementation(() => ({
           memory: {},
           close: vi.fn(),
@@ -105,7 +105,7 @@ describe("memoir", () => {
     it("returns same instance on subsequent calls (singleton)", async () => {
       process.env.CONVEX_URL = "https://test.convex.cloud";
 
-      vi.doMock("@memoir/sdk", () => ({
+      vi.doMock("@getmemoir/sdk", () => ({
         Memoir: vi.fn().mockImplementation(() => ({
           memory: {},
           close: vi.fn(),
@@ -126,7 +126,7 @@ describe("memoir", () => {
       process.env.CONVEX_URL = "https://test.convex.cloud";
 
       const closeMock = vi.fn();
-      vi.doMock("@memoir/sdk", () => ({
+      vi.doMock("@getmemoir/sdk", () => ({
         Memoir: vi.fn().mockImplementation(() => ({
           memory: {},
           close: closeMock,

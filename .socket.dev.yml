@@ -12,7 +12,7 @@ issueRules:
   - type: networkAccess
     reason: "Memoir SDK uses Convex SDK for cloud database operations"
     packages:
-      - "@memoir/sdk"
+      - "@getmemoir/sdk"
     action: ignore
 
 # Monitor high-risk changes
@@ -42,6 +42,6 @@ packageOverrides:
     networkAccess: allowed
     reason: "Official Convex SDK - cloud database client"
 
-  "@memoir/sdk":
+  "@getmemoir/sdk":
     networkAccess: allowed
     reason: "Memoir SDK - wraps Convex for memory operations"

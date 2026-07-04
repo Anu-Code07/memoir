@@ -10,7 +10,7 @@
  *
  * @example
  * ```typescript
- * import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
+ * import { useLayerTracking } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {
@@ -45,7 +45,7 @@ import type {
   MemoryLayer,
   LayerStatus,
   RevisionAction,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 // Re-export types from SDK for convenience
 export type { MemoryLayer, LayerStatus, RevisionAction };
@@ -339,7 +339,7 @@ export interface UseLayerTrackingResult {
  *
  * @example
  * ```typescript
- * import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
+ * import { useLayerTracking } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {

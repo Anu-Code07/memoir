@@ -10,7 +10,7 @@ import { useState, useMemo, useEffect } from "react";
 import type {
   LayerState,
   MemoryLayer,
-} from "@memoir/vercel-ai-provider/react";
+} from "@getmemoir/vercel-ai-provider/react";
 import { cn } from "@/lib/utils";
 import {
   Collapsible,

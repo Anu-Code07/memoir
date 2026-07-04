@@ -1,5 +1,5 @@
 {
-  "name": "@memoir/vercel-ai-quickstart",
+  "name": "@getmemoir/vercel-ai-quickstart",
   "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
@@ -22,8 +22,8 @@
     "@ai-sdk/openai": "^3.0.19",
     "@ai-sdk/react": "^3.0.52",
     "@anthropic-ai/sdk": "^0.71.2",
-    "@memoir/sdk": "file:../../..",
-    "@memoir/vercel-ai-provider": "file:..",
+    "@getmemoir/sdk": "file:../../..",
+    "@getmemoir/vercel-ai-provider": "file:..",
     "ai": "^6.0.50",
     "convex": "^1.31.6",
     "framer-motion": "^12.29.2",

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import { cleanupTestData } from "../setup.js";
 
 // Skip these tests if no Convex URL is configured

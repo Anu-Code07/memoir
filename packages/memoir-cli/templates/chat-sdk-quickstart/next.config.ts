@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   // Required for @memoir packages to work with Turbopack
-  transpilePackages: ["@memoir/vercel-ai-provider", "@memoir/sdk", "react-data-grid"],
+  transpilePackages: ["@getmemoir/vercel-ai-provider", "@getmemoir/sdk", "react-data-grid"],
   images: {
     remotePatterns: [
       {

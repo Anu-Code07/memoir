@@ -104,7 +104,7 @@ function extractAuth(token: string) {
   <Step title="Create Auth Context">
 
 ```typescript
-import { createAuthContext } from "@memoir/sdk";
+import { createAuthContext } from "@getmemoir/sdk";
 
 const auth = createAuthContext({
   userId: extracted.userId,
@@ -117,7 +117,7 @@ const auth = createAuthContext({
   <Step title="Initialize Memoir">
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,

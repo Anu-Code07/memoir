@@ -19,7 +19,7 @@ export async function detectVersions(): Promise<VersionInfo> {
 
   // Detect Memoir SDK version
   try {
-    const memoirModule = await import("@memoir/sdk");
+    const memoirModule = await import("@getmemoir/sdk");
     // Check for version export or use package version
     if ("VERSION" in memoirModule) {
       memoirSdk = memoirModule.VERSION as string;

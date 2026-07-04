@@ -28,7 +28,7 @@ vi.mock("@/lib/db/queries", () => ({
 }));
 
 // Mock Memoir memory provider
-vi.mock("@memoir/vercel-ai-provider", () => ({
+vi.mock("@getmemoir/vercel-ai-provider", () => ({
   createMemoirMemoryAsync: vi.fn().mockResolvedValue((model: unknown) => model),
 }));
 

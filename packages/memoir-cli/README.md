@@ -1,4 +1,4 @@
-# @memoir/cli
+# @getmemoir/cli
 
 CLI tool for managing Memoir deployments, performing administrative tasks, and streamlining development workflows.
 
@@ -6,13 +6,13 @@ CLI tool for managing Memoir deployments, performing administrative tasks, and s
 
 ```bash
 # Install globally
-npm install -g @memoir/cli
+npm install -g @getmemoir/cli
 
 # Or use with npx
-npx @memoir/cli <command>
+npx @getmemoir/cli <command>
 
 # Or install as dev dependency in your project
-npm install --save-dev @memoir/cli
+npm install --save-dev @getmemoir/cli
 ```
 
 ## Quick Start

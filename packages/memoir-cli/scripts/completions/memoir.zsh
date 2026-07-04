@@ -1,7 +1,7 @@
 #compdef memoir
 
 # Memoir CLI completion script for Zsh
-# Auto-installed by @memoir/cli
+# Auto-installed by @getmemoir/cli
 
 _memoir() {
   local curcontext="$curcontext" state line

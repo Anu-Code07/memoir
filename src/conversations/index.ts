@@ -954,7 +954,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * import { buildShareUrl } from '@memoir/sdk';
+   * import { buildShareUrl } from '@getmemoir/sdk';
    *
    * // Create a public link share
    * const result = await memoir.conversations.share({

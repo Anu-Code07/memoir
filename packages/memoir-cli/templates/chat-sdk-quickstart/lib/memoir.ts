@@ -5,7 +5,7 @@
  * Supports both unauthenticated (shared) and authenticated (per-request) clients.
  */
 
-import { Memoir, type AuthContext } from "@memoir/sdk";
+import { Memoir, type AuthContext } from "@getmemoir/sdk";
 
 /**
  * Cached unauthenticated client (singleton for operations that don't need auth)

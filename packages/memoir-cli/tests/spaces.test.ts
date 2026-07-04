@@ -4,7 +4,7 @@
  * Tests CLI memory space commands against a real Convex instance
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import { cleanupTestData } from "./setup";
 
 describe("CLI Memory Space Commands", () => {

@@ -1702,18 +1702,18 @@ async function updateChatSDKPackageVersions(
     // Update dependencies to use npm packages instead of file: references
     if (pkg.dependencies) {
       if (
-        pkg.dependencies["@memoir/sdk"]?.startsWith("file:") ||
-        pkg.dependencies["@memoir/sdk"] === "*"
+        pkg.dependencies["@getmemoir/sdk"]?.startsWith("file:") ||
+        pkg.dependencies["@getmemoir/sdk"] === "*"
       ) {
-        pkg.dependencies["@memoir/sdk"] = `^${sdkVersion}`;
+        pkg.dependencies["@getmemoir/sdk"] = `^${sdkVersion}`;
       }
 
       if (
-        pkg.dependencies["@memoir/vercel-ai-provider"]?.startsWith(
+        pkg.dependencies["@getmemoir/vercel-ai-provider"]?.startsWith(
           "file:",
         )
       ) {
-        pkg.dependencies["@memoir/vercel-ai-provider"] = `^${sdkVersion}`;
+        pkg.dependencies["@getmemoir/vercel-ai-provider"] = `^${sdkVersion}`;
       }
     }
 

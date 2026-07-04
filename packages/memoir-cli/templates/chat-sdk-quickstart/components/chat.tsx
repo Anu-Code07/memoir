@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
+import { useLayerTracking } from "@getmemoir/vercel-ai-provider/react";
 import { DefaultChatTransport } from "ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";

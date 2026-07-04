@@ -6,7 +6,7 @@
  * Automatically installs shell completion for the memoir CLI.
  * Supports zsh, bash, and fish shells.
  *
- * This script runs after `npm install -g @memoir/cli`
+ * This script runs after `npm install -g @getmemoir/cli`
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, copyFileSync } from 'fs';

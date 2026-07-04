@@ -25,7 +25,7 @@ Validates code before merge:
 
 Automatically publishes SDKs when versions change:
 
-- TypeScript SDK → npm (`@memoir/sdk`)
+- TypeScript SDK → npm (`@getmemoir/sdk`)
 - Python SDK → PyPI (`memoir`)
 - Create Memoir Memories wizard → npm
 

@@ -7,7 +7,7 @@
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,

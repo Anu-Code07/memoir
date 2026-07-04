@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Layer Tracking - Re-exports from @memoir/vercel-ai-provider/react
+ * Layer Tracking - Re-exports from @getmemoir/vercel-ai-provider/react
  *
  * This file re-exports the layer tracking hook and utilities from the provider
  * package, adding the "use client" directive for Next.js App Router compatibility.
@@ -29,7 +29,7 @@ export {
   useLayerTracking,
   generateSampleLayerData,
   ALL_LAYERS,
-} from "@memoir/vercel-ai-provider/react";
+} from "@getmemoir/vercel-ai-provider/react";
 
 // Re-export types
 export type {
@@ -40,4 +40,4 @@ export type {
   LayerTrackingState,
   LayerUpdateData,
   UseLayerTrackingResult,
-} from "@memoir/vercel-ai-provider/react";
+} from "@getmemoir/vercel-ai-provider/react";

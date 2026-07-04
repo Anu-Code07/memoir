@@ -6,7 +6,7 @@
  * Removes shell completion configuration when the CLI is uninstalled.
  * Cleans up ~/.memoir/completions/ and removes source lines from shell RC files.
  *
- * This script runs before `npm uninstall -g @memoir/cli`
+ * This script runs before `npm uninstall -g @getmemoir/cli`
  */
 
 import { existsSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'fs';

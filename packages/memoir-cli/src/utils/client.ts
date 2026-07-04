@@ -4,7 +4,7 @@
  * Handles creating and managing connections to the Memoir SDK
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import type { CLIConfig, GlobalOptions } from "../types.js";
 import { resolveConfig } from "./config.js";
 

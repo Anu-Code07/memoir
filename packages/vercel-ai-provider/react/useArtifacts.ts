@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { useArtifacts, useArtifact } from '@memoir/vercel-ai-provider/react';
+ * import { useArtifacts, useArtifact } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatWithArtifacts() {
@@ -174,7 +174,7 @@ export interface UseArtifactResult {
  *
  * @example
  * ```tsx
- * import { useArtifacts } from '@memoir/vercel-ai-provider/react';
+ * import { useArtifacts } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatWithArtifacts() {
@@ -369,7 +369,7 @@ export function useArtifacts(
  *
  * @example
  * ```tsx
- * import { useArtifact } from '@memoir/vercel-ai-provider/react';
+ * import { useArtifact } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function CodeArtifactViewer({ artifactId }: { artifactId: string }) {
@@ -511,7 +511,7 @@ export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
  *
  * @example
  * ```tsx
- * import { useLayerTracking, useArtifacts, createCombinedDataHandler } from '@memoir/vercel-ai-provider/react';
+ * import { useLayerTracking, useArtifacts, createCombinedDataHandler } from '@getmemoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {

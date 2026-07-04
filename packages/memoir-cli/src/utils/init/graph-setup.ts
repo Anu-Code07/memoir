@@ -589,8 +589,8 @@ export async function createGraphExample(projectPath: string): Promise<void> {
  * with Memoir SDK.
  */
 
-import { Memoir } from '@memoir/sdk';
-import { CypherGraphAdapter, initializeGraphSchema } from '@memoir/sdk/graph';
+import { Memoir } from '@getmemoir/sdk';
+import { CypherGraphAdapter, initializeGraphSchema } from '@getmemoir/sdk/graph';
 
 async function initializeGraph() {
   // 1. Create graph adapter

@@ -9,8 +9,8 @@ import {
 } from "ai";
 import { after } from "next/server";
 import { createResumableStreamContext } from "resumable-stream";
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
-import type { LayerObserver } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
+import type { LayerObserver } from "@getmemoir/vercel-ai-provider";
 import { auth, type UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";

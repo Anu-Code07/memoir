@@ -113,12 +113,12 @@ tsx tests/graph/proofs/01-basic-crud.proof.ts
 ## Usage Example
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
   initialGraphSync,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 // Initialize Memoir
 const memoir = new Memoir({

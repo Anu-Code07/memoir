@@ -53,7 +53,7 @@ Without protection, traffic spikes overwhelm your database:
 Resilience is enabled by default with safe settings for Convex Free plan:
 
 ```typescript
-import { Memoir } from '@memoir/sdk';
+import { Memoir } from '@getmemoir/sdk';
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
@@ -75,7 +75,7 @@ CONVEX_PLAN=professional  # 256 concurrent
 ```
 
 ```typescript
-import { getPresetForPlan } from '@memoir/sdk';
+import { getPresetForPlan } from '@getmemoir/sdk';
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
@@ -163,7 +163,7 @@ const memoir = new Memoir({
 Safe defaults for Convex Free/Starter (16 concurrent limit):
 
 ```typescript
-import { ResiliencePresets } from '@memoir/sdk';
+import { ResiliencePresets } from '@getmemoir/sdk';
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
@@ -333,7 +333,7 @@ if (metrics.queue.total > 500) {
 ## Error Handling
 
 ```typescript
-import { CircuitOpenError, QueueFullError, AcquireTimeoutError } from '@memoir/sdk';
+import { CircuitOpenError, QueueFullError, AcquireTimeoutError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});

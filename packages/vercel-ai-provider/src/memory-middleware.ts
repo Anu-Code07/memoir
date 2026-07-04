@@ -2,7 +2,7 @@
  * Middleware for memory context injection and user resolution
  */
 
-import type { MemoryEntry } from "@memoir/sdk";
+import type { MemoryEntry } from "@getmemoir/sdk";
 // Prompt types handled dynamically to support all AI SDK versions
 import type {
   ContextInjectionStrategy,

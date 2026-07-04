@@ -3,7 +3,7 @@
  *
  * Top-level commands for deploying and updating Memoir projects:
  * - deploy: Deploy schema and functions to Convex
- * - update: Update @memoir/sdk and convex packages across deployments and apps
+ * - update: Update @getmemoir/sdk and convex packages across deployments and apps
  */
 
 import { Command } from "commander";
@@ -198,7 +198,7 @@ export function registerDeployCommands(
   program
     .command("update")
     .description(
-      "Update @memoir/sdk and convex packages across all enabled deployments and apps",
+      "Update @getmemoir/sdk and convex packages across all enabled deployments and apps",
     )
     .option("-d, --deployment <name>", "Target a specific deployment only")
     .option("-a, --app <name>", "Target a specific app only")
@@ -437,7 +437,7 @@ export function registerDeployCommands(
             aiResult,
             peerDepResult,
           ] = await Promise.all([
-            execCommand("npm", ["view", "@memoir/sdk", "version"], {
+            execCommand("npm", ["view", "@getmemoir/sdk", "version"], {
               quiet: true,
             }).catch(() => ({ stdout: "unknown" })),
             execCommand("npm", ["view", "convex", "version"], {
@@ -445,7 +445,7 @@ export function registerDeployCommands(
             }).catch(() => ({ stdout: "unknown" })),
             execCommand(
               "npm",
-              ["view", "@memoir/vercel-ai-provider", "version"],
+              ["view", "@getmemoir/vercel-ai-provider", "version"],
               {
                 quiet: true,
               },
@@ -455,7 +455,7 @@ export function registerDeployCommands(
             }).catch(() => ({ stdout: "unknown" })),
             execCommand(
               "npm",
-              ["view", "@memoir/sdk", "peerDependencies", "--json"],
+              ["view", "@getmemoir/sdk", "peerDependencies", "--json"],
               { quiet: true },
             ).catch(() => ({ stdout: "{}" })),
           ]);
@@ -519,8 +519,8 @@ export function registerDeployCommands(
               "npm",
               [
                 "list",
-                "@memoir/sdk",
-                "@memoir/vercel-ai-provider",
+                "@getmemoir/sdk",
+                "@getmemoir/vercel-ai-provider",
                 "convex",
                 "ai",
                 "--json",
@@ -529,10 +529,10 @@ export function registerDeployCommands(
             );
             const data = JSON.parse(result.stdout);
             currentSdkVersion =
-              data.dependencies?.["@memoir/sdk"]?.version ??
+              data.dependencies?.["@getmemoir/sdk"]?.version ??
               "not installed";
             currentProviderVersion =
-              data.dependencies?.["@memoir/vercel-ai-provider"]
+              data.dependencies?.["@getmemoir/vercel-ai-provider"]
                 ?.version ?? "not installed";
             currentAiVersion =
               data.dependencies?.ai?.version ?? "not installed";
@@ -575,9 +575,9 @@ export function registerDeployCommands(
             const packageJsonPath = path.join(appPath, "package.json");
             if (await fs.pathExists(packageJsonPath)) {
               const pkg = await fs.readJson(packageJsonPath);
-              const sdkDep = pkg.dependencies?.["@memoir/sdk"];
+              const sdkDep = pkg.dependencies?.["@getmemoir/sdk"];
               const providerDep =
-                pkg.dependencies?.["@memoir/vercel-ai-provider"];
+                pkg.dependencies?.["@getmemoir/vercel-ai-provider"];
               isDevLinked =
                 sdkDep?.startsWith("file:") || providerDep?.startsWith("file:");
             }
@@ -591,8 +591,8 @@ export function registerDeployCommands(
               "npm",
               [
                 "list",
-                "@memoir/sdk",
-                "@memoir/vercel-ai-provider",
+                "@getmemoir/sdk",
+                "@getmemoir/vercel-ai-provider",
                 "convex",
                 "ai",
                 "--json",
@@ -601,10 +601,10 @@ export function registerDeployCommands(
             );
             const data = JSON.parse(result.stdout);
             currentSdkVersion =
-              data.dependencies?.["@memoir/sdk"]?.version ??
+              data.dependencies?.["@getmemoir/sdk"]?.version ??
               "not installed";
             currentProviderVersion =
-              data.dependencies?.["@memoir/vercel-ai-provider"]
+              data.dependencies?.["@getmemoir/vercel-ai-provider"]
                 ?.version ?? "not installed";
             currentConvexVersion =
               data.dependencies?.convex?.version ?? "not installed";
@@ -691,9 +691,9 @@ export function registerDeployCommands(
       // Use "Source versions" in dev mode to indicate local package.json versions
       const versionsLabel = isDevMode ? "Source versions" : "Latest versions";
       console.log(pc.bold(`  ${versionsLabel}:`));
-      console.log(`    @memoir/sdk: ${pc.cyan(latestSdkVersion)}`);
+      console.log(`    @getmemoir/sdk: ${pc.cyan(latestSdkVersion)}`);
       console.log(
-        `    @memoir/vercel-ai-provider: ${pc.cyan(latestProviderVersion)}`,
+        `    @getmemoir/vercel-ai-provider: ${pc.cyan(latestProviderVersion)}`,
       );
       console.log(`    convex: ${pc.cyan(latestConvexVersion)}`);
       console.log(`    ai: ${pc.cyan(latestAiVersion)}`);
@@ -942,12 +942,12 @@ async function updateDeployment(
     try {
       const result = await execCommand(
         "npm",
-        ["list", "@memoir/sdk", "--json"],
+        ["list", "@getmemoir/sdk", "--json"],
         { quiet: true, cwd: projectPath },
       );
       const data = JSON.parse(result.stdout);
       currentSdkVersion =
-        data.dependencies?.["@memoir/sdk"]?.version ?? "not installed";
+        data.dependencies?.["@getmemoir/sdk"]?.version ?? "not installed";
     } catch {
       // Ignore errors
     }
@@ -957,7 +957,7 @@ async function updateDeployment(
     try {
       const result = await execCommand(
         "npm",
-        ["view", "@memoir/sdk", "version"],
+        ["view", "@getmemoir/sdk", "version"],
         { quiet: true },
       );
       latestSdkVersion = result.stdout.trim();
@@ -995,7 +995,7 @@ async function updateDeployment(
     try {
       const result = await execCommand(
         "npm",
-        ["view", "@memoir/sdk", "peerDependencies", "--json"],
+        ["view", "@getmemoir/sdk", "peerDependencies", "--json"],
         { quiet: true },
       );
       const peerDeps = JSON.parse(result.stdout);
@@ -1028,7 +1028,7 @@ async function updateDeployment(
     };
 
     console.log();
-    console.log(pc.bold("  @memoir/sdk"));
+    console.log(pc.bold("  @getmemoir/sdk"));
     console.log(`    ${formatVersionLine(currentSdkVersion, latestSdkVersion)}`);
 
     console.log();
@@ -1090,26 +1090,26 @@ async function updateDeployment(
     if (sdkNeedsUpdate || sdkNeedsInstall) {
       console.log();
       printInfo(
-        `${sdkNeedsInstall ? "Installing" : "Updating"} @memoir/sdk@${targetSdkVersion}...`,
+        `${sdkNeedsInstall ? "Installing" : "Updating"} @getmemoir/sdk@${targetSdkVersion}...`,
       );
       console.log();
 
       const exitCode = await execCommandLive(
         "npm",
-        ["install", `@memoir/sdk@${targetSdkVersion}`],
+        ["install", `@getmemoir/sdk@${targetSdkVersion}`],
         { cwd: projectPath },
       );
 
       if (exitCode === 0) {
         printSuccess(
-          `${sdkNeedsInstall ? "Installed" : "Updated"} @memoir/sdk to ${targetSdkVersion}`,
+          `${sdkNeedsInstall ? "Installed" : "Updated"} @getmemoir/sdk to ${targetSdkVersion}`,
         );
       } else {
         printError("SDK update failed");
         throw new Error("SDK update failed");
       }
     } else if (currentSdkVersion !== "not installed") {
-      printSuccess("@memoir/sdk is already up to date");
+      printSuccess("@getmemoir/sdk is already up to date");
     }
 
     // Check for Convex patch update
@@ -1223,8 +1223,8 @@ async function updateApp(
     let isDevLinked = false;
 
     // Check if already dev-linked
-    const sdkDep = pkg.dependencies?.["@memoir/sdk"];
-    const providerDep = pkg.dependencies?.["@memoir/vercel-ai-provider"];
+    const sdkDep = pkg.dependencies?.["@getmemoir/sdk"];
+    const providerDep = pkg.dependencies?.["@getmemoir/vercel-ai-provider"];
     isDevLinked =
       sdkDep?.startsWith("file:") || providerDep?.startsWith("file:");
 
@@ -1234,8 +1234,8 @@ async function updateApp(
         "npm",
         [
           "list",
-          "@memoir/sdk",
-          "@memoir/vercel-ai-provider",
+          "@getmemoir/sdk",
+          "@getmemoir/vercel-ai-provider",
           "convex",
           "ai",
           "--json",
@@ -1244,9 +1244,9 @@ async function updateApp(
       );
       const data = JSON.parse(result.stdout);
       currentSdkVersion =
-        data.dependencies?.["@memoir/sdk"]?.version ?? "not installed";
+        data.dependencies?.["@getmemoir/sdk"]?.version ?? "not installed";
       currentProviderVersion =
-        data.dependencies?.["@memoir/vercel-ai-provider"]?.version ??
+        data.dependencies?.["@getmemoir/vercel-ai-provider"]?.version ??
         "not installed";
       currentConvexVersion =
         data.dependencies?.convex?.version ?? "not installed";
@@ -1302,12 +1302,12 @@ async function updateApp(
       try {
         const [sdkResult, providerResult, convexResult, aiResult] =
           await Promise.all([
-            execCommand("npm", ["view", "@memoir/sdk", "version"], {
+            execCommand("npm", ["view", "@getmemoir/sdk", "version"], {
               quiet: true,
             }).catch(() => ({ stdout: "unknown" })),
             execCommand(
               "npm",
-              ["view", "@memoir/vercel-ai-provider", "version"],
+              ["view", "@getmemoir/vercel-ai-provider", "version"],
               { quiet: true },
             ).catch(() => ({ stdout: "unknown" })),
             execCommand("npm", ["view", "convex", "version"], {
@@ -1362,11 +1362,11 @@ async function updateApp(
     };
 
     console.log();
-    console.log(pc.bold("  @memoir/sdk"));
+    console.log(pc.bold("  @getmemoir/sdk"));
     console.log(`    ${formatAppVersionLine(currentSdkVersion, latestSdkVersion, isDevLinked)}`);
 
     console.log();
-    console.log(pc.bold("  @memoir/vercel-ai-provider"));
+    console.log(pc.bold("  @getmemoir/vercel-ai-provider"));
     console.log(`    ${formatAppVersionLine(currentProviderVersion, latestProviderVersion, isDevLinked)}`);
 
     console.log();
@@ -1426,8 +1426,8 @@ async function updateApp(
       );
 
       pkg.dependencies = pkg.dependencies || {};
-      pkg.dependencies["@memoir/sdk"] = `file:${devSdkPath}`;
-      pkg.dependencies["@memoir/vercel-ai-provider"] =
+      pkg.dependencies["@getmemoir/sdk"] = `file:${devSdkPath}`;
+      pkg.dependencies["@getmemoir/vercel-ai-provider"] =
         `file:${devProviderPath}`;
 
       // Also update convex if a patch is available
@@ -1492,8 +1492,8 @@ async function updateApp(
       if (isDevLinked) {
         printInfo("Removing dev links and switching to npm packages...");
 
-        pkg.dependencies["@memoir/sdk"] = `^${targetSdkVersion}`;
-        pkg.dependencies["@memoir/vercel-ai-provider"] =
+        pkg.dependencies["@getmemoir/sdk"] = `^${targetSdkVersion}`;
+        pkg.dependencies["@getmemoir/vercel-ai-provider"] =
           `^${targetProviderVersion}`;
 
         await fs.writeJson(packageJsonPath, pkg, { spaces: 2 });
@@ -1516,11 +1516,11 @@ async function updateApp(
       const packagesToInstall: string[] = [];
 
       if (sdkNeedsUpdate) {
-        packagesToInstall.push(`@memoir/sdk@${targetSdkVersion}`);
+        packagesToInstall.push(`@getmemoir/sdk@${targetSdkVersion}`);
       }
       if (providerNeedsUpdate) {
         packagesToInstall.push(
-          `@memoir/vercel-ai-provider@${targetProviderVersion}`,
+          `@getmemoir/vercel-ai-provider@${targetProviderVersion}`,
         );
       }
       if (convexNeedsUpdate && targetConvexVersion) {

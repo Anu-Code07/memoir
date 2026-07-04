@@ -174,7 +174,7 @@ interface AuthContext {
   <TabItem value="minimal" label="Minimal">
 
 ```typescript
-import { createAuthContext } from "@memoir/sdk";
+import { createAuthContext } from "@getmemoir/sdk";
 
 // Minimal (single-tenant app)
 const auth = createAuthContext({
@@ -186,7 +186,7 @@ const auth = createAuthContext({
   <TabItem value="multi-tenant" label="Multi-Tenant">
 
 ```typescript
-import { createAuthContext } from "@memoir/sdk";
+import { createAuthContext } from "@getmemoir/sdk";
 
 // With multi-tenancy
 const auth = createAuthContext({
@@ -200,7 +200,7 @@ const auth = createAuthContext({
   <TabItem value="complete" label="Complete">
 
 ```typescript
-import { createAuthContext } from "@memoir/sdk";
+import { createAuthContext } from "@getmemoir/sdk";
 
 // Complete (all fields)
 const auth = createAuthContext({
@@ -252,7 +252,7 @@ createAuthContext({ userId: "user-1", authenticatedAt: -1 });
 Pass auth context when creating Memoir instance:
 
 ```typescript
-import { Memoir, createAuthContext } from "@memoir/sdk";
+import { Memoir, createAuthContext } from "@getmemoir/sdk";
 
 const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
@@ -868,7 +868,7 @@ await memoir.users.update("user-456", { displayName: "Bob" });
 Custom error class for auth context validation failures:
 
 ```typescript
-import { AuthContextError } from "@memoir/sdk";
+import { AuthContextError } from "@getmemoir/sdk";
 
 try {
   const auth = createAuthContext({ tenantId: "tenant-1" }); // Missing userId

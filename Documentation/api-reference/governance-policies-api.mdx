@@ -686,7 +686,7 @@ The Governance API provides a custom error class for validation failures, allowi
 ### GovernanceValidationError
 
 ```typescript
-import { GovernanceValidationError } from "@memoir/sdk";
+import { GovernanceValidationError } from "@getmemoir/sdk";
 
 class GovernanceValidationError extends Error {
   name: "GovernanceValidationError";
@@ -718,7 +718,7 @@ class GovernanceValidationError extends Error {
 ### Example Usage
 
 ```typescript
-import { GovernanceValidationError } from "@memoir/sdk";
+import { GovernanceValidationError } from "@getmemoir/sdk";
 
 try {
   await memoir.governance.setPolicy({

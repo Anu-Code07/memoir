@@ -132,7 +132,7 @@ export async function execCommandLive(
  *
  * Order of precedence:
  * 1. MEMOIR_SDK_DEV_PATH environment variable (for CLI development)
- * 2. Project's node_modules/@memoir/sdk
+ * 2. Project's node_modules/@getmemoir/sdk
  * 3. Fallback to require.resolve
  *
  * @param projectPath - Optional project path to look in (defaults to current directory)
@@ -159,7 +159,7 @@ export function getSDKPath(projectPath?: string): string | null {
     }
 
     // Fallback: use require.resolve from current location
-    const sdkPackageJson = esmRequire.resolve("@memoir/sdk/package.json");
+    const sdkPackageJson = esmRequire.resolve("@getmemoir/sdk/package.json");
     return path.dirname(sdkPackageJson);
   } catch {
     return null;
@@ -178,7 +178,7 @@ export async function fetchLatestSDKMetadata(): Promise<{
       "npm",
       [
         "view",
-        "@memoir/sdk",
+        "@getmemoir/sdk",
         "peerDependencies.convex",
         "version",
         "--json",

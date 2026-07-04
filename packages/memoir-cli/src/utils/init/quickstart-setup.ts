@@ -126,17 +126,17 @@ async function updatePackageJson(
   if (pkg.dependencies) {
     // Replace file: references with npm versions
     if (
-      pkg.dependencies["@memoir/sdk"]?.startsWith("file:") ||
-      pkg.dependencies["@memoir/sdk"] === "*"
+      pkg.dependencies["@getmemoir/sdk"]?.startsWith("file:") ||
+      pkg.dependencies["@getmemoir/sdk"] === "*"
     ) {
-      pkg.dependencies["@memoir/sdk"] = `^${sdkVersion}`;
+      pkg.dependencies["@getmemoir/sdk"] = `^${sdkVersion}`;
     }
 
     if (
-      pkg.dependencies["@memoir/vercel-ai-provider"]?.startsWith("file:")
+      pkg.dependencies["@getmemoir/vercel-ai-provider"]?.startsWith("file:")
     ) {
       // Use same version as SDK (they're released together)
-      pkg.dependencies["@memoir/vercel-ai-provider"] = `^${sdkVersion}`;
+      pkg.dependencies["@getmemoir/vercel-ai-provider"] = `^${sdkVersion}`;
     }
   }
 
@@ -286,7 +286,7 @@ async function addQuickstartScript(projectPath: string): Promise<void> {
  * Install the Vercel AI quickstart demo app
  *
  * @param projectPath - Absolute path to the user's project
- * @param sdkVersion - Version of @memoir/sdk to use
+ * @param sdkVersion - Version of @getmemoir/sdk to use
  * @param convexUrl - Convex deployment URL
  * @param openaiApiKey - Optional OpenAI API key
  * @param graphConfig - Optional graph database configuration
@@ -309,7 +309,7 @@ export async function installVercelAIQuickstart(
   if (!templatePath) {
     throw new Error(
       "Vercel AI quickstart template not found. " +
-        "Please ensure @memoir/cli is properly installed.",
+        "Please ensure @getmemoir/cli is properly installed.",
     );
   }
 
