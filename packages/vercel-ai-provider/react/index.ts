@@ -1,12 +1,12 @@
 /**
- * React-specific exports for Cortex Memory Provider
+ * React-specific exports for Memoir Provider
  *
  * This subpath provides React hooks and utilities for building
  * memory-aware UI components with the Vercel AI SDK.
  *
  * @example
  * ```typescript
- * import { useLayerTracking, useArtifacts } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useLayerTracking, useArtifacts } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {
@@ -93,7 +93,7 @@ export type {
   UseArtifactOptions,
   UseArtifactResult,
   // Re-exported from artifacts module
-  CortexArtifact,
+  MemoirArtifact,
   StreamingState,
   ArtifactKind,
 } from "./useArtifacts";

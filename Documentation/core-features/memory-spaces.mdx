@@ -8,7 +8,7 @@ description: Isolated storage boundaries for users, teams, and projects
 # Memory Spaces
 
 <Callout type="info" title="What is a Memory Space?">
-  A memory space is the **fundamental isolation boundary** in Cortex. Think of it like a personal hard drive, team workspace, or project folder—isolated from others but shared among authorized participants.
+  A memory space is the **fundamental isolation boundary** in Memoir. Think of it like a personal hard drive, team workspace, or project folder—isolated from others but shared among authorized participants.
 </Callout>
 
 ---
@@ -17,7 +17,7 @@ description: Isolated storage boundaries for users, teams, and projects
 
 ```typescript
 // Store memory in a space
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal", // Isolation boundary
   conversationId: "conv-abc",
   userMessage: "I prefer TypeScript",
@@ -27,7 +27,7 @@ await cortex.memory.remember({
 });
 
 // Search within that space only
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   "user-123-personal",
   "programming preferences"
 );
@@ -55,7 +55,7 @@ const memories = await cortex.memory.search(
 
 ```typescript
 // Cursor stores
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",  // Shared space
   participantId: "cursor",              // Who stored it
   userMessage: "I prefer dark mode",
@@ -65,7 +65,7 @@ await cortex.memory.remember({
 });
 
 // Claude reads from SAME space
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   "user-123-personal",
   "preferences"
 );
@@ -83,7 +83,7 @@ const memories = await cortex.memory.search(
 
 ```typescript
 // Finance agent (separate space)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "finance-agent-space",
   conversationId: "conv-123",
   userMessage: "Approve $50k budget",
@@ -93,7 +93,7 @@ await cortex.memory.remember({
 });
 
 // Send to HR agent (dual-write to BOTH spaces)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "finance-agent",
   to: "hr-agent",
   message: "Budget approved for hiring",
@@ -144,7 +144,7 @@ Isolated to each memory space:
 
 ```typescript
 // All scoped to memorySpaceId
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",  // Isolation
   // ...
 });
@@ -162,7 +162,7 @@ Shared across ALL memory spaces:
 
 ```typescript
 // No memorySpaceId - truly shared
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: 'policy',
   id: 'retention-policy',
   data: {...},
@@ -183,7 +183,7 @@ Just use a `memorySpaceId`—space created automatically on first use:
 
 ```typescript
 // First call creates space automatically
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   conversationId: "conv-123",
   userMessage: "Hello",
@@ -203,7 +203,7 @@ await cortex.memory.remember({
 Register with metadata for analytics and tracking:
 
 ```typescript
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: "user-123-personal",
   name: "Alice's Personal AI Memory",
   type: "personal",
@@ -302,14 +302,14 @@ await cortex.memorySpaces.register({
 
 ```typescript
 // Space A
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-alice-personal",
   userMessage: "Secret information for Alice",
   // ...
 });
 
 // Space B cannot see it
-const memories = await cortex.memory.search("user-bob-personal", "secret");
+const memories = await memoir.memory.search("user-bob-personal", "secret");
 // Returns: [] (empty - different memory space)
 ```
 
@@ -325,7 +325,7 @@ Limited cross-space access is possible via **context chains**:
 
 ```typescript
 // Supervisor creates context with delegation
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request",
   memorySpaceId: "supervisor-space",
   grantReadAccess: ["specialist-space"],
@@ -345,14 +345,14 @@ Track "who stored what" in a shared memory space:
 
 ```typescript
 // Store with participant tracking
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   participantId: "cursor",  // Track who stored it
   // ...
 });
 
 // Filter by participant
-const cursorMemories = await cortex.memory.list("user-123-personal", {
+const cursorMemories = await memoir.memory.list("user-123-personal", {
   participantId: "cursor",
 });
 ```
@@ -369,22 +369,22 @@ const cursorMemories = await cortex.memory.list("user-123-personal", {
 
 ```typescript
 // 1. Create (implicit or explicit)
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: "project-apollo",
   name: "Apollo Project Memory",
   type: "project",
 });
 
 // 2. Use (store and retrieve)
-await cortex.memory.remember({ memorySpaceId: "project-apollo", ... });
+await memoir.memory.remember({ memorySpaceId: "project-apollo", ... });
 
 // 3. Archive (mark inactive, keep data)
-await cortex.memorySpaces.archive("project-apollo", {
+await memoir.memorySpaces.archive("project-apollo", {
   reason: "Project completed",
 });
 
 // 4. Delete (GDPR-compliant, complete removal)
-await cortex.memorySpaces.delete("project-apollo", {
+await memoir.memorySpaces.delete("project-apollo", {
   cascade: true,
   reason: "Data retention expired",
 });
@@ -397,7 +397,7 @@ await cortex.memorySpaces.delete("project-apollo", {
 All memory space operations automatically include tenant isolation when using auth context:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     userId: "user-123",
@@ -406,8 +406,8 @@ const cortex = new Cortex({
 });
 
 // All operations are now scoped to customer-acme
-await cortex.memorySpaces.register({ memorySpaceId: "user-123-personal", ... });
-const spaces = await cortex.memorySpaces.list();
+await memoir.memorySpaces.register({ memorySpaceId: "user-123-personal", ... });
+const spaces = await memoir.memorySpaces.list();
 // Only returns spaces for customer-acme
 ```
 
@@ -424,7 +424,7 @@ const spaces = await cortex.memorySpaces.list();
 
 ```typescript
 async function canAccessSpace(userId: string, spaceId: string) {
-  const space = await cortex.memorySpaces.get(spaceId);
+  const space = await memoir.memorySpaces.get(spaceId);
   return space.metadata.owner === userId;
 }
 ```
@@ -437,10 +437,10 @@ async function canAccessSpace(userId: string, spaceId: string) {
 
 ```typescript
 // Delete user and all their data across ALL memory spaces
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Or delete a specific memory space
-await cortex.memorySpaces.delete("user-123-personal", {
+await memoir.memorySpaces.delete("user-123-personal", {
   cascade: true,
   reason: "GDPR deletion request",
 });

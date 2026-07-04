@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Mutable Store API (Layer 1c)
+ * Memoir SDK - Mutable Store API (Layer 1c)
  *
  * ACID-compliant mutable storage for live, frequently-changing data
  * Namespaces: inventory, config, counters, sessions, state, etc.

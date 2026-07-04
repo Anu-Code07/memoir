@@ -23,7 +23,7 @@ Governance policies already support:
 - Vector memory retention (max records, importance-based purging)
 - Immutable store versioning (max versions per key)
 - Mutable store soft-deletion (with expiry)
-- Manual enforcement via `cortex.governance.enforce()`
+- Manual enforcement via `memoir.governance.enforce()`
 - Policy configuration per memory space
 
 ---
@@ -37,7 +37,7 @@ Enforce policies automatically on every storage operation without manual `enforc
 **Current Behavior:**
 ```typescript
 // Set policy
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   vector: {
     maxRecords: 10000,
     purgeStrategy: "importance-based",
@@ -45,20 +45,20 @@ await cortex.governance.setPolicy(spaceId, {
 });
 
 // Manual enforcement required
-await cortex.memory.store(spaceId, { content: "...", metadata: { importance: 10 } });
-await cortex.memory.store(spaceId, { content: "...", metadata: { importance: 15 } });
+await memoir.memory.store(spaceId, { content: "...", metadata: { importance: 10 } });
+await memoir.memory.store(spaceId, { content: "...", metadata: { importance: 15 } });
 // ... 20 more stores ...
 
 // Memory space now has 10,022 records (over limit)
 // Must manually enforce
-await cortex.governance.enforce(spaceId);
+await memoir.governance.enforce(spaceId);
 // Now 10,000 records (lowest-importance purged)
 ```
 
 **Planned Behavior:**
 ```typescript
 // Set policy
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   vector: {
     maxRecords: 10000,
     purgeStrategy: "importance-based",
@@ -67,7 +67,7 @@ await cortex.governance.setPolicy(spaceId, {
 });
 
 // Automatic enforcement on every store()
-await cortex.memory.store(spaceId, { content: "...", metadata: { importance: 10 } });
+await memoir.memory.store(spaceId, { content: "...", metadata: { importance: 10 } });
 // If maxRecords exceeded, lowest-importance memory automatically purged
 // Memory space always stays at or below 10,000 records
 ```
@@ -87,7 +87,7 @@ Purge old versions based on retention rules without manual enforcement.
 **Current Behavior:**
 ```typescript
 // Set policy
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   immutable: {
     maxVersionsPerKey: 5,
     purgeOldest: true,
@@ -95,23 +95,23 @@ await cortex.governance.setPolicy(spaceId, {
 });
 
 // Store versions
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 1 } });
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 2 } });
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 3 } });
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 4 } });
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 5 } });
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 6 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 1 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 2 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 3 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 4 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 5 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 6 } });
 
 // Key "config" now has 6 versions (over limit of 5)
 // Manual enforcement required
-await cortex.governance.enforce(spaceId);
+await memoir.governance.enforce(spaceId);
 // Now 5 versions (oldest version v1 purged)
 ```
 
 **Planned Behavior:**
 ```typescript
 // Set policy
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   immutable: {
     maxVersionsPerKey: 5,
     purgeOldest: true,
@@ -120,7 +120,7 @@ await cortex.governance.setPolicy(spaceId, {
 });
 
 // Automatic purging on every store()
-await cortex.immutable.store(spaceId, { key: "config", value: { v: 6 } });
+await memoir.immutable.store(spaceId, { key: "config", value: { v: 6 } });
 // Oldest version (v1) automatically purged
 // Key "config" always has ≤ 5 versions
 ```
@@ -136,7 +136,7 @@ Sessions policy configuration exists but is **not enforced** by the governance b
 
 ```typescript
 // Policy configuration exists but not enforced
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   sessions: {
     maxIdleTimeMs: 30 * 60 * 1000,    // 30 minutes (NOT ENFORCED)
     maxSessionDurationMs: 24 * 60 * 60 * 1000, // 24 hours (NOT ENFORCED)
@@ -148,7 +148,7 @@ await cortex.governance.setPolicy(spaceId, {
 **Planned Behavior:**
 ```typescript
 // Policy enforcement activated
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   sessions: {
     maxIdleTimeMs: 30 * 60 * 1000,    // 30 minutes
     maxSessionDurationMs: 24 * 60 * 60 * 1000, // 24 hours
@@ -168,11 +168,11 @@ Manual session expiry:
 
 ```typescript
 // Manual expiry required
-await cortex.sessions.expireIdle(spaceId, {
+await memoir.sessions.expireIdle(spaceId, {
   idleTimeoutMs: 30 * 60 * 1000,
 });
 
-await cortex.sessions.expireByDuration(spaceId, {
+await memoir.sessions.expireByDuration(spaceId, {
   maxDurationMs: 24 * 60 * 60 * 1000,
 });
 ```
@@ -186,7 +186,7 @@ Schedule automatic enforcement at regular intervals (Cloud Mode).
 **Planned Behavior:**
 ```typescript
 // Cloud Mode: Scheduled enforcement
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   vector: {
     maxRecords: 10000,
     purgeStrategy: "importance-based",
@@ -216,7 +216,7 @@ Custom hooks for pre/post-enforcement logic.
 **Planned Behavior:**
 ```typescript
 // Register enforcement hooks
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   vector: {
     maxRecords: 10000,
     purgeStrategy: "importance-based",
@@ -256,7 +256,7 @@ Validate policy configurations before applying.
 **Planned Behavior:**
 ```typescript
 // Validate policy before applying
-const validation = await cortex.governance.validatePolicy(spaceId, {
+const validation = await memoir.governance.validatePolicy(spaceId, {
   vector: {
     maxRecords: -100, // Invalid (negative)
     purgeStrategy: "invalid-strategy", // Invalid strategy
@@ -272,7 +272,7 @@ if (!validation.valid) {
 }
 
 // Apply valid policy
-await cortex.governance.setPolicy(spaceId, validPolicy);
+await memoir.governance.setPolicy(spaceId, validPolicy);
 ```
 
 ---
@@ -283,7 +283,7 @@ Track enforcement activity for monitoring and optimization.
 
 **Planned Behavior:**
 ```typescript
-const metrics = await cortex.governance.getEnforcementMetrics(spaceId, {
+const metrics = await memoir.governance.getEnforcementMetrics(spaceId, {
   period: "last-30-days",
 });
 
@@ -344,7 +344,7 @@ Until automatic enforcement is available, use these patterns:
 ```typescript
 // Run every hour
 setInterval(async () => {
-  await cortex.governance.enforce(spaceId);
+  await memoir.governance.enforce(spaceId);
 }, 60 * 60 * 1000);
 ```
 
@@ -353,11 +353,11 @@ setInterval(async () => {
 ```typescript
 // Batch store
 for (const item of items) {
-  await cortex.memory.store(spaceId, item);
+  await memoir.memory.store(spaceId, item);
 }
 
 // Enforce after batch
-await cortex.governance.enforce(spaceId);
+await memoir.governance.enforce(spaceId);
 ```
 
 ### Manual Session Cleanup
@@ -365,7 +365,7 @@ await cortex.governance.enforce(spaceId);
 ```typescript
 // Run daily
 setInterval(async () => {
-  await cortex.sessions.expireIdle(spaceId, {
+  await memoir.sessions.expireIdle(spaceId, {
     idleTimeoutMs: 30 * 60 * 1000,
   });
 }, 24 * 60 * 60 * 1000);

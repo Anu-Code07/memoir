@@ -1,8 +1,8 @@
-# Cortex SDK Test Suite
+# Memoir SDK Test Suite
 
 > **Complete Testing Guide** - All 11 test suites, 378 tests, LOCAL + MANAGED environments
 
-This document explains every test in the Cortex SDK, how they work, and the differences between local and managed testing.
+This document explains every test in the Memoir SDK, how they work, and the differences between local and managed testing.
 
 ---
 
@@ -114,7 +114,7 @@ Tests:       378 passed, 378 total
 ```typescript
 // Memory space isolation
 it("filters by memorySpaceId", async () => {
-  const conversations = await cortex.conversations.list({
+  const conversations = await memoir.conversations.list({
     memorySpaceId: "test-space-list",
   });
   // ✅ Only returns conversations in this memory space
@@ -122,7 +122,7 @@ it("filters by memorySpaceId", async () => {
 
 // Hive Mode participant tracking
 it("tracks participant who sent each message", async () => {
-  const result = await cortex.conversations.create({
+  const result = await memoir.conversations.create({
     memorySpaceId: "hive-space",
     participants: { userId: "user-1", participantId: "tool-calendar" },
   });
@@ -192,17 +192,17 @@ it("tracks participant who sent each message", async () => {
 ```typescript
 // Automatic versioning
 it("creates version 2 on update", async () => {
-  await cortex.immutable.store({
+  await memoir.immutable.store({
     type: "config",
     id: "theme",
     data: { mode: "dark" },
   });
-  await cortex.immutable.store({
+  await memoir.immutable.store({
     type: "config",
     id: "theme",
     data: { mode: "light" },
   });
-  const entry = await cortex.immutable.get("config", "theme");
+  const entry = await memoir.immutable.get("config", "theme");
   expect(entry.version).toBe(2); // ✅ Auto-versioned
 });
 ```
@@ -258,9 +258,9 @@ it("creates version 2 on update", async () => {
 ```typescript
 // Real-time updates (no versioning)
 it("set replaces value immediately", async () => {
-  await cortex.mutable.set("config", "theme", "dark");
-  await cortex.mutable.set("config", "theme", "light");
-  const value = await cortex.mutable.get("config", "theme");
+  await memoir.mutable.set("config", "theme", "dark");
+  await memoir.mutable.set("config", "theme", "light");
+  const value = await memoir.mutable.get("config", "theme");
   expect(value).toBe("light"); // ✅ No version history
 });
 ```
@@ -323,14 +323,14 @@ it("set replaces value immediately", async () => {
 ```typescript
 // Memory space isolation
 it("returns null for memory in different space", async () => {
-  const memory = await cortex.vector.store("memspace-1", {...});
-  const result = await cortex.vector.get("memspace-2", memory.memoryId);
+  const memory = await memoir.vector.store("memspace-1", {...});
+  const result = await memoir.vector.get("memspace-2", memory.memoryId);
   expect(result).toBeNull(); // ✅ Isolation enforced
 });
 
 // Hive Mode participant tracking
 it("tracks which participant stored memory", async () => {
-  const memory = await cortex.vector.store("hive-space", {
+  const memory = await memoir.vector.store("hive-space", {
     content: "Meeting at 9 AM",
     participantId: "tool-calendar", // ✅ Hive Mode tracking
     ...
@@ -399,7 +399,7 @@ it("tracks which participant stored memory", async () => {
 ```typescript
 // Dual-layer storage
 it("stores both messages in ACID and creates 2 vector memories", async () => {
-  const result = await cortex.memory.remember({
+  const result = await memoir.memory.remember({
     memorySpaceId: "test-space",
     conversationId: conv.conversationId,
     userMessage: "The password is Blue",
@@ -473,7 +473,7 @@ it("stores both messages in ACID and creates 2 vector memories", async () => {
 ```typescript
 // Structured facts with graph relationships
 it("stores relationship fact (graph triple)", async () => {
-  const fact = await cortex.facts.store({
+  const fact = await memoir.facts.store({
     memorySpaceId: "test-space",
     fact: "Alice works at Acme Corp",
     factType: "relationship",
@@ -489,7 +489,7 @@ it("stores relationship fact (graph triple)", async () => {
 
 // Hive Mode: Multiple participants extract facts to same space
 it("supports Hive Mode with participantId", async () => {
-  const fact = await cortex.facts.store({
+  const fact = await memoir.facts.store({
     memorySpaceId: "hive-space",
     participantId: "tool-extractor-1", // ✅ Tracks WHO extracted
     fact: "User completed onboarding",
@@ -523,8 +523,8 @@ it("supports Hive Mode with participantId", async () => {
 ```typescript
 // Immutable version chain
 it("creates new version when updated", async () => {
-  const v1 = await cortex.facts.store({...});
-  const v2 = await cortex.facts.update(memorySpaceId, v1.factId, {
+  const v1 = await memoir.facts.store({...});
+  const v2 = await memoir.facts.update(memorySpaceId, v1.factId, {
     fact: "Updated statement",
     confidence: 95,
   });
@@ -625,7 +625,7 @@ it("finds all direct reports", async () => {
 ```typescript
 // Hive Mode: Multiple tools in one space
 it("supports multiple tools sharing one space", async () => {
-  const hiveSpace = await cortex.memorySpaces.register({
+  const hiveSpace = await memoir.memorySpaces.register({
     memorySpaceId: "hive-multitools",
     type: "team",
     participants: [
@@ -666,7 +666,7 @@ it("supports multiple tools sharing one space", async () => {
 ```typescript
 // Cross-layer statistics
 it("returns comprehensive statistics", async () => {
-  const stats = await cortex.memorySpaces.getStats("stats-test-space");
+  const stats = await memoir.memorySpaces.getStats("stats-test-space");
 
   expect(stats.totalConversations).toBeGreaterThanOrEqual(1);
   expect(stats.totalMessages).toBeGreaterThanOrEqual(1);
@@ -721,12 +721,12 @@ it("returns comprehensive statistics", async () => {
 ```typescript
 // Hierarchical structure
 it("creates child context", async () => {
-  const root = await cortex.contexts.create({
+  const root = await memoir.contexts.create({
     purpose: "Approval workflow",
     memorySpaceId: "manager-space",
   });
 
-  const child = await cortex.contexts.create({
+  const child = await memoir.contexts.create({
     purpose: "Finance approval",
     memorySpaceId: "finance-space", // ✅ Different space!
     parentId: root.contextId,
@@ -740,7 +740,7 @@ it("creates child context", async () => {
 
 // Conversation linking
 it("links context to conversation", async () => {
-  const context = await cortex.contexts.create({
+  const context = await memoir.contexts.create({
     purpose: "Handle refund request",
     memorySpaceId: "support-space",
     conversationRef: {
@@ -768,7 +768,7 @@ it("links context to conversation", async () => {
 ```typescript
 // Complete chain traversal
 it("returns complete chain", async () => {
-  const chain = await cortex.contexts.getChain(childId);
+  const chain = await memoir.contexts.getChain(childId);
 
   expect(chain.current).toBeDefined(); // This context
   expect(chain.root).toBeDefined(); // Top of hierarchy
@@ -793,12 +793,12 @@ it("returns complete chain", async () => {
 ```typescript
 // Collaboration Mode: Secure cross-space sharing
 it("grants cross-space access", async () => {
-  const context = await cortex.contexts.create({
+  const context = await memoir.contexts.create({
     purpose: "Collaboration test",
     memorySpaceId: "company-a-space",
   });
 
-  const updated = await cortex.contexts.grantAccess(
+  const updated = await memoir.contexts.grantAccess(
     context.contextId,
     "company-b-space", // ✅ Grant access to different space
     "read-only",
@@ -845,13 +845,13 @@ it("grants cross-space access", async () => {
 ```typescript
 it("all participants see same conversations", async () => {
   // Tool-calendar creates conversation
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     memorySpaceId: HIVE_SPACE,
     participants: { userId: "user-alice", participantId: "tool-calendar" },
   });
 
   // Tool-email can see same conversation
-  const allConvs = await cortex.conversations.list({
+  const allConvs = await memoir.conversations.list({
     memorySpaceId: HIVE_SPACE,
   });
 
@@ -879,7 +879,7 @@ it("all participants see same conversations", async () => {
 // Single fact, multiple tools can access
 it("single memory space eliminates duplication", async () => {
   // Tool-calendar stores timezone fact
-  const stored = await cortex.facts.store({
+  const stored = await memoir.facts.store({
     memorySpaceId: HIVE_SPACE,
     participantId: "tool-calendar",
     fact: "User's timezone is America/Los_Angeles",
@@ -887,7 +887,7 @@ it("single memory space eliminates duplication", async () => {
   });
 
   // Tool-email can access SAME fact (no duplicate needed)
-  const facts = await cortex.facts.queryBySubject({
+  const facts = await memoir.facts.queryBySubject({
     memorySpaceId: HIVE_SPACE,
     subject: "user-alice",
   });
@@ -939,30 +939,30 @@ it("single memory space eliminates duplication", async () => {
 
 ```typescript
 // LAYER 1: User conversation
-const conversation = await cortex.conversations.create({...});
+const conversation = await memoir.conversations.create({...});
 
 // LAYER 2: Searchable memories
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: "VIP customer requested refund",
   conversationRef: { conversationId: conversation.conversationId },
   ...
 });
 
 // LAYER 3: Extracted facts
-await cortex.facts.store({
+await memoir.facts.store({
   fact: "User has been customer for 3 years",
   sourceRef: { conversationId: conversation.conversationId },
   ...
 });
 
 // LAYER 4: Workflow context (cross-space delegation)
-const rootContext = await cortex.contexts.create({
+const rootContext = await memoir.contexts.create({
   purpose: "Process VIP refund",
   conversationRef: { conversationId: conversation.conversationId },
   ...
 });
 
-const financeContext = await cortex.contexts.create({
+const financeContext = await memoir.contexts.create({
   memorySpaceId: "finance-agent-space", // ✅ Different space!
   parentId: rootContext.contextId,
   ...
@@ -985,7 +985,7 @@ const financeContext = await cortex.contexts.create({
 
 ```typescript
 // Company A Hive: Multiple tools share one space
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: "company-acme-hive",
   participants: [
     { id: "agent-acme-pm", type: "agent" },
@@ -995,7 +995,7 @@ await cortex.memorySpaces.register({
 });
 
 // Company B Hive: Different tools, separate space
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: "company-beta-hive",
   participants: [
     { id: "agent-beta-tech", type: "agent" },
@@ -1004,13 +1004,13 @@ await cortex.memorySpaces.register({
 });
 
 // Shared context for collaboration
-const projectContext = await cortex.contexts.create({
+const projectContext = await memoir.contexts.create({
   purpose: "Joint API Development",
   memorySpaceId: "company-acme-hive",
   ...
 });
 
-await cortex.contexts.grantAccess(
+await memoir.contexts.grantAccess(
   projectContext.contextId,
   "company-beta-hive",  // ✅ Collaboration Mode
   "collaborate",
@@ -1035,10 +1035,10 @@ await cortex.contexts.grantAccess(
 ```typescript
 // Simulate 50-message conversation (scaled from 10,000+)
 for (const topic of messageTopics) {
-  await cortex.conversations.addMessage({...});
+  await memoir.conversations.addMessage({...});
 
   // Extract fact for instant retrieval
-  await cortex.facts.store({
+  await memoir.facts.store({
     fact: topic,  // Structured knowledge
     sourceRef: { conversationId: conv.conversationId },
     ...
@@ -1046,12 +1046,12 @@ for (const topic of messageTopics) {
 }
 
 // Infinite Context: Search facts (fast)
-const colorFacts = await cortex.facts.search(HIVE, "color");
+const colorFacts = await memoir.facts.search(HIVE, "color");
 expect(colorFacts[0].fact).toContain("blue");
 // ✅ Instant retrieval vs scanning 10,000+ messages
 
 // Can still get full conversation when needed
-const fullConv = await cortex.conversations.get(conv.conversationId);
+const fullConv = await memoir.conversations.get(conv.conversationId);
 // ✅ Complete context available, but not required for every query
 ```
 
@@ -1068,15 +1068,15 @@ const fullConv = await cortex.conversations.get(conv.conversationId);
 
 ```typescript
 // Create data in all layers with userId
-await cortex.conversations.create({ userId: TARGET_USER, ...});
-await cortex.vector.store(memorySpaceId, { userId: TARGET_USER, ...});
-await cortex.facts.store({ subject: TARGET_USER, ...});
-await cortex.contexts.create({ userId: TARGET_USER, ...});
+await memoir.conversations.create({ userId: TARGET_USER, ...});
+await memoir.vector.store(memorySpaceId, { userId: TARGET_USER, ...});
+await memoir.facts.store({ subject: TARGET_USER, ...});
+await memoir.contexts.create({ userId: TARGET_USER, ...});
 
 // Verify userId filtering works
-const userConvs = await cortex.conversations.list({ userId: TARGET_USER });
-const userMemories = await cortex.vector.list({ userId: TARGET_USER });
-const userContexts = await cortex.contexts.list({ userId: TARGET_USER });
+const userConvs = await memoir.conversations.list({ userId: TARGET_USER });
+const userMemories = await memoir.vector.list({ userId: TARGET_USER });
+const userContexts = await memoir.contexts.list({ userId: TARGET_USER });
 
 // ✅ All layers support userId for GDPR compliance
 ```
@@ -1093,17 +1093,17 @@ const userContexts = await cortex.contexts.list({ userId: TARGET_USER });
 
 ```typescript
 // Facts: Explicit versioning
-const v1 = await cortex.facts.store({ fact: "User prefers email" });
-const v2 = await cortex.facts.update(v1.factId, { fact: "User prefers SMS" });
-const history = await cortex.facts.getHistory(v1.factId);
+const v1 = await memoir.facts.store({ fact: "User prefers email" });
+const v2 = await memoir.facts.update(v1.factId, { fact: "User prefers SMS" });
+const history = await memoir.facts.getHistory(v1.factId);
 
 // Memories: Automatic versioning
-const mem1 = await cortex.vector.store(memorySpaceId, {...});
-const mem2 = await cortex.vector.update(memorySpaceId, mem1.memoryId, {...});
+const mem1 = await memoir.vector.store(memorySpaceId, {...});
+const mem2 = await memoir.vector.update(memorySpaceId, mem1.memoryId, {...});
 
 // Contexts: Metadata versioning (future)
-const ctx = await cortex.contexts.create({...});
-await cortex.contexts.update(ctx.contextId, { data: { updated: true }});
+const ctx = await memoir.contexts.create({...});
+await memoir.contexts.update(ctx.contextId, { data: { updated: true }});
 
 // ✅ Complete audit trail across all layers
 ```
@@ -1122,16 +1122,16 @@ await cortex.contexts.update(ctx.contextId, { data: { updated: true }});
 const keyword = "UNIQUE_SEARCH_TERM";
 
 // Store in all layers
-await cortex.conversations.addMessage({...keyword...});
-await cortex.vector.store({...keyword...});
-await cortex.facts.store({...keyword...});
-await cortex.contexts.create({...keyword...});
+await memoir.conversations.addMessage({...keyword...});
+await memoir.vector.store({...keyword...});
+await memoir.facts.store({...keyword...});
+await memoir.contexts.create({...keyword...});
 
 // Search all layers
-const convResults = await cortex.conversations.search({ query: keyword });
-const memResults = await cortex.vector.search(memorySpaceId, keyword);
-const factResults = await cortex.facts.search(memorySpaceId, keyword);
-const contextResults = await cortex.contexts.list({...});
+const convResults = await memoir.conversations.search({ query: keyword });
+const memResults = await memoir.vector.search(memorySpaceId, keyword);
+const factResults = await memoir.facts.search(memorySpaceId, keyword);
+const contextResults = await memoir.contexts.list({...});
 
 // ✅ Comprehensive search across all 4 layers
 ```
@@ -1147,7 +1147,7 @@ const contextResults = await cortex.contexts.list({...});
 **Complexity:** Aggregates stats from all layers
 
 ```typescript
-const stats = await cortex.memorySpaces.getStats(STATS_SPACE);
+const stats = await memoir.memorySpaces.getStats(STATS_SPACE);
 
 expect(stats.totalConversations).toBeGreaterThanOrEqual(1);
 expect(stats.totalMessages).toBeGreaterThanOrEqual(5);
@@ -1380,21 +1380,21 @@ npm run test:interactive
 
 ```typescript
 // Create data in different spaces
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "space-a",
   fact: "Space A confidential data",
   ...
 });
 
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "space-b",
   fact: "Space B confidential data",
   ...
 });
 
 // Verify isolation
-const spaceAFacts = await cortex.facts.list({ memorySpaceId: "space-a" });
-const spaceBFacts = await cortex.facts.list({ memorySpaceId: "space-b" });
+const spaceAFacts = await memoir.facts.list({ memorySpaceId: "space-a" });
+const spaceBFacts = await memoir.facts.list({ memorySpaceId: "space-b" });
 
 expect(spaceAFacts.some(f => f.fact.includes("Space B"))).toBe(false);
 expect(spaceBFacts.some(f => f.fact.includes("Space A"))).toBe(false);
@@ -1405,7 +1405,7 @@ expect(spaceBFacts.some(f => f.fact.includes("Space A"))).toBe(false);
 
 ```typescript
 // Register hive with multiple participants
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: HIVE_SPACE,
   participants: [
     { id: "tool-1", type: "tool" },
@@ -1415,14 +1415,14 @@ await cortex.memorySpaces.register({
 });
 
 // Each tool stores with participantId
-await cortex.vector.store(HIVE_SPACE, {
+await memoir.vector.store(HIVE_SPACE, {
   content: "Tool 1 data",
   participantId: "tool-1",  // ✅ Tracks contributor
   ...
 });
 
 // Single query gets all
-const all = await cortex.vector.list({ memorySpaceId: HIVE_SPACE });
+const all = await memoir.vector.list({ memorySpaceId: HIVE_SPACE });
 expect(all.length).toBeGreaterThanOrEqual(3);
 
 // Verify different participants
@@ -1439,17 +1439,17 @@ const orgA = "company-a-space";
 const orgB = "company-b-space";
 
 // Create shared context
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Joint project",
   memorySpaceId: orgA,
 });
 
 // Grant access to other org
-await cortex.contexts.grantAccess(context.contextId, orgB, "read-only");
+await memoir.contexts.grantAccess(context.contextId, orgB, "read-only");
 
 // Facts stay isolated
-const aFacts = await cortex.facts.list({ memorySpaceId: orgA });
-const bFacts = await cortex.facts.list({ memorySpaceId: orgB });
+const aFacts = await memoir.facts.list({ memorySpaceId: orgA });
+const bFacts = await memoir.facts.list({ memorySpaceId: orgB });
 
 expect(aFacts.some((f) => f.memorySpaceId === orgB)).toBe(false);
 // ✅ Context shared, data isolated
@@ -1514,19 +1514,19 @@ npx convex dev
 ### Template for New Test Suite
 
 ```typescript
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers";
 
 describe("My New Feature", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   const TEST_MEMSPACE_ID = "test-my-feature";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     cleanup = new TestCleanup(client);
 

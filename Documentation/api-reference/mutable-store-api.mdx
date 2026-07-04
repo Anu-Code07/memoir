@@ -58,7 +58,7 @@ Set a key to a value (creates or overwrites).
 **Signature:**
 
 ```typescript
-cortex.mutable.set(
+memoir.mutable.set(
   namespace: string,
   key: string,
   value: any,
@@ -77,7 +77,7 @@ cortex.mutable.set(
     { name: "value", type: "any", required: true, description: "JSON-serializable value" },
     { name: "userId", type: "string", required: false, description: "Link to user (enables GDPR cascade). Must reference existing user." },
     { name: "metadata", type: "Record<string, unknown>", required: false, description: "Additional metadata to store with the record" },
-    { name: "options", type: "SetMutableOptions", required: false, description: "Additional options (graph sync is automatic when CORTEX_GRAPH_SYNC=true)" },
+    { name: "options", type: "SetMutableOptions", required: false, description: "Additional options (graph sync is automatic when MEMOIR_GRAPH_SYNC=true)" },
   ]}
 />
 
@@ -101,13 +101,13 @@ interface MutableRecord {
 
 ```typescript
 // Set inventory quantity (system-wide)
-const record = await cortex.mutable.set("inventory", "widget-qty", 100);
+const record = await memoir.mutable.set("inventory", "widget-qty", 100);
 
 console.log(record.value); // 100
 console.log(record.userId); // undefined (system data)
 
 // Update (overwrites)
-await cortex.mutable.set("inventory", "widget-qty", 95); // Now 95
+await memoir.mutable.set("inventory", "widget-qty", 95); // Now 95
 
 // No version history - previous value (100) is gone!
 ```
@@ -116,7 +116,7 @@ await cortex.mutable.set("inventory", "widget-qty", 95); // Now 95
 
 ```typescript
 // Set user session data (GDPR-enabled)
-const session = await cortex.mutable.set(
+const session = await memoir.mutable.set(
   "user-sessions",
   "session-abc123",
   {
@@ -130,17 +130,17 @@ const session = await cortex.mutable.set(
 console.log(session.userId); // "user-123"
 
 // When user requests deletion:
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 // This session is automatically deleted!
 ```
 
 **Errors:**
 
-- `CortexError('INVALID_NAMESPACE')` - Namespace is empty or invalid
-- `CortexError('INVALID_KEY')` - Key is empty or invalid
-- `CortexError('VALUE_TOO_LARGE')` - Value exceeds size limit
-- `CortexError('USER_NOT_FOUND')` - userId doesn't reference existing user
-- `CortexError('CONVEX_ERROR')` - Database error
+- `MemoirError('INVALID_NAMESPACE')` - Namespace is empty or invalid
+- `MemoirError('INVALID_KEY')` - Key is empty or invalid
+- `MemoirError('VALUE_TOO_LARGE')` - Value exceeds size limit
+- `MemoirError('USER_NOT_FOUND')` - userId doesn't reference existing user
+- `MemoirError('CONVEX_ERROR')` - Database error
 
 ---
 
@@ -151,7 +151,7 @@ Get current value for a key.
 **Signature:**
 
 ```typescript
-cortex.mutable.get(
+memoir.mutable.get(
   namespace: string,
   key: string
 ): Promise<any | null>
@@ -173,7 +173,7 @@ cortex.mutable.get(
 **Example:**
 
 ```typescript
-const qty = await cortex.mutable.get("inventory", "widget-qty");
+const qty = await memoir.mutable.get("inventory", "widget-qty");
 
 if (qty !== null) {
   console.log(`Current quantity: ${qty}`);
@@ -195,7 +195,7 @@ Atomically update a value.
 **Signature:**
 
 ```typescript
-cortex.mutable.update(
+memoir.mutable.update(
   namespace: string,
   key: string,
   updater: (current: any) => any
@@ -225,7 +225,7 @@ cortex.mutable.update(
 
 ```typescript
 // Decrement inventory
-await cortex.mutable.update("inventory", "widget-qty", (current) => {
+await memoir.mutable.update("inventory", "widget-qty", (current) => {
   if (current === null || current <= 0) {
     throw new Error("Out of stock");
   }
@@ -233,12 +233,12 @@ await cortex.mutable.update("inventory", "widget-qty", (current) => {
 });
 
 // Increment counter
-await cortex.mutable.update("counters", "total-refunds", (current) => {
+await memoir.mutable.update("counters", "total-refunds", (current) => {
   return (current || 0) + 1;
 });
 
 // Update object
-await cortex.mutable.update("config", "api-settings", (current) => {
+await memoir.mutable.update("config", "api-settings", (current) => {
   return {
     ...current,
     endpoint: "https://api.example.com/v2",
@@ -249,9 +249,9 @@ await cortex.mutable.update("config", "api-settings", (current) => {
 
 **Errors:**
 
-- `CortexError('KEY_NOT_FOUND')` - Key doesn't exist
-- `CortexError('UPDATE_FAILED')` - Updater function threw error
-- `CortexError('CONVEX_ERROR')` - Database error
+- `MemoirError('KEY_NOT_FOUND')` - Key doesn't exist
+- `MemoirError('UPDATE_FAILED')` - Updater function threw error
+- `MemoirError('CONVEX_ERROR')` - Database error
 
 ---
 
@@ -262,7 +262,7 @@ Atomically increment a numeric value (convenience helper).
 **Signature:**
 
 ```typescript
-cortex.mutable.increment(
+memoir.mutable.increment(
   namespace: string,
   key: string,
   amount?: number
@@ -287,15 +287,15 @@ cortex.mutable.increment(
 
 ```typescript
 // Initialize counter
-await cortex.mutable.set("counters", "page-views", 0);
+await memoir.mutable.set("counters", "page-views", 0);
 
 // Increment by 1 (default)
-await cortex.mutable.increment("counters", "page-views");
+await memoir.mutable.increment("counters", "page-views");
 
 // Increment by custom amount
-await cortex.mutable.increment("counters", "page-views", 10);
+await memoir.mutable.increment("counters", "page-views", 10);
 
-const views = await cortex.mutable.get("counters", "page-views");
+const views = await memoir.mutable.get("counters", "page-views");
 console.log(`Total views: ${views}`); // 11
 ```
 
@@ -314,7 +314,7 @@ Atomically decrement a numeric value (convenience helper).
 **Signature:**
 
 ```typescript
-cortex.mutable.decrement(
+memoir.mutable.decrement(
   namespace: string,
   key: string,
   amount?: number
@@ -339,12 +339,12 @@ cortex.mutable.decrement(
 
 ```typescript
 // Initialize inventory
-await cortex.mutable.set("inventory", "widget-qty", 100);
+await memoir.mutable.set("inventory", "widget-qty", 100);
 
 // Customer order (decrement)
-await cortex.mutable.decrement("inventory", "widget-qty", 5);
+await memoir.mutable.decrement("inventory", "widget-qty", 5);
 
-const remaining = await cortex.mutable.get("inventory", "widget-qty");
+const remaining = await memoir.mutable.get("inventory", "widget-qty");
 console.log(`Remaining: ${remaining}`); // 95
 ```
 
@@ -357,7 +357,7 @@ Get full record with metadata (not just the value).
 **Signature:**
 
 ```typescript
-cortex.mutable.getRecord(
+memoir.mutable.getRecord(
   namespace: string,
   key: string
 ): Promise<MutableRecord | null>
@@ -382,11 +382,11 @@ interface MutableRecord {
 
 ```typescript
 // get() returns value only
-const value = await cortex.mutable.get("config", "timeout");
+const value = await memoir.mutable.get("config", "timeout");
 console.log(value); // 30
 
 // getRecord() returns full record with metadata
-const record = await cortex.mutable.getRecord("config", "timeout");
+const record = await memoir.mutable.getRecord("config", "timeout");
 console.log(record.value); // 30
 console.log(record.createdAt); // 1729987200000
 console.log(record.updatedAt); // 1729987200000
@@ -403,7 +403,7 @@ Delete a key.
 **Signature:**
 
 ```typescript
-cortex.mutable.delete(
+memoir.mutable.delete(
   namespace: string,
   key: string,
   options?: DeleteMutableOptions
@@ -416,7 +416,7 @@ cortex.mutable.delete(
   parameters={[
     { name: "namespace", type: "string", required: true, description: "Namespace" },
     { name: "key", type: "string", required: true, description: "Key" },
-    { name: "options", type: "DeleteMutableOptions", required: false, description: "Additional options (graph cleanup is automatic when CORTEX_GRAPH_SYNC=true)" },
+    { name: "options", type: "DeleteMutableOptions", required: false, description: "Additional options (graph cleanup is automatic when MEMOIR_GRAPH_SYNC=true)" },
   ]}
 />
 
@@ -434,12 +434,12 @@ interface DeleteResult {
 
 ```typescript
 // Remove product from inventory
-const result = await cortex.mutable.delete("inventory", "discontinued-widget");
+const result = await memoir.mutable.delete("inventory", "discontinued-widget");
 
 console.log(`Deleted: ${result.deleted}`);
 
-// Graph cleanup is automatic when CORTEX_GRAPH_SYNC=true
-await cortex.mutable.delete("inventory", "old-item");
+// Graph cleanup is automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.mutable.delete("inventory", "old-item");
 ```
 
 ---
@@ -451,7 +451,7 @@ Execute multiple operations atomically.
 **Signature:**
 
 ```typescript
-cortex.mutable.transaction(
+memoir.mutable.transaction(
   operations: TransactionOperation[]
 ): Promise<TransactionResult>
 ```
@@ -482,7 +482,7 @@ interface TransactionResult {
 
 ```typescript
 // Record sale and update inventory (atomic)
-await cortex.mutable.transaction([
+await memoir.mutable.transaction([
   { op: "decrement", namespace: "inventory", key: "widget-qty", amount: 1 },
   { op: "increment", namespace: "counters", key: "total-sales", amount: 1 },
   { op: "set", namespace: "state", key: "last-sale", value: Date.now() },
@@ -490,13 +490,13 @@ await cortex.mutable.transaction([
 // All operations succeed together or fail together (ACID)
 
 // Multi-item inventory transfer
-await cortex.mutable.transaction([
+await memoir.mutable.transaction([
   { op: "decrement", namespace: "inventory", key: "product-a", amount: 10 },
   { op: "increment", namespace: "inventory", key: "product-b", amount: 10 },
 ]);
 
 // Complex state update
-const result = await cortex.mutable.transaction([
+const result = await memoir.mutable.transaction([
   { op: "set", namespace: "config", key: "api-version", value: "v2" },
   { op: "delete", namespace: "cache", key: "old-api-data" },
   { op: "increment", namespace: "counters", key: "config-changes" },
@@ -508,7 +508,7 @@ console.log(result.operationsExecuted); // 3
 
 **Errors:**
 
-- `CortexError('TRANSACTION_FAILED')` - Transaction rolled back
+- `MemoirError('TRANSACTION_FAILED')` - Transaction rolled back
 - Key must exist for `update`, `increment`, `decrement`, and `delete` operations
 
 ---
@@ -522,7 +522,7 @@ List keys in a namespace with filtering, sorting, and pagination.
 **Signature:**
 
 ```typescript
-cortex.mutable.list(
+memoir.mutable.list(
   filter: ListMutableFilter
 ): Promise<MutableRecord[]>
 ```
@@ -548,7 +548,7 @@ cortex.mutable.list(
 
 ```typescript
 // List all inventory items
-const items = await cortex.mutable.list({
+const items = await memoir.mutable.list({
   namespace: "inventory",
   limit: 100,
 });
@@ -558,7 +558,7 @@ items.forEach((item) => {
 });
 
 // List specific prefix with sorting
-const widgets = await cortex.mutable.list({
+const widgets = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "widget-",
   sortBy: "updatedAt",
@@ -566,7 +566,7 @@ const widgets = await cortex.mutable.list({
 });
 
 // List items updated in the last 24 hours
-const recentItems = await cortex.mutable.list({
+const recentItems = await memoir.mutable.list({
   namespace: "inventory",
   updatedAfter: Date.now() - 24 * 60 * 60 * 1000,
   sortBy: "updatedAt",
@@ -574,7 +574,7 @@ const recentItems = await cortex.mutable.list({
 });
 
 // Pagination example
-const page2 = await cortex.mutable.list({
+const page2 = await memoir.mutable.list({
   namespace: "inventory",
   limit: 20,
   offset: 20, // Skip first 20 items
@@ -590,7 +590,7 @@ Count keys in namespace with optional filters.
 **Signature:**
 
 ```typescript
-cortex.mutable.count(
+memoir.mutable.count(
   filter: CountMutableFilter
 ): Promise<number>
 ```
@@ -612,28 +612,28 @@ cortex.mutable.count(
 
 ```typescript
 // Total inventory items
-const total = await cortex.mutable.count({ namespace: "inventory" });
+const total = await memoir.mutable.count({ namespace: "inventory" });
 
 // Count items with prefix
-const widgetCount = await cortex.mutable.count({
+const widgetCount = await memoir.mutable.count({
   namespace: "inventory",
   keyPrefix: "widget-",
 });
 
 // Count user-specific items
-const userCount = await cortex.mutable.count({
+const userCount = await memoir.mutable.count({
   namespace: "user-sessions",
   userId: "user-123",
 });
 
 // Count items updated in the last 24 hours
-const recentCount = await cortex.mutable.count({
+const recentCount = await memoir.mutable.count({
   namespace: "inventory",
   updatedAfter: Date.now() - 24 * 60 * 60 * 1000,
 });
 
 // Count items not updated in the last week (stale items)
-const staleCount = await cortex.mutable.count({
+const staleCount = await memoir.mutable.count({
   namespace: "cache",
   updatedBefore: Date.now() - 7 * 24 * 60 * 60 * 1000,
 });
@@ -648,7 +648,7 @@ Check if key exists.
 **Signature:**
 
 ```typescript
-cortex.mutable.exists(
+memoir.mutable.exists(
   namespace: string,
   key: string
 ): Promise<boolean>
@@ -657,11 +657,11 @@ cortex.mutable.exists(
 **Example:**
 
 ```typescript
-if (await cortex.mutable.exists("inventory", "widget-qty")) {
-  const qty = await cortex.mutable.get("inventory", "widget-qty");
+if (await memoir.mutable.exists("inventory", "widget-qty")) {
+  const qty = await memoir.mutable.get("inventory", "widget-qty");
 } else {
   // Initialize
-  await cortex.mutable.set("inventory", "widget-qty", 100);
+  await memoir.mutable.set("inventory", "widget-qty", 100);
 }
 ```
 
@@ -674,33 +674,33 @@ if (await cortex.mutable.exists("inventory", "widget-qty")) {
 **inventory** - Product quantities
 
 ```typescript
-await cortex.mutable.set("inventory", "product-x", 150);
-await cortex.mutable.update("inventory", "product-x", (qty) => qty - 1);
+await memoir.mutable.set("inventory", "product-x", 150);
+await memoir.mutable.update("inventory", "product-x", (qty) => qty - 1);
 ```
 
 **config** - Live configuration
 
 ```typescript
-await cortex.mutable.set(
+await memoir.mutable.set(
   "config",
   "api-endpoint",
   "https://api.example.com/v2",
 );
-await cortex.mutable.set("config", "max-retries", 3);
+await memoir.mutable.set("config", "max-retries", 3);
 ```
 
 **counters** - Shared counters/metrics
 
 ```typescript
-await cortex.mutable.update("counters", "total-requests", (n) => (n || 0) + 1);
-await cortex.mutable.update("counters", "active-users", (n) => n + 1);
+await memoir.mutable.update("counters", "total-requests", (n) => (n || 0) + 1);
+await memoir.mutable.update("counters", "active-users", (n) => n + 1);
 ```
 
 **docs** - Live documentation references
 
 ```typescript
-await cortex.mutable.set("docs", "api-version", "v2.1.0");
-await cortex.mutable.set(
+await memoir.mutable.set("docs", "api-version", "v2.1.0");
+await memoir.mutable.set(
   "docs",
   "changelog-url",
   "https://docs.example.com/changelog",
@@ -710,8 +710,8 @@ await cortex.mutable.set(
 **state** - Agent collaboration state
 
 ```typescript
-await cortex.mutable.set("state", "active-campaign-id", "camp-2025-q4");
-await cortex.mutable.update("state", "agents-available", (list) => [
+await memoir.mutable.set("state", "active-campaign-id", "camp-2025-q4");
+await memoir.mutable.update("state", "agents-available", (list) => [
   ...list,
   "agent-5",
 ]);
@@ -727,7 +727,7 @@ The Mutable Store supports **any JSON-serializable value**, not just primitives.
 
 ```typescript
 // Store complex configuration object
-await cortex.mutable.set("config", "email-settings", {
+await memoir.mutable.set("config", "email-settings", {
   smtp: {
     host: "smtp.example.com",
     port: 587,
@@ -741,7 +741,7 @@ await cortex.mutable.set("config", "email-settings", {
 });
 
 // Retrieve and use
-const emailConfig = await cortex.mutable.get("config", "email-settings");
+const emailConfig = await memoir.mutable.get("config", "email-settings");
 sendEmail(emailConfig.smtp, emailConfig.from);
 ```
 
@@ -749,14 +749,14 @@ sendEmail(emailConfig.smtp, emailConfig.from);
 
 ```typescript
 // Store product catalog
-await cortex.mutable.set("inventory", "featured-products", [
+await memoir.mutable.set("inventory", "featured-products", [
   { id: "prod-1", name: "Widget A", price: 19.99, stock: 150 },
   { id: "prod-2", name: "Widget B", price: 29.99, stock: 75 },
   { id: "prod-3", name: "Widget C", price: 39.99, stock: 200 },
 ]);
 
 // Atomically update array
-await cortex.mutable.update("inventory", "featured-products", (products) => {
+await memoir.mutable.update("inventory", "featured-products", (products) => {
   return products.map((p) =>
     p.id === "prod-1" ? { ...p, stock: p.stock - 1 } : p,
   );
@@ -767,7 +767,7 @@ await cortex.mutable.update("inventory", "featured-products", (products) => {
 
 ```typescript
 // Store complete store configuration
-await cortex.mutable.set("stores", "store-15", {
+await memoir.mutable.set("stores", "store-15", {
   id: "store-15",
   name: "Downtown Location",
   address: {
@@ -798,7 +798,7 @@ await cortex.mutable.set("stores", "store-15", {
 
 ```typescript
 // Good: Reasonable size (< 100KB recommended)
-await cortex.mutable.set("config", "app-settings", {
+await memoir.mutable.set("config", "app-settings", {
   theme: "dark",
   language: "en",
   notifications: true,
@@ -806,22 +806,22 @@ await cortex.mutable.set("config", "app-settings", {
 });
 
 // Caution: Very large objects (> 1MB)
-await cortex.mutable.set("cache", "entire-product-catalog", {
+await memoir.mutable.set("cache", "entire-product-catalog", {
   // Thousands of products...
   // Consider breaking into multiple keys instead
 });
 
 // Better: Split large datasets
-await cortex.mutable.set("catalog", "page-1", products.slice(0, 100));
-await cortex.mutable.set("catalog", "page-2", products.slice(100, 200));
-await cortex.mutable.set("catalog", "page-3", products.slice(200, 300));
+await memoir.mutable.set("catalog", "page-1", products.slice(0, 100));
+await memoir.mutable.set("catalog", "page-2", products.slice(100, 200));
+await memoir.mutable.set("catalog", "page-3", products.slice(200, 300));
 ```
 
 ---
 
 ## Hierarchical Data Patterns
 
-For hierarchical/relational data like "Produce" → "Inventory" → "Grocery Store 15" → "Grocery Stores", Cortex provides several patterns:
+For hierarchical/relational data like "Produce" → "Inventory" → "Grocery Store 15" → "Grocery Stores", Memoir provides several patterns:
 
 ### Pattern 1: Hierarchical Keys (Recommended for Queries)
 
@@ -829,7 +829,7 @@ Use delimiters in keys to create hierarchies:
 
 ```typescript
 // Pattern: namespace:key-with:delimiters
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores",
   "store-15:inventory:produce:apples",
   {
@@ -840,7 +840,7 @@ await cortex.mutable.set(
   },
 );
 
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores",
   "store-15:inventory:produce:bananas",
   {
@@ -851,7 +851,7 @@ await cortex.mutable.set(
   },
 );
 
-await cortex.mutable.set("grocery-stores", "store-15:inventory:dairy:milk", {
+await memoir.mutable.set("grocery-stores", "store-15:inventory:dairy:milk", {
   quantity: 50,
   unit: "gallons",
   price: 4.99,
@@ -859,13 +859,13 @@ await cortex.mutable.set("grocery-stores", "store-15:inventory:dairy:milk", {
 });
 
 // Query all produce for store 15
-const produce = await cortex.mutable.list({
+const produce = await memoir.mutable.list({
   namespace: "grocery-stores",
   keyPrefix: "store-15:inventory:produce:",
 });
 
 // Query all inventory for store 15
-const allInventory = await cortex.mutable.list({
+const allInventory = await memoir.mutable.list({
   namespace: "grocery-stores",
   keyPrefix: "store-15:inventory:",
 });
@@ -884,7 +884,7 @@ Use delimiters in namespaces for organizational hierarchy:
 
 ```typescript
 // Pattern: hierarchical:namespace with flat keys
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores:store-15:inventory",
   "produce-apples",
   {
@@ -893,7 +893,7 @@ await cortex.mutable.set(
   },
 );
 
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores:store-15:inventory",
   "produce-bananas",
   {
@@ -902,22 +902,22 @@ await cortex.mutable.set(
   },
 );
 
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores:store-15:metrics",
   "daily-revenue",
   12500,
 );
-await cortex.mutable.set(
+await memoir.mutable.set(
   "grocery-stores:store-15:metrics",
   "customer-count",
   450,
 );
 
 // Query entire namespace
-const storeInventory = await cortex.mutable.list({
+const storeInventory = await memoir.mutable.list({
   namespace: "grocery-stores:store-15:inventory",
 });
-const storeMetrics = await cortex.mutable.list({
+const storeMetrics = await memoir.mutable.list({
   namespace: "grocery-stores:store-15:metrics",
 });
 ```
@@ -934,7 +934,7 @@ Store hierarchy as nested object in value:
 
 ```typescript
 // Store entire store hierarchy in one key
-await cortex.mutable.set("grocery-stores", "store-15", {
+await memoir.mutable.set("grocery-stores", "store-15", {
   id: "store-15",
   name: "Downtown Location",
   inventory: {
@@ -960,7 +960,7 @@ await cortex.mutable.set("grocery-stores", "store-15", {
 });
 
 // Update specific nested value atomically
-await cortex.mutable.update("grocery-stores", "store-15", (store) => ({
+await memoir.mutable.update("grocery-stores", "store-15", (store) => ({
   ...store,
   inventory: {
     ...store.inventory,
@@ -981,7 +981,7 @@ async function updateNestedInventory(
   item: string,
   updates: Partial<any>,
 ) {
-  await cortex.mutable.update("grocery-stores", storeId, (store) => ({
+  await memoir.mutable.update("grocery-stores", storeId, (store) => ({
     ...store,
     inventory: {
       ...store.inventory,
@@ -1018,7 +1018,7 @@ Combine approaches for optimal performance:
 
 ```typescript
 // Store metadata in nested object
-await cortex.mutable.set("grocery-stores", "store-15-meta", {
+await memoir.mutable.set("grocery-stores", "store-15-meta", {
   id: "store-15",
   name: "Downtown Location",
   address: { street: "123 Main St", city: "Springfield" },
@@ -1026,20 +1026,20 @@ await cortex.mutable.set("grocery-stores", "store-15-meta", {
 });
 
 // Store inventory items individually with hierarchical keys
-await cortex.mutable.set("inventory", "store-15:produce:apples", {
+await memoir.mutable.set("inventory", "store-15:produce:apples", {
   quantity: 150,
   price: 2.99,
   unit: "lbs",
 });
 
-await cortex.mutable.set("inventory", "store-15:produce:bananas", {
+await memoir.mutable.set("inventory", "store-15:produce:bananas", {
   quantity: 200,
   price: 1.49,
   unit: "lbs",
 });
 
 // Store aggregated metrics separately
-await cortex.mutable.set("metrics", "store-15-daily", {
+await memoir.mutable.set("metrics", "store-15-daily", {
   revenue: 12500,
   customers: 450,
   date: new Date().toISOString(),
@@ -1067,7 +1067,7 @@ function buildKey(...parts: string[]): string {
 
 // Example usage
 const key = buildKey("store-15", "inventory", "produce", "apples");
-await cortex.mutable.set("grocery-stores", key, { quantity: 150 });
+await memoir.mutable.set("grocery-stores", key, { quantity: 150 });
 
 const parts = parseKey(key); // ["store-15", "inventory", "produce", "apples"]
 console.log(`Store: ${parts[0]}, Department: ${parts[2]}, Item: ${parts[3]}`);
@@ -1075,7 +1075,7 @@ console.log(`Store: ${parts[0]}, Department: ${parts[2]}, Item: ${parts[3]}`);
 // Query helpers
 async function listByPrefix(namespace: string, ...prefixParts: string[]) {
   const prefix = buildKey(...prefixParts);
-  return await cortex.mutable.list({
+  return await memoir.mutable.list({
     namespace,
     keyPrefix: prefix,
   });
@@ -1124,7 +1124,7 @@ Here's a comprehensive example using the **Hybrid pattern** for a multi-store in
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Store chain metadata (nested object - small, related data)
-await cortex.mutable.set("chain", "metadata", {
+await memoir.mutable.set("chain", "metadata", {
   name: "Fresh Foods Chain",
   totalStores: 25,
   headquarters: "Springfield, IL",
@@ -1132,7 +1132,7 @@ await cortex.mutable.set("chain", "metadata", {
 });
 
 // Store individual store configs (nested object per store)
-await cortex.mutable.set("stores", "store-15", {
+await memoir.mutable.set("stores", "store-15", {
   id: "store-15",
   name: "Downtown Location",
   address: "123 Main St, Springfield",
@@ -1146,7 +1146,7 @@ await cortex.mutable.set("stores", "store-15", {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Set initial inventory (hierarchical keys: store:dept:item)
-await cortex.mutable.set("inventory", "store-15:produce:apples", {
+await memoir.mutable.set("inventory", "store-15:produce:apples", {
   quantity: 150,
   unit: "lbs",
   price: 2.99,
@@ -1154,14 +1154,14 @@ await cortex.mutable.set("inventory", "store-15:produce:apples", {
   lastRestocked: new Date(),
 });
 
-await cortex.mutable.set("inventory", "store-15:produce:bananas", {
+await memoir.mutable.set("inventory", "store-15:produce:bananas", {
   quantity: 200,
   unit: "lbs",
   price: 1.49,
   supplier: "Tropical Import",
 });
 
-await cortex.mutable.set("inventory", "store-15:dairy:milk", {
+await memoir.mutable.set("inventory", "store-15:dairy:milk", {
   quantity: 50,
   unit: "gallons",
   price: 4.99,
@@ -1173,7 +1173,7 @@ await cortex.mutable.set("inventory", "store-15:dairy:milk", {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Customer buys 10 lbs of apples
-await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => {
+await memoir.mutable.update("inventory", "store-15:produce:apples", (item) => {
   if (item.quantity < 10) {
     throw new Error("Insufficient stock");
   }
@@ -1185,7 +1185,7 @@ await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => {
 
 // Multi-item purchase (ACID transaction with decrement operations)
 // Note: transaction() uses array-based operations, not callback functions
-await cortex.mutable.transaction([
+await memoir.mutable.transaction([
   // Buy apples, bananas, and milk (using decrement)
   {
     op: "decrement",
@@ -1220,7 +1220,7 @@ await cortex.mutable.transaction([
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Get all produce for store 15
-const produce = await cortex.mutable.list({
+const produce = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "store-15:produce:",
 });
@@ -1233,13 +1233,13 @@ produce.forEach((item) => {
 });
 
 // Get ALL inventory for store 15
-const allInventory = await cortex.mutable.list({
+const allInventory = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "store-15:",
 });
 
 // Get specific item across all stores
-const allApples = await cortex.mutable.list({
+const allApples = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "store-", // Gets all stores
 });
@@ -1251,14 +1251,14 @@ const applesOnly = allApples.filter((r) => r.key.endsWith(":apples"));
 
 // Get total inventory across all stores
 async function getChainwideInventory(department?: string) {
-  const allStores = await cortex.mutable.get("chain", "metadata");
+  const allStores = await memoir.mutable.get("chain", "metadata");
 
   const inventory: Record<string, number> = {};
 
   for (const storeId of allStores.storeIds) {
     const prefix = department ? `${storeId}:${department}:` : `${storeId}:`;
 
-    const items = await cortex.mutable.list({
+    const items = await memoir.mutable.list({
       namespace: "inventory",
       keyPrefix: prefix,
     });
@@ -1297,7 +1297,7 @@ async function restockDepartment(
   }));
 
   // Execute all increments atomically
-  await cortex.mutable.transaction(operations);
+  await memoir.mutable.transaction(operations);
 }
 
 await restockDepartment("store-15", "produce", {
@@ -1311,7 +1311,7 @@ await restockDepartment("store-15", "produce", {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function checkLowStock(storeId: string, threshold: number = 20) {
-  const inventory = await cortex.mutable.list({
+  const inventory = await memoir.mutable.list({
     namespace: "inventory",
     keyPrefix: `${storeId}:`,
   });
@@ -1367,12 +1367,12 @@ await checkLowStock("store-15", 25);
 
 ```typescript
 // Avoid: Race condition
-const current = await cortex.mutable.get("inventory", "widget-qty");
-await cortex.mutable.set("inventory", "widget-qty", current - 1);
+const current = await memoir.mutable.get("inventory", "widget-qty");
+await memoir.mutable.set("inventory", "widget-qty", current - 1);
 // Another agent could modify between get and set!
 
 // Recommended: Atomic update
-await cortex.mutable.update("inventory", "widget-qty", (qty) => qty - 1);
+await memoir.mutable.update("inventory", "widget-qty", (qty) => qty - 1);
 // ACID guarantees no race condition
 ```
 
@@ -1385,9 +1385,9 @@ async function getOrInitialize(
   key: string,
   defaultValue: any,
 ) {
-  const value = await cortex.mutable.get(namespace, key);
+  const value = await memoir.mutable.get(namespace, key);
   if (value === null) {
-    await cortex.mutable.set(namespace, key, defaultValue);
+    await memoir.mutable.set(namespace, key, defaultValue);
     return defaultValue;
   }
   return value;
@@ -1400,15 +1400,15 @@ const qty = await getOrInitialize("inventory", "new-product", 0);
 
 ```typescript
 // Recommended: Atomic multi-key update (array-based API)
-await cortex.mutable.transaction([
+await memoir.mutable.transaction([
   { op: "decrement", namespace: "inventory", key: "product-a", amount: 1 },
   { op: "increment", namespace: "counters", key: "total-sales", amount: 1 },
 ]);
 // Both or neither - ACID guarantees
 
 // Avoid: Non-atomic (could fail partway)
-await cortex.mutable.decrement("inventory", "product-a", 1);
-await cortex.mutable.increment("counters", "total-sales", 1);
+await memoir.mutable.decrement("inventory", "product-a", 1);
+await memoir.mutable.increment("counters", "total-sales", 1);
 // Second could fail, leaving inconsistent state
 ```
 
@@ -1418,7 +1418,7 @@ await cortex.mutable.increment("counters", "total-sales", 1);
 
 ```typescript
 // Related data that changes together
-await cortex.mutable.set("stores", "store-15", {
+await memoir.mutable.set("stores", "store-15", {
   name: "Downtown",
   manager: "Alice",
   address: { street: "123 Main", city: "Springfield" },
@@ -1426,14 +1426,14 @@ await cortex.mutable.set("stores", "store-15", {
 });
 
 // Small datasets (< 100 items)
-await cortex.mutable.set("config", "app-settings", {
+await memoir.mutable.set("config", "app-settings", {
   theme: "dark",
   language: "en",
   features: { chat: true, voice: false },
 });
 
 // Configuration that's read together
-await cortex.mutable.set("email", "settings", {
+await memoir.mutable.set("email", "settings", {
   smtp: { host: "...", port: 587 },
   templates: { welcome: "...", reset: "..." },
 });
@@ -1443,22 +1443,22 @@ await cortex.mutable.set("email", "settings", {
 
 ```typescript
 // Large datasets (> 100 items)
-await cortex.mutable.set("inventory", "store-15:produce:apples", {...});
-await cortex.mutable.set("inventory", "store-15:produce:bananas", {...});
+await memoir.mutable.set("inventory", "store-15:produce:apples", {...});
+await memoir.mutable.set("inventory", "store-15:produce:bananas", {...});
 // Can have thousands of products
 
 // Need prefix queries
-const produce = await cortex.mutable.list({
+const produce = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "store-15:produce:",
 });
 
 // Independent updates (no related data)
-await cortex.mutable.update("inventory", "store-15:dairy:milk", ...);
+await memoir.mutable.update("inventory", "store-15:dairy:milk", ...);
 // Doesn't affect produce or other items
 
 // Different access patterns
-const apples = await cortex.mutable.get("inventory", "store-15:produce:apples");
+const apples = await memoir.mutable.get("inventory", "store-15:produce:apples");
 // Fast direct access to single item
 ```
 
@@ -1518,7 +1518,7 @@ async function setInventoryItem(
   data: InventoryItem,
 ): Promise<void> {
   const key = `${storeId}:${department}:${item}`;
-  await cortex.mutable.set("inventory", key, data);
+  await memoir.mutable.set("inventory", key, data);
 }
 
 async function getInventoryItem(
@@ -1527,7 +1527,7 @@ async function getInventoryItem(
   item: string,
 ): Promise<InventoryItem | null> {
   const key = `${storeId}:${department}:${item}`;
-  return await cortex.mutable.get("inventory", key);
+  return await memoir.mutable.get("inventory", key);
 }
 
 // Usage is type-safe
@@ -1555,14 +1555,14 @@ Mutable data CAN be referenced by Vector memories (as snapshots):
 
 ```typescript
 // 1. Store mutable data
-await cortex.mutable.set(
+await memoir.mutable.set(
   "config",
   "api-endpoint",
   "https://api.example.com/v2",
 );
 
 // 2. Create Vector memory referencing it (snapshot)
-await cortex.vector.store("config-agent", {
+await memoir.vector.store("config-agent", {
   content: "API endpoint changed to v2",
   contentType: "raw",
   source: { type: "system", timestamp: new Date() },
@@ -1579,7 +1579,7 @@ await cortex.vector.store("config-agent", {
 });
 
 // 3. Later, mutable value changes
-await cortex.mutable.set(
+await memoir.mutable.set(
   "config",
   "api-endpoint",
   "https://api.example.com/v3",
@@ -1602,7 +1602,7 @@ Delete a single key. Alias for `delete()` for API consistency.
 **Signature:**
 
 ```typescript
-cortex.mutable.purge(
+memoir.mutable.purge(
   namespace: string,
   key: string
 ): Promise<PurgeResult>
@@ -1621,7 +1621,7 @@ interface PurgeResult {
 **Example:**
 
 ```typescript
-const result = await cortex.mutable.purge("inventory", "discontinued-product");
+const result = await memoir.mutable.purge("inventory", "discontinued-product");
 console.log(`Deleted: ${result.deleted}`);
 ```
 
@@ -1634,7 +1634,7 @@ Delete entire namespace with optional dry-run mode.
 **Signature:**
 
 ```typescript
-cortex.mutable.purgeNamespace(
+memoir.mutable.purgeNamespace(
   namespace: string,
   options?: PurgeNamespaceOptions
 ): Promise<PurgeNamespaceResult>
@@ -1665,7 +1665,7 @@ interface PurgeNamespaceResult {
 
 ```typescript
 // Preview what would be deleted (dryRun mode)
-const preview = await cortex.mutable.purgeNamespace("test-data", {
+const preview = await memoir.mutable.purgeNamespace("test-data", {
   dryRun: true,
 });
 console.log(
@@ -1673,7 +1673,7 @@ console.log(
 );
 
 // Actually delete
-const result = await cortex.mutable.purgeNamespace("test-data");
+const result = await memoir.mutable.purgeNamespace("test-data");
 console.log(`Deleted ${result.deleted} keys from ${result.namespace}`);
 ```
 
@@ -1686,7 +1686,7 @@ Delete keys matching filters with date-based cleanup support.
 **Signature:**
 
 ```typescript
-cortex.mutable.purgeMany(
+memoir.mutable.purgeMany(
   filter: PurgeManyFilter
 ): Promise<PurgeManyResult>
 ```
@@ -1717,26 +1717,26 @@ interface PurgeManyResult {
 
 ```typescript
 // Delete keys with prefix
-const result = await cortex.mutable.purgeMany({
+const result = await memoir.mutable.purgeMany({
   namespace: "cache",
   keyPrefix: "temp-",
 });
 console.log(`Deleted ${result.deleted} keys: ${result.keys.join(", ")}`);
 
 // Delete all keys for a specific user
-await cortex.mutable.purgeMany({
+await memoir.mutable.purgeMany({
   namespace: "user-sessions",
   userId: "user-123",
 });
 
 // Delete old keys (not updated in 30 days)
-await cortex.mutable.purgeMany({
+await memoir.mutable.purgeMany({
   namespace: "cache",
   updatedBefore: Date.now() - 30 * 24 * 60 * 60 * 1000,
 });
 
 // Combine filters: delete old cache entries for a user
-await cortex.mutable.purgeMany({
+await memoir.mutable.purgeMany({
   namespace: "user-cache",
   userId: "user-123",
   updatedBefore: Date.now() - 14 * 24 * 60 * 60 * 1000,
@@ -1751,7 +1751,7 @@ await cortex.mutable.purgeMany({
 
 ```typescript
 // Initialize inventory with complex objects and hierarchical keys
-await cortex.mutable.set("inventory", "store-15:produce:apples", {
+await memoir.mutable.set("inventory", "store-15:produce:apples", {
   quantity: 150,
   unit: "lbs",
   price: 2.99,
@@ -1762,7 +1762,7 @@ await cortex.mutable.set("inventory", "store-15:produce:apples", {
 });
 
 // Customer orders 10 lbs (atomic decrement with complex object)
-await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => {
+await memoir.mutable.update("inventory", "store-15:produce:apples", (item) => {
   if (item.quantity < 10) throw new Error("Out of stock");
 
   return {
@@ -1773,11 +1773,11 @@ await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => {
 });
 
 // Check availability with full details
-const apples = await cortex.mutable.get("inventory", "store-15:produce:apples");
+const apples = await memoir.mutable.get("inventory", "store-15:produce:apples");
 console.log(`${apples.quantity} ${apples.unit} available at $${apples.price}`);
 
 // Restock (atomic increment + update metadata)
-await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => ({
+await memoir.mutable.update("inventory", "store-15:produce:apples", (item) => ({
   ...item,
   quantity: item.quantity + 50,
   lastRestocked: new Date(),
@@ -1785,7 +1785,7 @@ await cortex.mutable.update("inventory", "store-15:produce:apples", (item) => ({
 }));
 
 // Query all produce for this store
-const allProduce = await cortex.mutable.list({
+const allProduce = await memoir.mutable.list({
   namespace: "inventory",
   keyPrefix: "store-15:produce:",
 });
@@ -1797,7 +1797,7 @@ console.log(`Store 15 has ${allProduce.length} produce items`);
 
 ```typescript
 // Set application configuration as nested object
-await cortex.mutable.set("config", "app-settings", {
+await memoir.mutable.set("config", "app-settings", {
   api: {
     endpoint: "https://api.example.com/v1",
     timeout: 30000,
@@ -1827,7 +1827,7 @@ await cortex.mutable.set("config", "app-settings", {
 });
 
 // Agents check config (type-safe access)
-const config = await cortex.mutable.get("config", "app-settings");
+const config = await memoir.mutable.get("config", "app-settings");
 if (
   config.features.enableChat &&
   activeChats < config.features.maxConcurrentChats
@@ -1836,7 +1836,7 @@ if (
 }
 
 // Update specific nested value (atomic)
-await cortex.mutable.update("config", "app-settings", (cfg) => ({
+await memoir.mutable.update("config", "app-settings", (cfg) => ({
   ...cfg,
   features: {
     ...cfg.features,
@@ -1845,7 +1845,7 @@ await cortex.mutable.update("config", "app-settings", (cfg) => ({
 }));
 
 // Or update API endpoint
-await cortex.mutable.update("config", "app-settings", (cfg) => ({
+await memoir.mutable.update("config", "app-settings", (cfg) => ({
   ...cfg,
   api: {
     ...cfg.api,
@@ -1859,22 +1859,22 @@ await cortex.mutable.update("config", "app-settings", (cfg) => ({
 
 ```typescript
 // Initialize counters
-await cortex.mutable.set("counters", "total-requests", 0);
-await cortex.mutable.set("counters", "successful-requests", 0);
-await cortex.mutable.set("counters", "failed-requests", 0);
+await memoir.mutable.set("counters", "total-requests", 0);
+await memoir.mutable.set("counters", "successful-requests", 0);
+await memoir.mutable.set("counters", "failed-requests", 0);
 
 // Each agent increments (atomic)
-await cortex.mutable.update("counters", "total-requests", (n) => n + 1);
+await memoir.mutable.update("counters", "total-requests", (n) => n + 1);
 
 if (requestSucceeded) {
-  await cortex.mutable.update("counters", "successful-requests", (n) => n + 1);
+  await memoir.mutable.update("counters", "successful-requests", (n) => n + 1);
 } else {
-  await cortex.mutable.update("counters", "failed-requests", (n) => n + 1);
+  await memoir.mutable.update("counters", "failed-requests", (n) => n + 1);
 }
 
 // Get stats
-const total = await cortex.mutable.get("counters", "total-requests");
-const success = await cortex.mutable.get("counters", "successful-requests");
+const total = await memoir.mutable.get("counters", "total-requests");
+const success = await memoir.mutable.get("counters", "successful-requests");
 console.log(`Success rate: ${((success / total) * 100).toFixed(1)}%`);
 ```
 
@@ -1882,7 +1882,7 @@ console.log(`Success rate: ${((success / total) * 100).toFixed(1)}%`);
 
 ```typescript
 // Track active workflow with complex state
-await cortex.mutable.set("workflows", "refund-request-12345", {
+await memoir.mutable.set("workflows", "refund-request-12345", {
   id: "refund-request-12345",
   type: "refund",
   status: "in-progress",
@@ -1919,7 +1919,7 @@ await cortex.mutable.set("workflows", "refund-request-12345", {
 });
 
 // Manager approves (atomic state transition)
-await cortex.mutable.update(
+await memoir.mutable.update(
   "workflows",
   "refund-request-12345",
   (workflow) => ({
@@ -1950,7 +1950,7 @@ await cortex.mutable.update(
 );
 
 // Finance agent processes payment
-await cortex.mutable.update("workflows", "refund-request-12345", (workflow) => {
+await memoir.mutable.update("workflows", "refund-request-12345", (workflow) => {
   if (workflow.status !== "approved") {
     throw new Error("Workflow not approved");
   }
@@ -1981,7 +1981,7 @@ await cortex.mutable.update("workflows", "refund-request-12345", (workflow) => {
 ```typescript
 // Mutable store is designed for high-frequency updates
 for (let i = 0; i < 1000; i++) {
-  await cortex.mutable.update("counters", "page-views", (n) => n + 1);
+  await memoir.mutable.update("counters", "page-views", (n) => n + 1);
 }
 // Fast! No versioning overhead
 ```
@@ -2002,7 +2002,7 @@ class MutableCache {
       return cached.value;
     }
 
-    const value = await cortex.mutable.get(namespace, key);
+    const value = await memoir.mutable.get(namespace, key);
     this.cache.set(cacheKey, { value, cachedAt: new Date() });
     return value;
   }
@@ -2017,13 +2017,13 @@ class MutableCache {
 
 ```typescript
 // Version 1
-await cortex.mutable.set("config", "timeout", 30);
+await memoir.mutable.set("config", "timeout", 30);
 
 // Version 2 (v1 is GONE)
-await cortex.mutable.set("config", "timeout", 60);
+await memoir.mutable.set("config", "timeout", 60);
 
 // Can't retrieve v1 - it's overwritten!
-const current = await cortex.mutable.get("config", "timeout");
+const current = await memoir.mutable.get("config", "timeout");
 console.log(current); // 60 only
 
 // If you need history, use immutable store instead!
@@ -2034,7 +2034,7 @@ console.log(current); // 60 only
 ```typescript
 // Snapshot mutable data for backups
 async function backupMutableNamespace(namespace: string) {
-  const all = await cortex.mutable.list({ namespace });
+  const all = await memoir.mutable.list({ namespace });
 
   const backup = {
     namespace,
@@ -2049,7 +2049,7 @@ async function backupMutableNamespace(namespace: string) {
   };
 
   // Store backup (could use immutable store or external storage)
-  await cortex.immutable.store({
+  await memoir.immutable.store({
     type: "mutable-backup",
     id: `${namespace}-backup-${Date.now()}`,
     data: backup,
@@ -2060,10 +2060,10 @@ async function backupMutableNamespace(namespace: string) {
 
 // Restore from backup
 async function restoreMutableNamespace(backupId: string) {
-  const backup = await cortex.immutable.get("mutable-backup", backupId);
+  const backup = await memoir.immutable.get("mutable-backup", backupId);
 
   for (const [key, value] of Object.entries(backup.data.data)) {
-    await cortex.mutable.set(backup.data.namespace, key, value);
+    await memoir.mutable.set(backup.data.namespace, key, value);
   }
 }
 ```
@@ -2088,15 +2088,15 @@ Mutable records can participate in the graph structure via userId:
 
 ```typescript
 // User → Mutable Records (via userId)
-const userSessions = await cortex.mutable.list({
+const userSessions = await memoir.mutable.list({
   namespace: 'user-sessions',
   userId: 'user-123',
 });
 
-const userPreferences = await cortex.mutable.get('user-preferences', 'user-123-prefs');
+const userPreferences = await memoir.mutable.get('user-preferences', 'user-123-prefs');
 
 // Memory → Mutable (via mutableRef - snapshot)
-await cortex.vector.store('agent-1', {
+await memoir.vector.store('agent-1', {
   content: 'Config changed to value X',
   mutableRef: {
     namespace: 'config',
@@ -2140,9 +2140,9 @@ The Mutable API exports `MutableValidationError` for client-side validation erro
 **Import:**
 
 ```typescript
-import { MutableValidationError } from "@cortex/sdk/mutable";
+import { MutableValidationError } from "@memoir/sdk/mutable";
 // or from main export:
-import { MutableValidationError } from "@cortex/sdk";
+import { MutableValidationError } from "@memoir/sdk";
 ```
 
 **Error Structure:**
@@ -2158,10 +2158,10 @@ class MutableValidationError extends Error {
 **Example:**
 
 ```typescript
-import { MutableValidationError } from "@cortex/sdk";
+import { MutableValidationError } from "@memoir/sdk";
 
 try {
-  await cortex.mutable.set("", "key", "value"); // Invalid namespace
+  await memoir.mutable.set("", "key", "value"); // Invalid namespace
 } catch (error) {
   if (error instanceof MutableValidationError) {
     console.log(`Validation failed: ${error.message}`);
@@ -2215,10 +2215,10 @@ try {
 
 **Don't use for:**
 
-- Data needing version history (use `cortex.immutable.*`)
-- Private conversations (use `cortex.conversations.*`)
-- Searchable knowledge (use `cortex.vector.*` + immutable)
-- Audit trails (use `cortex.immutable.*` for versioning)
+- Data needing version history (use `memoir.immutable.*`)
+- Private conversations (use `memoir.conversations.*`)
+- Searchable knowledge (use `memoir.vector.*` + immutable)
+- Audit trails (use `memoir.immutable.*` for versioning)
 
 ---
 
@@ -2230,7 +2230,7 @@ try {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).
 
 <QuickNav>
 

@@ -14,7 +14,7 @@
  * WARNING: These tests will create significant load on your database!
  */
 
-import { Cortex, ResiliencePresets as _ResiliencePresets } from "../src";
+import { Memoir, ResiliencePresets as _ResiliencePresets } from "../src";
 import {
   ResilienceLayer as _ResilienceLayer,
   CircuitOpenError,
@@ -49,8 +49,8 @@ const formatDuration = (ms: number) => {
   return `${(ms / 1000).toFixed(2)}s`;
 };
 
-const printMetrics = (cortex: Cortex) => {
-  const metrics = cortex.getResilienceMetrics();
+const printMetrics = (memoir: Memoir) => {
+  const metrics = memoir.getResilienceMetrics();
   console.log("\n📊 Current Metrics:");
   console.log(
     `   Rate Limiter: ${metrics.rateLimiter.tokensAvailable} tokens available`,
@@ -81,7 +81,7 @@ async function testBurstRateLimiting() {
     "Expected: First 20 succeed immediately, rest wait for refill or timeout\n",
   );
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: CONVEX_URL!,
     resilience: {
       enabled: true,
@@ -118,7 +118,7 @@ async function testBurstRateLimiting() {
     .map(async (_, i) => {
       const callStart = Date.now();
       try {
-        await cortex.memory.search(testSpaceId, `test query ${i}`);
+        await memoir.memory.search(testSpaceId, `test query ${i}`);
         results.succeeded++;
         return { status: "success", duration: Date.now() - callStart };
       } catch (error) {
@@ -150,7 +150,7 @@ async function testBurstRateLimiting() {
     `   Latency p50: ${formatDuration(p50)}, p95: ${formatDuration(p95)}, p99: ${formatDuration(p99)}`,
   );
 
-  printMetrics(cortex);
+  printMetrics(memoir);
 
   // Verify rate limiting worked
   if (results.succeeded <= 20 || results.rateLimited > 0) {
@@ -159,7 +159,7 @@ async function testBurstRateLimiting() {
     console.log("\n⚠️  Rate limiter may not be working as expected");
   }
 
-  cortex.close();
+  memoir.close();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -191,7 +191,7 @@ async function testConcurrencySaturation() {
   );
   console.log(`   - Set CONVEX_PLAN=professional for 256 concurrent\n`);
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: CONVEX_URL!,
     resilience: {
       // Use env var based preset, then override specific settings
@@ -220,7 +220,7 @@ async function testConcurrencySaturation() {
 
   // Monitor metrics during execution
   const monitorInterval = setInterval(() => {
-    const metrics = cortex.getResilienceMetrics();
+    const metrics = memoir.getResilienceMetrics();
     if (metrics.concurrency.active > maxConcurrentObserved) {
       maxConcurrentObserved = metrics.concurrency.active;
     }
@@ -239,7 +239,7 @@ async function testConcurrencySaturation() {
     .fill(null)
     .map(async (_, i) => {
       try {
-        await cortex.memory.remember({
+        await memoir.memory.remember({
           memorySpaceId: testSpaceId,
           conversationId: `stress-conv-${i}`,
           userMessage: `Stress test message ${i}`,
@@ -272,7 +272,7 @@ async function testConcurrencySaturation() {
     `   Effective throughput: ${(succeeded / (totalTime / 1000)).toFixed(1)} ops/sec`,
   );
 
-  printMetrics(cortex);
+  printMetrics(memoir);
 
   // Verify concurrency limiting worked - respects CONVEX_PLAN limit
   if (maxConcurrentObserved <= maxConcurrent) {
@@ -287,19 +287,19 @@ async function testConcurrencySaturation() {
 
   // Cleanup
   try {
-    const spaces = await cortex.memorySpaces.list();
+    const spaces = await memoir.memorySpaces.list();
     const testSpace = spaces.spaces.find(
       (s: { memorySpaceId: string }) => s.memorySpaceId === testSpaceId,
     );
     if (testSpace) {
-      await cortex.memorySpaces.delete(testSpaceId, {
+      await memoir.memorySpaces.delete(testSpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
     }
   } catch {}
 
-  cortex.close();
+  memoir.close();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -318,7 +318,7 @@ async function testCircuitBreakerTripAndRecovery() {
   let circuitOpened = false;
   let circuitClosed = false;
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: CONVEX_URL!,
     resilience: {
       enabled: true,
@@ -355,7 +355,7 @@ async function testCircuitBreakerTripAndRecovery() {
   for (let i = 0; i < 7; i++) {
     try {
       // This will fail at backend - invalid memory space format
-      await cortex.memory.search("", `query ${i}`);
+      await memoir.memory.search("", `query ${i}`);
       console.log(`   Call ${i + 1}: Succeeded (unexpected)`);
     } catch (error) {
       const isCircuitOpen = error instanceof CircuitOpenError;
@@ -363,7 +363,7 @@ async function testCircuitBreakerTripAndRecovery() {
         `   Call ${i + 1}: ${isCircuitOpen ? "REJECTED (circuit open)" : "Failed (backend error)"}`,
       );
     }
-    printMetrics(cortex);
+    printMetrics(memoir);
   }
 
   if (!circuitOpened) {
@@ -384,7 +384,7 @@ async function testCircuitBreakerTripAndRecovery() {
   for (let i = 0; i < 3; i++) {
     const start = Date.now();
     try {
-      await cortex.memory.search("test-space", `query ${i}`);
+      await memoir.memory.search("test-space", `query ${i}`);
       console.log(`   Call ${i + 1}: Succeeded in ${Date.now() - start}ms`);
     } catch (error) {
       const duration = Date.now() - start;
@@ -405,7 +405,7 @@ async function testCircuitBreakerTripAndRecovery() {
   // Wait for circuit to transition to half-open
   for (let i = 0; i < 6; i++) {
     await delay(1000);
-    const metrics = cortex.getResilienceMetrics();
+    const metrics = memoir.getResilienceMetrics();
     console.log(
       `   ${i + 1}s - Circuit state: ${metrics.circuitBreaker.state}`,
     );
@@ -422,19 +422,19 @@ async function testCircuitBreakerTripAndRecovery() {
   for (let i = 0; i < 3; i++) {
     try {
       // This should succeed - valid search on a new space (returns empty results)
-      await cortex.memory.search(testSpaceId, `recovery query ${i}`);
+      await memoir.memory.search(testSpaceId, `recovery query ${i}`);
       console.log(`   Recovery call ${i + 1}: Succeeded ✅`);
     } catch (error) {
       console.log(
         `   Recovery call ${i + 1}: Failed - ${error instanceof Error ? error.message : error}`,
       );
     }
-    printMetrics(cortex);
+    printMetrics(memoir);
   }
 
   // Final state
   console.log("\n📈 Final State:");
-  printMetrics(cortex);
+  printMetrics(memoir);
 
   if (circuitOpened && circuitClosed) {
     console.log(
@@ -450,7 +450,7 @@ async function testCircuitBreakerTripAndRecovery() {
     );
   }
 
-  cortex.close();
+  memoir.close();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -466,7 +466,7 @@ async function testPriorityQueueUnderLoad() {
     "Expected: High priority operations complete before low priority\n",
   );
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: CONVEX_URL!,
     resilience: {
       enabled: true,
@@ -499,7 +499,7 @@ async function testPriorityQueueUnderLoad() {
   // First batch: 10 low-priority searches
   for (let i = 0; i < 10; i++) {
     operations.push(
-      cortex.memory
+      memoir.memory
         .search(testSpaceId, `low query ${i}`)
         .then(() => {
           completionOrder.push({
@@ -524,7 +524,7 @@ async function testPriorityQueueUnderLoad() {
   // Second batch: 5 high-priority remembers (added after low-priority but should execute first)
   for (let i = 0; i < 5; i++) {
     operations.push(
-      cortex.memory
+      memoir.memory
         .remember({
           memorySpaceId: testSpaceId,
           conversationId: `priority-conv-${i}`,
@@ -556,7 +556,7 @@ async function testPriorityQueueUnderLoad() {
   // Third batch: 10 more low-priority searches
   for (let i = 10; i < 20; i++) {
     operations.push(
-      cortex.memory
+      memoir.memory
         .search(testSpaceId, `low query ${i}`)
         .then(() => {
           completionOrder.push({
@@ -626,7 +626,7 @@ async function testPriorityQueueUnderLoad() {
     );
   });
 
-  printMetrics(cortex);
+  printMetrics(memoir);
 
   if (avgHighTime < avgLowTime || highBeforeLow >= 3) {
     console.log(
@@ -640,13 +640,13 @@ async function testPriorityQueueUnderLoad() {
 
   // Cleanup
   try {
-    await cortex.memorySpaces.delete(testSpaceId, {
+    await memoir.memorySpaces.delete(testSpaceId, {
       cascade: true,
       reason: "test cleanup",
     });
   } catch {}
 
-  cortex.close();
+  memoir.close();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -662,7 +662,7 @@ async function testGracefulShutdown() {
   );
   console.log("Expected: Shutdown waits for pending operations to complete\n");
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: CONVEX_URL!,
     resilience: {
       enabled: true,
@@ -692,7 +692,7 @@ async function testGracefulShutdown() {
     .fill(null)
     .map(async (_, i) => {
       try {
-        await cortex.memory.search(testSpaceId, `shutdown query ${i}`);
+        await memoir.memory.search(testSpaceId, `shutdown query ${i}`);
         return "success";
       } catch (_error) {
         return "failed";
@@ -703,10 +703,10 @@ async function testGracefulShutdown() {
   await delay(100);
 
   console.log("🛑 Calling shutdown while operations in flight...");
-  printMetrics(cortex);
+  printMetrics(memoir);
 
   const shutdownStart = Date.now();
-  await cortex.shutdown(10000); // 10 second timeout
+  await memoir.shutdown(10000); // 10 second timeout
   const shutdownDuration = Date.now() - shutdownStart;
 
   // Check how many completed

@@ -1,5 +1,5 @@
 /**
- * Cortex Convex Functions - Agents Registry API
+ * Memoir Convex Functions - Agents Registry API
  *
  * Backend functions for optional agent metadata registration.
  * Agents work without registration - this is just for discovery and analytics.

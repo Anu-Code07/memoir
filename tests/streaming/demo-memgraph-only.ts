@@ -13,7 +13,7 @@ async function main() {
   await adapter.connect({
     uri: "bolt://localhost:7688",
     username: "memgraph",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   console.log("✅ Connected to Memgraph\n");

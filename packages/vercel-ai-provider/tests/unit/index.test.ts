@@ -1,11 +1,11 @@
 /**
  * Unit Tests: Factory Functions and Manual Methods
  *
- * Tests createCortexMemory, createCortexMemoryAsync, and manual control methods
+ * Tests createMemoirMemory, createMemoirMemoryAsync, and manual control methods
  */
 
-import { createCortexMemory, createCortexMemoryAsync } from "../../src/index";
-import type { CortexMemoryConfig } from "../../src/types";
+import { createMemoirMemory, createMemoirMemoryAsync } from "../../src/index";
+import type { MemoirMemoryConfig } from "../../src/types";
 import { createTestConfig, createMockLLM } from "../helpers/test-utils";
 
 // Mock storage for dynamic mock values
@@ -15,8 +15,8 @@ const mockStorage = {
   deleteResult: { deleted: 0 },
 };
 
-// Create mock Cortex SDK
-jest.mock("@cortexmemory/sdk", () => {
+// Create mock Memoir SDK
+jest.mock("@memoir/sdk", () => {
   const mockMemory = {
     search: jest.fn().mockImplementation(() => mockStorage.searchResult),
     remember: jest.fn().mockResolvedValue({
@@ -49,11 +49,11 @@ jest.mock("@cortexmemory/sdk", () => {
     close: jest.fn(),
   };
 
-  const MockCortex = jest.fn().mockImplementation(() => mockInstance);
-  (MockCortex as any).create = jest.fn().mockResolvedValue(mockInstance);
+  const MockMemoir = jest.fn().mockImplementation(() => mockInstance);
+  (MockMemoir as any).create = jest.fn().mockResolvedValue(mockInstance);
 
   return {
-    Cortex: MockCortex,
+    Memoir: MockMemoir,
     CypherGraphAdapter: jest.fn().mockImplementation(() => ({
       connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
@@ -65,8 +65,8 @@ jest.mock("@cortexmemory/sdk", () => {
 });
 
 // Get access to mocks
-const { __mockMemory: mockMemory, __mockInstance: mockCortex } =
-  jest.requireMock("@cortexmemory/sdk");
+const { __mockMemory: mockMemory, __mockInstance: mockMemoir } =
+  jest.requireMock("@memoir/sdk");
 
 // Reset mocks between tests
 beforeEach(() => {
@@ -78,13 +78,13 @@ beforeEach(() => {
 
 describe("Factory Functions", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // createCortexMemory
+  // createMemoirMemory
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("createCortexMemory", () => {
+  describe("createMemoirMemory", () => {
     it("should create model factory", () => {
       const config = createTestConfig();
-      const factory = createCortexMemory(config);
+      const factory = createMemoirMemory(config);
 
       expect(typeof factory).toBe("function");
     });
@@ -93,14 +93,14 @@ describe("Factory Functions", () => {
       const config = createTestConfig();
       (config as any).convexUrl = "";
 
-      expect(() => createCortexMemory(config)).toThrow("convexUrl is required");
+      expect(() => createMemoirMemory(config)).toThrow("convexUrl is required");
     });
 
     it("should throw on missing memorySpaceId", () => {
       const config = createTestConfig();
       (config as any).memorySpaceId = "";
 
-      expect(() => createCortexMemory(config)).toThrow(
+      expect(() => createMemoirMemory(config)).toThrow(
         "memorySpaceId is required",
       );
     });
@@ -109,19 +109,19 @@ describe("Factory Functions", () => {
       const config = createTestConfig();
       (config as any).userId = "";
 
-      expect(() => createCortexMemory(config)).toThrow("userId is required");
+      expect(() => createMemoirMemory(config)).toThrow("userId is required");
     });
 
     it("should throw on missing agentId", () => {
       const config = createTestConfig();
       (config as any).agentId = "";
 
-      expect(() => createCortexMemory(config)).toThrow("agentId is required");
+      expect(() => createMemoirMemory(config)).toThrow("agentId is required");
     });
 
     it("should wrap underlying model", () => {
       const config = createTestConfig();
-      const factory = createCortexMemory(config);
+      const factory = createMemoirMemory(config);
       const mockLLM = createMockLLM();
 
       const wrappedModel = factory(mockLLM);
@@ -132,7 +132,7 @@ describe("Factory Functions", () => {
 
     it("should expose manual control methods", () => {
       const config = createTestConfig();
-      const factory = createCortexMemory(config);
+      const factory = createMemoirMemory(config);
 
       expect(typeof factory.search).toBe("function");
       expect(typeof factory.remember).toBe("function");
@@ -143,13 +143,13 @@ describe("Factory Functions", () => {
   });
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // createCortexMemoryAsync
+  // createMemoirMemoryAsync
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("createCortexMemoryAsync", () => {
+  describe("createMemoirMemoryAsync", () => {
     it("should create model factory asynchronously", async () => {
       const config = createTestConfig();
-      const factory = await createCortexMemoryAsync(config);
+      const factory = await createMemoirMemoryAsync(config);
 
       expect(typeof factory).toBe("function");
     });
@@ -158,14 +158,14 @@ describe("Factory Functions", () => {
       const config = createTestConfig();
       (config as any).convexUrl = "";
 
-      await expect(createCortexMemoryAsync(config)).rejects.toThrow(
+      await expect(createMemoirMemoryAsync(config)).rejects.toThrow(
         "convexUrl is required",
       );
     });
 
     it("should wrap underlying model", async () => {
       const config = createTestConfig();
-      const factory = await createCortexMemoryAsync(config);
+      const factory = await createMemoirMemoryAsync(config);
       const mockLLM = createMockLLM();
 
       const wrappedModel = factory(mockLLM);
@@ -175,7 +175,7 @@ describe("Factory Functions", () => {
 
     it("should expose manual control methods", async () => {
       const config = createTestConfig();
-      const factory = await createCortexMemoryAsync(config);
+      const factory = await createMemoirMemoryAsync(config);
 
       expect(typeof factory.search).toBe("function");
       expect(typeof factory.remember).toBe("function");
@@ -187,12 +187,12 @@ describe("Factory Functions", () => {
 });
 
 describe("Manual Control Methods", () => {
-  let factory: ReturnType<typeof createCortexMemory>;
-  let config: CortexMemoryConfig;
+  let factory: ReturnType<typeof createMemoirMemory>;
+  let config: MemoirMemoryConfig;
 
   beforeEach(() => {
     config = createTestConfig();
-    factory = createCortexMemory(config);
+    factory = createMemoirMemory(config);
   });
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -200,7 +200,7 @@ describe("Manual Control Methods", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("search", () => {
-    it("should call cortex.memory.search", async () => {
+    it("should call memoir.memory.search", async () => {
       mockStorage.searchResult = [
         {
           memoryId: "mem-1",
@@ -254,7 +254,7 @@ describe("Manual Control Methods", () => {
       const configWithEmbed = createTestConfig({
         embeddingProvider: { generate: generateMock },
       });
-      const factoryWithEmbed = createCortexMemory(configWithEmbed);
+      const factoryWithEmbed = createMemoirMemory(configWithEmbed);
 
       await factoryWithEmbed.search("test query");
 
@@ -271,7 +271,7 @@ describe("Manual Control Methods", () => {
         memorySearchLimit: 15,
         minMemoryRelevance: 0.9,
       });
-      const factoryWithDefaults = createCortexMemory(configWithDefaults);
+      const factoryWithDefaults = createMemoirMemory(configWithDefaults);
 
       await factoryWithDefaults.search("query");
 
@@ -297,7 +297,7 @@ describe("Manual Control Methods", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("remember", () => {
-    it("should call cortex.memory.remember", async () => {
+    it("should call memoir.memory.remember", async () => {
       await factory.remember("User message", "Agent response");
 
       expect(mockMemory.remember).toHaveBeenCalledWith(
@@ -340,7 +340,7 @@ describe("Manual Control Methods", () => {
 
     it("should use config defaults for importance", async () => {
       const configWithDefaults = createTestConfig({ defaultImportance: 75 });
-      const factoryWithDefaults = createCortexMemory(configWithDefaults);
+      const factoryWithDefaults = createMemoirMemory(configWithDefaults);
 
       await factoryWithDefaults.remember("Hello", "Hi");
 
@@ -354,7 +354,7 @@ describe("Manual Control Methods", () => {
       const configWithDefaults = createTestConfig({
         defaultTags: ["test", "auto"],
       });
-      const factoryWithDefaults = createCortexMemory(configWithDefaults);
+      const factoryWithDefaults = createMemoirMemory(configWithDefaults);
 
       await factoryWithDefaults.remember("Hello", "Hi");
 
@@ -378,7 +378,7 @@ describe("Manual Control Methods", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("getMemories", () => {
-    it("should call cortex.memory.list", async () => {
+    it("should call memoir.memory.list", async () => {
       mockStorage.listResult = [
         { memoryId: "mem-1", content: "Memory 1" },
         { memoryId: "mem-2", content: "Memory 2" },
@@ -434,7 +434,7 @@ describe("Manual Control Methods", () => {
       );
     });
 
-    it("should call cortex.memory.deleteMany with confirm", async () => {
+    it("should call memoir.memory.deleteMany with confirm", async () => {
       mockStorage.deleteResult = { deleted: 5 };
 
       const deleted = await factory.clearMemories({ confirm: true });

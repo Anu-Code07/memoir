@@ -17,7 +17,7 @@ description: ACID-compliant conversation storage with full audit trails
 
 ```typescript
 // Create a conversation
-const conv = await cortex.conversations.create({
+const conv = await memoir.conversations.create({
   type: 'user-agent',
   memorySpaceId: 'user-123-space',
   participants: {
@@ -27,7 +27,7 @@ const conv = await cortex.conversations.create({
 });
 
 // Add messages (immutable, append-only)
-await cortex.conversations.addMessage({
+await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'user',
@@ -36,7 +36,7 @@ await cortex.conversations.addMessage({
   },
 });
 
-await cortex.conversations.addMessage({
+await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'agent',
@@ -45,7 +45,7 @@ await cortex.conversations.addMessage({
 });
 
 // Retrieve history
-const history = await cortex.conversations.getHistory(conv.id, {
+const history = await memoir.conversations.getHistory(conv.id, {
   limit: 50,
   order: 'desc',
 });
@@ -56,7 +56,7 @@ const history = await cortex.conversations.getHistory(conv.id, {
 
 ## Where Conversations Fit
 
-Conversations live in **Layer 1a** of Cortex's [4-layer architecture](/core-features/memory-orchestration). They work together with Layer 2 (Vector) for efficient retrieval:
+Conversations live in **Layer 1a** of Memoir's [4-layer architecture](/core-features/memory-orchestration). They work together with Layer 2 (Vector) for efficient retrieval:
 
 <ComparisonTable
   headers={["Layer 1a: ACID Conversations", "Layer 2: Vector Index"]}
@@ -82,7 +82,7 @@ Conversations live in **Layer 1a** of Cortex's [4-layer architecture](/core-feat
 
 ```typescript
 // User-Agent conversation
-const conv = await cortex.conversations.create({
+const conv = await memoir.conversations.create({
   type: 'user-agent',
   memorySpaceId: 'user-123-space',
   participants: {
@@ -93,8 +93,8 @@ const conv = await cortex.conversations.create({
 });
 
 // Agent-Agent conversation (A2A) - manual approach
-// Note: cortex.a2a.send() handles this automatically (recommended)
-const a2aConv = await cortex.conversations.create({
+// Note: memoir.a2a.send() handles this automatically (recommended)
+const a2aConv = await memoir.conversations.create({
   type: 'agent-agent',
   participants: {
     agent1: 'finance-agent',
@@ -108,7 +108,7 @@ const a2aConv = await cortex.conversations.create({
 
 ```typescript
 // User message
-const msg = await cortex.conversations.addMessage({
+const msg = await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'user',
@@ -118,7 +118,7 @@ const msg = await cortex.conversations.addMessage({
 });
 
 // Agent response
-await cortex.conversations.addMessage({
+await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'agent',
@@ -135,7 +135,7 @@ console.log(msg.id);  // Use in conversationRef
 
 ```typescript
 // Get recent messages
-const history = await cortex.conversations.getHistory(conv.id, {
+const history = await memoir.conversations.getHistory(conv.id, {
   limit: 50,
   order: 'desc',  // Most recent first
 });
@@ -145,7 +145,7 @@ history.messages.forEach(msg => {
 });
 
 // Get full conversation
-const full = await cortex.conversations.get(conv.id);
+const full = await memoir.conversations.get(conv.id);
 console.log(full.messageCount);
 ```
 
@@ -154,7 +154,7 @@ console.log(full.messageCount);
 
 ```typescript
 // List user's conversations
-const convs = await cortex.conversations.list({
+const convs = await memoir.conversations.list({
   type: 'user-agent',
   'participants.userId': 'user-123',
   sortBy: 'lastMessageAt',
@@ -162,7 +162,7 @@ const convs = await cortex.conversations.list({
 });
 
 // Search across conversations
-const results = await cortex.conversations.search(
+const results = await memoir.conversations.search(
   'user-123',
   'pricing discussion',
   { limit: 10 }
@@ -211,11 +211,11 @@ Standard chat between user and AI:
   </TabItem>
   <TabItem value="agent-agent" label="Agent-Agent (A2A)">
 
-Communication between agents. **Recommended:** Use `cortex.a2a.send()` which handles conversation creation automatically:
+Communication between agents. **Recommended:** Use `memoir.a2a.send()` which handles conversation creation automatically:
 
 ```typescript
 // Recommended: A2A helper handles ACID conversation automatically
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: 'finance-agent',
   to: 'hr-agent',
   message: 'What is the Q4 budget?',
@@ -277,7 +277,7 @@ const response = await streamText({
 });
 
 // Automatically buffers and stores
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'my-agent',
   conversationId: conv.id,
   userMessage: 'What is AI?',
@@ -301,7 +301,7 @@ See [Streaming Support](/core-features/streaming-support) for full documentation
 
 ```typescript
 async function buildRecentContext(conversationId: string) {
-  const history = await cortex.conversations.getHistory(conversationId, {
+  const history = await memoir.conversations.getHistory(conversationId, {
     limit: 10,
   });
 
@@ -316,7 +316,7 @@ async function buildRecentContext(conversationId: string) {
 ```typescript
 async function buildRelevantContext(memorySpaceId: string, query: string) {
   // Search vector memories
-  const memories = await cortex.memory.search(memorySpaceId, query, {
+  const memories = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     limit: 5,
   });
@@ -324,7 +324,7 @@ async function buildRelevantContext(memorySpaceId: string, query: string) {
   // Retrieve full conversations via conversationRef
   for (const memory of memories) {
     if (memory.conversationRef) {
-      const conv = await cortex.conversations.get(
+      const conv = await memoir.conversations.get(
         memory.conversationRef.conversationId
       );
       // Access full context...
@@ -342,7 +342,7 @@ async function buildRelevantContext(memorySpaceId: string, query: string) {
 ```typescript
 async function handleReturningUser(userId: string, message: string) {
   // Find recent conversations
-  const convs = await cortex.conversations.list({
+  const convs = await memoir.conversations.list({
     'participants.userId': userId,
     sortBy: 'lastMessageAt',
     sortOrder: 'desc',
@@ -357,12 +357,12 @@ async function handleReturningUser(userId: string, message: string) {
   // Continue or start new
   const conversationId = timeSinceLast < 30 * 60 * 1000
     ? lastConv.id
-    : (await cortex.conversations.create({
+    : (await memoir.conversations.create({
         type: 'user-agent',
         participants: { userId, agentId: 'assistant' },
       })).id;
 
-  await cortex.conversations.addMessage({
+  await memoir.conversations.addMessage({
     conversationId,
     message: {
       role: 'user',
@@ -379,7 +379,7 @@ async function handleReturningUser(userId: string, message: string) {
 
 ```typescript
 async function buildContextWindow(conversationId: string, maxTokens: number) {
-  const history = await cortex.conversations.getHistory(conversationId);
+  const history = await memoir.conversations.getHistory(conversationId);
   const messages = history.messages;
   
   const contextMessages = [];
@@ -404,7 +404,7 @@ async function buildContextWindow(conversationId: string, maxTokens: number) {
 <Callout type="tip" title="Store Complete Metadata">
 
 ```typescript
-await cortex.conversations.addMessage({
+await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'user',
@@ -431,7 +431,7 @@ function redact(text: string) {
     .replace(/\b\d{16}\b/g, '[CARD REDACTED]');
 }
 
-await cortex.conversations.addMessage({
+await memoir.conversations.addMessage({
   conversationId: conv.id,
   message: {
     role: 'user',
@@ -451,7 +451,7 @@ await cortex.conversations.addMessage({
 if (conversation.messageCount > 100) {
   const summary = await summarize(olderMessages);
   
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId,
     content: `Summary: ${summary}`,
     conversationRef: { conversationId, messageIds: [] },
@@ -475,7 +475,7 @@ Control who can access conversations:
 
 ```typescript
 // Create with visibility
-const conv = await cortex.conversations.create({
+const conv = await memoir.conversations.create({
   type: 'user-agent',
   memorySpaceId: 'team-space',
   participants: { userId: 'user-123', agentId: 'assistant' },
@@ -483,7 +483,7 @@ const conv = await cortex.conversations.create({
 });
 
 // Check access
-const access = await cortex.conversations.checkAccess({
+const access = await memoir.conversations.checkAccess({
   conversationId: conv.conversationId,
   userId: 'user-456',
   memorySpaceId: 'team-space',
@@ -497,7 +497,7 @@ Create shareable links with permissions and limits:
 
 ```typescript
 // Create a share link
-const share = await cortex.conversations.share({
+const share = await memoir.conversations.share({
   conversationId: 'conv-123',
   grantType: 'link',
   permissions: { canView: true, canFork: true },
@@ -517,7 +517,7 @@ const url = buildShareUrl(share.shareId, {
 Create immutable copies with optional PII redaction:
 
 ```typescript
-const snapshot = await cortex.conversations.snapshot({
+const snapshot = await memoir.conversations.snapshot({
   conversationId: 'conv-123',
   redactPII: true, // Redacts emails, phones, SSN, etc.
 });
@@ -531,7 +531,7 @@ Multi-user conversations with approval workflow:
 
 ```typescript
 // Create collaborative conversation
-const collab = await cortex.conversations.create({
+const collab = await memoir.conversations.create({
   type: 'user-agent',
   memorySpaceId: 'team-space',
   participants: {
@@ -545,7 +545,7 @@ const collab = await cortex.conversations.create({
 });
 
 // Approve pending messages
-await cortex.conversations.approveMessage({
+await memoir.conversations.approveMessage({
   conversationId: collab.conversationId,
   messageId: 'msg-456',
 });

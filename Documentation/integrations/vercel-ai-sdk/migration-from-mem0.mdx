@@ -1,13 +1,13 @@
-# Migration from mem0 to Cortex
+# Migration from mem0 to Memoir
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Guide for migrating from mem0's Vercel AI SDK integration to Cortex.
+Guide for migrating from mem0's Vercel AI SDK integration to Memoir.
 
 ## Why Migrate?
 
 <ComparisonTable 
-  headers={["Cortex", "mem0"]}
+  headers={["Memoir", "mem0"]}
   items={[
     { feature: "Self-Hosted", values: ["Convex (your infrastructure)", "mem0 Cloud only"] },
     { feature: "TypeScript", values: ["Native", "Python-first"] },
@@ -45,13 +45,13 @@ const result = await streamText({
 });
 ```
 
-### After (Cortex)
+### After (Memoir)
 
 ```typescript
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!, // No mem0 API key needed
   memorySpaceId: "assistant",
   userId: "user-123",
@@ -60,7 +60,7 @@ const cortexMemory = createCortexMemory({
 });
 
 const result = await streamText({
-  model: cortexMemory(openai("gpt-5-nano")),
+  model: memoirMemory(openai("gpt-5-nano")),
   messages,
 });
 ```
@@ -71,14 +71,14 @@ const result = await streamText({
 
 <Terminal>
 npx convex dev
-npx @cortexmemory/cli init
+npx @memoir/cli init
 </Terminal>
 
-### 2. Install Cortex Provider
+### 2. Install Memoir Provider
 
 <Terminal>
 npm uninstall @mem0/vercel-ai-provider
-npm install @cortexmemory/vercel-ai-provider
+npm install @memoir/vercel-ai-provider
 </Terminal>
 
 ### 3. Update Imports
@@ -88,7 +88,7 @@ npm install @cortexmemory/vercel-ai-provider
 import { createMem0 } from "@mem0/vercel-ai-provider";
 
 // After
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 ```
 
@@ -108,7 +108,7 @@ const mem0 = createMem0({
 });
 
 // After
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "assistant",
   userId: "user-123",
@@ -129,7 +129,7 @@ const result = await streamText({
 
 // After
 const result = await streamText({
-  model: cortexMemory(openai("gpt-5-nano")),
+  model: memoirMemory(openai("gpt-5-nano")),
   messages,
 });
 ```
@@ -151,19 +151,19 @@ OPENAI_API_KEY=sk-openai-...
 ### Basic Memory Operations
 
 <DataTable
-  headers={["mem0", "Cortex"]}
+  headers={["mem0", "Memoir"]}
   rows={[
-    ["`mem0('model')`", "`cortexMemory(provider('model'))`"],
-    ["`mem0.retrieveMemories()`", "`cortexMemory.search()`"],
-    ["`mem0.addMemories()`", "`cortexMemory.remember()`"],
-    ["`mem0.getMemories()`", "`cortexMemory.getMemories()`"],
+    ["`mem0('model')`", "`memoirMemory(provider('model'))`"],
+    ["`mem0.retrieveMemories()`", "`memoirMemory.search()`"],
+    ["`mem0.addMemories()`", "`memoirMemory.remember()`"],
+    ["`mem0.getMemories()`", "`memoirMemory.getMemories()`"],
   ]}
 />
 
 ### Advanced Features
 
 <DataTable
-  headers={["mem0 Feature", "Cortex Equivalent", "Notes"]}
+  headers={["mem0 Feature", "Memoir Equivalent", "Notes"]}
   rows={[
     ["`user_id`", "`userId`", "User identifier"],
     ["`agent_id`", "`memorySpaceId`", "Maps to memory space (isolation)"],
@@ -177,11 +177,11 @@ OPENAI_API_KEY=sk-openai-...
   ]}
 />
 
-**Important**: `agentId` is a separate required field from `memorySpaceId`. While `agent_id` from mem0 maps to `memorySpaceId` (for memory isolation), Cortex also requires `agentId` to identify the agent participant in user-agent conversations.
+**Important**: `agentId` is a separate required field from `memorySpaceId`. While `agent_id` from mem0 maps to `memorySpaceId` (for memory isolation), Memoir also requires `agentId` to identify the agent participant in user-agent conversations.
 
 ## Required Configuration Fields
 
-When migrating, ensure your `createCortexMemory()` config includes:
+When migrating, ensure your `createMemoirMemory()` config includes:
 
 - `convexUrl` - Your Convex deployment URL **(required)**
 - `memorySpaceId` - Memory space identifier (maps from mem0's `agent_id`) **(required)**
@@ -210,17 +210,17 @@ with open('memories.json', 'w') as f:
     json.dump(memories, f)
 ```
 
-### Importing to Cortex
+### Importing to Memoir
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import fs from "fs";
 
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
 const mem0Data = JSON.parse(fs.readFileSync("memories.json", "utf-8"));
 
 for (const mem of mem0Data) {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId: "migrated",
     conversationId: mem.run_id || "imported",
     userMessage: mem.user_message || "",

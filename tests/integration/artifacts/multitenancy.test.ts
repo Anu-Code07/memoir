@@ -12,7 +12,7 @@
  * Test IDs: INT-MT-001, INT-MT-002
  */
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import { createNamedTestRunContext } from "../../helpers/isolation";
 import {
   generateTenantId,
@@ -33,10 +33,10 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
   // Tenant contexts
   let tenantA: TenantTestContext;
   let tenantB: TenantTestContext;
-  let globalCortex: Cortex; // No tenant context
+  let globalMemoir: Memoir; // No tenant context
 
   // Track created spaces for cleanup
-  const createdSpaces: Array<{ spaceId: string; cortex: Cortex }> = [];
+  const createdSpaces: Array<{ spaceId: string; memoir: Memoir }> = [];
 
   // Helper to setup tenant test context
   const setupTenantContext = async (name: string): Promise<TenantTestContext> => {
@@ -45,25 +45,25 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     const memorySpaceId = generateTenantMemorySpaceId(tenantId);
     const authContext = createTenantAuthContext(tenantId, userId);
 
-    const cortex = new Cortex({
+    const memoir = new Memoir({
       convexUrl: CONVEX_URL,
       auth: authContext,
     });
 
     // Register memory space for this tenant
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       name: `${name} Test Space`,
       type: "project",
     });
 
-    createdSpaces.push({ spaceId: memorySpaceId, cortex });
+    createdSpaces.push({ spaceId: memorySpaceId, memoir });
 
     return {
       tenantId,
       userId,
       memorySpaceId,
-      cortex,
+      memoir,
       authContext,
     };
   };
@@ -76,7 +76,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     tenantB = await setupTenantContext("tenant-b");
 
     // Setup global context (no tenant)
-    globalCortex = new Cortex({ convexUrl: CONVEX_URL });
+    globalMemoir = new Memoir({ convexUrl: CONVEX_URL });
 
     console.log(`   Tenant A: ${tenantA.tenantId}`);
     console.log(`   Tenant B: ${tenantB.tenantId}`);
@@ -87,9 +87,9 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     console.log(`\n🧹 Cleaning up test run ${ctx.runId}...`);
 
     // Cleanup all memory spaces
-    for (const { spaceId, cortex } of createdSpaces) {
+    for (const { spaceId, memoir } of createdSpaces) {
       try {
-        await cortex.memorySpaces.delete(spaceId, {
+        await memoir.memorySpaces.delete(spaceId, {
           cascade: true,
           reason: "Test cleanup",
         });
@@ -99,9 +99,9 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     }
 
     // Close all clients
-    tenantA.cortex.close();
-    tenantB.cortex.close();
-    globalCortex.close();
+    tenantA.memoir.close();
+    tenantB.memoir.close();
+    globalMemoir.close();
 
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -113,7 +113,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
   describe("INT-MT-001: Tenant isolation", () => {
     it("should prevent Tenant B from accessing Tenant A artifacts", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "Tenant A secret data - should not be visible to Tenant B",
@@ -123,13 +123,13 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       expect(artifact.artifactId).toBeDefined();
 
       // Tenant B cannot get it
-      const result = await tenantB.cortex.artifacts.get(artifact.artifactId);
+      const result = await tenantB.memoir.artifacts.get(artifact.artifactId);
       expect(result).toBeNull();
     });
 
     it("should prevent Tenant B from updating Tenant A artifacts", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "Original content",
@@ -138,17 +138,17 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
 
       // Tenant B cannot update it
       await expect(
-        tenantB.cortex.artifacts.update(artifact.artifactId, "Hacked content!"),
+        tenantB.memoir.artifacts.update(artifact.artifactId, "Hacked content!"),
       ).rejects.toThrow();
 
       // Verify content is unchanged
-      const original = await tenantA.cortex.artifacts.get(artifact.artifactId);
+      const original = await tenantA.memoir.artifacts.get(artifact.artifactId);
       expect(original?.content).toBe("Original content");
     });
 
     it("should prevent Tenant B from deleting Tenant A artifacts", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "Important document",
@@ -156,10 +156,10 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       });
 
       // Tenant B cannot delete it
-      await expect(tenantB.cortex.artifacts.delete(artifact.artifactId)).rejects.toThrow();
+      await expect(tenantB.memoir.artifacts.delete(artifact.artifactId)).rejects.toThrow();
 
       // Verify artifact still exists for Tenant A
-      const stillExists = await tenantA.cortex.artifacts.get(artifact.artifactId);
+      const stillExists = await tenantA.memoir.artifacts.get(artifact.artifactId);
       expect(stillExists).not.toBeNull();
       expect(stillExists?.content).toBe("Important document");
     });
@@ -169,21 +169,21 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       const testMarker = `list-isolation-${ctx.runId}`;
       
       // Both tenants create artifacts in their own spaces
-      const _artA1 = await tenantA.cortex.artifacts.create({
+      const _artA1 = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: `Tenant A artifact 1 - ${testMarker}`,
         title: "Tenant A Artifact 1",
       });
 
-      const _artA2 = await tenantA.cortex.artifacts.create({
+      const _artA2 = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: `Tenant A artifact 2 - ${testMarker}`,
         title: "Tenant A Artifact 2",
       });
 
-      const _artB1 = await tenantB.cortex.artifacts.create({
+      const _artB1 = await tenantB.memoir.artifacts.create({
         memorySpaceId: tenantB.memorySpaceId,
         kind: "text",
         content: `Tenant B artifact 1 - ${testMarker}`,
@@ -191,7 +191,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       });
 
       // Tenant A only sees their own (filter by test marker to avoid stale data)
-      const listA = await tenantA.cortex.artifacts.list({
+      const listA = await tenantA.memoir.artifacts.list({
         memorySpaceId: tenantA.memorySpaceId,
       });
 
@@ -204,7 +204,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       expect(testArtifactsA.some((a) => a.content?.includes("Tenant B"))).toBe(false);
 
       // Tenant B only sees their own
-      const listB = await tenantB.cortex.artifacts.list({
+      const listB = await tenantB.memoir.artifacts.list({
         memorySpaceId: tenantB.memorySpaceId,
       });
 
@@ -222,23 +222,23 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       const spaceIdA = `${ctx.runId}-count-space-a`;
       const spaceIdB = `${ctx.runId}-count-space-b`;
 
-      await tenantA.cortex.memorySpaces.register({
+      await tenantA.memoir.memorySpaces.register({
         memorySpaceId: spaceIdA,
         name: "Count Test A",
         type: "project",
       });
-      createdSpaces.push({ spaceId: spaceIdA, cortex: tenantA.cortex });
+      createdSpaces.push({ spaceId: spaceIdA, memoir: tenantA.memoir });
 
-      await tenantB.cortex.memorySpaces.register({
+      await tenantB.memoir.memorySpaces.register({
         memorySpaceId: spaceIdB,
         name: "Count Test B",
         type: "project",
       });
-      createdSpaces.push({ spaceId: spaceIdB, cortex: tenantB.cortex });
+      createdSpaces.push({ spaceId: spaceIdB, memoir: tenantB.memoir });
 
       // Create 3 artifacts for A, 1 for B
       for (let i = 0; i < 3; i++) {
-        await tenantA.cortex.artifacts.create({
+        await tenantA.memoir.artifacts.create({
           memorySpaceId: spaceIdA,
           kind: "text",
           content: `A count test ${i}`,
@@ -246,15 +246,15 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
         });
       }
 
-      await tenantB.cortex.artifacts.create({
+      await tenantB.memoir.artifacts.create({
         memorySpaceId: spaceIdB,
         kind: "text",
         content: "B count test",
         title: "Count Test B",
       });
 
-      const countA = await tenantA.cortex.artifacts.count({ memorySpaceId: spaceIdA });
-      const countB = await tenantB.cortex.artifacts.count({ memorySpaceId: spaceIdB });
+      const countA = await tenantA.memoir.artifacts.count({ memorySpaceId: spaceIdA });
+      const countB = await tenantB.memoir.artifacts.count({ memorySpaceId: spaceIdB });
 
       expect(countA).toBe(3);
       expect(countB).toBe(1);
@@ -271,16 +271,16 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     beforeAll(async () => {
       // Register a global memory space (no tenant)
       globalSpaceId = `${ctx.runId}-global-space`;
-      await globalCortex.memorySpaces.register({
+      await globalMemoir.memorySpaces.register({
         memorySpaceId: globalSpaceId,
         name: "Global Test Space",
         type: "project",
       });
-      createdSpaces.push({ spaceId: globalSpaceId, cortex: globalCortex });
+      createdSpaces.push({ spaceId: globalSpaceId, memoir: globalMemoir });
     });
 
     it("should create global artifacts without tenant context", async () => {
-      const artifact = await globalCortex.artifacts.create({
+      const artifact = await globalMemoir.artifacts.create({
         memorySpaceId: globalSpaceId,
         kind: "text",
         content: "Global content - no tenant",
@@ -290,14 +290,14 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       expect(artifact.artifactId).toBeDefined();
 
       // Should be accessible without tenant
-      const retrieved = await globalCortex.artifacts.get(artifact.artifactId);
+      const retrieved = await globalMemoir.artifacts.get(artifact.artifactId);
       expect(retrieved).not.toBeNull();
       expect(retrieved?.content).toBe("Global content - no tenant");
     });
 
     it("should isolate global artifacts from tenant artifacts", async () => {
       // Create global artifact
-      const globalArtifact = await globalCortex.artifacts.create({
+      const globalArtifact = await globalMemoir.artifacts.create({
         memorySpaceId: globalSpaceId,
         kind: "text",
         content: "Global artifact content",
@@ -305,17 +305,17 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       });
 
       // Accessible without tenant
-      const result = await globalCortex.artifacts.get(globalArtifact.artifactId);
+      const result = await globalMemoir.artifacts.get(globalArtifact.artifactId);
       expect(result).not.toBeNull();
       expect(result?.content).toBe("Global artifact content");
 
       // NOT accessible when querying with tenantId
       // Tenant A should not see global artifacts
-      const tenantAResult = await tenantA.cortex.artifacts.get(globalArtifact.artifactId);
+      const tenantAResult = await tenantA.memoir.artifacts.get(globalArtifact.artifactId);
       expect(tenantAResult).toBeNull();
 
       // Tenant B should not see global artifacts
-      const tenantBResult = await tenantB.cortex.artifacts.get(globalArtifact.artifactId);
+      const tenantBResult = await tenantB.memoir.artifacts.get(globalArtifact.artifactId);
       expect(tenantBResult).toBeNull();
     });
   });
@@ -327,7 +327,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
   describe("Streaming operations tenant isolation", () => {
     it("should prevent Tenant B from streaming to Tenant A artifact", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "",
@@ -336,13 +336,13 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       });
 
       // Tenant A starts streaming
-      const { sessionId } = await tenantA.cortex.artifacts.startStreaming({
+      const { sessionId } = await tenantA.memoir.artifacts.startStreaming({
         artifactId: artifact.artifactId,
       });
 
       // Tenant B cannot append to it (even with session ID)
       await expect(
-        tenantB.cortex.artifacts.appendContent({
+        tenantB.memoir.artifacts.appendContent({
           artifactId: artifact.artifactId,
           sessionId,
           chunk: "Malicious content",
@@ -351,14 +351,14 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
 
       // Tenant B cannot finalize it
       await expect(
-        tenantB.cortex.artifacts.finalizeStreaming({
+        tenantB.memoir.artifacts.finalizeStreaming({
           artifactId: artifact.artifactId,
           sessionId,
         }),
       ).rejects.toThrow();
 
       // Cleanup - Tenant A finalizes
-      await tenantA.cortex.artifacts.cancelStreaming({
+      await tenantA.memoir.artifacts.cancelStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -366,7 +366,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
 
     it("should prevent Tenant B from starting streaming on Tenant A artifact", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "",
@@ -376,7 +376,7 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
 
       // Tenant B cannot start streaming
       await expect(
-        tenantB.cortex.artifacts.startStreaming({
+        tenantB.memoir.artifacts.startStreaming({
           artifactId: artifact.artifactId,
         }),
       ).rejects.toThrow();
@@ -390,49 +390,49 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
   describe("Version history tenant isolation", () => {
     it("should prevent Tenant B from viewing Tenant A version history", async () => {
       // Tenant A creates and updates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "v1 - secret",
         title: "History Isolation Test",
       });
 
-      await tenantA.cortex.artifacts.update(artifact.artifactId, "v2 - also secret");
+      await tenantA.memoir.artifacts.update(artifact.artifactId, "v2 - also secret");
 
       // Tenant A can see history
-      const historyA = await tenantA.cortex.artifacts.getHistory(artifact.artifactId);
+      const historyA = await tenantA.memoir.artifacts.getHistory(artifact.artifactId);
       expect(historyA.length).toBe(2);
 
       // Tenant B gets empty history (artifact not accessible to them)
       // This behavior prevents tenant B from learning whether the artifact exists
-      const historyB = await tenantB.cortex.artifacts.getHistory(artifact.artifactId);
+      const historyB = await tenantB.memoir.artifacts.getHistory(artifact.artifactId);
       expect(historyB).toEqual([]);
     });
 
     it("should prevent Tenant B from undo/redo on Tenant A artifacts", async () => {
       // Tenant A creates and updates
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "v1",
         title: "Undo Redo Isolation Test",
       });
 
-      await tenantA.cortex.artifacts.update(artifact.artifactId, "v2");
+      await tenantA.memoir.artifacts.update(artifact.artifactId, "v2");
 
       // Tenant B cannot undo
-      await expect(tenantB.cortex.artifacts.undo(artifact.artifactId)).rejects.toThrow();
+      await expect(tenantB.memoir.artifacts.undo(artifact.artifactId)).rejects.toThrow();
 
       // Tenant A can undo
-      await tenantA.cortex.artifacts.undo(artifact.artifactId);
+      await tenantA.memoir.artifacts.undo(artifact.artifactId);
 
       // Tenant B cannot redo
-      await expect(tenantB.cortex.artifacts.redo(artifact.artifactId)).rejects.toThrow();
+      await expect(tenantB.memoir.artifacts.redo(artifact.artifactId)).rejects.toThrow();
     });
 
     it("should prevent Tenant B from getting specific version of Tenant A artifact", async () => {
       // Tenant A creates artifact
-      const artifact = await tenantA.cortex.artifacts.create({
+      const artifact = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "Secret version 1",
@@ -440,11 +440,11 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       });
 
       // Tenant A can get version
-      const v1A = await tenantA.cortex.artifacts.getVersion(artifact.artifactId, 1);
+      const v1A = await tenantA.memoir.artifacts.getVersion(artifact.artifactId, 1);
       expect(v1A?.content).toBe("Secret version 1");
 
       // Tenant B cannot get version
-      const v1B = await tenantB.cortex.artifacts.getVersion(artifact.artifactId, 1);
+      const v1B = await tenantB.memoir.artifacts.getVersion(artifact.artifactId, 1);
       expect(v1B).toBeNull();
     });
   });
@@ -457,13 +457,13 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
     it("should handle concurrent artifact creation from multiple tenants", async () => {
       // Both tenants create artifacts simultaneously
       const [artifactA, artifactB] = await Promise.all([
-        tenantA.cortex.artifacts.create({
+        tenantA.memoir.artifacts.create({
           memorySpaceId: tenantA.memorySpaceId,
           kind: "text",
           content: "Concurrent A",
           title: "Concurrent A Test",
         }),
-        tenantB.cortex.artifacts.create({
+        tenantB.memoir.artifacts.create({
           memorySpaceId: tenantB.memorySpaceId,
           kind: "text",
           content: "Concurrent B",
@@ -474,30 +474,30 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
       expect(artifactA.artifactId).not.toBe(artifactB.artifactId);
 
       // Each tenant can only see their own
-      const resultA = await tenantA.cortex.artifacts.get(artifactA.artifactId);
+      const resultA = await tenantA.memoir.artifacts.get(artifactA.artifactId);
       expect(resultA?.content).toBe("Concurrent A");
 
-      const resultB = await tenantB.cortex.artifacts.get(artifactB.artifactId);
+      const resultB = await tenantB.memoir.artifacts.get(artifactB.artifactId);
       expect(resultB?.content).toBe("Concurrent B");
 
       // Cross-access fails
-      const crossA = await tenantA.cortex.artifacts.get(artifactB.artifactId);
+      const crossA = await tenantA.memoir.artifacts.get(artifactB.artifactId);
       expect(crossA).toBeNull();
 
-      const crossB = await tenantB.cortex.artifacts.get(artifactA.artifactId);
+      const crossB = await tenantB.memoir.artifacts.get(artifactA.artifactId);
       expect(crossB).toBeNull();
     });
 
     it("should handle concurrent updates from multiple tenants on their own artifacts", async () => {
       // Each tenant creates their artifact
-      const artifactA = await tenantA.cortex.artifacts.create({
+      const artifactA = await tenantA.memoir.artifacts.create({
         memorySpaceId: tenantA.memorySpaceId,
         kind: "text",
         content: "A initial",
         title: "Concurrent Update A",
       });
 
-      const artifactB = await tenantB.cortex.artifacts.create({
+      const artifactB = await tenantB.memoir.artifacts.create({
         memorySpaceId: tenantB.memorySpaceId,
         kind: "text",
         content: "B initial",
@@ -506,15 +506,15 @@ describeWithConvex("Artifacts Multi-tenancy Integration", () => {
 
       // Concurrent updates
       await Promise.all([
-        tenantA.cortex.artifacts.update(artifactA.artifactId, "A updated"),
-        tenantB.cortex.artifacts.update(artifactB.artifactId, "B updated"),
+        tenantA.memoir.artifacts.update(artifactA.artifactId, "A updated"),
+        tenantB.memoir.artifacts.update(artifactB.artifactId, "B updated"),
       ]);
 
       // Verify both updates succeeded
-      const finalA = await tenantA.cortex.artifacts.get(artifactA.artifactId);
+      const finalA = await tenantA.memoir.artifacts.get(artifactA.artifactId);
       expect(finalA?.content).toBe("A updated");
 
-      const finalB = await tenantB.cortex.artifacts.get(artifactB.artifactId);
+      const finalB = await tenantB.memoir.artifacts.get(artifactB.artifactId);
       expect(finalB?.content).toBe("B updated");
     });
   });

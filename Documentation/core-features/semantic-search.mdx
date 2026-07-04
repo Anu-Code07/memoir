@@ -21,13 +21,13 @@ description: AI-powered memory retrieval using vector embeddings
 
 ```typescript
 // Configure embedding once at SDK init (v0.30.0+)
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   embedding: { provider: 'openai', apiKey: process.env.OPENAI_API_KEY },
 });
 
 // Search with semantic understanding - embeddings auto-generated!
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "what are the user's dietary preferences?",
   userId: "user-123",
@@ -56,7 +56,7 @@ const result = await cortex.memory.recall({
 Unified retrieval across all memory layers:
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
   embedding: await embed("user preferences"),
@@ -85,7 +85,7 @@ result.items.forEach(item => {
 Direct vector search for performance-critical scenarios:
 
 ```typescript
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   "user-123-space",
   "user preferences",
   {
@@ -113,7 +113,7 @@ memories.forEach(memory => {
 Uses vector embeddings for meaning-based search:
 
 ```typescript
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   strategy: "semantic",
 });
@@ -129,7 +129,7 @@ const results = await cortex.memory.search(spaceId, query, {
 Traditional text matching (no embeddings required):
 
 ```typescript
-const results = await cortex.memory.search(spaceId, "dark mode", {
+const results = await memoir.memory.search(spaceId, "dark mode", {
   strategy: "keyword",
 });
 ```
@@ -141,17 +141,17 @@ const results = await cortex.memory.search(spaceId, "dark mode", {
   </TabItem>
   <TabItem value="auto" label="Auto">
 
-Cortex chooses the best strategy automatically:
+Memoir chooses the best strategy automatically:
 
 ```typescript
 // With embedding → tries semantic first
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   strategy: "auto",  // Default
 });
 
 // Without embedding → uses keyword search
-const results = await cortex.memory.search(spaceId, query);
+const results = await memoir.memory.search(spaceId, query);
 ```
 
 **Fallback chain:** Semantic → Keyword → Recent memories
@@ -164,7 +164,7 @@ const results = await cortex.memory.search(spaceId, query);
 ## Embedding Providers
 
 <Callout type="info">
-  Cortex is **embedding-agnostic**. Use any provider that returns vectors.
+  Memoir is **embedding-agnostic**. Use any provider that returns vectors.
 </Callout>
 
 <Tabs>
@@ -258,7 +258,7 @@ const { embedding } = await embed({
   Enhance ranking beyond pure semantic similarity:
   
 ```typescript
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   boostImportance: true,  // Boost high-importance memories
   boostRecent: true,      // Boost recent memories
@@ -273,7 +273,7 @@ const results = await cortex.memory.search(spaceId, query, {
 
 ```typescript
 // User-scoped search with tags
-const memories = await cortex.memory.search(spaceId, query, {
+const memories = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   userId: "user-123",
   tags: ["preferences", "verified"],
@@ -281,7 +281,7 @@ const memories = await cortex.memory.search(spaceId, query, {
 });
 
 // High-importance recent memories
-const critical = await cortex.memory.search(spaceId, query, {
+const critical = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   minImportance: 80,
   createdAfter: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -289,7 +289,7 @@ const critical = await cortex.memory.search(spaceId, query, {
 });
 
 // Temporal search
-const thisMonth = await cortex.memory.search(spaceId, query, {
+const thisMonth = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   createdAfter: new Date("2026-01-01"),
   createdBefore: new Date("2026-01-31"),
@@ -342,13 +342,13 @@ interface SearchResult {
 
 ```typescript
 // Recommended: semantic search scoped to user
-await cortex.memory.search(spaceId, query, {
+await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   userId: userId,
 });
 
 // Works but less accurate (keyword fallback)
-await cortex.memory.search(spaceId, query, {
+await memoir.memory.search(spaceId, query, {
   userId: userId,
 });
 ```
@@ -359,10 +359,10 @@ await cortex.memory.search(spaceId, query, {
 
 ```typescript
 // Vague - poor results
-await cortex.memory.search(spaceId, "user");
+await memoir.memory.search(spaceId, "user");
 
 // Specific - better results
-await cortex.memory.search(spaceId, 
+await memoir.memory.search(spaceId, 
   "what are the user's dietary restrictions and food preferences?"
 );
 ```
@@ -372,14 +372,14 @@ await cortex.memory.search(spaceId,
 <Callout type="tip" title="Handle Empty Results">
 
 ```typescript
-let memories = await cortex.memory.search(spaceId, query, {
+let memories = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   userId,
 });
 
 if (memories.length === 0) {
   // Broaden search: remove user filter
-  memories = await cortex.memory.search(spaceId, query, {
+  memories = await memoir.memory.search(spaceId, query, {
     embedding: await embed(query),
     limit: 5,
   });
@@ -387,7 +387,7 @@ if (memories.length === 0) {
 
 if (memories.length === 0) {
   // Final fallback: recent memories
-  memories = await cortex.memory.search(spaceId, "*", {
+  memories = await memoir.memory.search(spaceId, "*", {
     userId,
     sortBy: "createdAt",
     sortOrder: "desc",
@@ -408,13 +408,13 @@ if (memories.length === 0) {
 // Slow: generate embedding per query
 for (const query of queries) {
   const embedding = await embed(query);
-  await cortex.memory.search(spaceId, query, { embedding });
+  await memoir.memory.search(spaceId, query, { embedding });
 }
 
 // Fast: batch embeddings first
 const embeddings = await embedBatch(queries);
 for (let i = 0; i < queries.length; i++) {
-  await cortex.memory.search(spaceId, queries[i], { 
+  await memoir.memory.search(spaceId, queries[i], { 
     embedding: embeddings[i] 
   });
 }
@@ -426,11 +426,11 @@ for (let i = 0; i < queries.length; i++) {
 
 ```typescript
 // Slow: search everything, filter after
-const all = await cortex.memory.search(spaceId, query, { limit: 100 });
+const all = await memoir.memory.search(spaceId, query, { limit: 100 });
 const highPriority = all.filter(m => m.metadata.importance >= 80);
 
 // Fast: filter during search
-const highPriority = await cortex.memory.search(spaceId, query, {
+const highPriority = await memoir.memory.search(spaceId, query, {
   minImportance: 80,
   limit: 20,
 });
@@ -446,7 +446,7 @@ const highPriority = await cortex.memory.search(spaceId, query, {
 
 ```typescript
 async function buildContext(spaceId: string, userId: string, message: string) {
-  const memories = await cortex.memory.search(spaceId, message, {
+  const memories = await memoir.memory.search(spaceId, message, {
     embedding: await embed(message),
     userId,
     minScore: 0.7,
@@ -468,7 +468,7 @@ async function buildContext(spaceId: string, userId: string, message: string) {
 
 ```typescript
 async function getFact(spaceId: string, userId: string, question: string) {
-  const memories = await cortex.memory.search(spaceId, question, {
+  const memories = await memoir.memory.search(spaceId, question, {
     embedding: await embed(question),
     userId,
     limit: 1,
@@ -493,7 +493,7 @@ async function getFact(spaceId: string, userId: string, question: string) {
 **Fix:**
 ```typescript
 // Raise score threshold
-const memories = await cortex.memory.search(spaceId, query, {
+const memories = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   minScore: 0.75,  // Raise from default
   tags: ["relevant-topic"],  // Narrow scope
@@ -508,13 +508,13 @@ const memories = await cortex.memory.search(spaceId, query, {
 **Fix:**
 ```typescript
 // Check if memories exist
-const total = await cortex.memory.count(spaceId);
+const total = await memoir.memory.count(spaceId);
 if (total === 0) {
   console.log("Memory space is empty");
 }
 
 // Try broader query
-const broader = await cortex.memory.search(spaceId, "preferences", {
+const broader = await memoir.memory.search(spaceId, "preferences", {
   embedding: await embed("preferences"),
   minScore: 0.5,
 });
@@ -528,7 +528,7 @@ const broader = await cortex.memory.search(spaceId, "preferences", {
 **Fix:**
 ```typescript
 // Reduce scope with filters
-const memories = await cortex.memory.search(spaceId, query, {
+const memories = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   createdAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
   limit: 10,
@@ -550,7 +550,7 @@ if (cached) return cached;
 Search automatically includes facts extracted via `remember()`:
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: spaceId,
   query: "user preferences",
   embedding: await embed("user preferences"),

@@ -6,9 +6,9 @@ Embedding strategy, dimension choices, and integration with Convex vector search
 
 ## Overview
 
-Cortex is **embedding-agnostic** - bring your own embeddings or use Cloud Mode for automatic generation. We support any embedding model and any dimension size that fits your needs.
+Memoir is **embedding-agnostic** - bring your own embeddings or use Cloud Mode for automatic generation. We support any embedding model and any dimension size that fits your needs.
 
-**Key Principle:** Cortex provides the storage and search infrastructure; you choose the embedding strategy.
+**Key Principle:** Memoir provides the storage and search infrastructure; you choose the embedding strategy.
 
 <FlowDiagram title="Embedding Modes" caption="Direct Mode and Cloud Mode provide different levels of embedding management">
   <FlowNode title="Direct Mode (You Manage)" icon="code" variant="default">
@@ -17,20 +17,20 @@ Cortex is **embedding-agnostic** - bring your own embeddings or use Cloud Mode f
   <FlowNode title="Generate Embeddings" icon="code" variant="warning">
     Generate embeddings in your code
   </FlowNode>
-  <FlowNode title="Store with Cortex" icon="database" variant="success">
-    Store with cortex.memory.store()
+  <FlowNode title="Store with Memoir" icon="database" variant="success">
+    Store with memoir.memory.store()
   </FlowNode>
-  <FlowNode title="Cortex Indexes" icon="search" variant="primary">
-    Cortex indexes in Convex vector search
+  <FlowNode title="Memoir Indexes" icon="search" variant="primary">
+    Memoir indexes in Convex vector search
   </FlowNode>
-  <FlowNode title="Cloud Mode (Cortex Manages)" icon="cloud" variant="default">
+  <FlowNode title="Cloud Mode (Memoir Manages)" icon="cloud" variant="default">
     Set autoEmbed: true (planned)
   </FlowNode>
   <FlowNode title="Automatic Generation" icon="code" variant="warning">
-    Cortex generates embeddings automatically (planned)
+    Memoir generates embeddings automatically (planned)
   </FlowNode>
   <FlowNode title="Automatic Storage" icon="database" variant="success">
-    Cortex stores and indexes (planned)
+    Memoir stores and indexes (planned)
   </FlowNode>
   <FlowNode title="Model Upgrades" icon="cloud" variant="primary">
     Automatic model upgrades over time (planned)
@@ -43,7 +43,7 @@ Cortex is **embedding-agnostic** - bring your own embeddings or use Cloud Mode f
 
 ### Supported Models (All)
 
-Cortex supports **any embedding model** that produces float64 arrays:
+Memoir supports **any embedding model** that produces float64 arrays:
 
 <DataTable
   headers={["Provider", "Model", "Dimensions", "Max Tokens", "Quality", "Cost"]}
@@ -60,7 +60,7 @@ Cortex supports **any embedding model** that produces float64 arrays:
   ]}
 />
 
-**Cortex is flexible:**
+**Memoir is flexible:**
 
 <FeatureGrid>
   <FeatureCard
@@ -169,10 +169,10 @@ memories_3072: defineTable({ ... })
 
 ```typescript
 import OpenAI from "openai";
-import { Cortex } from "@cortex-platform/sdk";
+import { Memoir } from "@memoir-platform/sdk";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL });
 
 // Generate embedding
 async function embed(text: string): Promise<number[]> {
@@ -186,7 +186,7 @@ async function embed(text: string): Promise<number[]> {
 }
 
 // Store with embedding
-await cortex.memory.store("user-123-personal", {
+await memoir.memory.store("user-123-personal", {
   content: "User prefers dark mode",
   contentType: "raw",
   embedding: await embed("User prefers dark mode"), // ← Your embedding
@@ -198,7 +198,7 @@ await cortex.memory.store("user-123-personal", {
 });
 
 // Search with embedding
-const results = await cortex.memory.search(
+const results = await memoir.memory.search(
   "user-123-personal",
   "user preferences",
   {
@@ -212,10 +212,10 @@ const results = await cortex.memory.search(
 
 ```typescript
 import { CohereClient } from 'cohere-ai';
-import { Cortex } from '@cortex-platform/sdk';
+import { Memoir } from '@memoir-platform/sdk';
 
 const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL });
 
 async function embed(text: string): Promise<number[]> {
   const response = await cohere.embed({
@@ -228,7 +228,7 @@ async function embed(text: string): Promise<number[]> {
 }
 
 // Use like OpenAI
-await cortex.memory.store('my-memory-space', {
+await memoir.memory.store('my-memory-space', {
   content: 'Important information',
   contentType: 'raw',
   embedding: await embed('Important information'),
@@ -260,8 +260,8 @@ async function embed(text: string): Promise<number[]> {
   return Array.from(output.data);
 }
 
-// Use with Cortex
-await cortex.memory.store('my-memory-space', {
+// Use with Memoir
+await memoir.memory.store('my-memory-space', {
   content: text,
   contentType: 'raw',
   embedding: await embed(text),
@@ -279,26 +279,26 @@ await cortex.memory.store('my-memory-space', {
 ### Auto-Embeddings (Planned Feature)
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   // Cloud Mode configuration (when available)
   // mode: "cloud",
-  // apiKey: process.env.CORTEX_CLOUD_KEY,
+  // apiKey: process.env.MEMOIR_CLOUD_KEY,
 });
 
 // Planned: Zero-config embeddings
-// await cortex.memory.store("agent-1", {
+// await memoir.memory.store("agent-1", {
 //   content: "User prefers dark mode",
 //   contentType: "raw",
-//   autoEmbed: true, // ← Cortex Cloud generates embedding (planned)
+//   autoEmbed: true, // ← Memoir Cloud generates embedding (planned)
 //   source: { type: "system", timestamp: new Date() },
 //   metadata: { importance: 60 },
 // });
 // No API keys, no embedding code, automatic upgrades (planned)
 
 // Planned: Search with Cloud-provided query embedding
-// const results = await cortex.memory.search("agent-1", "user preferences", {
-//   autoEmbed: true, // ← Cortex Cloud generates query embedding (planned)
+// const results = await memoir.memory.search("agent-1", "user preferences", {
+//   autoEmbed: true, // ← Memoir Cloud generates query embedding (planned)
 //   limit: 10,
 // });
 ```
@@ -343,7 +343,7 @@ const cortex = new Cortex({
 
 ```typescript
 // Embeddings are optional - can store without
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   content: "Debug log: Agent started",
   // No embedding - keyword search only
   source: { type: "system", timestamp: new Date() },
@@ -361,14 +361,14 @@ await cortex.memory.store("agent-1", {
 
 ## Enrichment Fields (Bullet-Proof Retrieval)
 
-For improved search accuracy, Cortex supports enrichment fields that enhance semantic search:
+For improved search accuracy, Memoir supports enrichment fields that enhance semantic search:
 
 ### `enrichedContent`
 
 Expanded searchable content that provides more context for embedding generation. Use this when the base `content` is too brief or needs additional context.
 
 ```typescript
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   content: "Dark mode",
   contentType: "raw",
   enrichedContent: "User prefers dark mode for UI interface", // More context
@@ -386,7 +386,7 @@ Category identifier for filtering and score boosting. When searching with `query
 
 ```typescript
 // Store with category
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   content: "User prefers dark mode",
   contentType: "raw",
   factCategory: "ui_preference", // Category identifier
@@ -396,7 +396,7 @@ await cortex.memory.store("agent-1", {
 });
 
 // Search with category boost
-const results = await cortex.memory.search("agent-1", "user preferences", {
+const results = await memoir.memory.search("agent-1", "user preferences", {
   embedding: await embed("user preferences"),
   queryCategory: "ui_preference", // Boosts matching category results
   limit: 10,
@@ -413,7 +413,7 @@ const results = await cortex.memory.search("agent-1", "user preferences", {
 
 ```typescript
 // Query with embedding (SDK handles the vector search internally)
-const results = await cortex.memory.search("agent-1", "user password", {
+const results = await memoir.memory.search("agent-1", "user password", {
   embedding: await embed("user password"),
   limit: 10,
 });
@@ -432,7 +432,7 @@ const vectorResults = await ctx.vectorSearch("memories", "by_embedding", {
 
 ### Search Options
 
-Cortex provides several options to refine search results:
+Memoir provides several options to refine search results:
 
 #### `minScore` - Minimum Similarity Threshold
 
@@ -440,7 +440,7 @@ Filter results by minimum cosine similarity score (0-1). Only memories with simi
 
 ```typescript
 // Only return highly relevant results
-const results = await cortex.memory.search("agent-1", "user password", {
+const results = await memoir.memory.search("agent-1", "user password", {
   embedding: await embed("user password"),
   minScore: 0.7, // Only return results with similarity >= 0.7
   limit: 10,
@@ -458,7 +458,7 @@ Boost results that match a specific `factCategory`. Matching memories receive a 
 
 ```typescript
 // Boost UI preference results
-const results = await cortex.memory.search("agent-1", "user preferences", {
+const results = await memoir.memory.search("agent-1", "user preferences", {
   embedding: await embed("user preferences"),
   queryCategory: "ui_preference", // +30% score boost for matching category
   limit: 10,
@@ -474,7 +474,7 @@ const results = await cortex.memory.search("agent-1", "user preferences", {
 
 ```typescript
 // High-quality, category-specific results
-const results = await cortex.memory.search("agent-1", "user preferences", {
+const results = await memoir.memory.search("agent-1", "user preferences", {
   embedding: await embed("user preferences"),
   minScore: 0.7, // High relevance threshold
   queryCategory: "ui_preference", // Boost matching category
@@ -486,7 +486,7 @@ const results = await cortex.memory.search("agent-1", "user preferences", {
 
 ```typescript
 // Query without embedding
-const results = await cortex.memory.search("agent-1", "user password", {
+const results = await memoir.memory.search("agent-1", "user password", {
   // No embedding provided
   limit: 10,
 });
@@ -511,13 +511,13 @@ await ctx.db
 // Manual hybrid search implementation
 async function hybridSearch(memorySpaceId: string, query: string) {
   // 1. Semantic search (with embedding)
-  const semanticResults = await cortex.memory.search(memorySpaceId, query, {
+  const semanticResults = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     limit: 20,
   });
 
   // 2. Keyword search (without embedding)
-  const keywordResults = await cortex.memory.search(memorySpaceId, query, {
+  const keywordResults = await memoir.memory.search(memorySpaceId, query, {
     // No embedding - uses keyword search
     limit: 20,
   });
@@ -559,7 +559,7 @@ const EMBEDDING_MODEL = "text-embedding-3-large";
 const DIMENSIONS = 3072;
 
 // Note: Dimensions are configured in your Convex schema, not in the SDK config
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
 });
 
@@ -572,11 +572,11 @@ async function embed(text: string) {
 }
 
 // Bad: Mixed dimensions
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   embedding: await embed1536(text), // 1536-dim
 });
 
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   embedding: await embed3072(text), // 3072-dim Error!
 });
 ```
@@ -597,7 +597,7 @@ function normalizeEmbedding(embedding: number[]): number[] {
 const raw = await localEmbed(text);
 const normalized = normalizeEmbedding(raw);
 
-await cortex.memory.store('agent-1', {
+await memoir.memory.store('agent-1', {
   embedding: normalized,  // ← Normalized for better similarity
   ...
 });
@@ -621,7 +621,7 @@ const contents = ['Memory 1', 'Memory 2', 'Memory 3'];
 const embeddings = await embedBatch(contents);
 
 for (let i = 0; i < contents.length; i++) {
-  await cortex.memory.store('agent-1', {
+  await memoir.memory.store('agent-1', {
     content: contents[i],
     embedding: embeddings[i],
     ...
@@ -665,7 +665,7 @@ async function safeEmbed(text: string): Promise<number[] | undefined> {
 }
 
 // Store with fallback
-await cortex.memory.store('agent-1', {
+await memoir.memory.store('agent-1', {
   content: text,
   embedding: await safeEmbed(text),  // undefined if fails
   ...
@@ -820,11 +820,11 @@ memories: defineTable({ ... })
 
 ### Progressive Enhancement
 
-Cortex works **with or without** embeddings:
+Memoir works **with or without** embeddings:
 
 ```typescript
 // Level 1: No embeddings (keyword search only)
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   content: "User email is alex@example.com",
   // No embedding
   source: { type: "system", timestamp: new Date() },
@@ -832,14 +832,14 @@ await cortex.memory.store("agent-1", {
 });
 
 // Can still search with keywords
-const results = await cortex.memory.search("agent-1", "email", {
+const results = await memoir.memory.search("agent-1", "email", {
   // No embedding provided - uses keyword search
   limit: 10,
 });
 
 // Level 2: Add embeddings later
-const memory = await cortex.memory.get("agent-1", "mem-123");
-await cortex.memory.update("agent-1", "mem-123", {
+const memory = await memoir.memory.get("agent-1", "mem-123");
+await memoir.memory.update("agent-1", "mem-123", {
   embedding: await embed(memory.content), // ← Add embedding
 });
 
@@ -856,7 +856,7 @@ async function storeWithSelectiveEmbedding(
 ) {
   const shouldEmbed = data.metadata.importance >= 70;
 
-  await cortex.memory.store(memorySpaceId, {
+  await memoir.memory.store(memorySpaceId, {
     ...data,
     embedding: shouldEmbed ? await embed(data.content) : undefined,
   });
@@ -886,7 +886,7 @@ async function expandedSearch(memorySpaceId: string, query: string) {
   // Search with each variation
   const allResults = await Promise.all(
     embeddings.map((emb) =>
-      cortex.memory.search(memorySpaceId, query, {
+      memoir.memory.search(memorySpaceId, query, {
         embedding: emb,
         limit: 10,
       }),
@@ -922,7 +922,7 @@ async function semanticQuery(memorySpaceId: string, userQuery: string) {
   });
 
   // Search with improved query
-  return await cortex.memory.search(memorySpaceId, improved, {
+  return await memoir.memory.search(memorySpaceId, improved, {
     embedding: await embed(improved),
     limit: 10,
   });
@@ -983,7 +983,7 @@ async function semanticQuery(memorySpaceId: string, userQuery: string) {
 
 ```typescript
 // Store user message with embedding
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "chatbot",
   conversationId: "conv-123",
   userMessage: req.body.message,
@@ -994,7 +994,7 @@ await cortex.memory.remember({
 });
 
 // Semantic search for context
-const context = await cortex.memory.search("chatbot", req.body.message, {
+const context = await memoir.memory.search("chatbot", req.body.message, {
   embedding: await embed(req.body.message),
   userId: req.user.id,
   limit: 5,
@@ -1007,7 +1007,7 @@ const context = await cortex.memory.search("chatbot", req.body.message, {
 
 ```typescript
 // Store KB articles
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "refund-policy",
   data: {
@@ -1017,7 +1017,7 @@ await cortex.immutable.store({
 });
 
 // Index for search (with embedding)
-await cortex.vector.store("kb-agent", {
+await memoir.vector.store("kb-agent", {
   content: "Refund Policy: Detailed refund policy...",
   embedding: await embed("refund policy content"),
   immutableRef: { type: "kb-article", id: "refund-policy" },
@@ -1025,7 +1025,7 @@ await cortex.vector.store("kb-agent", {
 });
 
 // All agents can search
-const results = await cortex.memory.search("any-agent", "refund policy", {
+const results = await memoir.memory.search("any-agent", "refund policy", {
   embedding: await embed("refund policy"),
 });
 ```
@@ -1036,7 +1036,7 @@ const results = await cortex.memory.search("any-agent", "refund policy", {
 
 ```typescript
 // System logs without embeddings
-await cortex.vector.store("agent-1", {
+await memoir.vector.store("agent-1", {
   content: "System started at 10:00 AM",
   // No embedding - saves cost
   source: { type: "system", timestamp: new Date() },
@@ -1044,7 +1044,7 @@ await cortex.vector.store("agent-1", {
 });
 
 // Keyword search works fine
-const logs = await cortex.memory.search("agent-1", "started", {
+const logs = await memoir.memory.search("agent-1", "started", {
   // No embedding - keyword search
   tags: ["debug"],
   limit: 100,
@@ -1063,10 +1063,10 @@ const logs = await cortex.memory.search("agent-1", "started", {
 
 <FlowDiagram title="Cloud Mode Auto-Embed Pipeline" caption="Planned Cloud Mode embedding generation flow">
   <FlowNode title="SDK: autoEmbed=true" icon="code" variant="default">
-    Developer calls cortex.memory.store() with autoEmbed: true
+    Developer calls memoir.memory.store() with autoEmbed: true
   </FlowNode>
-  <FlowNode title="Cortex Cloud API" icon="cloud" variant="primary">
-    Request received by Cortex Cloud service
+  <FlowNode title="Memoir Cloud API" icon="cloud" variant="primary">
+    Request received by Memoir Cloud service
   </FlowNode>
   <FlowNode title="Generate Embedding" icon="code" variant="warning">
     Embedding generation initiated
@@ -1084,8 +1084,8 @@ const logs = await cortex.memory.search("agent-1", "started", {
 
 **Planned Process:**
 
-1. Developer calls `cortex.memory.store({ autoEmbed: true })`
-2. Cortex Cloud receives request
+1. Developer calls `memoir.memory.store({ autoEmbed: true })`
+2. Memoir Cloud receives request
 3. Generates embedding (OpenAI text-embedding-3-large, 3072-dim)
 4. Stores in your Convex instance with embedding
 5. Returns memory ID to developer
@@ -1157,7 +1157,7 @@ export const reEmbedMemory = action({
 });
 
 // 4. Run for all memories
-const memories = await cortex.memory.list('agent-1');
+const memories = await memoir.memory.list('agent-1');
 for (const memory of memories.memories) {
   if (memory.metadata.needsReEmbedding) {
     await convexClient.action(api.memories.reEmbedMemory, {
@@ -1190,7 +1190,7 @@ async function embedByImportance(
 }
 
 // Use when storing
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: text,
   contentType: "raw",
   embedding: await embedByImportance(text, importance),
@@ -1208,7 +1208,7 @@ Start small, upgrade important memories based on usage:
 
 ```typescript
 // Initially store with small embeddings
-const memory = await cortex.vector.store(memorySpaceId, {
+const memory = await memoir.vector.store(memorySpaceId, {
   content: text,
   contentType: "raw",
   embedding: await embedSmall(text), // 384
@@ -1218,7 +1218,7 @@ const memory = await cortex.vector.store(memorySpaceId, {
 
 // If memory gets accessed frequently, upgrade
 if (memory.accessCount > 10) {
-  await cortex.vector.update(memorySpaceId, memory.memoryId, {
+  await memoir.vector.update(memorySpaceId, memory.memoryId, {
     embedding: await embedLarge(text), // 3072
     metadata: {
       dimension: 3072,
@@ -1238,7 +1238,7 @@ Use different dimensions for different memory types:
 
 ```typescript
 // Critical information: High accuracy
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: "Security protocol XYZ requires 2FA",
   contentType: "raw",
   embedding: await embedLarge(content), // 3072 dimensions
@@ -1250,7 +1250,7 @@ await cortex.vector.store(memorySpaceId, {
 });
 
 // General information: Balanced
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: "User prefers dark mode",
   contentType: "raw",
   embedding: await embedStandard(content), // 1536 dimensions
@@ -1262,7 +1262,7 @@ await cortex.vector.store(memorySpaceId, {
 });
 
 // High-volume logs: Fast
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: "User visited pricing page",
   contentType: "raw",
   embedding: await embedSmall(content), // 384 dimensions
@@ -1279,7 +1279,7 @@ await cortex.vector.store(memorySpaceId, {
 ```typescript
 // Upgrade dimensions for existing memories
 async function upgradeDimensions(memorySpaceId: string) {
-  const memories = await cortex.vector.search(memorySpaceId, "*", {
+  const memories = await memoir.vector.search(memorySpaceId, "*", {
     metadata: { dimension: 384 },
     limit: 1000,
   });
@@ -1289,7 +1289,7 @@ async function upgradeDimensions(memorySpaceId: string) {
   for (const memory of memories) {
     const newEmbedding = await embedLarge(memory.content);
 
-    await cortex.vector.update(memorySpaceId, memory.memoryId, {
+    await memoir.vector.update(memorySpaceId, memory.memoryId, {
       embedding: newEmbedding,
       metadata: {
         ...memory.metadata,
@@ -1312,4 +1312,4 @@ async function upgradeDimensions(memorySpaceId: string) {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

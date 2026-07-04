@@ -2,12 +2,12 @@
 id: patterns-and-practices
 title: Patterns & Best Practices
 sidebar_position: 3
-description: Common implementation patterns and best practices for building with Cortex
+description: Common implementation patterns and best practices for building with Memoir
 ---
 
 # Patterns & Best Practices
 
-This guide covers proven patterns for common use cases and best practices to follow when building with Cortex.
+This guide covers proven patterns for common use cases and best practices to follow when building with Memoir.
 
 ---
 
@@ -21,14 +21,14 @@ The most common pattern - a single chatbot with persistent memory per user.
 // User sends message - use shared memory space
 const memorySpaceId = `user-${req.user.id}-personal`; // Hive space
 
-const conversation = await cortex.conversations.getOrCreate({
+const conversation = await memoir.conversations.getOrCreate({
   type: "user-agent",
   memorySpaceId,
   participants: { userId: req.user.id, participantId: "chatbot" },
 });
 
 // Store exchange
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId,
   participantId: "chatbot", // Track who stored it
   conversationId: conversation.conversationId,
@@ -39,7 +39,7 @@ await cortex.memory.remember({
 });
 
 // Search for context (infinite context pattern)
-const context = await cortex.memory.search(memorySpaceId, req.body.message, {
+const context = await memoir.memory.search(memorySpaceId, req.body.message, {
   embedding: await embed(req.body.message),
   userId: req.user.id,
   limit: 10, // Top 10 most relevant from ALL history
@@ -58,14 +58,14 @@ For systems where specialized agents work together on complex tasks.
 
 ```typescript
 // Supervisor agent creates context in its own space
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request",
   memorySpaceId: "supervisor-agent-space", // Separate space
   userId: "user-123",
 });
 
 // Delegate via A2A (dual-write to both spaces)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "supervisor-agent",
   to: "finance-agent",
   message: "Approve $500 refund",
@@ -76,7 +76,7 @@ await cortex.a2a.send({
 // Stored in BOTH supervisor-agent-space AND finance-agent-space
 
 // Finance agent accesses context (cross-space via context chain)
-const ctx = await cortex.contexts.get(context.id, {
+const ctx = await memoir.contexts.get(context.id, {
   includeChain: true,
 });
 ```
@@ -93,7 +93,7 @@ Store shared, versioned knowledge that agents can reference.
 
 ```typescript
 // Store KB article (shared, versioned)
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "refund-policy",
   data: {
@@ -107,7 +107,7 @@ await cortex.immutable.store({
 });
 
 // Index for search (optional) - in a memory space
-await cortex.vector.store("support-bot-space", {
+await memoir.vector.store("support-bot-space", {
   content: "Refund Policy: Refunds available within 30 days...",
   contentType: "fact",
   embedding: await embed("Refund Policy: Refunds available within 30 days..."),
@@ -120,7 +120,7 @@ await cortex.vector.store("support-bot-space", {
 });
 
 // Search within memory space
-const results = await cortex.memory.search(
+const results = await memoir.memory.search(
   "support-bot-space",
   "refund policy",
 );
@@ -134,16 +134,16 @@ Use the Mutable Store for real-time data that changes frequently.
 
 ```typescript
 // Set inventory (mutable, no versioning)
-await cortex.mutable.set("inventory", "widget-qty", 100);
+await memoir.mutable.set("inventory", "widget-qty", 100);
 
 // Customer orders (atomic decrement)
-await cortex.mutable.update("inventory", "widget-qty", (qty) => {
+await memoir.mutable.update("inventory", "widget-qty", (qty) => {
   if (qty < 10) throw new Error("Out of stock");
   return qty - 10;
 });
 
 // Check availability
-const qty = await cortex.mutable.get("inventory", "widget-qty");
+const qty = await memoir.mutable.get("inventory", "widget-qty");
 console.log(`${qty} available`);
 ```
 
@@ -159,7 +159,7 @@ Extract structured facts for 60-90% token savings on context retrieval.
 
 ```typescript
 // Extract and store facts (60-90% token savings for infinite context)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   participantId: "personal-assistant",
   conversationId: "conv-123",
@@ -177,7 +177,7 @@ await cortex.memory.remember({
 // 3. "User's role: Senior Engineer"
 
 // Search facts (fast, precise, unlimited history)
-const facts = await cortex.memory.search(
+const facts = await memoir.memory.search(
   "user-123-personal",
   "user employment",
   {
@@ -201,7 +201,7 @@ Share memory across multiple AI tools using Model Context Protocol.
 
 ```typescript
 // Run MCP server
-// $ cortex-mcp-server --convex-url=$CONVEX_URL
+// $ memoir-mcp-server --convex-url=$CONVEX_URL
 
 // Now Cursor, Claude Desktop, etc. all share memory
 
@@ -228,7 +228,7 @@ Navigate relationships between entities for complex queries.
 
 ```typescript
 // Graph-Lite (built-in): Context hierarchy
-const chain = await cortex.contexts.get(contextId, {
+const chain = await memoir.contexts.get(contextId, {
   includeChain: true, // Multi-hop graph walk
 });
 
@@ -236,9 +236,9 @@ console.log("Ancestors:", chain.ancestors.length); // Walk up
 console.log("Descendants:", chain.descendants.length); // Walk down
 
 // Native Graph DB (planned): Complex queries
-// Note: cortex.graph.traverse() is planned for a future release.
+// Note: memoir.graph.traverse() is planned for a future release.
 // Currently, use the low-level graph adapter directly:
-// import { CypherGraphAdapter } from "@cortexmemory/sdk/graph";
+// import { CypherGraphAdapter } from "@memoir/sdk/graph";
 // const graphAdapter = new CypherGraphAdapter();
 // await graphAdapter.connect({ uri, username, password });
 // const related = await graphAdapter.traverse({
@@ -255,16 +255,16 @@ console.log("Descendants:", chain.descendants.length); // Walk down
 
 ### 1. Start with Layer 4
 
-Use `cortex.memory.*` for most operations - it handles the complexity for you:
+Use `memoir.memory.*` for most operations - it handles the complexity for you:
 
 ```typescript
 // Recommended: Layer 4 (handles L1a + L2 + L3)
-await cortex.memory.remember({ ... });
+await memoir.memory.remember({ ... });
 
 // Advanced: Manual Layer 1 + Layer 2 + Layer 3
-const msg = await cortex.conversations.addMessage(...);
-await cortex.vector.store(...);
-await cortex.facts.store(...);
+const msg = await memoir.conversations.addMessage(...);
+await memoir.vector.store(...);
+await memoir.facts.store(...);
 ```
 
 <Callout type="tip">
@@ -279,7 +279,7 @@ Link Vector memories to their conversation source for full audit trails:
 
 ```typescript
 // Good: With conversationRef
-await cortex.vector.store('user-123-personal', {
+await memoir.vector.store('user-123-personal', {
   content: 'User prefers dark mode',
   contentType: 'fact',
   embedding: await embed('User prefers dark mode'),
@@ -308,16 +308,16 @@ const oldDebugLogs = {
 };
 
 // Preview
-const count = await cortex.memory.count("user-123-personal", oldDebugLogs);
+const count = await memoir.memory.count("user-123-personal", oldDebugLogs);
 
 // Export
-await cortex.memory.export("user-123-personal", {
+await memoir.memory.export("user-123-personal", {
   ...oldDebugLogs,
   format: "json",
 });
 
 // Delete
-await cortex.memory.deleteMany("user-123-personal", oldDebugLogs);
+await memoir.memory.deleteMany("user-123-personal", oldDebugLogs);
 ```
 
 ---
@@ -327,10 +327,10 @@ await cortex.memory.deleteMany("user-123-personal", oldDebugLogs);
 Always catch and handle errors with type information:
 
 ```typescript
-import { MemoryValidationError, CircuitOpenError } from '@cortexmemory/sdk';
+import { MemoryValidationError, CircuitOpenError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.store("user-123-personal", data);
+  await memoir.memory.store("user-123-personal", data);
 } catch (error) {
   if (error instanceof MemoryValidationError) {
     console.error(`Validation error: ${error.message}`);
@@ -350,19 +350,19 @@ Link user-related data for compliance and cascade deletion:
 
 ```typescript
 // With userId (GDPR-enabled)
-await cortex.memory.store('user-123-personal', {
+await memoir.memory.store('user-123-personal', {
   userId: 'user-123',  // ← Critical for GDPR
   ...
 });
 
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: 'feedback',
   userId: 'user-123',  // ← Enables cascade deletion
   ...
 });
 
 // When user requests deletion
-await cortex.users.delete('user-123', { cascade: true });
+await memoir.users.delete('user-123', { cascade: true });
 // Deletes from ALL stores automatically
 ```
 
@@ -387,7 +387,7 @@ Without `userId`, you cannot perform cascade deletion for GDPR compliance.
   />
   <QuickNavItem
     title="Core Concepts"
-    description="Understanding Cortex fundamentals"
+    description="Understanding Memoir fundamentals"
     href="/getting-started/core-concepts"
   />
   <QuickNavItem

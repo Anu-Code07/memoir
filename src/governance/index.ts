@@ -2,7 +2,7 @@
  * Governance API - Data Retention, Purging, and Compliance Rules
  *
  * Centralized control over data retention, purging, and compliance rules
- * across all Cortex storage layers.
+ * across all Memoir storage layers.
  */
 
 import type { ConvexClient } from "convex/browser";
@@ -84,7 +84,7 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * await cortex.governance.setPolicy({
+   * await memoir.governance.setPolicy({
    *   organizationId: "org-123",
    *   conversations: {
    *     retention: { deleteAfter: "7y", purgeOnUserRequest: true },
@@ -187,12 +187,12 @@ export class GovernanceAPI {
    * @example
    * ```typescript
    * // Get org-wide policy
-   * const orgPolicy = await cortex.governance.getPolicy({
+   * const orgPolicy = await memoir.governance.getPolicy({
    *   organizationId: "org-123"
    * });
    *
    * // Get memory-space-specific policy (includes org defaults)
-   * const spacePolicy = await cortex.governance.getPolicy({
+   * const spacePolicy = await memoir.governance.getPolicy({
    *   memorySpaceId: "audit-agent-space"
    * });
    * ```
@@ -226,7 +226,7 @@ export class GovernanceAPI {
    * @example
    * ```typescript
    * // Audit agent needs unlimited retention
-   * await cortex.governance.setAgentOverride("audit-agent", {
+   * await memoir.governance.setAgentOverride("audit-agent", {
    *   vector: {
    *     retention: { defaultVersions: -1 } // Unlimited
    *   }
@@ -328,8 +328,8 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-   * await cortex.governance.setPolicy({
+   * const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+   * await memoir.governance.setPolicy({
    *   organizationId: "org-123",
    *   ...gdprPolicy
    * });
@@ -361,7 +361,7 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.governance.enforce({
+   * const result = await memoir.governance.enforce({
    *   layers: ["vector", "immutable"],
    *   rules: ["retention", "purging"]
    * });
@@ -398,7 +398,7 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * const impact = await cortex.governance.simulate({
+   * const impact = await memoir.governance.simulate({
    *   organizationId: "org-123",
    *   vector: {
    *     retention: {
@@ -498,7 +498,7 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * const report = await cortex.governance.getComplianceReport({
+   * const report = await memoir.governance.getComplianceReport({
    *   organizationId: "org-123",
    *   period: {
    *     start: new Date("2025-01-01"),
@@ -554,7 +554,7 @@ export class GovernanceAPI {
    *
    * @example
    * ```typescript
-   * const stats = await cortex.governance.getEnforcementStats({
+   * const stats = await memoir.governance.getEnforcementStats({
    *   period: "30d"
    * });
    * console.log(`Vector versions deleted: ${stats.vector.versionsDeleted}`);

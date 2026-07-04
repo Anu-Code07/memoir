@@ -1,16 +1,16 @@
 ---
 id: whats-new
 title: What's New
-description: Latest updates and improvements across all Cortex packages
+description: Latest updates and improvements across all Memoir packages
 sidebar_position: 1
 ---
 
 # What's New
 
-Track the latest features, improvements, and fixes across the entire Cortex ecosystem.
+Track the latest features, improvements, and fixes across the entire Memoir ecosystem.
 
 <Callout type="info" title="Single Source of Truth">
-This is the complete changelog for all Cortex packages. Individual package CHANGELOG.md files have been consolidated here for easier tracking.
+This is the complete changelog for all Memoir packages. Individual package CHANGELOG.md files have been consolidated here for easier tracking.
 </Callout>
 
 <Tabs groupId="package-filter">
@@ -32,7 +32,7 @@ This is the complete changelog for all Cortex packages. Individual package CHANG
 
 #### New Chat SDK Template
 
-The new `chat-sdk` template provides a production-ready chat application built on top of the Vercel AI SDK Chat UI components with full Cortex Memory integration:
+The new `chat-sdk` template provides a production-ready chat application built on top of the Vercel AI SDK Chat UI components with full Memoir integration:
 
 - **Rich Chat UI**: Message streaming, file attachments, markdown rendering, code highlighting
 - **Conversation Management**: Multi-conversation support with sidebar navigation
@@ -42,7 +42,7 @@ The new `chat-sdk` template provides a production-ready chat application built o
 
 ```bash
 # Create a new chat app with memory
-cortex init my-chat-app --template chat-sdk
+memoir init my-chat-app --template chat-sdk
 cd my-chat-app
 npm run dev
 ```
@@ -141,7 +141,7 @@ Control who can access conversations with three visibility levels:
 
 ```typescript
 // Create with visibility
-const conv = await cortex.conversations.create({
+const conv = await memoir.conversations.create({
   memorySpaceId: 'team-space',
   type: 'user-agent',
   participants: { userId: 'user-123', agentId: 'assistant' },
@@ -149,7 +149,7 @@ const conv = await cortex.conversations.create({
 });
 
 // Check access
-const access = await cortex.conversations.checkAccess({
+const access = await memoir.conversations.checkAccess({
   conversationId: conv.conversationId,
   userId: 'user-456',
   memorySpaceId: 'team-space',
@@ -162,7 +162,7 @@ Create granular sharing permissions with expiration, view limits, and redaction:
 
 ```typescript
 // Create a shareable link
-const share = await cortex.conversations.share({
+const share = await memoir.conversations.share({
   conversationId: 'conv-123',
   grantType: 'link', // or 'user', 'space', 'domain'
   permissions: { canView: true, canFork: true },
@@ -171,7 +171,7 @@ const share = await cortex.conversations.share({
 });
 
 // Build shareable URL
-import { buildShareUrl } from '@cortexmemory/sdk';
+import { buildShareUrl } from '@memoir/sdk';
 const url = buildShareUrl(share.shareId, {
   baseUrl: 'https://myapp.com/shared',
 });
@@ -182,7 +182,7 @@ const url = buildShareUrl(share.shareId, {
 Create immutable copies of conversations with PII redaction:
 
 ```typescript
-const snapshot = await cortex.conversations.snapshot({
+const snapshot = await memoir.conversations.snapshot({
   conversationId: 'conv-123',
   redactPII: true, // Redacts emails, phones, SSN, credit cards, IPs
   customRedactions: [
@@ -198,7 +198,7 @@ Multi-user conversations with message approval workflows:
 
 ```typescript
 // Create collaborative conversation
-const collab = await cortex.conversations.create({
+const collab = await memoir.conversations.create({
   memorySpaceId: 'team-space',
   type: 'user-agent',
   participants: {
@@ -213,7 +213,7 @@ const collab = await cortex.conversations.create({
 });
 
 // Approve pending messages
-await cortex.conversations.approveMessage({
+await memoir.conversations.approveMessage({
   conversationId: collab.conversationId,
   messageId: 'msg-456',
 });
@@ -263,12 +263,12 @@ A complete system for multi-modal file storage enabling AI agents to work with i
 
 ```typescript
 // Generate upload URL and upload file
-const { uploadUrl } = await cortex.attachments.generateUploadUrl();
+const { uploadUrl } = await memoir.attachments.generateUploadUrl();
 const response = await fetch(uploadUrl, { method: 'POST', body: file });
 const { storageId } = await response.json();
 
 // Register the attachment
-const attachment = await cortex.attachments.attach({
+const attachment = await memoir.attachments.attach({
   storageId,
   memorySpaceId: 'user-123-space',
   userId: 'user-123',
@@ -281,10 +281,10 @@ const attachment = await cortex.attachments.attach({
 });
 
 // Get download URL
-const downloadUrl = await cortex.attachments.getUrl(attachment.attachmentId);
+const downloadUrl = await memoir.attachments.getUrl(attachment.attachmentId);
 
 // List attachments by type
-const images = await cortex.attachments.list({
+const images = await memoir.attachments.list({
   memorySpaceId: 'user-123-space',
   type: 'image',
 });
@@ -294,10 +294,10 @@ const images = await cortex.attachments.list({
 
 ```python
 # Generate upload URL
-result = await cortex.attachments.generate_upload_url()
+result = await memoir.attachments.generate_upload_url()
 
 # After uploading file to result.upload_url...
-attachment = await cortex.attachments.attach(
+attachment = await memoir.attachments.attach(
     AttachParams(
         storage_id=storage_id,
         memory_space_id="user-123-space",
@@ -311,7 +311,7 @@ attachment = await cortex.attachments.attach(
 )
 
 # List by conversation
-attachments = await cortex.attachments.get_by_conversation("conv-123")
+attachments = await memoir.attachments.get_by_conversation("conv-123")
 ```
 
 #### Changes
@@ -354,7 +354,7 @@ A complete system for managing interactive, versioned digital documents that AI 
 
 ```typescript
 // Create an artifact
-const artifact = await cortex.artifacts.create({
+const artifact = await memoir.artifacts.create({
   memorySpaceId: 'user-123-space',
   title: 'Code Snippet',
   content: 'function hello() { return "world"; }',
@@ -363,15 +363,15 @@ const artifact = await cortex.artifacts.create({
 });
 
 // Version control
-await cortex.artifacts.undo(artifact.artifactId);
-const history = await cortex.artifacts.getHistory(artifact.artifactId);
+await memoir.artifacts.undo(artifact.artifactId);
+const history = await memoir.artifacts.getHistory(artifact.artifactId);
 ```
 
 **Python SDK**
 
 ```python
 # Create an artifact
-artifact = await cortex.artifacts.create(
+artifact = await memoir.artifacts.create(
     CreateArtifactOptions(
         memory_space_id="user-123-space",
         title="Meeting Notes",
@@ -381,7 +381,7 @@ artifact = await cortex.artifacts.create(
 )
 
 # Streaming
-await cortex.artifacts.start_streaming(
+await memoir.artifacts.start_streaming(
     StartStreamingParams(artifact_id=artifact.artifact_id)
 )
 ```
@@ -423,7 +423,7 @@ New AI tools for artifact management within chat interfaces:
 A helper function that creates an `OrchestrationObserver` pre-wired to emit layer events to a Vercel AI SDK stream writer:
 
 ```typescript
-import { createLayerStreamObserver, createCortexMemoryAsync } from '@cortexmemory/vercel-ai-provider';
+import { createLayerStreamObserver, createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
 import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 
 export async function POST(req: Request) {
@@ -433,7 +433,7 @@ export async function POST(req: Request) {
     stream: createUIMessageStream({
       execute: async ({ writer }) => {
         emitTo(writer);
-        const cortexMemory = await createCortexMemoryAsync({
+        const memoirMemory = await createMemoirMemoryAsync({
           layerObserver: observer,
           // ...config
         });
@@ -449,7 +449,7 @@ export async function POST(req: Request) {
 A React hook that manages layer tracking state and provides a `handleDataPart` callback for `useChat`:
 
 ```typescript
-import { useLayerTracking } from '@cortexmemory/vercel-ai-provider/react';
+import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
 import { useChat } from '@ai-sdk/react';
 
 function ChatComponent() {
@@ -492,9 +492,9 @@ Three transient stream events are emitted during memory orchestration:
 
 The Vercel AI Quickstart template now uses these new helpers out of the box:
 - `app/api/chat-v6/route.ts` uses `createLayerStreamObserver()` 
-- `lib/layer-tracking.ts` re-exports from `@cortexmemory/vercel-ai-provider/react`
+- `lib/layer-tracking.ts` re-exports from `@memoir/vercel-ai-provider/react`
 
-Run `cortex update --sync-template` to get the updated quickstart files.
+Run `memoir update --sync-template` to get the updated quickstart files.
 
 </details>
 
@@ -504,7 +504,7 @@ Run `cortex update --sync-template` to get the updated quickstart files.
 
 **Auto-Discovery of Unregistered Apps**
 
-🔍 `cortex update` now auto-discovers apps in deployment directories  
+🔍 `memoir update` now auto-discovers apps in deployment directories  
 📝 Prompts to register discovered apps for template sync  
 🚀 Apps created before the registration system are now detected
 
@@ -515,14 +515,14 @@ Run `cortex update --sync-template` to get the updated quickstart files.
 
 **Auto-Discovery**
 
-The `update` command now scans deployment directories for Cortex apps that aren't registered in `~/.cortexrc`. This helps users who created apps before the `.cortex` registration system was introduced.
+The `update` command now scans deployment directories for Memoir apps that aren't registered in `~/.memoirrc`. This helps users who created apps before the `.memoir` registration system was introduced.
 
 Detected patterns:
-- `quickstart/` folders with Next.js + `@cortexmemory/vercel-ai-provider`
-- Any subdirectory with `@cortexmemory/sdk` dependencies
+- `quickstart/` folders with Next.js + `@memoir/vercel-ai-provider`
+- Any subdirectory with `@memoir/sdk` dependencies
 
 ```bash
-$ cortex update --sync-template
+$ memoir update --sync-template
 
    Found 1 unregistered app(s) in deployment directories:
      • my-deployment-quickstart (vercel-ai-quickstart) at /path/to/quickstart
@@ -563,10 +563,10 @@ Once registered, apps receive template updates via `--sync-template`.
 - `next` ^16.1.1 → ^16.1.4
 
 **Version bumps:**
-- `@cortexmemory/sdk` 0.31.0 → 0.31.1
-- `@cortexmemory/cli` 0.31.0 → 0.31.1
-- `@cortexmemory/vercel-ai-provider` 0.29.0 → 0.29.1
-- `cortex-memory` (Python) 0.31.0 → 0.31.1
+- `@memoir/sdk` 0.31.0 → 0.31.1
+- `@memoir/cli` 0.31.0 → 0.31.1
+- `@memoir/vercel-ai-provider` 0.29.0 → 0.29.1
+- `memoir` (Python) 0.31.0 → 0.31.1
 
 </details>
 
@@ -574,7 +574,7 @@ Once registered, apps receive template updates via `--sync-template`.
 
 ### CLI v0.31.0 · Jan 15, 2026
 
-**Adaptive Batch Sizing for `cortex db clear`**
+**Adaptive Batch Sizing for `memoir db clear`**
 
 🔄 Automatic batch size reduction on Convex 16MB read limit errors  
 📉 Starts at 10,000 records, reduces to 500 → 250 → 50 on failures  
@@ -586,9 +586,9 @@ Once registered, apps receive template updates via `--sync-template`.
 
 #### Bug Fix
 
-**`cortex db clear` fails on tables with embeddings**
+**`memoir db clear` fails on tables with embeddings**
 
-The `cortex db clear` command would fail with "Too many bytes read in a single function execution (limit: 16777216 bytes)" when clearing tables containing records with vector embeddings (memories and facts tables).
+The `memoir db clear` command would fail with "Too many bytes read in a single function execution (limit: 16777216 bytes)" when clearing tables containing records with vector embeddings (memories and facts tables).
 
 **Root Cause:** Each memory/fact record can contain a 1536-dimension float64 embedding (~12KB per record). With a batch size of 1000 records, this alone approaches the 16MB Convex read limit before accounting for content, metadata, and previousVersions.
 
@@ -630,7 +630,7 @@ The fix is resilient to varying record sizes and automatically adapts without re
 The `recall()` API now accepts granular limits to control data retrieval across all sources:
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
   limits: {
@@ -649,7 +649,7 @@ const result = await cortex.memory.recall({
 Limits can be configured at three levels (highest priority first):
 
 1. **Per-call overrides** - `RecallParams.limits`
-2. **Environment variables** - `CORTEX_RECALL_*`
+2. **Environment variables** - `MEMOIR_RECALL_*`
 3. **SDK defaults** - Hardcoded sensible defaults
 
 **New Environment Variables**
@@ -657,12 +657,12 @@ Limits can be configured at three levels (highest priority first):
 <DataTable 
   headers={["Variable", "Default", "Description"]} 
   rows={[
-    ["CORTEX_RECALL_LIMIT_MEMORIES", "20", "Max vector memories per recall"],
-    ["CORTEX_RECALL_LIMIT_FACTS", "15", "Max facts per recall"],
-    ["CORTEX_RECALL_GRAPH_HOPS", "2", "Graph traversal depth"],
-    ["CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP", "5", "Entities expanded per hop"],
-    ["CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY", "3", "Results fetched per entity"],
-    ["CORTEX_RECALL_LIMIT_TOTAL", "30", "Final result cap"],
+    ["MEMOIR_RECALL_LIMIT_MEMORIES", "20", "Max vector memories per recall"],
+    ["MEMOIR_RECALL_LIMIT_FACTS", "15", "Max facts per recall"],
+    ["MEMOIR_RECALL_GRAPH_HOPS", "2", "Graph traversal depth"],
+    ["MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP", "5", "Entities expanded per hop"],
+    ["MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY", "3", "Results fetched per entity"],
+    ["MEMOIR_RECALL_LIMIT_TOTAL", "30", "Final result cap"],
   ]} 
 />
 
@@ -672,10 +672,10 @@ The legacy `limit` parameter is still supported as an alias for `limits.total`:
 
 ```typescript
 // Legacy (still works)
-await cortex.memory.recall({ ..., limit: 25 });
+await memoir.memory.recall({ ..., limit: 25 });
 
 // New (recommended)
-await cortex.memory.recall({ ..., limits: { total: 25 } });
+await memoir.memory.recall({ ..., limits: { total: 25 } });
 ```
 
 #### Technical Details
@@ -809,7 +809,7 @@ Configure embedding provider once - SDK auto-generates embeddings for `recall()`
 
 ```typescript
 // Configure once at SDK init
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   embedding: {
     provider: 'openai',
@@ -818,14 +818,14 @@ const cortex = new Cortex({
 });
 
 // recall() auto-generates embeddings - no manual code!
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-space",
   query: "What colors does the user like?",
   // Embedding is auto-generated from query!
 });
 
 // remember() auto-generates embeddings for facts - no manual code!
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-space",
   userMessage: "My favorite color is purple",
   agentResponse: "Got it!",
@@ -836,7 +836,7 @@ await cortex.memory.remember({
 Or use environment variables for zero-config:
 
 ```bash
-export CORTEX_EMBEDDING=true
+export MEMOIR_EMBEDDING=true
 export OPENAI_API_KEY=sk-...
 ```
 
@@ -846,7 +846,7 @@ Facts now support native vector search via embeddings:
 
 ```typescript
 // Direct: Use semanticSearch() for facts
-const facts = await cortex.facts.semanticSearch(memorySpaceId, embedding, {
+const facts = await memoir.facts.semanticSearch(memorySpaceId, embedding, {
   minConfidence: 80,
   limit: 20,
 });
@@ -938,7 +938,7 @@ When no LLM is configured, the `getDefaultDecision()` heuristic now correctly ha
 
 **Automatic Fact and Entity Graph Sync**
 
-🔗 Graph sync now automatic when `CORTEX_GRAPH_SYNC=true`  
+🔗 Graph sync now automatic when `MEMOIR_GRAPH_SYNC=true`  
 📊 Facts extracted via `remember()` automatically sync to graph  
 🏷️ Entity nodes created with MENTIONS relationships  
 ⚠️ **Breaking:** `syncToGraph` option removed from all APIs
@@ -950,7 +950,7 @@ When no LLM is configured, the `getDefaultDecision()` heuristic now correctly ha
 
 **Automatic Graph Synchronization**
 
-Graph database synchronization for facts and entities is now automatic when `CORTEX_GRAPH_SYNC=true`:
+Graph database synchronization for facts and entities is now automatic when `MEMOIR_GRAPH_SYNC=true`:
 
 - Facts stored via `remember()`, `facts.store()`, or `facts.revise()` automatically sync to graph
 - Entity nodes are created from `fact.entities` array
@@ -965,21 +965,21 @@ The `syncToGraph` option has been removed from all APIs:
 
 ```typescript
 // Before (v0.28.x)
-await cortex.facts.store(params, { syncToGraph: true });
+await memoir.facts.store(params, { syncToGraph: true });
 
-// After (v0.29.0+) - automatic when CORTEX_GRAPH_SYNC=true
-await cortex.facts.store(params);
+// After (v0.29.0+) - automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.facts.store(params);
 ```
 
 APIs affected:
-- `cortex.facts.store()`, `update()`, `delete()`
-- `cortex.memory.remember()`, `forget()`, `delete()`
-- `cortex.vector.store()`, `update()`, `delete()`
-- `cortex.conversations.create()`, `addMessage()`, `delete()`
-- `cortex.contexts.create()`, `update()`, `delete()`
-- `cortex.memorySpaces.register()`
+- `memoir.facts.store()`, `update()`, `delete()`
+- `memoir.memory.remember()`, `forget()`, `delete()`
+- `memoir.vector.store()`, `update()`, `delete()`
+- `memoir.conversations.create()`, `addMessage()`, `delete()`
+- `memoir.contexts.create()`, `update()`, `delete()`
+- `memoir.memorySpaces.register()`
 
-**Migration:** Remove `{ syncToGraph: true/false }` from all API calls. Set `CORTEX_GRAPH_SYNC=true` in your environment to enable graph sync.
+**Migration:** Remove `{ syncToGraph: true/false }` from all API calls. Set `MEMOIR_GRAPH_SYNC=true` in your environment to enable graph sync.
 
 #### Technical Details
 
@@ -1007,16 +1007,16 @@ APIs affected:
 - **Removed `syncToGraph` option** - Graph sync is now automatic:
   ```typescript
   // Before (v0.28.x)
-  await cortexMemory.remember("Hello", "Hi", { syncToGraph: true });
+  await memoirMemory.remember("Hello", "Hi", { syncToGraph: true });
   
   // After (v0.29.0+) - automatic when enableGraphMemory is configured
-  await cortexMemory.remember("Hello", "Hi");
+  await memoirMemory.remember("Hello", "Hi");
   ```
 
 #### Changed
 
-- `CortexMemoryProvider.doGenerate()` no longer passes `syncToGraph` to `remember()`
-- `CortexMemoryProvider.doStream()` no longer passes `syncToGraph` to `rememberStream()`
+- `MemoirMemoryProvider.doGenerate()` no longer passes `syncToGraph` to `remember()`
+- `MemoirMemoryProvider.doStream()` no longer passes `syncToGraph` to `rememberStream()`
 - Manual `remember()` method no longer forwards `syncToGraph` option
 - `ManualRememberOptions.syncToGraph` marked as deprecated (ignored if passed)
 
@@ -1044,16 +1044,16 @@ APIs affected:
 
 #### Changed
 
-- **Update command version display** - `cortex update` now shows version transitions clearly:
+- **Update command version display** - `memoir update` now shows version transitions clearly:
   - Up-to-date packages shown in green: `1.0.0`
   - Outdated packages show transition: `1.0.0 → 1.1.0` (yellow → green)
   - Not installed packages shown dimmed (update only affects installed packages)
   - Applies to all package types: SDK, Provider, Convex, Vercel AI
   - Works in both multi-deployment dashboard and single deployment/app views
 
-- **Basic template graph initialization** - Now uses `Cortex.create()` for automatic graph configuration:
+- **Basic template graph initialization** - Now uses `Memoir.create()` for automatic graph configuration:
   - Async initialization enables auto-configuration from environment variables
-  - `CORTEX_GRAPH_SYNC=true` with `NEO4J_URI` or `MEMGRAPH_URI` auto-connects graph adapter
+  - `MEMOIR_GRAPH_SYNC=true` with `NEO4J_URI` or `MEMGRAPH_URI` auto-connects graph adapter
   - Graph sync is automatic on `remember()` calls (no `syncToGraph` option needed)
 
 #### Fixed
@@ -1061,7 +1061,7 @@ APIs affected:
 - **Dev-linked apps now refresh on update** - In dev mode, apps with `file:...` references are no longer skipped:
   - Previously, dev-linked apps showed "Everything is up to date!" even when source changed
   - Now always runs `npm install` to pick up local SDK source changes
-  - Fixes scenario: bump local SDK version → `cortex update --dev` → changes reflected
+  - Fixes scenario: bump local SDK version → `memoir update --dev` → changes reflected
 
 - **Accurate graph status messages** - Template now checks for both flag AND URI:
   - Shows `✓ Graph memory connected (auto-sync active)` when fully configured
@@ -1094,17 +1094,17 @@ APIs affected:
 
 #### Added
 
-- **Automatic shell tab completion** - Tab completion auto-installs during `npm install -g @cortexmemory/cli`:
+- **Automatic shell tab completion** - Tab completion auto-installs during `npm install -g @memoir/cli`:
   - Completes all commands, subcommands, and options with descriptions
-  - Dynamic completion of deployment and app names from `~/.cortexrc`
-  - Completion scripts installed to `~/.cortex/completions/`
+  - Dynamic completion of deployment and app names from `~/.memoirrc`
+  - Completion scripts installed to `~/.memoir/completions/`
   - Source line added automatically to shell RC files (idempotent)
   - Clean removal via preuninstall script on `npm uninstall -g`
-  - Manual fallback: `cortex completion <zsh|bash|fish>` outputs completion script
+  - Manual fallback: `memoir completion <zsh|bash|fish>` outputs completion script
 
 #### Changed
 
-- Package version display now shows "Vercel AI" instead of "AI" for clarity in `cortex update` output
+- Package version display now shows "Vercel AI" instead of "AI" for clarity in `memoir update` output
 
 </details>
 
@@ -1123,7 +1123,7 @@ APIs affected:
 
 #### New Basic Template
 
-Complete headless demo of Cortex Memory SDK with both CLI and HTTP server modes:
+Complete headless demo of Memoir SDK with both CLI and HTTP server modes:
 
 - **Dual-mode operation** - Interactive CLI (`npm start`) or REST API server (`npm run server`)
 - **Optional LLM integration** - Works with or without OpenAI API key
@@ -1177,12 +1177,12 @@ const memories = await ctx.db
 
 #### Added
 
-- **Basic template tracking in CLI config** - Basic template projects are now registered in `cortex.config.json`:
-  - `cortex init` automatically registers basic projects in the `apps` section
-  - `cortex update --sync-template` now works with basic template projects
-  - `cortex config list` shows basic projects alongside quickstart apps
+- **Basic template tracking in CLI config** - Basic template projects are now registered in `memoir.config.json`:
+  - `memoir init` automatically registers basic projects in the `apps` section
+  - `memoir update --sync-template` now works with basic template projects
+  - `memoir config list` shows basic projects alongside quickstart apps
 
-- **Sessions and factHistory table support** - `cortex db clear` and `cortex db stats` now include all Convex tables:
+- **Sessions and factHistory table support** - `memoir db clear` and `memoir db stats` now include all Convex tables:
   - `sessions` - Native session management table
   - `factHistory` - Belief revision audit trail table
   - Statistics now include counts for all 13 tables
@@ -1190,7 +1190,7 @@ const memories = await ctx.db
 #### Changed
 
 - Added `"basic"` to `AppType` union type for template app tracking
-- `cortex db clear` now clears 13 tables (was 11)
+- `memoir db clear` now clears 13 tables (was 11)
 
 </details>
 
@@ -1209,7 +1209,7 @@ const memories = await ctx.db
 
 #### Fixed
 
-**`/api/chat-v6` route** now has full feature parity with the v5 route using `createCortexMemoryAsync`:
+**`/api/chat-v6` route** now has full feature parity with the v5 route using `createMemoirMemoryAsync`:
 
 - ✅ Memory recall (pre-call context injection)
 - ✅ Memory storage (post-call conversation saving)
@@ -1247,13 +1247,13 @@ Comprehensive E2E tests for the quickstart covering:
 
 ```typescript
 import {
-  createCortexCallOptionsSchema,  // Type-safe call options
-  CortexCallOptions,
+  createMemoirCallOptionsSchema,  // Type-safe call options
+  MemoirCallOptions,
   createMemoryPrepareCall,        // Memory injection via prepareCall
   MemoryInjectionConfig,
   isV6Available,                  // v6 feature detection
   InferAgentUIMessage,            // Type inference for UI messages
-} from "@cortexmemory/vercel-ai-provider";
+} from "@memoir/vercel-ai-provider";
 ```
 
 #### Usage with ToolLoopAgent
@@ -1264,7 +1264,7 @@ import { ToolLoopAgent } from "ai";
 const memoryAgent = new ToolLoopAgent({
   model: "openai/gpt-4o-mini",
   instructions: "You are a helpful assistant with long-term memory.",
-  callOptionsSchema: createCortexCallOptionsSchema(),
+  callOptionsSchema: createMemoirCallOptionsSchema(),
   prepareCall: createMemoryPrepareCall({
     convexUrl: process.env.CONVEX_URL!,
     maxMemories: 20,
@@ -1328,11 +1328,11 @@ The quickstart automatically detects AI SDK version and routes appropriately:
 <details>
 <summary>Show full details</summary>
 
-#### New Auth Module (`cortex.auth`)
+#### New Auth Module (`memoir.auth`)
 
 ```python
-from cortex.auth import create_auth_context
-from cortex import AuthContext, AuthMethod
+from memoir.auth import create_auth_context
+from memoir import AuthContext, AuthMethod
 
 auth = create_auth_context(
     user_id='user-123',
@@ -1344,29 +1344,29 @@ auth = create_auth_context(
     claims={'roles': ['admin', 'editor']},
 )
 
-cortex = Cortex(CortexConfig(
+memoir = Memoir(MemoirConfig(
     convex_url=os.getenv("CONVEX_URL"),
     auth=auth,
 ))
 
 # All operations automatically scoped to tenant
-await cortex.memory.remember(...)
-await cortex.conversations.create(...)
-await cortex.facts.store(...)
+await memoir.memory.remember(...)
+await memoir.conversations.create(...)
+await memoir.facts.store(...)
 ```
 
 #### Sessions API
 
 ```python
-session = await cortex.sessions.create(CreateSessionParams(
+session = await memoir.sessions.create(CreateSessionParams(
     user_id='user-123',
     tenant_id='tenant-456',
     metadata={'device': 'Chrome on macOS'},
 ))
 
-await cortex.sessions.touch(session.session_id)
-active = await cortex.sessions.get_active('user-123')
-await cortex.sessions.end(session.session_id)
+await memoir.sessions.touch(session.session_id)
+active = await memoir.sessions.get_active('user-123')
+await memoir.sessions.end(session.session_id)
 ```
 
 #### User Profile Schemas
@@ -1399,7 +1399,7 @@ await cortex.sessions.end(session.session_id)
 #### AuthContext Integration
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   auth: {
     userId: "user-123",
@@ -1412,22 +1412,22 @@ const cortex = new Cortex({
 });
 
 // All operations automatically scoped to tenant
-await cortex.memory.remember({...});
-await cortex.conversations.create({...});
-await cortex.facts.store({...});
+await memoir.memory.remember({...});
+await memoir.conversations.create({...});
+await memoir.facts.store({...});
 ```
 
 #### Sessions API
 
 ```typescript
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   metadata: { device: "mobile", ip: "..." },
 });
 
-await cortex.sessions.touch(session.sessionId);
-const activeSessions = await cortex.sessions.getActive("user-123");
-await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
+await memoir.sessions.touch(session.sessionId);
+const activeSessions = await memoir.sessions.getActive("user-123");
+await memoir.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 ```
 
 #### Key Features
@@ -1447,7 +1447,7 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 **Multi-Deployment Update Command**
 
-🔄 `cortex update` now checks all enabled deployments by default  
+🔄 `memoir update` now checks all enabled deployments by default  
 📊 Color-coded version status table  
 🎯 Sequential updates with summary
 
@@ -1456,7 +1456,7 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 #### Added
 
-- **Multi-deployment update command** - `cortex update` now checks all enabled deployments:
+- **Multi-deployment update command** - `memoir update` now checks all enabled deployments:
   - Displays status table with latest SDK/Convex versions and each deployment's current versions
   - Color-coded display (green = up to date, yellow = needs update)
   - Prompts to confirm updating all deployments that need updates
@@ -1480,16 +1480,16 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 #### Added
 
-- **App lifecycle management in `cortex stop`**:
+- **App lifecycle management in `memoir stop`**:
   - `-a, --app <name>` option to stop a specific app
   - `--apps-only` flag to stop only apps (skip Convex/graph)
-  - Apps tracked via PID files (`.cortex-app-{name}.pid`)
+  - Apps tracked via PID files (`.memoir-app-{name}.pid`)
 
 - **Port-based process detection** when PID files don't exist:
   - Detects Convex on port 3210 for local deployments
   - Detects apps by their configured port (default 3000)
 
-- **Enhanced `cortex status` dashboard**:
+- **Enhanced `memoir status` dashboard**:
   - Displays running apps with PID and port information
   - Shows detection method (via PID file or via port)
 
@@ -1501,7 +1501,7 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 **Vercel AI Quickstart Integration**
 
-🚀 Optional demo app installation during `cortex init`  
+🚀 Optional demo app installation during `memoir init`  
 📱 Template apps management and tracking  
 ⚡ Default enabled for init-created resources
 
@@ -1516,11 +1516,11 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
   - Auto-configured with Convex URL and OpenAI API key
 
 - **Template apps management**:
-  - New `apps` section in config (`~/.cortexrc`)
-  - Apps shown in `cortex config list`
-  - `cortex start` automatically starts enabled apps
+  - New `apps` section in config (`~/.memoirrc`)
+  - Apps shown in `memoir config list`
+  - `memoir start` automatically starts enabled apps
 
-- **Default enabled** - Deployments and apps from `cortex init` enabled by default
+- **Default enabled** - Deployments and apps from `memoir init` enabled by default
 
 </details>
 
@@ -1538,7 +1538,7 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 #### Changed
 
-- **Extended peerDependencies** - `@cortexmemory/vercel-ai-provider` now accepts `ai` versions `^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0`
+- **Extended peerDependencies** - `@memoir/vercel-ai-provider` now accepts `ai` versions `^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0`
 - Users on Vercel AI SDK v6.x will no longer see peer dependency warnings
 
 </details>
@@ -1547,9 +1547,9 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 ### Create v0.26.0 · Dec 23, 2025
 
-**Cortex CLI Integration**
+**Memoir CLI Integration**
 
-🔧 Optional `@cortexmemory/cli` installation during setup  
+🔧 Optional `@memoir/cli` installation during setup  
 📜 Adds CLI scripts to generated package.json  
 ✨ Enhanced success messages with CLI commands
 
@@ -1558,10 +1558,10 @@ await cortex.sessions.expireIdle({ maxIdleMs: 30 * 60 * 1000 });
 
 #### Added
 
-- **Cortex CLI Integration**:
-  - New optional step to install `@cortexmemory/cli` during project setup
+- **Memoir CLI Integration**:
+  - New optional step to install `@memoir/cli` during project setup
   - Automatic CLI installation as dev dependency when selected
-  - Adds scripts: `npm run cortex`, `cortex:setup`, `cortex:stats`, `cortex:spaces`
+  - Adds scripts: `npm run memoir`, `memoir:setup`, `memoir:stats`, `memoir:spaces`
 
 - **User Experience**:
   - Updated configuration summary shows CLI installation status
@@ -1600,9 +1600,9 @@ NEW FACT → [Slot Match] → [Semantic Match] → [Subject+Type Match] → [LLM
 
 ```typescript
 // Works WITHOUT LLM configuration
-const cortex = new Cortex({ convexUrl: "..." });
+const memoir = new Memoir({ convexUrl: "..." });
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-space",
   userMessage: "Actually, I prefer purple now",
   agentResponse: "Got it!",
@@ -1639,7 +1639,7 @@ class MyObserver:
     def on_orchestration_complete(self, summary: OrchestrationSummary) -> None:
         print(f"Done in {summary.total_latency_ms}ms")
 
-result = await cortex.memory.remember(
+result = await memoir.memory.remember(
     RememberParams(..., observer=MyObserver())
 )
 ```
@@ -1667,7 +1667,7 @@ result = await cortex.memory.remember(
 
 #### Added
 
-- **Non-interactive Convex setup in `cortex init`**:
+- **Non-interactive Convex setup in `memoir init`**:
   - Automatically detects Convex authentication status
   - Retrieves team slug automatically from login status
   - Uses Convex CLI flags for seamless setup
@@ -1685,7 +1685,7 @@ result = await cortex.memory.remember(
 
 **Environment Variable Fixes**
 
-🔧 Fixed `cortex dev` overwriting local deployment configs  
+🔧 Fixed `memoir dev` overwriting local deployment configs  
 🔑 Fixed OpenAI API key not saved during init
 
 <details>
@@ -1693,7 +1693,7 @@ result = await cortex.memory.remember(
 
 #### Fixed
 
-- **`cortex dev` overwriting `.env.local`** - Inherited `CONVEX_*` variables were polluting child processes
+- **`memoir dev` overwriting `.env.local`** - Inherited `CONVEX_*` variables were polluting child processes
 - **OpenAI API key not saved** - Init wizard now correctly saves the configured key
 
 </details>
@@ -1712,7 +1712,7 @@ result = await cortex.memory.remember(
 
 #### Added
 
-- **Secure password generation** - `cortex init` generates 20-character passwords for graph databases
+- **Secure password generation** - `memoir init` generates 20-character passwords for graph databases
 - **OpenAI API key setup** - New optional step with `sk-` prefix validation
 
 </details>
@@ -1740,7 +1740,7 @@ Previously, fact storage was append-only:
 #### Now with Belief Revision
 
 ```typescript
-const result = await cortex.facts.revise({
+const result = await memoir.facts.revise({
   memorySpaceId: "user-123-space",
   fact: {
     fact: "User prefers purple",
@@ -1787,7 +1787,7 @@ console.log(result.reason); // "Color preference has changed"
 #### Usage
 
 ```python
-result = await cortex.facts.revise(ReviseParams(
+result = await memoir.facts.revise(ReviseParams(
     memory_space_id="agent-1",
     fact=ConflictCandidate(
         fact="User prefers purple",
@@ -1832,7 +1832,7 @@ print(f"Reason: {result.reason}")  # "Color preference has changed"
 #### Usage
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
 });
@@ -1872,7 +1872,7 @@ const response = await llm.chat({
 #### Usage
 
 ```python
-result = await cortex.memory.recall(
+result = await memoir.memory.recall(
     RecallParams(
         memory_space_id="agent-1",
         query="user preferences",
@@ -1934,7 +1934,7 @@ Result: 1 fact instead of 3!
 #### Configuration
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   ...params,
   factDeduplication: "semantic", // Default
 });
@@ -1959,7 +1959,7 @@ await cortex.memory.remember({
 
 ```python
 # Deduplication is ON by default
-await cortex.memory.remember(
+await memoir.memory.remember(
     RememberParams(
         memory_space_id="agent-1",
         conversation_id="conv-123",
@@ -2014,7 +2014,7 @@ await cortex.memory.remember(
 #### Configuration
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chat",
   userId: "user-123",
@@ -2057,7 +2057,7 @@ const cortexMemory = createCortexMemory({
 
 **Initial Release**
 
-🎉 First release of Cortex Memory Provider for Vercel AI SDK  
+🎉 First release of Memoir Provider for Vercel AI SDK  
 🔌 Works with OpenAI, Anthropic, Google, Groq  
 🌐 Edge runtime compatible
 
@@ -2066,17 +2066,17 @@ const cortexMemory = createCortexMemory({
 
 #### Core Features
 
-- `createCortexMemory()` - Factory function for memory-augmented models
+- `createMemoirMemory()` - Factory function for memory-augmented models
 - Automatic memory search before each LLM call
 - Automatic memory storage after each response
 - Works with streaming and non-streaming responses
 
 #### Memory Management
 
-- `cortexMemory.search()` - Manual memory search
-- `cortexMemory.remember()` - Manual memory storage
-- `cortexMemory.getMemories()` - Retrieve all memories
-- `cortexMemory.clearMemories()` - Delete memories
+- `memoirMemory.search()` - Manual memory search
+- `memoirMemory.remember()` - Manual memory storage
+- `memoirMemory.getMemories()` - Retrieve all memories
+- `memoirMemory.clearMemories()` - Delete memories
 
 </details>
 
@@ -2085,12 +2085,12 @@ const cortexMemory = createCortexMemory({
 ### Create v0.1.0 · Nov 2, 2025
 
 <Callout type="warning">
-**Deprecated**: The `create-cortex-memories` package has been superseded by `@cortexmemory/cli`. Use `npx @cortexmemory/cli init` instead.
+**Deprecated**: The `create-memoir-memories` package has been superseded by `@memoir/cli`. Use `npx @memoir/cli init` instead.
 </Callout>
 
 **Initial Release**
 
-🎉 Interactive CLI wizard for Cortex project setup  
+🎉 Interactive CLI wizard for Memoir project setup  
 🐳 Docker integration for Neo4j/Memgraph  
 📦 Complete project scaffolding
 
@@ -2099,7 +2099,7 @@ const cortexMemory = createCortexMemory({
 
 #### Features
 
-- ~~`npm create cortex-memories`~~ → Use `npx @cortexmemory/cli init`
+- ~~`npm create memoir-memories`~~ → Use `npx @memoir/cli init`
 - Three Convex setup modes (local/new cloud/existing)
 - Optional graph database integration (Neo4j/Memgraph)
 - Docker detection with platform-specific instructions
@@ -2114,7 +2114,7 @@ const cortexMemory = createCortexMemory({
 
 **Initial Release**
 
-🎉 First release of @cortexmemory/cli  
+🎉 First release of @memoir/cli  
 📋 Complete command suite for memory management  
 🔧 Multi-deployment support
 
@@ -2176,7 +2176,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.29.0 · Jan 9, 2026 - Automatic Graph Sync
 
-🔗 Graph sync automatic with `CORTEX_GRAPH_SYNC=true`  
+🔗 Graph sync automatic with `MEMOIR_GRAPH_SYNC=true`  
 ⚠️ Breaking: `syncToGraph` option removed
 
 ### v0.28.0 · Jan 5, 2026 - Basic Template & Query Fixes
@@ -2280,7 +2280,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.32.0 · Jan 20, 2026 - Auto-Discovery of Apps
 
-🔍 `cortex update` auto-discovers unregistered apps in deployment directories  
+🔍 `memoir update` auto-discovers unregistered apps in deployment directories  
 📝 Prompts to register discovered apps for template sync  
 🚀 Apps created before the registration system are now detected
 
@@ -2314,7 +2314,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.27.2 · Dec 28 - Multi-Deployment Updates
 
-🔄 `cortex update` checks all deployments  
+🔄 `memoir update` checks all deployments  
 📊 Color-coded version status
 
 ### v0.27.1 · Dec 27 - App Lifecycle Management
@@ -2345,7 +2345,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.1.0 · Nov 29 - Initial Release
 
-🎉 Complete CLI for Cortex memory management
+🎉 Complete CLI for Memoir memory management
 
 </TabItem>
 
@@ -2357,9 +2357,9 @@ const cortexMemory = createCortexMemory({
 
 🧠 New `createLayerStreamObserver()` helper for server-side layer streaming  
 ⚛️ New `useLayerTracking` React hook for client-side state management  
-📦 New `/react` subpath export: `@cortexmemory/vercel-ai-provider/react`  
+📦 New `/react` subpath export: `@memoir/vercel-ai-provider/react`  
 📉 Reduces memory visualization boilerplate from ~170 lines to ~6 lines  
-🚀 Quickstart template updated to use new helpers (`cortex update --sync-template`)
+🚀 Quickstart template updated to use new helpers (`memoir update --sync-template`)
 
 ### v0.29.1 · Jan 20, 2026 - Dependency Updates
 
@@ -2383,7 +2383,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.1.0 · Nov 5 - Initial Release
 
-🎉 Cortex Memory Provider for Vercel AI SDK  
+🎉 Memoir Provider for Vercel AI SDK  
 🔌 Works with OpenAI, Anthropic, Google, Groq
 
 </TabItem>
@@ -2394,7 +2394,7 @@ const cortexMemory = createCortexMemory({
 
 ### v0.26.0 · Dec 23 - CLI Integration
 
-🔧 Optional `@cortexmemory/cli` installation
+🔧 Optional `@memoir/cli` installation
 
 ---
 
@@ -2416,7 +2416,7 @@ const cortexMemory = createCortexMemory({
 
 ## Versioning Policy
 
-Cortex packages follow semantic versioning:
+Memoir packages follow semantic versioning:
 
 - **Major (X.0.0)**: Breaking API changes
 - **Minor (0.X.0)**: New features, backwards compatible

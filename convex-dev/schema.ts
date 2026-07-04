@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Convex Schema
+ * Memoir SDK - Convex Schema
  *
  * Layer 1: ACID Stores
  * - conversations (Layer 1a) - Immutable conversation history (memorySpace-scoped)
@@ -942,7 +942,7 @@ export default defineSchema({
   graphSyncQueue: defineTable({
     // Entity identification
     table: v.string(), // "memories", "facts", "contexts", "conversations", etc.
-    entityId: v.string(), // Cortex entity ID
+    entityId: v.string(), // Memoir entity ID
 
     // Operation type
     operation: v.union(

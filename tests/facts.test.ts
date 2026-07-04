@@ -11,7 +11,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
@@ -20,7 +20,7 @@ describe("Facts API (Layer 3)", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("facts");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -31,7 +31,7 @@ describe("Facts API (Layer 3)", () => {
   beforeAll(async () => {
     console.log(`\n🧪 Facts API Tests - Run ID: ${ctx.runId}\n`);
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -49,7 +49,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("store()", () => {
     it("stores a preference fact", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers dark mode for UI",
         factType: "preference",
@@ -72,7 +72,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("stores a knowledge fact with source reference", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "API password for production is SecurePass123",
         factType: "knowledge",
@@ -93,7 +93,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("stores a relationship fact (graph triple)", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Alice works at Acme Corp",
         factType: "relationship",
@@ -112,7 +112,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("supports Hive Mode with participantId", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: "tool-extractor-1",
         fact: "User has completed onboarding",
@@ -132,7 +132,7 @@ describe("Facts API (Layer 3)", () => {
     let testFactId: string;
 
     beforeAll(async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Test fact for retrieval",
         factType: "knowledge",
@@ -145,7 +145,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("retrieves existing fact", async () => {
-      const fact = await cortex.facts.get(TEST_MEMSPACE_ID, testFactId);
+      const fact = await memoir.facts.get(TEST_MEMSPACE_ID, testFactId);
 
       expect(fact).not.toBeNull();
       expect(fact!.factId).toBe(testFactId);
@@ -153,7 +153,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("returns null for non-existent fact", async () => {
-      const fact = await cortex.facts.get(
+      const fact = await memoir.facts.get(
         TEST_MEMSPACE_ID,
         "fact-does-not-exist",
       );
@@ -162,7 +162,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("returns null for fact in different memory space", async () => {
-      const fact = await cortex.facts.get("memspace-other", testFactId);
+      const fact = await memoir.facts.get("memspace-other", testFactId);
 
       expect(fact).toBeNull(); // Isolation
     });
@@ -171,7 +171,7 @@ describe("Facts API (Layer 3)", () => {
   describe("list()", () => {
     beforeAll(async () => {
       // Create diverse facts
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers email notifications",
         factType: "preference",
@@ -181,7 +181,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["notifications", "email"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User's name is John Doe",
         factType: "identity",
@@ -191,7 +191,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["identity", "name"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "System version is 2.1.0",
         factType: "knowledge",
@@ -202,7 +202,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("lists all facts for memory space", async () => {
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
       });
 
@@ -213,7 +213,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by factType", async () => {
-      const prefs = await cortex.facts.list({
+      const prefs = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         factType: "preference",
       });
@@ -225,7 +225,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by subject", async () => {
-      const userFacts = await cortex.facts.list({
+      const userFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-list",
       });
@@ -237,7 +237,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by tags", async () => {
-      const notificationFacts = await cortex.facts.list({
+      const notificationFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         tags: ["notifications"],
       });
@@ -249,7 +249,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("respects limit parameter", async () => {
-      const limited = await cortex.facts.list({
+      const limited = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         limit: 2,
       });
@@ -260,7 +260,7 @@ describe("Facts API (Layer 3)", () => {
     it("excludes superseded facts by default", async () => {
       const uniqueTag = `supersede-${Date.now()}`;
 
-      const original = await cortex.facts.store({
+      const original = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Old version",
         factType: "knowledge",
@@ -270,12 +270,12 @@ describe("Facts API (Layer 3)", () => {
       });
 
       // Update it (supersedes original)
-      await cortex.facts.update(TEST_MEMSPACE_ID, original.factId, {
+      await memoir.facts.update(TEST_MEMSPACE_ID, original.factId, {
         fact: "New version",
         confidence: 95,
       });
 
-      const current = await cortex.facts.list({
+      const current = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         tags: [uniqueTag],
       });
@@ -296,7 +296,7 @@ describe("Facts API (Layer 3)", () => {
     it("includes superseded when requested", async () => {
       const uniqueTag = `supersede-incl-${Date.now()}`;
 
-      const original = await cortex.facts.store({
+      const original = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Old version 2",
         factType: "knowledge",
@@ -305,12 +305,12 @@ describe("Facts API (Layer 3)", () => {
         tags: [uniqueTag],
       });
 
-      await cortex.facts.update(TEST_MEMSPACE_ID, original.factId, {
+      await memoir.facts.update(TEST_MEMSPACE_ID, original.factId, {
         fact: "New version 2",
         confidence: 95,
       });
 
-      const all = await cortex.facts.list({
+      const all = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         tags: [uniqueTag],
         includeSuperseded: true,
@@ -322,7 +322,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("count()", () => {
     it("counts all facts", async () => {
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: TEST_MEMSPACE_ID,
       });
 
@@ -330,7 +330,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("counts by factType", async () => {
-      const prefCount = await cortex.facts.count({
+      const prefCount = await memoir.facts.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         factType: "preference",
       });
@@ -339,11 +339,11 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("excludes superseded by default", async () => {
-      const active = await cortex.facts.count({
+      const active = await memoir.facts.count({
         memorySpaceId: TEST_MEMSPACE_ID,
       });
 
-      const all = await cortex.facts.count({
+      const all = await memoir.facts.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         includeSuperseded: true,
       });
@@ -354,7 +354,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("search()", () => {
     beforeAll(async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "The database password is DbSecret456",
         factType: "knowledge",
@@ -363,7 +363,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["password", "database"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User enjoys reading science fiction books",
         factType: "preference",
@@ -374,14 +374,14 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("finds facts using keyword search", async () => {
-      const results = await cortex.facts.search(TEST_MEMSPACE_ID, "password");
+      const results = await memoir.facts.search(TEST_MEMSPACE_ID, "password");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results.some((f) => f.fact.includes("password"))).toBe(true);
     });
 
     it("filters by factType", async () => {
-      const prefs = await cortex.facts.search(TEST_MEMSPACE_ID, "user", {
+      const prefs = await memoir.facts.search(TEST_MEMSPACE_ID, "user", {
         factType: "preference",
       });
 
@@ -392,7 +392,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by minConfidence", async () => {
-      const highConf = await cortex.facts.search(TEST_MEMSPACE_ID, "password", {
+      const highConf = await memoir.facts.search(TEST_MEMSPACE_ID, "password", {
         minConfidence: 90,
       });
 
@@ -402,7 +402,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by tags", async () => {
-      const dbFacts = await cortex.facts.search(TEST_MEMSPACE_ID, "password", {
+      const dbFacts = await memoir.facts.search(TEST_MEMSPACE_ID, "password", {
         tags: ["database"],
       });
 
@@ -412,7 +412,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("respects limit", async () => {
-      const limited = await cortex.facts.search(TEST_MEMSPACE_ID, "user", {
+      const limited = await memoir.facts.search(TEST_MEMSPACE_ID, "user", {
         limit: 1,
       });
 
@@ -424,7 +424,7 @@ describe("Facts API (Layer 3)", () => {
     let originalFactId: string;
 
     beforeAll(async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Original fact statement",
         factType: "knowledge",
@@ -437,7 +437,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("creates new version when updated", async () => {
-      const updated = await cortex.facts.update(
+      const updated = await memoir.facts.update(
         TEST_MEMSPACE_ID,
         originalFactId,
         {
@@ -453,7 +453,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("marks original as superseded", async () => {
-      const original = await cortex.facts.get(TEST_MEMSPACE_ID, originalFactId);
+      const original = await memoir.facts.get(TEST_MEMSPACE_ID, originalFactId);
 
       expect(original).not.toBeNull();
       expect(original!.supersededBy).toBeDefined();
@@ -462,7 +462,7 @@ describe("Facts API (Layer 3)", () => {
 
     it("throws error for non-existent fact", async () => {
       await expect(
-        cortex.facts.update(TEST_MEMSPACE_ID, "fact-does-not-exist", {
+        memoir.facts.update(TEST_MEMSPACE_ID, "fact-does-not-exist", {
           fact: "New fact",
         }),
       ).rejects.toThrow("FACT_NOT_FOUND");
@@ -470,7 +470,7 @@ describe("Facts API (Layer 3)", () => {
 
     it("prevents updating other memory space's facts", async () => {
       await expect(
-        cortex.facts.update("memspace-other", originalFactId, {
+        memoir.facts.update("memspace-other", originalFactId, {
           fact: "Unauthorized update",
         }),
       ).rejects.toThrow("PERMISSION_DENIED");
@@ -479,7 +479,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("delete()", () => {
     it("soft deletes a fact", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact to delete",
         factType: "knowledge",
@@ -488,13 +488,13 @@ describe("Facts API (Layer 3)", () => {
         tags: ["delete-test"],
       });
 
-      const result = await cortex.facts.delete(TEST_MEMSPACE_ID, fact.factId);
+      const result = await memoir.facts.delete(TEST_MEMSPACE_ID, fact.factId);
 
       expect(result.deleted).toBe(true);
       expect(result.factId).toBe(fact.factId);
 
       // Verify it's marked invalid
-      const deleted = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const deleted = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
 
       expect(deleted).not.toBeNull();
       expect(deleted!.validUntil).toBeDefined();
@@ -502,12 +502,12 @@ describe("Facts API (Layer 3)", () => {
 
     it("throws error for non-existent fact", async () => {
       await expect(
-        cortex.facts.delete(TEST_MEMSPACE_ID, "fact-does-not-exist"),
+        memoir.facts.delete(TEST_MEMSPACE_ID, "fact-does-not-exist"),
       ).rejects.toThrow("FACT_NOT_FOUND");
     });
 
     it("prevents deleting other memory space's facts", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Protected fact",
         factType: "knowledge",
@@ -517,7 +517,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       await expect(
-        cortex.facts.delete("memspace-other", fact.factId),
+        memoir.facts.delete("memspace-other", fact.factId),
       ).rejects.toThrow("PERMISSION_DENIED");
     });
   });
@@ -526,7 +526,7 @@ describe("Facts API (Layer 3)", () => {
     let factId: string;
 
     beforeAll(async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Version 1",
         factType: "knowledge",
@@ -537,19 +537,19 @@ describe("Facts API (Layer 3)", () => {
 
       factId = v1.factId;
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, factId, {
         fact: "Version 2",
         confidence: 85,
       });
 
-      await cortex.facts.update(TEST_MEMSPACE_ID, v2.factId, {
+      await memoir.facts.update(TEST_MEMSPACE_ID, v2.factId, {
         fact: "Version 3",
         confidence: 95,
       });
     });
 
     it("returns complete version history", async () => {
-      const history = await cortex.facts.getHistory(TEST_MEMSPACE_ID, factId);
+      const history = await memoir.facts.getHistory(TEST_MEMSPACE_ID, factId);
 
       expect(history.length).toBeGreaterThanOrEqual(3);
       expect(history[0].fact).toBe("Version 1");
@@ -559,7 +559,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("returns empty for non-existent fact", async () => {
-      const history = await cortex.facts.getHistory(
+      const history = await memoir.facts.getHistory(
         TEST_MEMSPACE_ID,
         "fact-does-not-exist",
       );
@@ -568,7 +568,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("respects memory space isolation", async () => {
-      const history = await cortex.facts.getHistory("memspace-other", factId);
+      const history = await memoir.facts.getHistory("memspace-other", factId);
 
       expect(history).toEqual([]);
     });
@@ -576,7 +576,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("queryBySubject()", () => {
     beforeAll(async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Bob prefers morning meetings",
         factType: "preference",
@@ -586,7 +586,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["meetings"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Bob lives in San Francisco",
         factType: "identity",
@@ -596,7 +596,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["location"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Bob knows Python programming",
         factType: "knowledge",
@@ -608,7 +608,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("returns all facts about a subject", async () => {
-      const bobFacts = await cortex.facts.queryBySubject({
+      const bobFacts = await memoir.facts.queryBySubject({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-bob",
       });
@@ -620,7 +620,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by factType", async () => {
-      const bobPrefs = await cortex.facts.queryBySubject({
+      const bobPrefs = await memoir.facts.queryBySubject({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-bob",
         factType: "preference",
@@ -635,7 +635,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("queryByRelationship()", () => {
     beforeAll(async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Charlie works at Google",
         factType: "relationship",
@@ -647,7 +647,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["employment"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Charlie lives in New York",
         factType: "relationship",
@@ -661,7 +661,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("returns facts matching subject and predicate", async () => {
-      const employment = await cortex.facts.queryByRelationship({
+      const employment = await memoir.facts.queryByRelationship({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-charlie",
         predicate: "works_at",
@@ -672,7 +672,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("supports graph-like traversal", async () => {
-      const location = await cortex.facts.queryByRelationship({
+      const location = await memoir.facts.queryByRelationship({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-charlie",
         predicate: "lives_in",
@@ -685,7 +685,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("export()", () => {
     it("exports to JSON format", async () => {
-      const exported = await cortex.facts.export({
+      const exported = await memoir.facts.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "json",
       });
@@ -700,7 +700,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("exports to JSON-LD format", async () => {
-      const exported = await cortex.facts.export({
+      const exported = await memoir.facts.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "jsonld",
       });
@@ -716,7 +716,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("exports to CSV format", async () => {
-      const exported = await cortex.facts.export({
+      const exported = await memoir.facts.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "csv",
       });
@@ -731,7 +731,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("filters by factType", async () => {
-      const prefs = await cortex.facts.export({
+      const prefs = await memoir.facts.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "json",
         factType: "preference",
@@ -747,7 +747,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("consolidate()", () => {
     it("merges duplicate facts", async () => {
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers dark theme",
         factType: "preference",
@@ -757,7 +757,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["theme"],
       });
 
-      const fact2 = await cortex.facts.store({
+      const fact2 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User likes dark mode",
         factType: "preference",
@@ -767,7 +767,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["theme"],
       });
 
-      const fact3 = await cortex.facts.store({
+      const fact3 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers dark theme for UI",
         factType: "preference",
@@ -777,7 +777,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["theme"],
       });
 
-      const result = await cortex.facts.consolidate({
+      const result = await memoir.facts.consolidate({
         memorySpaceId: TEST_MEMSPACE_ID,
         factIds: [fact1.factId, fact2.factId, fact3.factId],
         keepFactId: fact3.factId, // Keep highest confidence
@@ -791,13 +791,13 @@ describe("Facts API (Layer 3)", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify others marked as superseded
-      const fact1After = await cortex.facts.get(TEST_MEMSPACE_ID, fact1.factId);
+      const fact1After = await memoir.facts.get(TEST_MEMSPACE_ID, fact1.factId);
 
       expect(fact1After!.supersededBy).toBe(fact3.factId);
     });
 
     it("updates confidence of kept fact", async () => {
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-dup",
         tags: ["theme"],
@@ -813,7 +813,7 @@ describe("Facts API (Layer 3)", () => {
     describe("Error Handling", () => {
       it("should handle non-existent factIds gracefully", async () => {
         // Create one real fact
-        const realFact = await cortex.facts.store({
+        const realFact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Real fact for consolidation error test",
           factType: "knowledge",
@@ -824,7 +824,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Try to consolidate with non-existent factIds
         // Backend should handle gracefully (only consolidate existing ones)
-        const result = await cortex.facts.consolidate({
+        const result = await memoir.facts.consolidate({
           memorySpaceId: TEST_MEMSPACE_ID,
           factIds: [realFact.factId, "fact-nonexistent-12345"],
           keepFactId: realFact.factId,
@@ -840,7 +840,7 @@ describe("Facts API (Layer 3)", () => {
         const SPACE_B = ctx.memorySpaceId("consolidate-space-b");
 
         // Create fact in space A
-        const factA = await cortex.facts.store({
+        const factA = await memoir.facts.store({
           memorySpaceId: SPACE_A,
           fact: "Fact in space A",
           factType: "knowledge",
@@ -850,7 +850,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Create facts in space B
-        const factB1 = await cortex.facts.store({
+        const factB1 = await memoir.facts.store({
           memorySpaceId: SPACE_B,
           fact: "Fact 1 in space B",
           factType: "knowledge",
@@ -859,7 +859,7 @@ describe("Facts API (Layer 3)", () => {
           tags: ["cross-space-consolidate"],
         });
 
-        const factB2 = await cortex.facts.store({
+        const factB2 = await memoir.facts.store({
           memorySpaceId: SPACE_B,
           fact: "Fact 2 in space B",
           factType: "knowledge",
@@ -870,7 +870,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Try to consolidate using space B as memorySpaceId
         // factA should be skipped because it's in space A
-        const result = await cortex.facts.consolidate({
+        const result = await memoir.facts.consolidate({
           memorySpaceId: SPACE_B,
           factIds: [factA.factId, factB1.factId, factB2.factId],
           keepFactId: factB2.factId,
@@ -883,20 +883,20 @@ describe("Facts API (Layer 3)", () => {
 
         // Verify factA is unchanged (still in space A, not superseded)
         // Backend skips facts in different memory space during actual merge
-        const factACheck = await cortex.facts.get(SPACE_A, factA.factId);
+        const factACheck = await memoir.facts.get(SPACE_A, factA.factId);
         expect(factACheck).not.toBeNull();
         expect(factACheck!.supersededBy).toBeUndefined();
 
         // Verify factB1 is superseded by factB2
         await new Promise((resolve) => setTimeout(resolve, 100));
-        const factB1Check = await cortex.facts.get(SPACE_B, factB1.factId);
+        const factB1Check = await memoir.facts.get(SPACE_B, factB1.factId);
         expect(factB1Check!.supersededBy).toBe(factB2.factId);
       });
 
       it("should handle all non-existent factIds", async () => {
         // Try to consolidate with all non-existent factIds
         // Backend returns factIds.length - 1 regardless of whether facts exist
-        const result = await cortex.facts.consolidate({
+        const result = await memoir.facts.consolidate({
           memorySpaceId: TEST_MEMSPACE_ID,
           factIds: ["fact-fake-1", "fact-fake-2", "fact-fake-3"],
           keepFactId: "fact-fake-1",
@@ -913,7 +913,7 @@ describe("Facts API (Layer 3)", () => {
         // Create 10 facts
         const facts = await Promise.all(
           Array.from({ length: 10 }, (_, i) =>
-            cortex.facts.store({
+            memoir.facts.store({
               memorySpaceId: SPACE,
               fact: `Large batch fact ${i}`,
               factType: "knowledge",
@@ -928,7 +928,7 @@ describe("Facts API (Layer 3)", () => {
         const keepFact = facts[9]; // Keep highest confidence
         const factIds = facts.map((f) => f.factId);
 
-        const result = await cortex.facts.consolidate({
+        const result = await memoir.facts.consolidate({
           memorySpaceId: SPACE,
           factIds,
           keepFactId: keepFact.factId,
@@ -942,7 +942,7 @@ describe("Facts API (Layer 3)", () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Verify only kept fact is active
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
           tags: ["large-consolidate"],
           includeSuperseded: false,
@@ -956,7 +956,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Memory Space Isolation", () => {
     it("isolates facts by memory space", async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: "memspace-1",
         fact: "Space 1 fact",
         factType: "knowledge",
@@ -965,7 +965,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["isolation"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: "memspace-2",
         fact: "Space 2 fact",
         factType: "knowledge",
@@ -974,12 +974,12 @@ describe("Facts API (Layer 3)", () => {
         tags: ["isolation"],
       });
 
-      const space1Facts = await cortex.facts.list({
+      const space1Facts = await memoir.facts.list({
         memorySpaceId: "memspace-1",
         tags: ["isolation"],
       });
 
-      const space2Facts = await cortex.facts.list({
+      const space2Facts = await memoir.facts.list({
         memorySpaceId: "memspace-2",
         tags: ["isolation"],
       });
@@ -993,7 +993,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Versioning & Immutability", () => {
     it("creates immutable version chain", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "V1",
         factType: "knowledge",
@@ -1002,18 +1002,18 @@ describe("Facts API (Layer 3)", () => {
         tags: ["chain"],
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "V2",
         confidence: 80,
       });
 
-      const _v3 = await cortex.facts.update(TEST_MEMSPACE_ID, v2.factId, {
+      const _v3 = await memoir.facts.update(TEST_MEMSPACE_ID, v2.factId, {
         fact: "V3",
         confidence: 90,
       });
 
       // Get history
-      const history = await cortex.facts.getHistory(
+      const history = await memoir.facts.getHistory(
         TEST_MEMSPACE_ID,
         v1.factId,
       );
@@ -1030,7 +1030,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Storage Validation", () => {
     it("validates fact structure in database", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: "agent-validator",
         fact: "Storage validation test",
@@ -1068,7 +1068,7 @@ describe("Facts API (Layer 3)", () => {
   describe("Graph-Like Relationships", () => {
     beforeAll(async () => {
       // Create relationship graph
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Alice manages team-alpha",
         factType: "relationship",
@@ -1080,7 +1080,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["org-structure"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Bob reports to Alice",
         factType: "relationship",
@@ -1092,7 +1092,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["org-structure"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Charlie reports to Alice",
         factType: "relationship",
@@ -1106,7 +1106,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("traverses 'manages' relationship", async () => {
-      const managed = await cortex.facts.queryByRelationship({
+      const managed = await memoir.facts.queryByRelationship({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: "user-alice",
         predicate: "manages",
@@ -1117,7 +1117,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("finds all direct reports", async () => {
-      const reports = await cortex.facts.list({
+      const reports = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         tags: ["org-structure"],
       });
@@ -1136,7 +1136,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Hive Mode", () => {
     it("tracks which participant extracted each fact", async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: "hive-test",
         participantId: "tool-a",
         fact: "Extracted by tool A",
@@ -1146,7 +1146,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["hive"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: "hive-test",
         participantId: "tool-b",
         fact: "Extracted by tool B",
@@ -1156,7 +1156,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["hive"],
       });
 
-      const all = await cortex.facts.list({
+      const all = await memoir.facts.list({
         memorySpaceId: "hive-test",
       });
 
@@ -1172,7 +1172,7 @@ describe("Facts API (Layer 3)", () => {
   describe("Edge Cases", () => {
     it("handles very long fact statements", async () => {
       const longFact = "A".repeat(5000);
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: longFact,
         factType: "knowledge",
@@ -1185,7 +1185,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("handles special characters in facts", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: 'User said: "Hello, world!" & goodbye <tag>',
         factType: "knowledge",
@@ -1201,7 +1201,7 @@ describe("Facts API (Layer 3)", () => {
 
     it("handles concurrent fact creations", async () => {
       const promises = Array.from({ length: 10 }, (_, i) =>
-        cortex.facts.store({
+        memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: `Concurrent fact ${i}`,
           factType: "knowledge",
@@ -1222,7 +1222,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Integration with Conversations", () => {
     it("links facts to source conversations", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         type: "user-agent",
         participants: {
@@ -1232,7 +1232,7 @@ describe("Facts API (Layer 3)", () => {
         },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -1242,10 +1242,10 @@ describe("Facts API (Layer 3)", () => {
 
       const msg =
         conv.messages[0] ||
-        (await cortex.conversations.get(conv.conversationId))!.messages[0];
+        (await memoir.conversations.get(conv.conversationId))!.messages[0];
 
       // Extract fact from conversation
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User's favorite color is blue",
         factType: "preference",
@@ -1269,7 +1269,7 @@ describe("Facts API (Layer 3)", () => {
 
   describe("Cross-Operation Consistency", () => {
     it("store → get → search → list → export consistency", async () => {
-      const stored = await cortex.facts.store({
+      const stored = await memoir.facts.store({
         memorySpaceId: "consistency-test",
         fact: "UNIQUE_CONSISTENCY_MARKER fact for testing",
         factType: "knowledge",
@@ -1280,7 +1280,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       // Get
-      const retrieved = await cortex.facts.get(
+      const retrieved = await memoir.facts.get(
         "consistency-test",
         stored.factId,
       );
@@ -1289,7 +1289,7 @@ describe("Facts API (Layer 3)", () => {
       expect(retrieved!.factId).toBe(stored.factId);
 
       // Search
-      const searchResults = await cortex.facts.search(
+      const searchResults = await memoir.facts.search(
         "consistency-test",
         "UNIQUE_CONSISTENCY_MARKER",
       );
@@ -1298,7 +1298,7 @@ describe("Facts API (Layer 3)", () => {
       expect(searchResults.some((f) => f.factId === stored.factId)).toBe(true);
 
       // List
-      const listed = await cortex.facts.list({
+      const listed = await memoir.facts.list({
         memorySpaceId: "consistency-test",
         tags: ["consistency"],
       });
@@ -1306,7 +1306,7 @@ describe("Facts API (Layer 3)", () => {
       expect(listed.some((f) => f.factId === stored.factId)).toBe(true);
 
       // Export
-      const exported = await cortex.facts.export({
+      const exported = await memoir.facts.export({
         memorySpaceId: "consistency-test",
         format: "json",
       });
@@ -1340,7 +1340,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["field-test", "validation", "complete"],
       };
 
-      const result = await cortex.facts.store(INPUT);
+      const result = await memoir.facts.store(INPUT);
 
       // Field-by-field validation
       expect(result.factId).toBeDefined();
@@ -1361,7 +1361,7 @@ describe("Facts API (Layer 3)", () => {
       expect(result.sourceRef!.memoryId).toBe(INPUT.sourceRef.memoryId);
 
       // Verify in database
-      const stored = await cortex.facts.get(TEST_MEMSPACE_ID, result.factId);
+      const stored = await memoir.facts.get(TEST_MEMSPACE_ID, result.factId);
       expect(stored).toEqual(result);
     });
 
@@ -1377,8 +1377,8 @@ describe("Facts API (Layer 3)", () => {
         tags: ["get-validation"],
       };
 
-      const stored = await cortex.facts.store(INPUT);
-      const retrieved = await cortex.facts.get(TEST_MEMSPACE_ID, stored.factId);
+      const stored = await memoir.facts.store(INPUT);
+      const retrieved = await memoir.facts.get(TEST_MEMSPACE_ID, stored.factId);
 
       // All fields should match
       expect(retrieved!.factId).toBe(stored.factId);
@@ -1392,7 +1392,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("update() creates new version with all original fields", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Original fact version",
         factType: "knowledge",
@@ -1404,7 +1404,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["update-test", "v1"],
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "Updated fact version",
         confidence: 90,
         tags: ["update-test", "v2"],
@@ -1427,7 +1427,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("list() returns all fields for each fact", async () => {
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: "facts-list-validation",
         fact: "List validation fact",
         factType: "identity",
@@ -1438,7 +1438,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["list-field-validation"],
       });
 
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: "facts-list-validation",
       });
 
@@ -1454,7 +1454,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("search() returns all fields for each result", async () => {
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: "facts-search-validation",
         fact: "FACT_SEARCH_MARKER searchable fact content",
         factType: "knowledge",
@@ -1465,7 +1465,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["search-field-validation"],
       });
 
-      const results = await cortex.facts.search(
+      const results = await memoir.facts.search(
         "facts-search-validation",
         "FACT_SEARCH_MARKER",
         { limit: 10 },
@@ -1484,7 +1484,7 @@ describe("Facts API (Layer 3)", () => {
     it("queryBySubject() preserves all fields", async () => {
       const SUBJECT = "user-query-by-subject";
 
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "First fact about subject",
         factType: "preference",
@@ -1497,7 +1497,7 @@ describe("Facts API (Layer 3)", () => {
         tags: ["query-subject-test"],
       });
 
-      const results = await cortex.facts.queryBySubject({
+      const results = await memoir.facts.queryBySubject({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: SUBJECT,
       });
@@ -1518,7 +1518,7 @@ describe("Facts API (Layer 3)", () => {
         memoryId: "mem-source-ref",
       };
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact with source reference",
         factType: "knowledge",
@@ -1533,7 +1533,7 @@ describe("Facts API (Layer 3)", () => {
       expect(fact.sourceRef!.memoryId).toBe(sourceRef.memoryId);
 
       // Verify after retrieval
-      const retrieved = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const retrieved = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
 
       expect(retrieved!.sourceRef!.conversationId).toBe(
         sourceRef.conversationId,
@@ -1542,7 +1542,7 @@ describe("Facts API (Layer 3)", () => {
     });
 
     it("version chain fields maintained", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Version 1",
         factType: "knowledge",
@@ -1551,37 +1551,37 @@ describe("Facts API (Layer 3)", () => {
         sourceType: "system",
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "Version 2",
         confidence: 80,
       });
 
-      const v3 = await cortex.facts.update(TEST_MEMSPACE_ID, v2.factId, {
+      const v3 = await memoir.facts.update(TEST_MEMSPACE_ID, v2.factId, {
         fact: "Version 3",
         confidence: 90,
       });
 
       // Check v1
-      const stored1 = await cortex.facts.get(TEST_MEMSPACE_ID, v1.factId);
+      const stored1 = await memoir.facts.get(TEST_MEMSPACE_ID, v1.factId);
       expect(stored1!.version).toBe(1);
       expect(stored1!.supersededBy).toBe(v2.factId);
       expect(stored1!.supersedes).toBeUndefined();
 
       // Check v2
-      const stored2 = await cortex.facts.get(TEST_MEMSPACE_ID, v2.factId);
+      const stored2 = await memoir.facts.get(TEST_MEMSPACE_ID, v2.factId);
       expect(stored2!.version).toBe(2);
       expect(stored2!.supersedes).toBe(v1.factId);
       expect(stored2!.supersededBy).toBe(v3.factId);
 
       // Check v3
-      const stored3 = await cortex.facts.get(TEST_MEMSPACE_ID, v3.factId);
+      const stored3 = await memoir.facts.get(TEST_MEMSPACE_ID, v3.factId);
       expect(stored3!.version).toBe(3);
       expect(stored3!.supersedes).toBe(v2.factId);
       expect(stored3!.supersededBy).toBeUndefined();
     });
 
     it("timestamps preserved correctly", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Timestamp test fact",
         factType: "knowledge",
@@ -1593,20 +1593,20 @@ describe("Facts API (Layer 3)", () => {
       expect(fact.createdAt).toBeGreaterThan(0);
       expect(fact.updatedAt).toBeDefined();
 
-      const retrieved = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const retrieved = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
 
       expect(retrieved!.createdAt).toBe(fact.createdAt);
       expect(retrieved!.updatedAt).toBe(fact.updatedAt);
     });
 
     it("count() accurate across all operations", async () => {
-      const countBefore = await cortex.facts.count({
+      const countBefore = await memoir.facts.count({
         memorySpaceId: "facts-count-validation",
       });
 
       // Create 5 facts
       for (let i = 0; i < 5; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: "facts-count-validation",
           fact: `Count validation fact ${i}`,
           factType: "knowledge",
@@ -1617,7 +1617,7 @@ describe("Facts API (Layer 3)", () => {
         });
       }
 
-      const countAfter = await cortex.facts.count({
+      const countAfter = await memoir.facts.count({
         memorySpaceId: "facts-count-validation",
       });
 
@@ -1632,7 +1632,7 @@ describe("Facts API (Layer 3)", () => {
   describe("Enrichment Fields", () => {
     describe("store() with enrichment fields", () => {
       it("should store fact with category field", async () => {
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "User prefers to be called Dr. Smith",
           factType: "preference",
@@ -1645,7 +1645,7 @@ describe("Facts API (Layer 3)", () => {
 
         expect(fact.category).toBe("addressing_preference");
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.category).toBe("addressing_preference");
       });
 
@@ -1656,7 +1656,7 @@ describe("Facts API (Layer 3)", () => {
           "how to address",
         ];
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "User wants to be called by first name",
           factType: "preference",
@@ -1669,7 +1669,7 @@ describe("Facts API (Layer 3)", () => {
 
         expect(fact.searchAliases).toEqual(searchAliases);
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.searchAliases).toEqual(searchAliases);
       });
 
@@ -1677,7 +1677,7 @@ describe("Facts API (Layer 3)", () => {
         const semanticContext =
           "This fact should be retrieved when the user asks about meeting preferences or scheduling";
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "User prefers morning meetings",
           factType: "preference",
@@ -1690,7 +1690,7 @@ describe("Facts API (Layer 3)", () => {
 
         expect(fact.semanticContext).toBe(semanticContext);
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.semanticContext).toBe(semanticContext);
       });
 
@@ -1704,7 +1704,7 @@ describe("Facts API (Layer 3)", () => {
           },
         ];
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Dr. Smith works at Acme Corp",
           factType: "relationship",
@@ -1720,7 +1720,7 @@ describe("Facts API (Layer 3)", () => {
         expect(fact.entities).toEqual(entities);
         expect(fact.entities).toHaveLength(2);
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.entities).toEqual(entities);
       });
 
@@ -1730,7 +1730,7 @@ describe("Facts API (Layer 3)", () => {
           { subject: "user-123", predicate: "has_role", object: "engineer" },
         ];
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "User is an engineer at TechCorp",
           factType: "knowledge",
@@ -1744,7 +1744,7 @@ describe("Facts API (Layer 3)", () => {
         expect(fact.relations).toEqual(relations);
         expect(fact.relations).toHaveLength(2);
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.relations).toEqual(relations);
       });
 
@@ -1778,7 +1778,7 @@ describe("Facts API (Layer 3)", () => {
           tags: ["enrichment-test", "complete"],
         };
 
-        const fact = await cortex.facts.store(INPUT);
+        const fact = await memoir.facts.store(INPUT);
 
         // Validate all enrichment fields
         expect(fact.category).toBe(INPUT.category);
@@ -1788,7 +1788,7 @@ describe("Facts API (Layer 3)", () => {
         expect(fact.relations).toEqual(INPUT.relations);
 
         // Verify after retrieval
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
         expect(stored!.category).toBe(INPUT.category);
         expect(stored!.searchAliases).toEqual(INPUT.searchAliases);
         expect(stored!.semanticContext).toBe(INPUT.semanticContext);
@@ -1799,7 +1799,7 @@ describe("Facts API (Layer 3)", () => {
 
     describe("update() preserves and modifies enrichment fields", () => {
       it("should preserve enrichment fields through update", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Original fact with enrichment",
           factType: "knowledge",
@@ -1815,7 +1815,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Update only confidence (enrichment fields should be preserved)
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           confidence: 95,
         });
 
@@ -1830,7 +1830,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       it("should update category field", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact to update category",
           factType: "knowledge",
@@ -1841,18 +1841,18 @@ describe("Facts API (Layer 3)", () => {
           tags: ["category-update-test"],
         });
 
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           category: "new_category",
         });
 
         expect(v2.category).toBe("new_category");
 
-        const stored = await cortex.facts.get(TEST_MEMSPACE_ID, v2.factId);
+        const stored = await memoir.facts.get(TEST_MEMSPACE_ID, v2.factId);
         expect(stored!.category).toBe("new_category");
       });
 
       it("should update searchAliases field", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact to update aliases",
           factType: "knowledge",
@@ -1864,7 +1864,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         const newAliases = ["new", "updated", "aliases"];
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           searchAliases: newAliases,
         });
 
@@ -1872,7 +1872,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       it("should update semanticContext field", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact to update context",
           factType: "knowledge",
@@ -1885,7 +1885,7 @@ describe("Facts API (Layer 3)", () => {
 
         const newContext =
           "New and improved semantic context for better retrieval";
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           semanticContext: newContext,
         });
 
@@ -1893,7 +1893,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       it("should update entities field", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact to update entities",
           factType: "knowledge",
@@ -1908,7 +1908,7 @@ describe("Facts API (Layer 3)", () => {
           { name: "NewEntity1", type: "new", fullValue: "Full New Entity 1" },
           { name: "NewEntity2", type: "new" },
         ];
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           entities: newEntities,
         });
 
@@ -1917,7 +1917,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       it("should update relations field", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact to update relations",
           factType: "knowledge",
@@ -1932,7 +1932,7 @@ describe("Facts API (Layer 3)", () => {
           { subject: "new1", predicate: "relates_to", object: "new2" },
           { subject: "new2", predicate: "belongs_to", object: "new3" },
         ];
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           relations: newRelations,
         });
 
@@ -1941,7 +1941,7 @@ describe("Facts API (Layer 3)", () => {
       });
 
       it("should update multiple enrichment fields at once", async () => {
-        const v1 = await cortex.facts.store({
+        const v1 = await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: "Fact for multi-field update",
           factType: "knowledge",
@@ -1954,7 +1954,7 @@ describe("Facts API (Layer 3)", () => {
           tags: ["multi-update-test"],
         });
 
-        const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+        const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
           category: "new",
           searchAliases: ["new", "updated"],
           semanticContext: "New context",
@@ -1972,7 +1972,7 @@ describe("Facts API (Layer 3)", () => {
       it("should include enrichment fields in list() results", async () => {
         const SPACE = ctx.memorySpaceId("enrichment-list");
 
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           fact: "Enriched fact for list",
           factType: "knowledge",
@@ -1985,7 +1985,7 @@ describe("Facts API (Layer 3)", () => {
           tags: ["enrichment-list-test"],
         });
 
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: SPACE,
           tags: ["enrichment-list-test"],
         });
@@ -2007,7 +2007,7 @@ describe("Facts API (Layer 3)", () => {
     describe("store() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: "",
             fact: "test",
             factType: "knowledge",
@@ -2019,7 +2019,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on empty fact", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "",
             factType: "knowledge",
@@ -2031,7 +2031,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "invalid" as any,
@@ -2043,7 +2043,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on confidence < 0", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2055,7 +2055,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on confidence > 100", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2067,7 +2067,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid sourceType", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2079,7 +2079,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid tags (not array)", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2092,7 +2092,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid validFrom/validUntil", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2106,7 +2106,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid sourceRef structure", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2119,7 +2119,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid metadata (not object)", async () => {
         await expect(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: TEST_MEMSPACE_ID,
             fact: "test",
             factType: "knowledge",
@@ -2133,34 +2133,34 @@ describe("Facts API (Layer 3)", () => {
 
     describe("get() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.get("", "fact-123")).rejects.toThrow(
+        await expect(memoir.facts.get("", "fact-123")).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on missing factId", async () => {
-        await expect(cortex.facts.get(TEST_MEMSPACE_ID, "")).rejects.toThrow(
+        await expect(memoir.facts.get(TEST_MEMSPACE_ID, "")).rejects.toThrow(
           "factId is required and cannot be empty",
         );
       });
 
       it("should throw on invalid factId format", async () => {
         await expect(
-          cortex.facts.get(TEST_MEMSPACE_ID, "invalid-id"),
+          memoir.facts.get(TEST_MEMSPACE_ID, "invalid-id"),
         ).rejects.toThrow('factId must start with "fact-"');
       });
     });
 
     describe("list() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.list({ memorySpaceId: "" })).rejects.toThrow(
+        await expect(memoir.facts.list({ memorySpaceId: "" })).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             factType: "invalid" as any,
           }),
@@ -2169,7 +2169,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid sourceType", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             sourceType: "invalid" as any,
           }),
@@ -2178,7 +2178,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid confidence", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             confidence: 150,
           }),
@@ -2187,7 +2187,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid minConfidence", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             minConfidence: -10,
           }),
@@ -2196,7 +2196,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid tagMatch", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             tagMatch: "invalid" as any,
           }),
@@ -2205,7 +2205,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on negative limit", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             limit: -5,
           }),
@@ -2214,7 +2214,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on negative offset", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             offset: -10,
           }),
@@ -2223,7 +2223,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid sortBy", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             sortBy: "invalid" as any,
           }),
@@ -2232,7 +2232,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid sortOrder", async () => {
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             sortOrder: "invalid" as any,
           }),
@@ -2244,7 +2244,7 @@ describe("Facts API (Layer 3)", () => {
         const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             createdAfter: now,
             createdBefore: yesterday,
@@ -2257,7 +2257,7 @@ describe("Facts API (Layer 3)", () => {
         const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
         await expect(
-          cortex.facts.list({
+          memoir.facts.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             updatedAfter: now,
             updatedBefore: yesterday,
@@ -2268,14 +2268,14 @@ describe("Facts API (Layer 3)", () => {
 
     describe("count() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.count({ memorySpaceId: "" })).rejects.toThrow(
+        await expect(memoir.facts.count({ memorySpaceId: "" })).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.count({
+          memoir.facts.count({
             memorySpaceId: TEST_MEMSPACE_ID,
             factType: "invalid" as any,
           }),
@@ -2284,7 +2284,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid confidence", async () => {
         await expect(
-          cortex.facts.count({
+          memoir.facts.count({
             memorySpaceId: TEST_MEMSPACE_ID,
             confidence: 200,
           }),
@@ -2294,20 +2294,20 @@ describe("Facts API (Layer 3)", () => {
 
     describe("search() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.search("", "test query")).rejects.toThrow(
+        await expect(memoir.facts.search("", "test query")).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on missing query", async () => {
-        await expect(cortex.facts.search(TEST_MEMSPACE_ID, "")).rejects.toThrow(
+        await expect(memoir.facts.search(TEST_MEMSPACE_ID, "")).rejects.toThrow(
           "query is required and cannot be empty",
         );
       });
 
       it("should throw on invalid options", async () => {
         await expect(
-          cortex.facts.search(TEST_MEMSPACE_ID, "test", {
+          memoir.facts.search(TEST_MEMSPACE_ID, "test", {
             factType: "invalid" as any,
           }),
         ).rejects.toThrow("Invalid factType");
@@ -2317,19 +2317,19 @@ describe("Facts API (Layer 3)", () => {
     describe("update() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.update("", "fact-123", { confidence: 95 }),
+          memoir.facts.update("", "fact-123", { confidence: 95 }),
         ).rejects.toThrow("memorySpaceId is required and cannot be empty");
       });
 
       it("should throw on missing factId", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "", { confidence: 95 }),
+          memoir.facts.update(TEST_MEMSPACE_ID, "", { confidence: 95 }),
         ).rejects.toThrow("factId is required and cannot be empty");
       });
 
       it("should throw on invalid factId format", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "invalid-id", {
+          memoir.facts.update(TEST_MEMSPACE_ID, "invalid-id", {
             confidence: 95,
           }),
         ).rejects.toThrow('factId must start with "fact-"');
@@ -2337,13 +2337,13 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on empty updates object", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "fact-123", {}),
+          memoir.facts.update(TEST_MEMSPACE_ID, "fact-123", {}),
         ).rejects.toThrow("Update must include at least one field");
       });
 
       it("should throw on invalid confidence in updates", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "fact-123", {
+          memoir.facts.update(TEST_MEMSPACE_ID, "fact-123", {
             confidence: 150,
           }),
         ).rejects.toThrow("confidence must be between 0 and 100");
@@ -2351,7 +2351,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid tags in updates", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "fact-123", {
+          memoir.facts.update(TEST_MEMSPACE_ID, "fact-123", {
             tags: "not-array" as any,
           }),
         ).rejects.toThrow("tags must be an array");
@@ -2359,7 +2359,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid metadata in updates", async () => {
         await expect(
-          cortex.facts.update(TEST_MEMSPACE_ID, "fact-123", {
+          memoir.facts.update(TEST_MEMSPACE_ID, "fact-123", {
             metadata: ["array"] as any,
           }),
         ).rejects.toThrow("metadata must be an object");
@@ -2368,40 +2368,40 @@ describe("Facts API (Layer 3)", () => {
 
     describe("delete() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.delete("", "fact-123")).rejects.toThrow(
+        await expect(memoir.facts.delete("", "fact-123")).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on missing factId", async () => {
-        await expect(cortex.facts.delete(TEST_MEMSPACE_ID, "")).rejects.toThrow(
+        await expect(memoir.facts.delete(TEST_MEMSPACE_ID, "")).rejects.toThrow(
           "factId is required and cannot be empty",
         );
       });
 
       it("should throw on invalid factId format", async () => {
         await expect(
-          cortex.facts.delete(TEST_MEMSPACE_ID, "invalid-id"),
+          memoir.facts.delete(TEST_MEMSPACE_ID, "invalid-id"),
         ).rejects.toThrow('factId must start with "fact-"');
       });
     });
 
     describe("getHistory() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
-        await expect(cortex.facts.getHistory("", "fact-123")).rejects.toThrow(
+        await expect(memoir.facts.getHistory("", "fact-123")).rejects.toThrow(
           "memorySpaceId is required and cannot be empty",
         );
       });
 
       it("should throw on missing factId", async () => {
         await expect(
-          cortex.facts.getHistory(TEST_MEMSPACE_ID, ""),
+          memoir.facts.getHistory(TEST_MEMSPACE_ID, ""),
         ).rejects.toThrow("factId is required and cannot be empty");
       });
 
       it("should throw on invalid factId format", async () => {
         await expect(
-          cortex.facts.getHistory(TEST_MEMSPACE_ID, "invalid-id"),
+          memoir.facts.getHistory(TEST_MEMSPACE_ID, "invalid-id"),
         ).rejects.toThrow('factId must start with "fact-"');
       });
     });
@@ -2409,7 +2409,7 @@ describe("Facts API (Layer 3)", () => {
     describe("queryBySubject() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.queryBySubject({
+          memoir.facts.queryBySubject({
             memorySpaceId: "",
             subject: "user-123",
           }),
@@ -2418,7 +2418,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on missing subject", async () => {
         await expect(
-          cortex.facts.queryBySubject({
+          memoir.facts.queryBySubject({
             memorySpaceId: TEST_MEMSPACE_ID,
             subject: "",
           }),
@@ -2427,7 +2427,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.queryBySubject({
+          memoir.facts.queryBySubject({
             memorySpaceId: TEST_MEMSPACE_ID,
             subject: "user-123",
             factType: "invalid" as any,
@@ -2439,7 +2439,7 @@ describe("Facts API (Layer 3)", () => {
     describe("queryByRelationship() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.queryByRelationship({
+          memoir.facts.queryByRelationship({
             memorySpaceId: "",
             subject: "user-123",
             predicate: "likes",
@@ -2449,7 +2449,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on missing subject", async () => {
         await expect(
-          cortex.facts.queryByRelationship({
+          memoir.facts.queryByRelationship({
             memorySpaceId: TEST_MEMSPACE_ID,
             subject: "",
             predicate: "likes",
@@ -2459,7 +2459,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on missing predicate", async () => {
         await expect(
-          cortex.facts.queryByRelationship({
+          memoir.facts.queryByRelationship({
             memorySpaceId: TEST_MEMSPACE_ID,
             subject: "user-123",
             predicate: "",
@@ -2469,7 +2469,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.queryByRelationship({
+          memoir.facts.queryByRelationship({
             memorySpaceId: TEST_MEMSPACE_ID,
             subject: "user-123",
             predicate: "likes",
@@ -2482,7 +2482,7 @@ describe("Facts API (Layer 3)", () => {
     describe("export() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.export({
+          memoir.facts.export({
             memorySpaceId: "",
             format: "json",
           }),
@@ -2491,7 +2491,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid format", async () => {
         await expect(
-          cortex.facts.export({
+          memoir.facts.export({
             memorySpaceId: TEST_MEMSPACE_ID,
             format: "xml" as any,
           }),
@@ -2500,7 +2500,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.export({
+          memoir.facts.export({
             memorySpaceId: TEST_MEMSPACE_ID,
             format: "json",
             factType: "invalid" as any,
@@ -2512,7 +2512,7 @@ describe("Facts API (Layer 3)", () => {
     describe("consolidate() validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: "",
             factIds: ["fact-1", "fact-2"],
             keepFactId: "fact-1",
@@ -2522,7 +2522,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on empty factIds array", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: TEST_MEMSPACE_ID,
             factIds: [],
             keepFactId: "fact-1",
@@ -2532,7 +2532,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on factIds with single element", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: TEST_MEMSPACE_ID,
             factIds: ["fact-1"],
             keepFactId: "fact-1",
@@ -2542,7 +2542,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on missing keepFactId", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: TEST_MEMSPACE_ID,
             factIds: ["fact-1", "fact-2"],
             keepFactId: "",
@@ -2552,7 +2552,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw when keepFactId not in factIds", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: TEST_MEMSPACE_ID,
             factIds: ["fact-1", "fact-2"],
             keepFactId: "fact-3",
@@ -2562,7 +2562,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on duplicate factIds", async () => {
         await expect(
-          cortex.facts.consolidate({
+          memoir.facts.consolidate({
             memorySpaceId: TEST_MEMSPACE_ID,
             factIds: ["fact-1", "fact-2", "fact-1"],
             keepFactId: "fact-1",
@@ -2585,7 +2585,7 @@ describe("Facts API (Layer 3)", () => {
         const validFrom = now;
         const validUntil = now + 86400000; // 24 hours from now
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Temporally valid fact",
           factType: "knowledge",
@@ -2600,7 +2600,7 @@ describe("Facts API (Layer 3)", () => {
         expect(fact.validFrom).toBe(validFrom);
         expect(fact.validUntil).toBe(validUntil);
 
-        const stored = await cortex.facts.get(TEMPORAL_SPACE, fact.factId);
+        const stored = await memoir.facts.get(TEMPORAL_SPACE, fact.factId);
         expect(stored!.validFrom).toBe(validFrom);
         expect(stored!.validUntil).toBe(validUntil);
       });
@@ -2611,7 +2611,7 @@ describe("Facts API (Layer 3)", () => {
         const futureEnd = now + 86400000; // 24 hours from now
 
         // Create fact valid from past to future (should be found at now)
-        const validFact = await cortex.facts.store({
+        const validFact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Currently valid fact",
           factType: "knowledge",
@@ -2624,7 +2624,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Query with validAt = now
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: TEMPORAL_SPACE,
           validAt: new Date(now),
           tags: ["validat-test"],
@@ -2640,7 +2640,7 @@ describe("Facts API (Layer 3)", () => {
         const pastEnd = now - 86400000; // 24 hours ago (expired)
 
         // Create expired fact
-        const expiredFact = await cortex.facts.store({
+        const expiredFact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Expired fact",
           factType: "knowledge",
@@ -2653,7 +2653,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Query with validAt = now (should NOT find expired fact)
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: TEMPORAL_SPACE,
           validAt: new Date(now),
           tags: ["expired-test"],
@@ -2670,7 +2670,7 @@ describe("Facts API (Layer 3)", () => {
         const futureEnd = now + 172800000; // Ends 48 hours from now
 
         // Create future fact (not yet valid)
-        const futureFact = await cortex.facts.store({
+        const futureFact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Future fact",
           factType: "knowledge",
@@ -2683,7 +2683,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Query with validAt = now (should NOT find future fact)
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: TEMPORAL_SPACE,
           validAt: new Date(now),
           tags: ["future-test"],
@@ -2696,7 +2696,7 @@ describe("Facts API (Layer 3)", () => {
         const exactTime = Date.now() + 1000; // 1 second from now to avoid race
         const validUntil = exactTime + 86400000;
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Exact boundary fact",
           factType: "knowledge",
@@ -2712,7 +2712,7 @@ describe("Facts API (Layer 3)", () => {
         await new Promise((resolve) => setTimeout(resolve, 1100));
 
         // Query at exact validFrom time
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: TEMPORAL_SPACE,
           validAt: new Date(exactTime),
           tags: ["boundary-test"],
@@ -2726,7 +2726,7 @@ describe("Facts API (Layer 3)", () => {
         const validFrom = now - 86400000; // Started 24 hours ago
         const validUntil = now + 100; // Expires in 100ms
 
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: TEMPORAL_SPACE,
           fact: "Expiring soon fact",
           factType: "knowledge",
@@ -2742,7 +2742,7 @@ describe("Facts API (Layer 3)", () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Query after validUntil
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: TEMPORAL_SPACE,
           validAt: new Date(validUntil + 50),
           tags: ["expiring-test"],
@@ -2758,7 +2758,7 @@ describe("Facts API (Layer 3)", () => {
         const SEARCH_SPACE = ctx.memorySpaceId("search-temporal");
 
         // Create valid fact
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SEARCH_SPACE,
           fact: "TEMPORAL_SEARCH currently valid",
           factType: "knowledge",
@@ -2771,7 +2771,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Create expired fact with same search term
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SEARCH_SPACE,
           fact: "TEMPORAL_SEARCH expired",
           factType: "knowledge",
@@ -2784,7 +2784,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Search with validAt
-        const results = await cortex.facts.search(
+        const results = await memoir.facts.search(
           SEARCH_SPACE,
           "TEMPORAL_SEARCH",
           { validAt: new Date(now) },
@@ -2803,7 +2803,7 @@ describe("Facts API (Layer 3)", () => {
         const QUERY_SPACE = ctx.memorySpaceId("query-temporal");
 
         // Create valid fact
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: QUERY_SPACE,
           fact: "Subject's valid fact",
           factType: "preference",
@@ -2815,7 +2815,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Create expired fact for same subject
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: QUERY_SPACE,
           fact: "Subject's expired fact",
           factType: "knowledge",
@@ -2827,7 +2827,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Query by subject with validAt
-        const results = await cortex.facts.queryBySubject({
+        const results = await memoir.facts.queryBySubject({
           memorySpaceId: QUERY_SPACE,
           subject: SUBJECT,
           validAt: new Date(now),
@@ -2844,7 +2844,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Create 3 valid facts
         for (let i = 0; i < 3; i++) {
-          await cortex.facts.store({
+          await memoir.facts.store({
             memorySpaceId: COUNT_SPACE,
             fact: `Valid fact ${i}`,
             factType: "knowledge",
@@ -2859,7 +2859,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Create 2 expired facts
         for (let i = 0; i < 2; i++) {
-          await cortex.facts.store({
+          await memoir.facts.store({
             memorySpaceId: COUNT_SPACE,
             fact: `Expired fact ${i}`,
             factType: "knowledge",
@@ -2873,7 +2873,7 @@ describe("Facts API (Layer 3)", () => {
         }
 
         // Count with validAt
-        const count = await cortex.facts.count({
+        const count = await memoir.facts.count({
           memorySpaceId: COUNT_SPACE,
           validAt: new Date(now),
           tags: ["count-temporal"],
@@ -2890,7 +2890,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Create fact without explicit validFrom/validUntil
         // Backend automatically sets validFrom to creation time, validUntil stays undefined
-        const alwaysValidFact = await cortex.facts.store({
+        const alwaysValidFact = await memoir.facts.store({
           memorySpaceId: NO_VALIDITY_SPACE,
           fact: "Always valid fact",
           factType: "knowledge",
@@ -2902,7 +2902,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Verify fact was created with auto-set validFrom (backend defaults to now)
-        const directGet = await cortex.facts.get(
+        const directGet = await memoir.facts.get(
           NO_VALIDITY_SPACE,
           alwaysValidFact.factId,
         );
@@ -2914,7 +2914,7 @@ describe("Facts API (Layer 3)", () => {
         expect(directGet!.validUntil).toBeUndefined();
 
         // Query without validAt first to confirm fact exists in list
-        const resultsWithoutValidAt = await cortex.facts.list({
+        const resultsWithoutValidAt = await memoir.facts.list({
           memorySpaceId: NO_VALIDITY_SPACE,
           tags: ["always-valid-test"],
         });
@@ -2926,7 +2926,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Query with validAt - facts without validUntil (no expiry) should be included
         // Backend logic: (validFrom <= validAt) && (!validUntil || validUntil > validAt)
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: NO_VALIDITY_SPACE,
           validAt: new Date(now + 1000), // Shortly after creation
           tags: ["always-valid-test"],
@@ -2944,7 +2944,7 @@ describe("Facts API (Layer 3)", () => {
         const OPEN_END_SPACE = ctx.memorySpaceId("open-end");
 
         // Create fact with validFrom but no validUntil (open-ended)
-        const openEndedFact = await cortex.facts.store({
+        const openEndedFact = await memoir.facts.store({
           memorySpaceId: OPEN_END_SPACE,
           fact: "Open-ended validity fact",
           factType: "knowledge",
@@ -2958,7 +2958,7 @@ describe("Facts API (Layer 3)", () => {
 
         // Query far in the future
         const futureDate = new Date(now + 365 * 86400000); // 1 year from now
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: OPEN_END_SPACE,
           validAt: futureDate,
           tags: ["open-end-test"],
@@ -2983,7 +2983,7 @@ describe("Facts API (Layer 3)", () => {
       it("should delete all facts in a memory space", async () => {
         // Create multiple facts
         const _facts = await Promise.all([
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: DELETE_MANY_SPACE,
             fact: "Fact to delete 1",
             factType: "knowledge",
@@ -2991,7 +2991,7 @@ describe("Facts API (Layer 3)", () => {
             sourceType: "system",
             tags: ["delete-all-test"],
           }),
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: DELETE_MANY_SPACE,
             fact: "Fact to delete 2",
             factType: "preference",
@@ -2999,7 +2999,7 @@ describe("Facts API (Layer 3)", () => {
             sourceType: "system",
             tags: ["delete-all-test"],
           }),
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: DELETE_MANY_SPACE,
             fact: "Fact to delete 3",
             factType: "identity",
@@ -3010,7 +3010,7 @@ describe("Facts API (Layer 3)", () => {
         ]);
 
         // Delete all facts in space
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: DELETE_MANY_SPACE,
         });
 
@@ -3018,7 +3018,7 @@ describe("Facts API (Layer 3)", () => {
         expect(result.memorySpaceId).toBe(DELETE_MANY_SPACE);
 
         // Verify all facts are deleted
-        const remaining = await cortex.facts.list({
+        const remaining = await memoir.facts.list({
           memorySpaceId: DELETE_MANY_SPACE,
         });
         expect(remaining.length).toBe(0);
@@ -3030,7 +3030,7 @@ describe("Facts API (Layer 3)", () => {
         const SPACE = ctx.memorySpaceId("delete-by-user");
 
         // Create facts for different users
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
           fact: "Target user fact 1",
@@ -3038,7 +3038,7 @@ describe("Facts API (Layer 3)", () => {
           confidence: 80,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
           fact: "Target user fact 2",
@@ -3046,7 +3046,7 @@ describe("Facts API (Layer 3)", () => {
           confidence: 85,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: OTHER_USER,
           fact: "Other user fact",
@@ -3056,7 +3056,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Delete only target user's facts
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
         });
@@ -3064,14 +3064,14 @@ describe("Facts API (Layer 3)", () => {
         expect(result.deleted).toBe(2);
 
         // Verify target user facts deleted
-        const targetUserFacts = await cortex.facts.list({
+        const targetUserFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
         });
         expect(targetUserFacts.length).toBe(0);
 
         // Verify other user's fact still exists
-        const otherUserFacts = await cortex.facts.list({
+        const otherUserFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
           userId: OTHER_USER,
         });
@@ -3082,21 +3082,21 @@ describe("Facts API (Layer 3)", () => {
         const SPACE = ctx.memorySpaceId("delete-by-type");
 
         // Create facts of different types
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           fact: "Knowledge fact 1",
           factType: "knowledge",
           confidence: 80,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           fact: "Knowledge fact 2",
           factType: "knowledge",
           confidence: 85,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           fact: "Preference fact",
           factType: "preference",
@@ -3105,7 +3105,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Delete only knowledge facts
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: SPACE,
           factType: "knowledge",
         });
@@ -3113,14 +3113,14 @@ describe("Facts API (Layer 3)", () => {
         expect(result.deleted).toBe(2);
 
         // Verify knowledge facts deleted
-        const knowledgeFacts = await cortex.facts.list({
+        const knowledgeFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
           factType: "knowledge",
         });
         expect(knowledgeFacts.length).toBe(0);
 
         // Verify preference fact still exists
-        const preferenceFacts = await cortex.facts.list({
+        const preferenceFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
           factType: "preference",
         });
@@ -3132,7 +3132,7 @@ describe("Facts API (Layer 3)", () => {
         const SPACE = ctx.memorySpaceId("delete-combo");
 
         // Create mix of facts
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
           fact: "Target knowledge",
@@ -3140,7 +3140,7 @@ describe("Facts API (Layer 3)", () => {
           confidence: 80,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
           fact: "Target preference",
@@ -3148,7 +3148,7 @@ describe("Facts API (Layer 3)", () => {
           confidence: 85,
           sourceType: "system",
         });
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: "other-user",
           fact: "Other knowledge",
@@ -3158,7 +3158,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Delete only target user's knowledge facts
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: SPACE,
           userId: TARGET_USER,
           factType: "knowledge",
@@ -3167,7 +3167,7 @@ describe("Facts API (Layer 3)", () => {
         expect(result.deleted).toBe(1);
 
         // Verify correct deletion
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId: SPACE,
         });
         expect(allFacts.length).toBe(2);
@@ -3177,7 +3177,7 @@ describe("Facts API (Layer 3)", () => {
         const SPACE = ctx.memorySpaceId("delete-empty");
 
         // Create a fact
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           userId: "existing-user",
           fact: "Existing fact",
@@ -3187,7 +3187,7 @@ describe("Facts API (Layer 3)", () => {
         });
 
         // Delete with non-matching userId
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: SPACE,
           userId: "non-existent-user",
         });
@@ -3196,7 +3196,7 @@ describe("Facts API (Layer 3)", () => {
         expect(result.memorySpaceId).toBe(SPACE);
 
         // Original fact still exists
-        const facts = await cortex.facts.list({
+        const facts = await memoir.facts.list({
           memorySpaceId: SPACE,
         });
         expect(facts.length).toBe(1);
@@ -3205,7 +3205,7 @@ describe("Facts API (Layer 3)", () => {
       it("should return correct result structure", async () => {
         const SPACE = ctx.memorySpaceId("delete-result");
 
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: SPACE,
           fact: "Test fact",
           factType: "knowledge",
@@ -3213,7 +3213,7 @@ describe("Facts API (Layer 3)", () => {
           sourceType: "system",
         });
 
-        const result = await cortex.facts.deleteMany({
+        const result = await memoir.facts.deleteMany({
           memorySpaceId: SPACE,
         });
 
@@ -3228,7 +3228,7 @@ describe("Facts API (Layer 3)", () => {
     describe("Validation", () => {
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.facts.deleteMany({
+          memoir.facts.deleteMany({
             memorySpaceId: "",
           }),
         ).rejects.toThrow("memorySpaceId is required and cannot be empty");
@@ -3236,7 +3236,7 @@ describe("Facts API (Layer 3)", () => {
 
       it("should throw on invalid factType", async () => {
         await expect(
-          cortex.facts.deleteMany({
+          memoir.facts.deleteMany({
             memorySpaceId: TEST_MEMSPACE_ID,
             factType: "invalid-type" as any,
           }),

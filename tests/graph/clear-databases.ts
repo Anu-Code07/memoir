@@ -24,7 +24,7 @@ async function main() {
   await neo4jAdapter.connect({
     uri: "bolt://localhost:7687",
     username: "neo4j",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   const neo4jBefore = await neo4jAdapter.countNodes();
@@ -44,7 +44,7 @@ async function main() {
   await memgraphAdapter.connect({
     uri: "bolt://localhost:7688",
     username: "memgraph",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   const memgraphBefore = await memgraphAdapter.countNodes();

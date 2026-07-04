@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversations Visibility Tests
+ * Memoir SDK - Conversations Visibility Tests
  *
  * Tests the Shareable Chats Phase 1 implementation:
  * - Visibility field on create
@@ -9,7 +9,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import { generateTenantId, createTenantAuthContext } from "./helpers/tenancy";
@@ -18,7 +18,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("visibility");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -31,7 +31,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
 
     // Initialize SDK with auth context for multi-tenancy
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -41,7 +41,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
   afterAll(async () => {
     console.log(`\n🧹 Cleaning up test run ${ctx.runId}...`);
     await scopedCleanup.cleanupAll();
-    cortex.close();
+    memoir.close();
     await client.close();
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -52,7 +52,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = ctx.userId("vis-user-1");
       const agent = ctx.agentId("vis-agent-1");
 
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -71,7 +71,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = ctx.userId("vis-user-2");
       const agent = ctx.agentId("vis-agent-2");
 
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -89,7 +89,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = ctx.userId("vis-user-3");
       const agent = ctx.agentId("vis-agent-3");
 
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -107,7 +107,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = ctx.userId("vis-user-4");
       const agent = ctx.agentId("vis-agent-4");
 
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -126,7 +126,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("vis-agent-5");
 
       await expect(
-        cortex.conversations.create({
+        memoir.conversations.create({
           memorySpaceId: space,
           type: "user-agent",
           participants: {
@@ -147,7 +147,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("access-agent-1");
 
       // Create a conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -158,7 +158,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Check access as owner
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: conv.conversationId,
         userId: owner,
       });
@@ -176,7 +176,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("access-agent-2");
 
       // Create a private conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -187,7 +187,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Check access as non-owner
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: conv.conversationId,
         userId: other,
       });
@@ -204,7 +204,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("access-agent-3");
 
       // Create a public conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -215,7 +215,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Check access as non-owner
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: conv.conversationId,
         userId: other,
       });
@@ -233,7 +233,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("access-agent-4");
 
       // Create a space-visible conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -244,7 +244,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Check access as space member
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: conv.conversationId,
         userId: spaceMember,
         memorySpaceId: space,
@@ -264,7 +264,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("access-agent-5");
 
       // Create a space-visible conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -275,7 +275,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Check access from different space
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: conv.conversationId,
         userId: other,
         memorySpaceId: otherSpace,
@@ -287,7 +287,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
     });
 
     it("returns not found for non-existent conversation", async () => {
-      const access = await cortex.conversations.checkAccess({
+      const access = await memoir.conversations.checkAccess({
         conversationId: "conv-nonexistent-12345",
         userId: ctx.userId("access-any"),
       });
@@ -307,7 +307,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("set-vis-agent-1");
 
       // Create with private visibility
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -320,7 +320,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       expect(conv.visibility).toBe("private");
 
       // Change to public
-      const updated = await cortex.conversations.setVisibility({
+      const updated = await memoir.conversations.setVisibility({
         conversationId: conv.conversationId,
         visibility: "public",
       });
@@ -335,7 +335,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("set-vis-agent-2");
 
       // Create with public visibility
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -346,7 +346,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Change to space
-      const updated = await cortex.conversations.setVisibility({
+      const updated = await memoir.conversations.setVisibility({
         conversationId: conv.conversationId,
         visibility: "space",
       });
@@ -360,7 +360,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("set-vis-agent-3");
 
       // Create with space visibility
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -371,7 +371,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       // Change to private
-      const updated = await cortex.conversations.setVisibility({
+      const updated = await memoir.conversations.setVisibility({
         conversationId: conv.conversationId,
         visibility: "private",
       });
@@ -384,7 +384,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = TEST_USER_ID;
       const agent = ctx.agentId("set-vis-agent-invalid");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -394,7 +394,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       });
 
       await expect(
-        cortex.conversations.setVisibility({
+        memoir.conversations.setVisibility({
           conversationId: conv.conversationId,
           // @ts-expect-error - Testing invalid visibility
           visibility: "invalid",
@@ -409,7 +409,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const user = ctx.userId("getorcreate-user");
       const agent = ctx.agentId("getorcreate-agent");
 
-      const result = await cortex.conversations.getOrCreate({
+      const result = await memoir.conversations.getOrCreate({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -429,7 +429,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       const agent = ctx.agentId("getorcreate-agent-2");
 
       // Create first with private
-      const first = await cortex.conversations.getOrCreate({
+      const first = await memoir.conversations.getOrCreate({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -442,7 +442,7 @@ describe("Conversations Visibility (Shareable Chats Phase 1)", () => {
       expect(first.visibility).toBe("private");
 
       // Try to "create" again with public (should return existing)
-      const second = await cortex.conversations.getOrCreate({
+      const second = await memoir.conversations.getOrCreate({
         memorySpaceId: space,
         type: "user-agent",
         participants: {

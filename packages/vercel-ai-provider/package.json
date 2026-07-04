@@ -1,7 +1,7 @@
 {
-  "name": "@cortexmemory/vercel-ai-provider",
+  "name": "@memoir/vercel-ai-provider",
   "version": "0.36.0",
-  "description": "Cortex Memory Provider for Vercel AI SDK - Add persistent memory with enhanced streaming capabilities to any AI application",
+  "description": "Memoir Provider for Vercel AI SDK - Add persistent memory with enhanced streaming capabilities to any AI application",
   "type": "module",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
@@ -30,7 +30,7 @@
     "vercel-ai-sdk",
     "memory",
     "persistent-memory",
-    "cortex",
+    "memoir",
     "self-hosted",
     "convex",
     "nextjs",
@@ -48,17 +48,17 @@
     "rag",
     "typescript"
   ],
-  "author": "Saint Nick LLC",
+  "author": "Anu-Code07",
   "license": "FSL-1.1-Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SaintNick1214/Project-Cortex.git",
+    "url": "git+https://github.com/Anu-Code07/memoir.git",
     "directory": "packages/vercel-ai-provider"
   },
   "bugs": {
-    "url": "https://github.com/SaintNick1214/Project-Cortex/issues"
+    "url": "https://github.com/Anu-Code07/memoir/issues"
   },
-  "homepage": "https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider#readme",
+  "homepage": "https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public",
@@ -88,7 +88,7 @@
     }
   },
   "dependencies": {
-    "@cortexmemory/sdk": "*"
+    "@memoir/sdk": "*"
   },
   "devDependencies": {
     "@ai-sdk/openai": "^3.0.19",

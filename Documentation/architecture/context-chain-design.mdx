@@ -137,7 +137,7 @@ Context chains enable **hierarchical task delegation** with **cross-memory-space
 
 ```typescript
 // Create root context
-const rootContext = await cortex.contexts.create({
+const rootContext = await memoir.contexts.create({
   purpose: "Process customer refund",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -148,7 +148,7 @@ const rootContext = await cortex.contexts.create({
 });
 
 // Create child context (automatically inherits rootId and depth)
-const childContext = await cortex.contexts.create({
+const childContext = await memoir.contexts.create({
   purpose: "Approve refund",
   memorySpaceId: "finance-space",
   parentId: rootContext._id, // Links to parent
@@ -252,7 +252,7 @@ const STATUS_TRANSITIONS = {
 };
 
 // Current implementation: Use SDK update method
-await cortex.contexts.update(contextId, {
+await memoir.contexts.update(contextId, {
   status: "completed",
   data: { result: "success" },
 });
@@ -292,7 +292,7 @@ export const getWithInheritedData = query({
 });
 
 // Current implementation: Manually traverse chain
-const chain = await cortex.contexts.getChain(childContextId);
+const chain = await memoir.contexts.getChain(childContextId);
 
 // Manually merge data from chain
 const inheritedData = {};
@@ -315,7 +315,7 @@ console.log(inheritedData);
 
 ```typescript
 // Current implementation: Add participant to single context
-await cortex.contexts.addParticipant(contextId, "legal-space");
+await memoir.contexts.addParticipant(contextId, "legal-space");
 
 // Planned: Add participant to context and all ancestors
 // This function does not exist in the current implementation
@@ -340,7 +340,7 @@ export const addParticipantToChain = mutation({
 
 ```typescript
 // Current implementation: Create context with conversation reference
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process customer refund",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -357,7 +357,7 @@ const context = await cortex.contexts.create({
 
 ```typescript
 // Current implementation: Get context with conversation
-const result = await cortex.contexts.get(contextId, {
+const result = await memoir.contexts.get(contextId, {
   includeChain: true,
   includeConversation: true,
 });
@@ -379,9 +379,9 @@ if (result.conversation) {
 
 ```typescript
 // Current implementation: Store memory with context reference
-const context = await cortex.contexts.get(contextId);
+const context = await memoir.contexts.get(contextId);
 
-const memory = await cortex.memories.store({
+const memory = await memoir.memories.store({
   memorySpaceId: "finance-space",
   content: "Refund approved for $500",
   metadata: {
@@ -398,7 +398,7 @@ const memory = await cortex.memories.store({
 ```typescript
 // Current implementation: Find memories for a workflow
 // Get all contexts in workflow
-const chain = await cortex.contexts.getChain(rootContextId);
+const chain = await memoir.contexts.getChain(rootContextId);
 const allContextIds = [
   chain.root._id,
   ...chain.descendants.map((c) => c._id),
@@ -407,7 +407,7 @@ const allContextIds = [
 // Query memories from all memory spaces involved
 const allMemories = [];
 for (const context of [chain.root, ...chain.descendants]) {
-  const memories = await cortex.memories.list({
+  const memories = await memoir.memories.list({
     memorySpaceId: context.memorySpaceId,
   });
   
@@ -447,7 +447,7 @@ async function createSequentialWorkflow(purpose: string, steps: any[]) {
   // Create steps as siblings (all same parent)
   const stepIds = [];
   for (const step of steps) {
-    const stepContext = await cortex.contexts.create({
+    const stepContext = await memoir.contexts.create({
       purpose: step.purpose,
       memorySpaceId: step.memorySpaceId,
       parentId: root._id,
@@ -470,14 +470,14 @@ async function createSequentialWorkflow(purpose: string, steps: any[]) {
 // Request -> Manager -> Finance (nested)
 async function createApprovalChain(request: any) {
   // Level 1: Request
-  const requestCtx = await cortex.contexts.create({
+  const requestCtx = await memoir.contexts.create({
     purpose: "Expense approval request",
     memorySpaceId: "employee-space",
     data: { amount: request.amount },
   });
 
   // Level 2: Manager review
-  const managerCtx = await cortex.contexts.create({
+  const managerCtx = await memoir.contexts.create({
     purpose: "Manager review",
     memorySpaceId: "manager-space",
     parentId: requestCtx._id, // ← Nested
@@ -485,7 +485,7 @@ async function createApprovalChain(request: any) {
   });
 
   // Level 3: Finance approval
-  const financeCtx = await cortex.contexts.create({
+  const financeCtx = await memoir.contexts.create({
     purpose: "Finance approval",
     memorySpaceId: "finance-space",
     parentId: managerCtx._id, // ← Nested deeper
@@ -504,7 +504,7 @@ async function createApprovalChain(request: any) {
 ```typescript
 // Fork: One parent, multiple parallel children
 async function createParallelWorkflow(purpose: string, tasks: any[]) {
-  const root = await cortex.contexts.create({
+  const root = await memoir.contexts.create({
     purpose,
     memorySpaceId: "supervisor-space",
   });
@@ -512,7 +512,7 @@ async function createParallelWorkflow(purpose: string, tasks: any[]) {
   // Create all children in parallel
   const children = await Promise.all(
     tasks.map((task) =>
-      cortex.contexts.create({
+      memoir.contexts.create({
         purpose: task.purpose,
         memorySpaceId: task.memorySpaceId,
         parentId: root._id,
@@ -533,13 +533,13 @@ async function createParallelWorkflow(purpose: string, tasks: any[]) {
 
 ```typescript
 // Current implementation: Get all active workflows for a memory space
-const activeWorkflows = await cortex.contexts.list({
+const activeWorkflows = await memoir.contexts.list({
   memorySpaceId: "finance-space",
   status: "active",
 });
 
 // Get blocked workflows (needs attention)
-const blockedWorkflows = await cortex.contexts.list({
+const blockedWorkflows = await memoir.contexts.list({
   status: "blocked",
 });
 ```
@@ -570,7 +570,7 @@ export const getLeaves = query({
 
 ```typescript
 // Current implementation: Get all workflows from a conversation
-const contexts = await cortex.contexts.getByConversation("conv-456");
+const contexts = await memoir.contexts.getByConversation("conv-456");
 ```
 
 ---
@@ -633,14 +633,14 @@ export const cleanupOrphans = mutation({
 
 ```typescript
 // Create context for user
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Handle user request",
   memorySpaceId: "support-space",
   userId: "user-123", // ← GDPR-enabled
 });
 
 // GDPR cascade (planned for Cloud Mode)
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Contexts with userId are deleted
 // Children without explicit userId are preserved (workflow metadata)
@@ -708,7 +708,7 @@ const MAX_DEPTH = 10;
 
 // Current implementation: No depth limit enforced
 // You can manually check depth before creating child contexts
-const parent = await cortex.contexts.get(parentId);
+const parent = await memoir.contexts.get(parentId);
 if (parent.depth >= MAX_DEPTH) {
   throw new Error("Maximum context depth exceeded");
 }
@@ -719,13 +719,13 @@ if (parent.depth >= MAX_DEPTH) {
 ```typescript
 // Current implementation: Use getChain() for full chain, or getChildren() for children
 // Get single context (lightweight)
-const context = await cortex.contexts.get(contextId);
+const context = await memoir.contexts.get(contextId);
 
 // Get full chain (includes children, ancestors, descendants)
-const chain = await cortex.contexts.getChain(contextId);
+const chain = await memoir.contexts.getChain(contextId);
 
 // Get just children (with optional recursion)
-const children = await cortex.contexts.getChildren(contextId, {
+const children = await memoir.contexts.getChildren(contextId, {
   recursive: false, // Set to true for all descendants
 });
 ```
@@ -741,4 +741,4 @@ const children = await cortex.contexts.getChildren(contextId, {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

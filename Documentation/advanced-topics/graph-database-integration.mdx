@@ -4,11 +4,11 @@
 **Last Updated**: 2026-01-09 | **Version**: v0.29.0+
 </Callout>
 
-Comprehensive guide for integrating a graph database with Cortex for advanced relationship queries.
+Comprehensive guide for integrating a graph database with Memoir for advanced relationship queries.
 
 ## Overview
 
-This guide covers everything you need to add graph database capabilities to Cortex: from deciding if you need it, to choosing the right database, to setup and integration.
+This guide covers everything you need to add graph database capabilities to Memoir: from deciding if you need it, to choosing the right database, to setup and integration.
 
 **What you'll learn:**
 
@@ -21,7 +21,7 @@ This guide covers everything you need to add graph database capabilities to Cort
 
 **Prerequisites:**
 
-- Cortex SDK installed and working
+- Memoir SDK installed and working
 - Convex deployment running
 - Basic understanding of graph databases
 - Docker (recommended for local development)
@@ -99,7 +99,7 @@ See **[Graph Capabilities](./graph-capabilities)** for built-in graph features w
 
 - **Development:** Memgraph (fast, easy Docker setup)
 - **Production:** Neo4j Community (proven, mature, large community)
-- **Enterprise:** Cortex Graph-Premium (fully managed, zero DevOps)
+- **Enterprise:** Memoir Graph-Premium (fully managed, zero DevOps)
 
 ### Comparison Matrix
 
@@ -158,7 +158,7 @@ See **[Graph Capabilities](./graph-capabilities)** for built-in graph features w
 - Free to use
 - Must open-source your application if you distribute it
 - SaaS usage: Generally okay if not competing with Neo4j
-- For Cortex integration: Likely fine (user runs Neo4j)
+- For Memoir integration: Likely fine (user runs Neo4j)
 
 **BSL (Memgraph):**
 
@@ -185,12 +185,12 @@ docker-compose -f docker-compose.graph.yml up -d neo4j
 
 # Verify it's running
 docker ps
-# Should see: cortex-neo4j (ports 7474, 7687)
+# Should see: memoir-neo4j (ports 7474, 7687)
 
 # Access Neo4j Browser
 open http://localhost:7474
 # Username: neo4j
-# Password: cortex-dev-password
+# Password: memoir-dev-password
 ```
 
 #### Memgraph Setup
@@ -201,12 +201,12 @@ docker-compose -f docker-compose.graph.yml up -d memgraph
 
 # Verify it's running
 docker ps
-# Should see: cortex-memgraph (ports 7688, 3001)
+# Should see: memoir-memgraph (ports 7688, 3001)
 
 # Access Memgraph Lab
 open http://localhost:3001
 # Username: memgraph
-# Password: cortex-dev-password
+# Password: memoir-dev-password
 ```
 
 ### Environment Configuration
@@ -218,7 +218,7 @@ Add to `.env.local`:
 ```bash
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=cortex-dev-password
+NEO4J_PASSWORD=memoir-dev-password
 ```
 
 **For Memgraph:**
@@ -226,7 +226,7 @@ NEO4J_PASSWORD=cortex-dev-password
 ```bash
 MEMGRAPH_URI=bolt://localhost:7688
 MEMGRAPH_USERNAME=memgraph
-MEMGRAPH_PASSWORD=cortex-dev-password
+MEMGRAPH_PASSWORD=memoir-dev-password
 ```
 
 ### Verify Connection
@@ -275,8 +275,8 @@ lsof -i :7474 -i :7687 -i :7688 -i :3001
 **Issue: "Authentication failed"**
 
 - Verify username/password in `.env.local`
-- Neo4j: `neo4j` / `cortex-dev-password`
-- Memgraph: `memgraph` / `cortex-dev-password`
+- Neo4j: `neo4j` / `memoir-dev-password`
+- Memgraph: `memgraph` / `memoir-dev-password`
 - If changed, reset: `docker-compose -f docker-compose.graph.yml down -v && docker-compose -f docker-compose.graph.yml up -d`
 
 ---
@@ -364,26 +364,26 @@ await initializeGraphSchema();
 
 ---
 
-## Section 5: Syncing Cortex to Graph
+## Section 5: Syncing Memoir to Graph
 
 ### Strategy 1: Automatic Sync (Recommended)
 
-Use Cortex's built-in graph sync:
+Use Memoir's built-in graph sync:
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
-import { CypherGraphAdapter } from "@cortexmemory/sdk/graph";
+import { Memoir } from "@memoir/sdk";
+import { CypherGraphAdapter } from "@memoir/sdk/graph";
 
 // Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
 await graphAdapter.connect({
   uri: "bolt://localhost:7687",
   username: "neo4j",
-  password: "cortex-dev-password",
+  password: "memoir-dev-password",
 });
 
-// Initialize Cortex with graph
-const cortex = new Cortex({
+// Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -391,8 +391,8 @@ const cortex = new Cortex({
   },
 });
 
-// Use Cortex normally - graph syncs automatically!
-await cortex.memory.remember({
+// Use Memoir normally - graph syncs automatically!
+await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-123",
   userMessage: "I work at Acme Corp",
@@ -412,18 +412,18 @@ import {
   syncContextToGraph,
   syncMemoryToGraph,
   syncFactToGraph,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // Sync a context
-const context = await cortex.contexts.get("ctx-001");
+const context = await memoir.contexts.get("ctx-001");
 const nodeId = await syncContextToGraph(context, graphAdapter);
 
 // Sync a memory
-const memory = await cortex.vector.get("agent-1", "mem-123");
+const memory = await memoir.vector.get("agent-1", "mem-123");
 await syncMemoryToGraph(memory, graphAdapter);
 
 // Sync a fact
-const fact = await cortex.facts.get("agent-1", "fact-456");
+const fact = await memoir.facts.get("agent-1", "fact-456");
 await syncFactToGraph(fact, graphAdapter);
 ```
 
@@ -433,7 +433,7 @@ The auto-sync worker uses Convex reactive queries:
 
 ```typescript
 // Worker starts automatically with autoSync: true
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -447,7 +447,7 @@ const cortex = new Cortex({
 });
 
 // Monitor worker health
-const worker = cortex.getGraphSyncWorker();
+const worker = memoir.getGraphSyncWorker();
 if (worker) {
   const metrics = worker.getMetrics();
   console.log("Worker metrics:", metrics);
@@ -673,7 +673,7 @@ async function findPathToMemorySpace(userId: string, memorySpaceId: string) {
 ```typescript
 async function hybridContextQuery(userId: string) {
   // Step 1: Get user's contexts from Convex (authoritative)
-  const contexts = await cortex.contexts.list({
+  const contexts = await memoir.contexts.list({
     userId,
     status: "active",
     limit: 50,
@@ -761,7 +761,7 @@ RETURN DISTINCT related
 
 ```typescript
 // Recommended: Always write to Convex first
-await cortex.contexts.create({ ... });
+await memoir.contexts.create({ ... });
 await syncContextToGraph(context);  // Then sync
 
 // Avoid: Writing to graph first
@@ -810,7 +810,7 @@ const related = await graphAdapter.query(`
 
 // Good: Fetch full data from Convex
 for (const record of related.records) {
-  const conversation = await cortex.conversations.get(record.conversationId);
+  const conversation = await memoir.conversations.get(record.conversationId);
   // Full data from authoritative source
 }
 ```
@@ -828,14 +828,14 @@ for (const record of related.records) {
 ```typescript
 // Force re-sync
 async function forceSyncContext(contextId: string) {
-  const context = await cortex.contexts.get(contextId);
+  const context = await memoir.contexts.get(contextId);
   await syncContextToGraph(context);
   console.log(`Context ${contextId} re-synced to graph`);
 }
 
 // Verify sync
 async function verifySync(contextId: string) {
-  const convexContext = await cortex.contexts.get(contextId);
+  const convexContext = await memoir.contexts.get(contextId);
 
   const session = driver.session();
   const graphContext = await session.run(
@@ -919,25 +919,25 @@ Here's a full working example:
 
 ```typescript
 // app.ts
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // Initialize graph adapter
 const graphAdapter = new CypherGraphAdapter();
 await graphAdapter.connect({
   uri: "bolt://localhost:7687",
   username: "neo4j",
-  password: "cortex-dev-password",
+  password: "memoir-dev-password",
 });
 
 // Initialize schema
 await initializeGraphSchema(graphAdapter);
 
-// Initialize Cortex with graph
-const cortex = new Cortex({
+// Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -945,8 +945,8 @@ const cortex = new Cortex({
   },
 });
 
-// Use Cortex normally
-await cortex.memory.remember({
+// Use Memoir normally
+await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-123",
   userMessage: "I work at Acme Corp with Alice",
@@ -991,4 +991,4 @@ console.log(
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

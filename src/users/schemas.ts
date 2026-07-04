@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - User Profile Schemas
+ * Memoir SDK - User Profile Schemas
  *
  * Provides standard user profile schema with fully extensible fields
  * and validation presets for different use cases.
@@ -147,7 +147,7 @@ export interface ValidationPreset {
  * @example
  * ```typescript
  * // Use strict validation for enterprise apps
- * const cortex = new Cortex({
+ * const memoir = new Memoir({
  *   convexUrl: process.env.CONVEX_URL!,
  *   users: {
  *     validation: validationPresets.strict,
@@ -155,7 +155,7 @@ export interface ValidationPreset {
  * });
  *
  * // Use minimal validation for quick prototyping
- * const cortex = new Cortex({
+ * const memoir = new Memoir({
  *   convexUrl: process.env.CONVEX_URL!,
  *   users: {
  *     validation: validationPresets.minimal,
@@ -163,7 +163,7 @@ export interface ValidationPreset {
  * });
  *
  * // No validation for maximum flexibility
- * const cortex = new Cortex({
+ * const memoir = new Memoir({
  *   convexUrl: process.env.CONVEX_URL!,
  *   users: {
  *     validation: validationPresets.none,

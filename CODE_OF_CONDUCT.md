@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in the Cortex community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
+We as members, contributors, and leaders pledge to make participation in the Memoir community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
 We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
 
@@ -41,7 +41,7 @@ This Code of Conduct applies within all community spaces, including:
 
 - GitHub repositories (issues, pull requests, discussions)
 - Discord server
-- Twitter and other social media when representing Cortex
+- Twitter and other social media when representing Memoir
 - Email communications
 - Events and conferences (virtual or in-person)
 - Any other forums where community members interact
@@ -54,7 +54,7 @@ This Code of Conduct also applies when an individual is officially representing 
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at:
 
-- **Email**: conduct@cortexmemory.dev
+- **Email**: conduct@github.com/Anu-Code07/memoir
 - **Anonymous Form**: [Link to anonymous reporting form]
 
 All complaints will be reviewed and investigated promptly and fairly. All community leaders are obligated to respect the privacy and security of the reporter of any incident.
@@ -105,7 +105,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 If you believe you have been unfairly accused or sanctioned, you may appeal the decision by:
 
-1. Sending an email to **appeals@cortexmemory.dev**
+1. Sending an email to **appeals@github.com/Anu-Code07/memoir**
 2. Including your reasoning and any relevant context
 3. Waiting for a response from a different community leader
 
@@ -113,21 +113,21 @@ Appeals will be reviewed within 7 days.
 
 ## Community Leadership
 
-The Cortex community is led by:
+The Memoir community is led by:
 
 - **Project Maintainers**: Core team members with commit access
 - **Code of Conduct Committee**: Dedicated team handling conduct issues
 - **Community Moderators**: Volunteers helping maintain community spaces
 
-Current community leaders can be found in [MAINTAINERS.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/MAINTAINERS.md).
+Current community leaders can be found in [MAINTAINERS.md](https://github.com/Anu-Code07/memoir/blob/main/MAINTAINERS.md).
 
 ## Questions
 
 If you have questions about this Code of Conduct, please:
 
-- Open a discussion in [GitHub Discussions](https://github.com/yourusername/cortex/discussions)
-- Email us at conduct@cortexmemory.dev
-- Reach out in our [Discord](https://discord.gg/cortex)
+- Open a discussion in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
+- Email us at conduct@github.com/Anu-Code07/memoir
+- Reach out in our [Discord](https://discord.gg/memoir)
 
 ## Attribution
 
@@ -145,7 +145,7 @@ This Code of Conduct may be updated from time to time. We will notify the commun
 - Announcement in Discord
 - Email newsletter (if applicable)
 
-The current version will always be available at [CODE_OF_CONDUCT.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/CODE_OF_CONDUCT.md).
+The current version will always be available at [CODE_OF_CONDUCT.md](https://github.com/Anu-Code07/memoir/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -170,4 +170,4 @@ This Code of Conduct is licensed under [CC BY 4.0](https://creativecommons.org/l
 - Report unacceptable behavior
 - Trust that reports will be handled fairly
 
-Thank you for helping make Cortex a welcoming community! 🎉
+Thank you for helping make Memoir a welcoming community! 🎉

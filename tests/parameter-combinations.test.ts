@@ -10,22 +10,22 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 describe("Parameter Combination Testing", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const BASE_ID = `param-test-${Date.now()}`;
   const TEST_USER_ID = "param-test-user";
   const TEST_AGENT_ID = "param-test-agent";
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup
     try {
-      await cortex.memorySpaces.delete(BASE_ID, {
+      await memoir.memorySpaces.delete(BASE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -40,21 +40,21 @@ describe("Parameter Combination Testing", () => {
 
   describe("vector.store() Parameter Combinations", () => {
     it("all parameters provided", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "ref",
         id: `all-params-${Date.now()}`,
         data: { test: "data" },
       });
 
-      await cortex.mutable.set("all-ns", "all-key", "all-value");
+      await memoir.mutable.set("all-ns", "all-key", "all-value");
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "All params test",
         contentType: "summarized",
         participantId: "tool-1",
@@ -102,7 +102,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("only required parameters (minimal)", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Minimal params",
         contentType: "raw",
         source: { type: "system" },
@@ -119,7 +119,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("participantId + userId combination", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Participant + User",
         contentType: "raw",
         participantId: "tool-calendar",
@@ -133,19 +133,19 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("conversationRef + immutableRef combination", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "combo",
         id: `combo-${Date.now()}`,
         data: { test: "combo" },
       });
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Conv + Immut refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -162,15 +162,15 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("conversationRef + mutableRef combination", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      await cortex.mutable.set("combo-ns", "combo-key", "combo-value");
+      await memoir.mutable.set("combo-ns", "combo-key", "combo-value");
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Conv + Mut refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -192,15 +192,15 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("immutableRef + mutableRef combination", async () => {
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "both",
         id: `both-${Date.now()}`,
         data: { test: "both" },
       });
 
-      await cortex.mutable.set("both-ns", "both-key", "both-value");
+      await memoir.mutable.set("both-ns", "both-key", "both-value");
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Immut + Mut refs",
         contentType: "raw",
         source: { type: "system" },
@@ -219,13 +219,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("embedding + all refs combination", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Embedding with refs",
         contentType: "raw",
         embedding: Array.from({ length: 1536 }, () => Math.random()),
@@ -243,7 +243,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("importance + tags combination", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Importance and tags",
         contentType: "raw",
         source: { type: "system" },
@@ -259,7 +259,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("participantId + source.userId + userId triple combination", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Triple user tracking",
         contentType: "raw",
         participantId: "tool-email",
@@ -281,7 +281,7 @@ describe("Parameter Combination Testing", () => {
       const types: Array<"raw" | "summarized"> = ["raw", "summarized"];
 
       for (const contentType of types) {
-        const result = await cortex.vector.store(BASE_ID, {
+        const result = await memoir.vector.store(BASE_ID, {
           content: `Content type ${contentType}`,
           contentType,
           source: { type: "system" },
@@ -303,13 +303,13 @@ describe("Parameter Combination Testing", () => {
 
   describe("facts.store() Parameter Combinations", () => {
     it("all parameters provided", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Mem for fact",
         contentType: "raw",
         source: { type: "system" },
@@ -318,7 +318,7 @@ describe("Parameter Combination Testing", () => {
 
       const now = Date.now();
 
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         participantId: "agent-analyzer",
         fact: "Complete fact with all params",
@@ -352,7 +352,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("only required parameters (minimal)", async () => {
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Minimal fact",
         factType: "knowledge",
@@ -371,7 +371,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("subject + predicate + object (triple)", async () => {
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "User works at Google",
         factType: "relationship",
@@ -396,7 +396,7 @@ describe("Parameter Combination Testing", () => {
       ];
 
       for (const sourceType of sources) {
-        const result = await cortex.facts.store({
+        const result = await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: `Fact from ${sourceType}`,
           factType: "knowledge",
@@ -410,13 +410,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("participantId + sourceRef.conversationId", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         participantId: "agent-extractor",
         fact: "Participant tracked fact",
@@ -437,7 +437,7 @@ describe("Parameter Combination Testing", () => {
       const now = Date.now();
       const oneDay = 86400000;
 
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Temporary fact",
         factType: "event",
@@ -453,7 +453,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("metadata + tags combination", async () => {
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Fact with meta and tags",
         factType: "knowledge",
@@ -492,7 +492,7 @@ describe("Parameter Combination Testing", () => {
       ];
 
       for (const factType of factTypes) {
-        const result = await cortex.facts.store({
+        const result = await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: `${factType} fact`,
           factType,
@@ -508,13 +508,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("sourceRef with all fields vs partial fields", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Ref source",
         contentType: "raw",
         source: { type: "system" },
@@ -522,7 +522,7 @@ describe("Parameter Combination Testing", () => {
       });
 
       // Full sourceRef
-      const full = await cortex.facts.store({
+      const full = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Full source ref",
         factType: "knowledge",
@@ -540,7 +540,7 @@ describe("Parameter Combination Testing", () => {
       expect(full.sourceRef!.memoryId).toBeDefined();
 
       // Partial sourceRef (only conversationId)
-      const partial = await cortex.facts.store({
+      const partial = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Partial source ref",
         factType: "knowledge",
@@ -560,7 +560,7 @@ describe("Parameter Combination Testing", () => {
       const confidences = [0, 50, 100];
 
       for (const confidence of confidences) {
-        const result = await cortex.facts.store({
+        const result = await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: `Confidence ${confidence}`,
           factType: "knowledge",
@@ -580,7 +580,7 @@ describe("Parameter Combination Testing", () => {
 
   describe("memory.remember() Parameter Combinations", () => {
     it("all optional parameters provided", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         participantId: "agent-1",
         conversationId: `remember-all-${Date.now()}`,
@@ -608,7 +608,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("only required parameters", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `remember-min-${Date.now()}`,
         userMessage: "Min message",
@@ -624,7 +624,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("participantId + importance combination", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         participantId: "tool-notes",
         conversationId: `remember-part-imp-${Date.now()}`,
@@ -643,7 +643,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("importance + tags combination", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `remember-imp-tags-${Date.now()}`,
         userMessage: "Tagged message",
@@ -660,7 +660,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("extractContent callback with importance", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `remember-extract-${Date.now()}`,
         userMessage: "Long user message",
@@ -678,7 +678,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("extractFacts callback with tags", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `remember-facts-${Date.now()}`,
         userMessage: "I'm a developer",
@@ -702,7 +702,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("participantId + extractFacts combination", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         participantId: "agent-fact-extractor",
         conversationId: `remember-part-fact-${Date.now()}`,
@@ -725,7 +725,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("all callbacks combined", async () => {
-      const result = await cortex.memory.remember(
+      const result = await memoir.memory.remember(
         {
           memorySpaceId: BASE_ID,
           conversationId: `remember-all-cb-${BASE_ID}`,
@@ -760,19 +760,19 @@ describe("Parameter Combination Testing", () => {
 
   describe("contexts.create() Parameter Combinations", () => {
     it("all parameters provided", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent for all params test",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.contexts.create({
+      const result = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Context with all params",
@@ -796,7 +796,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("only required parameters", async () => {
-      const result = await cortex.contexts.create({
+      const result = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Minimal context",
@@ -810,7 +810,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("parentId + status combination", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent",
@@ -820,7 +820,7 @@ describe("Parameter Combination Testing", () => {
         ["active", "completed", "blocked"];
 
       for (const status of statuses) {
-        const result = await cortex.contexts.create({
+        const result = await memoir.contexts.create({
           memorySpaceId: BASE_ID,
           userId: TEST_USER_ID,
           purpose: `Child ${status}`,
@@ -834,13 +834,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("conversationRef + data combination", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.contexts.create({
+      const result = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Context with conv and data",
@@ -863,7 +863,7 @@ describe("Parameter Combination Testing", () => {
         ["active", "completed", "cancelled", "blocked"];
 
       for (const status of statuses) {
-        const result = await cortex.contexts.create({
+        const result = await memoir.contexts.create({
           memorySpaceId: BASE_ID,
           userId: TEST_USER_ID,
           purpose: `Status ${status} with data`,
@@ -883,7 +883,7 @@ describe("Parameter Combination Testing", () => {
 
   describe("Parameter Preservation Through Updates", () => {
     it("vector.update() preserves participantId", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Original",
         contentType: "raw",
         participantId: "tool-preserve",
@@ -892,7 +892,7 @@ describe("Parameter Combination Testing", () => {
         metadata: { importance: 50, tags: ["original"] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         content: "Updated",
         importance: 80,
       });
@@ -903,13 +903,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("vector.update() preserves all refs", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "With refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -920,7 +920,7 @@ describe("Parameter Combination Testing", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         content: "Updated content",
       });
 
@@ -929,7 +929,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("facts.update() preserves participantId from original", async () => {
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         participantId: "agent-fact-preserver",
         fact: "Original fact",
@@ -939,7 +939,7 @@ describe("Parameter Combination Testing", () => {
         sourceType: "manual",
       });
 
-      const fact2 = await cortex.facts.update(BASE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(BASE_ID, fact1.factId, {
         confidence: 90,
       });
 
@@ -947,13 +947,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("facts.update() preserves sourceRef", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Fact with source",
         factType: "knowledge",
@@ -963,7 +963,7 @@ describe("Parameter Combination Testing", () => {
         sourceRef: { conversationId: conv.conversationId },
       });
 
-      const fact2 = await cortex.facts.update(BASE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(BASE_ID, fact1.factId, {
         confidence: 85,
       });
 
@@ -975,7 +975,7 @@ describe("Parameter Combination Testing", () => {
       const now = Date.now();
       const future = now + 86400000;
 
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Temporal fact",
         factType: "event",
@@ -986,7 +986,7 @@ describe("Parameter Combination Testing", () => {
         validUntil: future,
       });
 
-      const fact2 = await cortex.facts.update(BASE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(BASE_ID, fact1.factId, {
         confidence: 90,
       });
 
@@ -995,13 +995,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("contexts.update() preserves conversationRef", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Context with conv ref",
@@ -1011,7 +1011,7 @@ describe("Parameter Combination Testing", () => {
         },
       });
 
-      const updated = await cortex.contexts.update(ctx.contextId, {
+      const updated = await memoir.contexts.update(ctx.contextId, {
         data: { updated: true },
       });
 
@@ -1020,20 +1020,20 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("contexts.update() preserves parentId", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Child",
         parentId: parent.contextId,
       });
 
-      const updated = await cortex.contexts.update(child.contextId, {
+      const updated = await memoir.contexts.update(child.contextId, {
         status: "completed",
       });
 
@@ -1043,13 +1043,13 @@ describe("Parameter Combination Testing", () => {
     it("user.update() preserves existing data fields", async () => {
       const userId = `user-preserve-${Date.now()}`;
 
-      await cortex.users.update(userId, {
+      await memoir.users.update(userId, {
         name: "Original Name",
         email: "original@test.com",
         preferences: { theme: "dark" },
       });
 
-      const updated = await cortex.users.update(userId, {
+      const updated = await memoir.users.update(userId, {
         name: "Updated Name",
       });
 
@@ -1066,7 +1066,7 @@ describe("Parameter Combination Testing", () => {
 
   describe("Null vs Undefined vs Omitted Behavior", () => {
     it("omitted participantId is undefined", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Omitted participantId",
         contentType: "raw",
         source: { type: "system" },
@@ -1078,7 +1078,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("undefined participantId is undefined", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Undefined participantId",
         contentType: "raw",
         participantId: undefined,
@@ -1090,7 +1090,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("omitted tags defaults to empty array", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "No tags",
         contentType: "raw",
         source: { type: "system" },
@@ -1101,7 +1101,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("empty tags array stored as empty", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Empty tags",
         contentType: "raw",
         source: { type: "system" },
@@ -1112,7 +1112,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("omitted importance uses default", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Default importance",
         contentType: "raw",
         source: { type: "system" },
@@ -1123,7 +1123,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("omitted conversationRef is undefined", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "No conv ref",
         contentType: "raw",
         source: { type: "system" },
@@ -1134,13 +1134,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("conversationRef with empty messageIds", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Empty messageIds",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1155,13 +1155,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("conversationRef with omitted messageIds", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Omitted messageIds",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1183,7 +1183,7 @@ describe("Parameter Combination Testing", () => {
   describe("Conflicting Parameter Handling", () => {
     it("source.type='conversation' requires userId", async () => {
       try {
-        await cortex.vector.store(BASE_ID, {
+        await memoir.vector.store(BASE_ID, {
           content: "Missing userId for conversation",
           contentType: "raw",
           source: {
@@ -1201,7 +1201,7 @@ describe("Parameter Combination Testing", () => {
 
     it("importance > 100 handled gracefully", async () => {
       try {
-        const result = await cortex.vector.store(BASE_ID, {
+        const result = await memoir.vector.store(BASE_ID, {
           content: "High importance",
           contentType: "raw",
           source: { type: "system" },
@@ -1218,7 +1218,7 @@ describe("Parameter Combination Testing", () => {
 
     it("importance < 0 handled gracefully", async () => {
       try {
-        const result = await cortex.vector.store(BASE_ID, {
+        const result = await memoir.vector.store(BASE_ID, {
           content: "Negative importance",
           contentType: "raw",
           source: { type: "system" },
@@ -1233,7 +1233,7 @@ describe("Parameter Combination Testing", () => {
 
     it("confidence > 100 rejected for facts", async () => {
       try {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: "Over-confident fact",
           factType: "knowledge",
@@ -1248,7 +1248,7 @@ describe("Parameter Combination Testing", () => {
 
     it("confidence < 0 rejected for facts", async () => {
       try {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: "Negative confidence",
           factType: "knowledge",
@@ -1265,7 +1265,7 @@ describe("Parameter Combination Testing", () => {
       const now = Date.now();
 
       try {
-        const result = await cortex.facts.store({
+        const result = await memoir.facts.store({
           memorySpaceId: BASE_ID,
           fact: "Invalid temporal bounds",
           factType: "event",
@@ -1290,7 +1290,7 @@ describe("Parameter Combination Testing", () => {
 
   describe("Complex Parameter Combinations", () => {
     it("remember() with all params propagates to both memories", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         participantId: "agent-complex",
         conversationId: `complex-${Date.now()}`,
@@ -1314,28 +1314,28 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("facts.store() with sourceRef containing all fields", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Source message" },
       });
 
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       const msgId = convCheck!.messages[0].id;
 
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Source for fact",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Complete source ref",
         factType: "knowledge",
@@ -1355,19 +1355,19 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("context with parentId + conversationRef + data", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Complex child",
@@ -1388,7 +1388,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("vector.store() with embedding + conversationRef + importance", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
@@ -1396,7 +1396,7 @@ describe("Parameter Combination Testing", () => {
 
       const embedding = Array.from({ length: 1536 }, () => Math.random());
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Embedding combo",
         contentType: "raw",
         embedding,
@@ -1417,7 +1417,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("facts.store() with subject + predicate + object + tags", async () => {
-      const result = await cortex.facts.store({
+      const result = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "User knows Python",
         factType: "knowledge",
@@ -1436,7 +1436,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("memory.remember() with extractContent + extractFacts + importance + tags", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `extract-combo-${Date.now()}`,
         userMessage: "I love TypeScript and work at Google",
@@ -1477,7 +1477,7 @@ describe("Parameter Combination Testing", () => {
     it("empty string parameters", async () => {
       // Empty content should be rejected by validation
       await expect(
-        cortex.vector.store(BASE_ID, {
+        memoir.vector.store(BASE_ID, {
           content: "", // Empty content
           contentType: "raw",
           source: { type: "system" },
@@ -1489,7 +1489,7 @@ describe("Parameter Combination Testing", () => {
     it("very long content parameter", async () => {
       const longContent = "A".repeat(50000);
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: longContent,
         contentType: "raw",
         source: { type: "system" },
@@ -1502,7 +1502,7 @@ describe("Parameter Combination Testing", () => {
     it("very large tags array", async () => {
       const manyTags = Array.from({ length: 100 }, (_, i) => `tag-${i}`);
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Many tags",
         contentType: "raw",
         source: { type: "system" },
@@ -1518,7 +1518,7 @@ describe("Parameter Combination Testing", () => {
     it("special characters in all string parameters", async () => {
       const special = `<>"'&\n\t`;
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: `Content with ${special}`,
         contentType: "raw",
         participantId: `part-${special}`,
@@ -1537,7 +1537,7 @@ describe("Parameter Combination Testing", () => {
     it("unicode and emoji in parameters", async () => {
       const unicode = "你好🎉";
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: `Content ${unicode}`,
         contentType: "raw",
         source: { type: "system", userName: `User ${unicode}` },
@@ -1552,7 +1552,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("nested metadata with multiple levels", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Deep metadata",
         contentType: "raw",
         source: { type: "system" },
@@ -1566,7 +1566,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("empty metadata object", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Empty metadata",
         contentType: "raw",
         source: { type: "system" },
@@ -1580,7 +1580,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("duplicate tags handled correctly", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Duplicate tags",
         contentType: "raw",
         source: { type: "system" },
@@ -1597,7 +1597,7 @@ describe("Parameter Combination Testing", () => {
 
     it("embedding with wrong dimensions", async () => {
       try {
-        await cortex.vector.store(BASE_ID, {
+        await memoir.vector.store(BASE_ID, {
           content: "Wrong embedding size",
           contentType: "raw",
           embedding: [0.1, 0.2], // Too short
@@ -1611,13 +1611,13 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("sourceType 'conversation' with conversationRef", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: BASE_ID,
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
       });
 
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Conversation source with ref",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1642,7 +1642,7 @@ describe("Parameter Combination Testing", () => {
       const participantId = "tool-consistent";
 
       // Vector
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Vector with participant",
         contentType: "raw",
         participantId,
@@ -1652,7 +1652,7 @@ describe("Parameter Combination Testing", () => {
       expect(mem.participantId).toBe(participantId);
 
       // Facts
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         participantId,
         fact: "Fact with participant",
@@ -1664,7 +1664,7 @@ describe("Parameter Combination Testing", () => {
       expect(fact.participantId).toBe(participantId);
 
       // Memory.remember
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         participantId,
         conversationId: `consistent-${Date.now()}`,
@@ -1681,7 +1681,7 @@ describe("Parameter Combination Testing", () => {
       const importance = 87;
 
       // Direct vector
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Direct importance",
         contentType: "raw",
         source: { type: "system" },
@@ -1690,7 +1690,7 @@ describe("Parameter Combination Testing", () => {
       expect(mem.importance).toBe(importance);
 
       // Via memory.remember
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `imp-${Date.now()}`,
         userMessage: "User",
@@ -1707,7 +1707,7 @@ describe("Parameter Combination Testing", () => {
       const tags = ["tag1", "tag2", "tag3"];
 
       // Vector
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Vector tags",
         contentType: "raw",
         source: { type: "system" },
@@ -1716,7 +1716,7 @@ describe("Parameter Combination Testing", () => {
       expect(mem.tags).toEqual(tags);
 
       // Facts
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Fact tags",
         factType: "knowledge",
@@ -1728,7 +1728,7 @@ describe("Parameter Combination Testing", () => {
       expect(fact.tags).toEqual(tags);
 
       // Memory.remember
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `tags-${Date.now()}`,
         userMessage: "User",
@@ -1744,7 +1744,7 @@ describe("Parameter Combination Testing", () => {
     it("userId propagates to conversationRef", async () => {
       const userId = `user-prop-${Date.now()}`;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: BASE_ID,
         conversationId: `user-prop-${Date.now()}`,
         userMessage: "Test",
@@ -1758,7 +1758,7 @@ describe("Parameter Combination Testing", () => {
       expect(result.memories[0].userId).toBe(userId);
 
       // Conversation should reference userId
-      const conv = await cortex.conversations.get(
+      const conv = await memoir.conversations.get(
         result.conversation.conversationId,
       );
       expect(conv!.participants.userId).toBe(userId);
@@ -1772,7 +1772,7 @@ describe("Parameter Combination Testing", () => {
   describe("Optional Parameter Defaults", () => {
     it("conversation.create() defaults type when omitted", async () => {
       // Implementation may have defaults
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: BASE_ID,
         type: "user-agent", // Required
         participants: { userId: TEST_USER_ID, agentId: TEST_AGENT_ID },
@@ -1783,7 +1783,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("contexts.create() defaults status to active", async () => {
-      const result = await cortex.contexts.create({
+      const result = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Default status test",
@@ -1794,7 +1794,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("contexts.create() defaults data to empty object", async () => {
-      const result = await cortex.contexts.create({
+      const result = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Default data test",
@@ -1807,7 +1807,7 @@ describe("Parameter Combination Testing", () => {
     it("memorySpaces.register() defaults status to active", async () => {
       const spaceId = `${BASE_ID}-default-${Date.now()}`;
 
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         // status omitted
@@ -1819,7 +1819,7 @@ describe("Parameter Combination Testing", () => {
     it("memorySpaces.register() defaults participants to empty array", async () => {
       const spaceId = `${BASE_ID}-empty-part-${Date.now()}`;
 
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         // participants omitted
@@ -1831,7 +1831,7 @@ describe("Parameter Combination Testing", () => {
     it("memorySpaces.register() defaults metadata to empty object", async () => {
       const spaceId = `${BASE_ID}-empty-meta-${Date.now()}`;
 
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         // metadata omitted
@@ -1847,14 +1847,14 @@ describe("Parameter Combination Testing", () => {
 
   describe("Parameter Mutation Through Updates", () => {
     it("can change importance via update", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Mutable importance",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         importance: 90,
       });
 
@@ -1862,14 +1862,14 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("can add tags via update", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Add tags test",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["original"] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         tags: ["original", "added1", "added2"],
       } as any);
 
@@ -1877,14 +1877,14 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("can change content via update", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Original content",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         content: "Updated content",
       });
 
@@ -1892,7 +1892,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("cannot change participantId via update", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Immutable participant",
         contentType: "raw",
         participantId: "tool-original",
@@ -1900,7 +1900,7 @@ describe("Parameter Combination Testing", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const updated = await cortex.vector.update(BASE_ID, mem.memoryId, {
+      const updated = await memoir.vector.update(BASE_ID, mem.memoryId, {
         content: "Updated",
       });
 
@@ -1909,7 +1909,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("fact.update() can change confidence", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Original confidence",
         factType: "knowledge",
@@ -1918,7 +1918,7 @@ describe("Parameter Combination Testing", () => {
         sourceType: "manual",
       });
 
-      const updated = await cortex.facts.update(BASE_ID, fact.factId, {
+      const updated = await memoir.facts.update(BASE_ID, fact.factId, {
         confidence: 95,
       });
 
@@ -1926,7 +1926,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("fact.update() can change fact statement", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: BASE_ID,
         fact: "Original fact statement",
         factType: "knowledge",
@@ -1935,7 +1935,7 @@ describe("Parameter Combination Testing", () => {
         sourceType: "manual",
       });
 
-      const updated = await cortex.facts.update(BASE_ID, fact.factId, {
+      const updated = await memoir.facts.update(BASE_ID, fact.factId, {
         fact: "Updated fact statement",
       });
 
@@ -1943,7 +1943,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("context.update() can change status and data simultaneously", async () => {
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: BASE_ID,
         userId: TEST_USER_ID,
         purpose: "Multi-update test",
@@ -1951,7 +1951,7 @@ describe("Parameter Combination Testing", () => {
         data: { progress: 0 },
       });
 
-      const updated = await cortex.contexts.update(ctx.contextId, {
+      const updated = await memoir.contexts.update(ctx.contextId, {
         status: "completed",
         data: { progress: 100, completedBy: "agent-1" },
       });
@@ -1964,7 +1964,7 @@ describe("Parameter Combination Testing", () => {
     it("user.merge() deep merges nested structures", async () => {
       const userId = `user-merge-${Date.now()}`;
 
-      await cortex.users.update(userId, {
+      await memoir.users.update(userId, {
         name: "User",
         preferences: {
           theme: "dark",
@@ -1972,7 +1972,7 @@ describe("Parameter Combination Testing", () => {
         },
       });
 
-      const _merged = await cortex.users.update(userId, {
+      const _merged = await memoir.users.update(userId, {
         preferences: {
           language: "en",
           notifications: { push: true },
@@ -1993,7 +1993,7 @@ describe("Parameter Combination Testing", () => {
 
   describe("Source Type Parameter Combinations", () => {
     it("source.type='conversation' with full source details", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Conversation source",
         contentType: "raw",
         source: {
@@ -2011,7 +2011,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("source.type='system' minimal", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "System source",
         contentType: "raw",
         source: { type: "system" },
@@ -2023,7 +2023,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("source.type='tool' with userId", async () => {
-      const result = await cortex.vector.store(BASE_ID, {
+      const result = await memoir.vector.store(BASE_ID, {
         content: "Tool source",
         contentType: "raw",
         participantId: "tool-worker",
@@ -2043,7 +2043,7 @@ describe("Parameter Combination Testing", () => {
       ];
 
       for (const sourceType of sourceTypes) {
-        const result = await cortex.vector.store(BASE_ID, {
+        const result = await memoir.vector.store(BASE_ID, {
           content: `Source ${sourceType}`,
           contentType: "raw",
           source: { type: sourceType },
@@ -2071,7 +2071,7 @@ describe("Parameter Combination Testing", () => {
       for (const type of types) {
         const spaceId = `${BASE_ID}-type-${type}-${Date.now()}`;
 
-        const result = await cortex.memorySpaces.register({
+        const result = await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type,
           name: `${type} space`,
@@ -2086,7 +2086,7 @@ describe("Parameter Combination Testing", () => {
     it("memory space with metadata combinations", async () => {
       const spaceId = `${BASE_ID}-meta-${Date.now()}`;
 
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Metadata test",
@@ -2104,7 +2104,7 @@ describe("Parameter Combination Testing", () => {
     it("memory space with multiple participants of different types", async () => {
       const spaceId = `${BASE_ID}-multi-part-${Date.now()}`;
 
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "team",
         name: "Multi-participant test",
@@ -2146,8 +2146,8 @@ describe("Parameter Combination Testing", () => {
         },
       };
 
-      const stored = await cortex.vector.store(BASE_ID, input);
-      const retrieved = await cortex.vector.get(BASE_ID, stored.memoryId);
+      const stored = await memoir.vector.store(BASE_ID, input);
+      const retrieved = await memoir.vector.get(BASE_ID, stored.memoryId);
 
       expect(retrieved!.content).toBe(input.content);
       expect(retrieved!.participantId).toBe(input.participantId);
@@ -2169,8 +2169,8 @@ describe("Parameter Combination Testing", () => {
         tags: ["retrieval", "test"],
       };
 
-      const stored = await cortex.facts.store(input);
-      const retrieved = await cortex.facts.get(BASE_ID, stored.factId);
+      const stored = await memoir.facts.store(input);
+      const retrieved = await memoir.facts.get(BASE_ID, stored.factId);
 
       expect(retrieved!.fact).toBe(input.fact);
       expect(retrieved!.subject).toBe(input.subject);
@@ -2189,8 +2189,8 @@ describe("Parameter Combination Testing", () => {
         data: { test: "data", value: 123 },
       };
 
-      const stored = await cortex.contexts.create(input);
-      const retrieved = await cortex.contexts.get(stored.contextId);
+      const stored = await memoir.contexts.create(input);
+      const retrieved = await memoir.contexts.get(stored.contextId);
 
       expect((retrieved as any).purpose).toBe(input.purpose);
       expect((retrieved as any).status).toBe(input.status);
@@ -2198,7 +2198,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("parameters appear correctly in list() results", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "List params test",
         contentType: "raw",
         participantId: "tool-lister",
@@ -2209,7 +2209,7 @@ describe("Parameter Combination Testing", () => {
         },
       });
 
-      const list = await cortex.vector.list({
+      const list = await memoir.vector.list({
         memorySpaceId: BASE_ID,
       });
       const filtered = list.filter((m) => m.tags.includes("list-test"));
@@ -2221,7 +2221,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("parameters preserved in search() results", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "SEARCHABLE_UNIQUE_TERM content",
         contentType: "raw",
         participantId: "tool-searcher",
@@ -2232,7 +2232,7 @@ describe("Parameter Combination Testing", () => {
         },
       });
 
-      const results = await cortex.vector.search(
+      const results = await memoir.vector.search(
         BASE_ID,
         "SEARCHABLE_UNIQUE_TERM",
       );
@@ -2244,7 +2244,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("parameters preserved in export()", async () => {
-      const mem = await cortex.vector.store(BASE_ID, {
+      const mem = await memoir.vector.store(BASE_ID, {
         content: "Export params test",
         contentType: "raw",
         participantId: "tool-exporter",
@@ -2255,7 +2255,7 @@ describe("Parameter Combination Testing", () => {
         },
       });
 
-      const exported = await cortex.vector.export({
+      const exported = await memoir.vector.export({
         memorySpaceId: BASE_ID,
         format: "json",
       });
@@ -2279,7 +2279,7 @@ describe("Parameter Combination Testing", () => {
       // Create 5 memories
       const mems = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          cortex.vector.store(BASE_ID, {
+          memoir.vector.store(BASE_ID, {
             content: `Batch ${i}`,
             contentType: "raw",
             source: { type: "system" },
@@ -2289,17 +2289,17 @@ describe("Parameter Combination Testing", () => {
       );
 
       // Update all
-      const toUpdate = await cortex.vector.list({ memorySpaceId: BASE_ID });
+      const toUpdate = await memoir.vector.list({ memorySpaceId: BASE_ID });
       const filteredUpdate = toUpdate.filter((m) =>
         m.tags.includes("batch-update"),
       );
       for (const mem of filteredUpdate) {
-        await cortex.vector.update(BASE_ID, mem.memoryId, { importance: 95 });
+        await memoir.vector.update(BASE_ID, mem.memoryId, { importance: 95 });
       }
 
       // Verify all updated
       for (const mem of mems) {
-        const check = await cortex.vector.get(BASE_ID, mem.memoryId);
+        const check = await memoir.vector.get(BASE_ID, mem.memoryId);
         expect(check!.importance).toBe(95);
       }
     });
@@ -2308,7 +2308,7 @@ describe("Parameter Combination Testing", () => {
       // Create memories
       await Promise.all(
         Array.from({ length: 8 }, () =>
-          cortex.vector.store(BASE_ID, {
+          memoir.vector.store(BASE_ID, {
             content: "Batch delete",
             contentType: "raw",
             source: { type: "system" },
@@ -2318,19 +2318,19 @@ describe("Parameter Combination Testing", () => {
       );
 
       // Delete by tag
-      const toDelete = await cortex.vector.list({ memorySpaceId: BASE_ID });
+      const toDelete = await memoir.vector.list({ memorySpaceId: BASE_ID });
       const filteredDelete = toDelete.filter((m) =>
         m.tags.includes("batch-delete"),
       );
       for (const mem of filteredDelete) {
-        await cortex.vector.delete(BASE_ID, mem.memoryId);
+        await memoir.vector.delete(BASE_ID, mem.memoryId);
       }
       const result = { deleted: filteredDelete.length };
 
       expect(result.deleted).toBeGreaterThanOrEqual(8);
 
       // Verify all gone
-      const remaining = await cortex.vector.list({
+      const remaining = await memoir.vector.list({
         memorySpaceId: BASE_ID,
       });
       const filteredRemaining = remaining.filter((m) =>
@@ -2340,7 +2340,7 @@ describe("Parameter Combination Testing", () => {
     });
 
     it("bulk operations preserve non-matching parameters", async () => {
-      const mem1 = await cortex.vector.store(BASE_ID, {
+      const mem1 = await memoir.vector.store(BASE_ID, {
         content: "Bulk test 1",
         contentType: "raw",
         participantId: "tool-bulk-1",
@@ -2348,7 +2348,7 @@ describe("Parameter Combination Testing", () => {
         metadata: { importance: 50, tags: ["bulk"] },
       });
 
-      const mem2 = await cortex.vector.store(BASE_ID, {
+      const mem2 = await memoir.vector.store(BASE_ID, {
         content: "Bulk test 2",
         contentType: "raw",
         participantId: "tool-bulk-2",
@@ -2357,15 +2357,15 @@ describe("Parameter Combination Testing", () => {
       });
 
       // Update both
-      const toBulkUpdate = await cortex.vector.list({ memorySpaceId: BASE_ID });
+      const toBulkUpdate = await memoir.vector.list({ memorySpaceId: BASE_ID });
       const bulkFiltered = toBulkUpdate.filter((m) => m.tags.includes("bulk"));
       for (const mem of bulkFiltered) {
-        await cortex.vector.update(BASE_ID, mem.memoryId, { importance: 90 });
+        await memoir.vector.update(BASE_ID, mem.memoryId, { importance: 90 });
       }
 
       // Verify participantIds preserved
-      const check1 = await cortex.vector.get(BASE_ID, mem1.memoryId);
-      const check2 = await cortex.vector.get(BASE_ID, mem2.memoryId);
+      const check1 = await memoir.vector.get(BASE_ID, mem1.memoryId);
+      const check2 = await memoir.vector.get(BASE_ID, mem2.memoryId);
 
       expect(check1!.participantId).toBe("tool-bulk-1");
       expect(check2!.participantId).toBe("tool-bulk-2");

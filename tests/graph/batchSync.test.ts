@@ -1,10 +1,10 @@
 /**
  * Batch Sync Integration Tests
  *
- * Tests for initial bulk sync of Cortex data to graph database.
+ * Tests for initial bulk sync of Memoir data to graph database.
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter, initializeGraphSchema } from "../../src/graph";
 import type { GraphAdapter } from "../../src/graph";
 import { initialGraphSync } from "../../src/graph/sync/batchSync";
@@ -21,11 +21,11 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("Batch Sync Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let adapter: GraphAdapter;
   const timestamp = Date.now();
   const testMemorySpaceId = `batch-sync-test-${timestamp}`;
@@ -37,31 +37,31 @@ describeIfEnabled("Batch Sync Integration", () => {
     await adapter.clearDatabase();
     await initializeGraphSchema(adapter);
 
-    // Setup Cortex (without graph auto-sync for manual batch testing)
-    cortex = new Cortex({
+    // Setup Memoir (without graph auto-sync for manual batch testing)
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
     });
 
-    // Create test data in Cortex
+    // Create test data in Memoir
     await setupTestData();
   });
 
   afterAll(async () => {
     await adapter.clearDatabase();
     await adapter.disconnect();
-    cortex.close();
+    memoir.close();
   });
 
   async function setupTestData() {
     // Create memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Batch Sync Test Space",
       type: "personal",
     });
 
     // Create conversation
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       memorySpaceId: testMemorySpaceId,
       conversationId: `conv-batch-${timestamp}`,
       type: "user-agent",
@@ -72,7 +72,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     // Add messages to conversation
-    await cortex.conversations.addMessage({
+    await memoir.conversations.addMessage({
       conversationId: `conv-batch-${timestamp}`,
       message: {
         role: "user",
@@ -80,7 +80,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       },
     });
 
-    await cortex.conversations.addMessage({
+    await memoir.conversations.addMessage({
       conversationId: `conv-batch-${timestamp}`,
       message: {
         role: "agent",
@@ -89,14 +89,14 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     // Create context
-    await cortex.contexts.create({
+    await memoir.contexts.create({
       memorySpaceId: testMemorySpaceId,
       purpose: "Batch sync test context",
       userId: "batch-user",
     });
 
     // Create facts
-    await cortex.facts.store({
+    await memoir.facts.store({
       memorySpaceId: testMemorySpaceId,
       fact: "Batch sync test fact 1",
       factType: "knowledge",
@@ -105,7 +105,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       tags: ["batch-test"],
     });
 
-    await cortex.facts.store({
+    await memoir.facts.store({
       memorySpaceId: testMemorySpaceId,
       fact: "Batch sync test fact 2",
       factType: "relationship",
@@ -132,7 +132,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should sync all entity types", async () => {
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         limits: {
           memorySpaces: 100,
           conversations: 100,
@@ -156,7 +156,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should return BatchSyncResult with all fields", async () => {
-      const result = await initialGraphSync(cortex, adapter);
+      const result = await initialGraphSync(memoir, adapter);
 
       // Verify result structure
       expect(result).toHaveProperty("memorySpaces");
@@ -181,7 +181,7 @@ describeIfEnabled("Batch Sync Integration", () => {
         total: number;
       }> = [];
 
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         onProgress: (entity, current, total) => {
           progressUpdates.push({ entity, current, total });
         },
@@ -197,7 +197,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should respect limits option", async () => {
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         limits: {
           memorySpaces: 1,
           conversations: 1,
@@ -216,7 +216,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should skip relationships when syncRelationships is false", async () => {
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         syncRelationships: false,
       });
 
@@ -230,7 +230,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create relationships when syncRelationships is true", async () => {
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         syncRelationships: true,
       });
 
@@ -249,7 +249,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should track errors during sync", async () => {
-      const result = await initialGraphSync(cortex, adapter);
+      const result = await initialGraphSync(memoir, adapter);
 
       // Errors array should exist
       expect(Array.isArray(result.errors)).toBe(true);
@@ -266,7 +266,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     it("should sync memory spaces first (phase 1)", async () => {
       const phases: string[] = [];
 
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         onProgress: (entity) => {
           if (!phases.includes(entity)) {
             phases.push(entity);
@@ -283,14 +283,14 @@ describeIfEnabled("Batch Sync Integration", () => {
     it("should handle empty database gracefully", async () => {
       // Create a new memory space with no data
       const emptySpaceId = `empty-space-${timestamp}`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: emptySpaceId,
         name: "Empty Space",
         type: "personal",
       });
 
       // Sync should not throw
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         limits: {
           memorySpaces: 100,
           conversations: 0,
@@ -314,7 +314,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create Memory Space nodes", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         limits: { memorySpaces: 100 },
       });
 
@@ -323,7 +323,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create Conversation nodes with properties", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         limits: { conversations: 100 },
         syncRelationships: false,
       });
@@ -336,7 +336,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create Context nodes", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         limits: { contexts: 100 },
         syncRelationships: false,
       });
@@ -349,7 +349,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create Fact nodes with entities", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         limits: { facts: 100 },
         syncRelationships: true,
       });
@@ -368,7 +368,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create IN_SPACE relationships", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         syncRelationships: true,
       });
 
@@ -378,7 +378,7 @@ describeIfEnabled("Batch Sync Integration", () => {
     });
 
     it("should create User and Agent nodes from participants", async () => {
-      await initialGraphSync(cortex, adapter, {
+      await initialGraphSync(memoir, adapter, {
         syncRelationships: true,
       });
 
@@ -409,7 +409,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       const factPromises = [];
       for (let i = 0; i < 10; i++) {
         factPromises.push(
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: testMemorySpaceId,
             fact: `Bulk test fact ${i}`,
             factType: "knowledge",
@@ -421,7 +421,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       }
       await Promise.all(factPromises);
 
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         limits: { facts: 100 },
       });
 
@@ -433,7 +433,7 @@ describeIfEnabled("Batch Sync Integration", () => {
 
     it("should continue sync after individual failures", async () => {
       // Even if one entity fails, others should sync
-      const result = await initialGraphSync(cortex, adapter);
+      const result = await initialGraphSync(memoir, adapter);
 
       // Should have attempted all entity types
       expect(result).toHaveProperty("memorySpaces");
@@ -444,10 +444,10 @@ describeIfEnabled("Batch Sync Integration", () => {
 
     it("should be idempotent (can run multiple times)", async () => {
       // First sync
-      const _result1 = await initialGraphSync(cortex, adapter);
+      const _result1 = await initialGraphSync(memoir, adapter);
 
       // Second sync - should update, not duplicate
-      const _result2 = await initialGraphSync(cortex, adapter);
+      const _result2 = await initialGraphSync(memoir, adapter);
 
       // Count nodes after both syncs
       const totalNodes = await adapter.countNodes();
@@ -461,7 +461,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       const disconnectedAdapter = new CypherGraphAdapter();
 
       // Should handle gracefully and return errors, not throw
-      const result = await initialGraphSync(cortex, disconnectedAdapter);
+      const result = await initialGraphSync(memoir, disconnectedAdapter);
 
       // Should have result structure even when disconnected
       expect(result).toHaveProperty("errors");
@@ -479,7 +479,7 @@ describeIfEnabled("Batch Sync Integration", () => {
 
       const start = Date.now();
 
-      const result = await initialGraphSync(cortex, adapter, {
+      const result = await initialGraphSync(memoir, adapter, {
         limits: {
           memorySpaces: 10,
           conversations: 10,
@@ -501,7 +501,7 @@ describeIfEnabled("Batch Sync Integration", () => {
       await initializeGraphSchema(adapter);
 
       const start = Date.now();
-      const result = await initialGraphSync(cortex, adapter);
+      const result = await initialGraphSync(memoir, adapter);
       const actualDuration = Date.now() - start;
 
       // Reported duration should be close to actual

@@ -163,7 +163,7 @@ The scripts use `git diff` to compare against `main` branch:
 
 **Python SDK:**
 
-- `cortex-sdk-python/**`
+- `memoir-sdk-python/**`
 
 **Convex Backend:**
 
@@ -173,9 +173,9 @@ The scripts use `git diff` to compare against `main` branch:
 
 - `packages/vercel-ai-provider/**`
 
-**Cortex CLI:**
+**Memoir CLI:**
 
-- `packages/cortex-cli/**`
+- `packages/memoir-cli/**`
 
 If files in these paths changed, the corresponding tests run.
 
@@ -297,7 +297,7 @@ These scripts simulate the actual CI pipeline:
 | `test-typescript`         | `CONVEX_TEST_MODE=local npm test &`                                       |
 | `test-python` matrix      | `N x pytest tests/` in background                                         |
 | `test-vercel-ai-provider` | `cd packages/vercel-ai-provider && npm test`                              |
-| `test-cli`                | `cd packages/cortex-cli && npm run test:unit && npm run test:integration` |
+| `test-cli`                | `cd packages/memoir-cli && npm run test:unit && npm run test:integration` |
 | `code-quality`            | `npm run lint && tsc --noEmit`                                            |
 | `all-checks-passed`       | Wait for all PIDs, check exit codes                                       |
 

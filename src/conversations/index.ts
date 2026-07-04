@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversations API
+ * Memoir SDK - Conversations API
  *
  * Layer 1a: ACID-compliant immutable conversation storage
  */
@@ -116,7 +116,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const conversation = await cortex.conversations.create({
+   * const conversation = await memoir.conversations.create({
    *   memorySpaceId: 'user-123-personal',
    *   type: 'user-agent',
    *   participants: {
@@ -196,15 +196,15 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const conversation = await cortex.conversations.get('conv-abc123');
+   * const conversation = await memoir.conversations.get('conv-abc123');
    *
    * // With options
-   * const convNoMessages = await cortex.conversations.get('conv-abc123', {
+   * const convNoMessages = await memoir.conversations.get('conv-abc123', {
    *   includeMessages: false,
    * });
    *
    * // Limit messages returned
-   * const convLimited = await cortex.conversations.get('conv-abc123', {
+   * const convLimited = await memoir.conversations.get('conv-abc123', {
    *   messageLimit: 10,
    * });
    * ```
@@ -234,7 +234,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.conversations.addMessage({
+   * await memoir.conversations.addMessage({
    *   conversationId: 'conv-abc123',
    *   message: {
    *     role: 'user',
@@ -304,14 +304,14 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.conversations.list({
+   * const result = await memoir.conversations.list({
    *   userId: 'user-123',
    *   limit: 10,
    * });
    * console.log(`Found ${result.total} conversations`);
    *
    * // With pagination and sorting
-   * const page2 = await cortex.conversations.list({
+   * const page2 = await memoir.conversations.list({
    *   memorySpaceId: 'space-123',
    *   offset: 10,
    *   limit: 10,
@@ -320,7 +320,7 @@ export class ConversationsAPI {
    * });
    *
    * // Filter by date range
-   * const recent = await cortex.conversations.list({
+   * const recent = await memoir.conversations.list({
    *   createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000, // Last week
    * });
    * ```
@@ -388,7 +388,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.conversations.count({
+   * const count = await memoir.conversations.count({
    *   memorySpaceId: 'user-123-personal',
    * });
    * ```
@@ -417,7 +417,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.conversations.delete('conv-abc123');
+   * const result = await memoir.conversations.delete('conv-abc123');
    * console.log(`Deleted ${result.messagesDeleted} messages`);
    * console.log(`Restorable: ${result.restorable}`); // false - permanent!
    * ```
@@ -463,14 +463,14 @@ export class ConversationsAPI {
    * @example
    * ```typescript
    * // Preview what would be deleted (dryRun)
-   * const preview = await cortex.conversations.deleteMany(
+   * const preview = await memoir.conversations.deleteMany(
    *   { userId: 'user-123' },
    *   { dryRun: true }
    * );
    * console.log(`Would delete ${preview.wouldDelete} conversations`);
    *
    * // Execute deletion
-   * const result = await cortex.conversations.deleteMany({
+   * const result = await memoir.conversations.deleteMany({
    *   memorySpaceId: 'user-123-personal',
    *   userId: 'user-123',
    *   type: 'user-agent',
@@ -519,7 +519,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const message = await cortex.conversations.getMessage('conv-123', 'msg-456');
+   * const message = await memoir.conversations.getMessage('conv-123', 'msg-456');
    * ```
    */
   async getMessage(
@@ -546,7 +546,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const messages = await cortex.conversations.getMessagesByIds('conv-123', ['msg-1', 'msg-2']);
+   * const messages = await memoir.conversations.getMessagesByIds('conv-123', ['msg-1', 'msg-2']);
    * ```
    */
   async getMessagesByIds(
@@ -576,7 +576,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const existing = await cortex.conversations.findConversation({
+   * const existing = await memoir.conversations.findConversation({
    *   memorySpaceId: 'user-123-personal',
    *   type: 'user-agent',
    *   userId: 'user-123',
@@ -631,7 +631,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const conversation = await cortex.conversations.getOrCreate({
+   * const conversation = await memoir.conversations.getOrCreate({
    *   memorySpaceId: 'user-123-personal',
    *   type: 'user-agent',
    *   participants: { userId: 'user-123', participantId: 'my-bot' },
@@ -675,19 +675,19 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.conversations.getHistory('conv-abc123', {
+   * const history = await memoir.conversations.getHistory('conv-abc123', {
    *   limit: 20,
    *   offset: 0,
    *   sortOrder: 'desc',
    * });
    *
    * // Filter by date range
-   * const recent = await cortex.conversations.getHistory('conv-abc123', {
+   * const recent = await memoir.conversations.getHistory('conv-abc123', {
    *   since: Date.now() - 24 * 60 * 60 * 1000, // Last 24 hours
    * });
    *
    * // Filter by roles
-   * const userMessages = await cortex.conversations.getHistory('conv-abc123', {
+   * const userMessages = await memoir.conversations.getHistory('conv-abc123', {
    *   roles: ['user'],
    * });
    * ```
@@ -749,7 +749,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.conversations.search({
+   * const results = await memoir.conversations.search({
    *   query: 'password',
    *   filters: {
    *     userId: 'user-123',
@@ -758,7 +758,7 @@ export class ConversationsAPI {
    * });
    *
    * // Search with options
-   * const fuzzyResults = await cortex.conversations.search({
+   * const fuzzyResults = await memoir.conversations.search({
    *   query: 'account balance',
    *   options: {
    *     searchIn: 'both', // Search content and metadata
@@ -809,7 +809,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const exported = await cortex.conversations.export({
+   * const exported = await memoir.conversations.export({
    *   filters: { memorySpaceId: 'user-123-personal', userId: 'user-123' },
    *   format: 'json',
    *   includeMetadata: true,
@@ -865,7 +865,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const access = await cortex.conversations.checkAccess({
+   * const access = await memoir.conversations.checkAccess({
    *   conversationId: 'conv-abc123',
    *   userId: 'user-456',
    * });
@@ -899,13 +899,13 @@ export class ConversationsAPI {
    * @example
    * ```typescript
    * // Make a conversation public
-   * const updated = await cortex.conversations.setVisibility({
+   * const updated = await memoir.conversations.setVisibility({
    *   conversationId: 'conv-abc123',
    *   visibility: 'public',
    * });
    *
    * // Make it space-visible
-   * await cortex.conversations.setVisibility({
+   * await memoir.conversations.setVisibility({
    *   conversationId: 'conv-abc123',
    *   visibility: 'space',
    * });
@@ -954,10 +954,10 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * import { buildShareUrl } from '@cortex/sdk';
+   * import { buildShareUrl } from '@memoir/sdk';
    *
    * // Create a public link share
-   * const result = await cortex.conversations.share({
+   * const result = await memoir.conversations.share({
    *   conversationId: 'conv-abc123',
    *   grantType: 'link',
    *   permissions: { canView: true, canFork: true },
@@ -1017,7 +1017,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.conversations.revokeShare('share-abc123');
+   * const result = await memoir.conversations.revokeShare('share-abc123');
    * console.log(`Revoked at: ${result.revokedAt}`);
    * ```
    */
@@ -1048,7 +1048,7 @@ export class ConversationsAPI {
    * @example
    * ```typescript
    * // List all active shares
-   * const shares = await cortex.conversations.listShares('conv-abc123', {
+   * const shares = await memoir.conversations.listShares('conv-abc123', {
    *   status: 'active',
    * });
    * ```
@@ -1082,7 +1082,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const share = await cortex.conversations.getShare('share-abc123');
+   * const share = await memoir.conversations.getShare('share-abc123');
    * if (share?.isValid) {
    *   // Share is valid and can be used
    * }
@@ -1107,7 +1107,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const access = await cortex.conversations.checkShareAccess({
+   * const access = await memoir.conversations.checkShareAccess({
    *   conversationId: 'conv-abc123',
    *   userId: 'user-456',
    * });
@@ -1151,7 +1151,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.conversations.snapshot({
+   * const result = await memoir.conversations.snapshot({
    *   conversationId: 'conv-abc123',
    *   redactPII: true,
    * });
@@ -1251,7 +1251,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.conversations.approveMessage({
+   * await memoir.conversations.approveMessage({
    *   conversationId: 'conv-abc123',
    *   messageId: 'msg-456',
    * });
@@ -1281,7 +1281,7 @@ export class ConversationsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.conversations.rejectMessage({
+   * await memoir.conversations.rejectMessage({
    *   conversationId: 'conv-abc123',
    *   messageId: 'msg-456',
    * });

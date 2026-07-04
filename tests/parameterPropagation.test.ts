@@ -5,7 +5,7 @@
  * to underlying layer functions. Prevents bugs like the participantId issue.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -14,7 +14,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Parameter Propagation: memory.remember()", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -25,13 +25,13 @@ describe("Parameter Propagation: memory.remember()", () => {
   let testConversationId: string;
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() for parallel execution compatibility.
 
     // Create conversation for remember() tests
-    const conv = await cortex.conversations.create({
+    const conv = await memoir.conversations.create({
       type: "user-agent",
       memorySpaceId: TEST_MEMSPACE_ID,
       participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -46,7 +46,7 @@ describe("Parameter Propagation: memory.remember()", () => {
 
   describe("Propagation to Vector Layer", () => {
     it("propagates participantId to vector layer", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -60,7 +60,7 @@ describe("Parameter Propagation: memory.remember()", () => {
       expect(result.memories).toHaveLength(2);
 
       // Verify user memory has participantId
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -68,7 +68,7 @@ describe("Parameter Propagation: memory.remember()", () => {
       expect(userMem!.participantId).toBe("tool-calendar");
 
       // Verify agent memory has participantId
-      const agentMem = await cortex.vector.get(
+      const agentMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -79,7 +79,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     it("propagates importance to vector layer", async () => {
       const IMPORTANCE = 95;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -93,11 +93,11 @@ describe("Parameter Propagation: memory.remember()", () => {
       });
 
       // Verify both memories have correct importance
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
-      const agentMem = await cortex.vector.get(
+      const agentMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -109,7 +109,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     it("propagates tags to vector layer", async () => {
       const TAGS = ["critical", "password", "security"];
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -122,11 +122,11 @@ describe("Parameter Propagation: memory.remember()", () => {
           "The security concern has been logged and flagged for immediate review by the team",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
-      const agentMem = await cortex.vector.get(
+      const agentMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -140,13 +140,13 @@ describe("Parameter Propagation: memory.remember()", () => {
       const USER_ID = ctx.userId("specific");
 
       // Create specific conversation for this user
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: USER_ID, agentId: "test-agent" },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userId: USER_ID,
@@ -156,11 +156,11 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Test response",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
-      const agentMem = await cortex.vector.get(
+      const agentMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -170,7 +170,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("propagates conversationRef correctly", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -180,7 +180,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Conversation tracked",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -192,7 +192,7 @@ describe("Parameter Propagation: memory.remember()", () => {
       );
 
       // Verify the conversation actually exists
-      const conv = await cortex.conversations.get(
+      const conv = await memoir.conversations.get(
         userMem!.conversationRef!.conversationId!,
       );
       expect(conv).not.toBeNull();
@@ -200,7 +200,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("handles undefined participantId correctly", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -211,7 +211,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Response without participant",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -221,7 +221,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("handles omitted participantId correctly", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -232,7 +232,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Response without participant field",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -254,9 +254,9 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "All parameters captured",
       };
 
-      const result = await cortex.memory.remember(INPUT);
+      const result = await memoir.memory.remember(INPUT);
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -273,7 +273,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("preserves metadata through propagation", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -285,7 +285,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Metadata response",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -301,14 +301,14 @@ describe("Parameter Propagation: memory.remember()", () => {
     let getTestConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
       getTestConversationId = conv.conversationId;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: getTestConversationId,
         userId: TEST_USER_ID,
@@ -322,7 +322,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("includeConversation actually includes conversation", async () => {
-      const enriched = await cortex.memory.get(TEST_MEMSPACE_ID, testMemoryId, {
+      const enriched = await memoir.memory.get(TEST_MEMSPACE_ID, testMemoryId, {
         includeConversation: true,
       });
 
@@ -342,7 +342,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("includeConversation: false doesn't include conversation", async () => {
-      const notEnriched = await cortex.memory.get(
+      const notEnriched = await memoir.memory.get(
         TEST_MEMSPACE_ID,
         testMemoryId,
         {
@@ -355,7 +355,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("default (no options) doesn't include conversation", async () => {
-      const defaultGet = await cortex.memory.get(
+      const defaultGet = await memoir.memory.get(
         TEST_MEMSPACE_ID,
         testMemoryId,
       );
@@ -369,7 +369,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     let searchConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -377,7 +377,7 @@ describe("Parameter Propagation: memory.remember()", () => {
       searchConversationId = conv.conversationId;
 
       // Create searchable memories
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: searchConversationId,
         userId: TEST_USER_ID,
@@ -389,7 +389,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("enrichConversation populates conversation for ALL results", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "SEARCH_MARKER",
         {
@@ -411,7 +411,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("enrichConversation: false doesn't include conversations", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "SEARCH_MARKER",
         {
@@ -428,7 +428,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("search filters propagate correctly", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "SEARCH_MARKER",
         {
@@ -446,7 +446,7 @@ describe("Parameter Propagation: memory.remember()", () => {
 
   describe("Optional Parameter Handling", () => {
     it("handles all optional params as undefined", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -459,7 +459,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Minimal response",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -471,7 +471,7 @@ describe("Parameter Propagation: memory.remember()", () => {
     });
 
     it("handles mix of defined and undefined params", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userId: TEST_USER_ID,
@@ -484,7 +484,7 @@ describe("Parameter Propagation: memory.remember()", () => {
         agentResponse: "Mixed response",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -496,7 +496,7 @@ describe("Parameter Propagation: memory.remember()", () => {
 });
 
 describe("Parameter Propagation: memory.forget()", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -506,7 +506,7 @@ describe("Parameter Propagation: memory.forget()", () => {
   const TEST_AGENT_ID = ctx.agentId("forget-test");
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() for parallel execution compatibility.
@@ -518,13 +518,13 @@ describe("Parameter Propagation: memory.forget()", () => {
   });
 
   it("deleteConversation option propagates correctly", async () => {
-    const conv = await cortex.conversations.create({
+    const conv = await memoir.conversations.create({
       type: "user-agent",
       memorySpaceId: TEST_MEMSPACE_ID,
       participants: { userId: TEST_USER_ID, agentId: "test-agent" },
     });
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: TEST_MEMSPACE_ID,
       conversationId: conv.conversationId,
       userId: TEST_USER_ID,
@@ -538,28 +538,28 @@ describe("Parameter Propagation: memory.forget()", () => {
     const conversationId = result.conversation.conversationId;
 
     // Forget with deleteConversation: true and deleteEntireConversation: true
-    await cortex.memory.forget(TEST_MEMSPACE_ID, memoryId, {
+    await memoir.memory.forget(TEST_MEMSPACE_ID, memoryId, {
       deleteConversation: true,
       deleteEntireConversation: true,
     });
 
     // Verify memory deleted
-    const memCheck = await cortex.vector.get(TEST_MEMSPACE_ID, memoryId);
+    const memCheck = await memoir.vector.get(TEST_MEMSPACE_ID, memoryId);
     expect(memCheck).toBeNull();
 
     // Verify conversation deleted
-    const convCheck = await cortex.conversations.get(conversationId);
+    const convCheck = await memoir.conversations.get(conversationId);
     expect(convCheck).toBeNull();
   });
 
   it("deleteConversation: false preserves conversation", async () => {
-    const conv = await cortex.conversations.create({
+    const conv = await memoir.conversations.create({
       type: "user-agent",
       memorySpaceId: TEST_MEMSPACE_ID,
       participants: { userId: TEST_USER_ID, agentId: "test-agent" },
     });
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: TEST_MEMSPACE_ID,
       conversationId: conv.conversationId,
       userId: TEST_USER_ID,
@@ -573,16 +573,16 @@ describe("Parameter Propagation: memory.forget()", () => {
     const conversationId = result.conversation.conversationId;
 
     // Forget with deleteConversation: false
-    await cortex.memory.forget(TEST_MEMSPACE_ID, memoryId, {
+    await memoir.memory.forget(TEST_MEMSPACE_ID, memoryId, {
       deleteConversation: false,
     });
 
     // Verify memory deleted
-    const memCheck = await cortex.vector.get(TEST_MEMSPACE_ID, memoryId);
+    const memCheck = await memoir.vector.get(TEST_MEMSPACE_ID, memoryId);
     expect(memCheck).toBeNull();
 
     // Verify conversation still exists
-    const convCheck = await cortex.conversations.get(conversationId);
+    const convCheck = await memoir.conversations.get(conversationId);
     expect(convCheck).not.toBeNull();
   });
 });

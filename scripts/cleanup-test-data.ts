@@ -2,7 +2,7 @@
 /**
  * Manual cleanup script for test data
  * Purges all test data from a Convex deployment using admin:clearTable
- * (same method as CLI's `cortex db clear` for consistency)
+ * (same method as CLI's `memoir db clear` for consistency)
  *
  * Tables cleared (in order for referential integrity):
  *   1. conversations - conversation history
@@ -45,7 +45,7 @@ const client = new ConvexClient(convexUrl);
 // Batch size reduction sequence for handling Convex 16MB read limit
 // Starts at 10000, reduces on "Server Error": 10000 -> 500 -> 250 -> 50 -> 10 -> 1
 // Extended to handle large records (e.g., artifacts with version history)
-// (Same adaptive sizing as CLI's `cortex db clear` command)
+// (Same adaptive sizing as CLI's `memoir db clear` command)
 const BATCH_SIZE_SEQUENCE = [10000, 500, 250, 50, 10, 1] as const;
 
 /**
@@ -129,7 +129,7 @@ async function cleanup() {
     };
 
     // Clear tables in order (respecting dependencies)
-    // Using admin:clearTable - same method as CLI's `cortex db clear`
+    // Using admin:clearTable - same method as CLI's `memoir db clear`
 
     console.log("📋 Clearing conversations...");
     stats.conversations = await clearTable("conversations", "conversations");

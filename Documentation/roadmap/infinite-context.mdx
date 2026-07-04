@@ -42,7 +42,7 @@ Use conversation patterns and user behavior to predict what information will be 
 **Example:**
 ```typescript
 // Enable predictive pre-fetching
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   predictiveFetch: {
     enabled: true,
@@ -52,7 +52,7 @@ const cortex = new Cortex({
 });
 
 // User query: "What are my task deadlines?"
-const results = await cortex.memory.search(spaceId, "task deadlines");
+const results = await memoir.memory.search(spaceId, "task deadlines");
 
 // System automatically pre-fetches:
 // - Related tasks
@@ -61,7 +61,7 @@ const results = await cortex.memory.search(spaceId, "task deadlines");
 // - Previous task completion patterns
 
 // Next query is instant (served from cache)
-const related = await cortex.memory.search(spaceId, "project milestones");
+const related = await memoir.memory.search(spaceId, "project milestones");
 // < 50ms response time (pre-fetched)
 ```
 
@@ -83,7 +83,7 @@ First retrieve high-level category summaries, then drill down into specific deta
 **Example:**
 ```typescript
 // Enable hierarchical retrieval
-const results = await cortex.memory.search(spaceId, "Python web frameworks", {
+const results = await memoir.memory.search(spaceId, "Python web frameworks", {
   retrievalStrategy: "hierarchical",
   maxCategories: 5,      // Step 1: Top 5 categories
   maxPerCategory: 10,    // Step 2: Top 10 facts per category
@@ -104,7 +104,7 @@ const results = await cortex.memory.search(spaceId, "Python web frameworks", {
 **Category Creation:**
 ```typescript
 // Store memories with categories
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: "Django is a Python web framework",
   metadata: {
     category: "Backend Frameworks",
@@ -114,7 +114,7 @@ await cortex.memory.store(spaceId, {
 });
 
 // Or use automatic categorization
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: "Django is a Python web framework",
   metadata: {
     autoCategories: true, // AI-generated categories
@@ -139,7 +139,7 @@ Allow agents to search across memory spaces (e.g., personal + team + company kno
 **Example:**
 ```typescript
 // Retrieve from multiple spaces
-const results = await cortex.memory.searchMultiSpace({
+const results = await memoir.memory.searchMultiSpace({
   spaces: [
     { spaceId: "personal-123", boost: 1.0 },
     { spaceId: "team-456", boost: 0.8 },
@@ -161,7 +161,7 @@ results.forEach(result => {
 // User must be participant in all spaces
 // Or use cross-space access via context chains
 
-const context = await cortex.contexts.create(personalSpace, {
+const context = await memoir.contexts.create(personalSpace, {
   purpose: "Cross-team collaboration",
   crossSpaceAccess: [
     { spaceId: "team-456", permission: "read" },
@@ -170,7 +170,7 @@ const context = await cortex.contexts.create(personalSpace, {
 });
 
 // Retrieve with context chain access
-const results = await cortex.memory.searchMultiSpace({
+const results = await memoir.memory.searchMultiSpace({
   spaces: ["personal-123", "team-456", "company-789"],
   query: "deployment process",
   contextChainId: context.id, // Access granted via context chain
@@ -192,7 +192,7 @@ Automatically adjust fact extraction depth based on conversation importance.
 **Example:**
 ```typescript
 // Enable adaptive fact extraction
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   factExtraction: {
     adaptive: true,
@@ -207,7 +207,7 @@ const cortex = new Cortex({
 });
 
 // High-importance conversation
-await cortex.memory.remember(spaceId, {
+await memoir.memory.remember(spaceId, {
   role: "user",
   content: "Our Q1 revenue target is $5M. Key milestones: close 3 enterprise deals, launch premium tier, expand to EU market.",
   metadata: { importance: 95 }, // High importance
@@ -215,7 +215,7 @@ await cortex.memory.remember(spaceId, {
 // Extracts: "Q1 revenue target: $5M", "Close 3 enterprise deals", "Launch premium tier", "Expand to EU market" (4 facts)
 
 // Low-importance conversation
-await cortex.memory.remember(spaceId, {
+await memoir.memory.remember(spaceId, {
   role: "user",
   content: "I prefer dark mode and using tabs instead of spaces.",
   metadata: { importance: 30 }, // Low importance
@@ -237,12 +237,12 @@ Automatically combine semantic and keyword search without manual implementation.
 **Current Behavior:**
 ```typescript
 // Manual hybrid search (both methods called separately)
-const semanticResults = await cortex.memory.search(spaceId, query, {
+const semanticResults = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   limit: 20,
 });
 
-const keywordResults = await cortex.memory.search(spaceId, query, {
+const keywordResults = await memoir.memory.search(spaceId, query, {
   useKeywordSearch: true,
   limit: 20,
 });
@@ -254,7 +254,7 @@ const merged = deduplicateAndRank([...semanticResults, ...keywordResults]);
 **Planned Behavior:**
 ```typescript
 // Automatic hybrid search
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   searchMode: "hybrid", // Automatic semantic + keyword
   semanticWeight: 0.7,   // 70% semantic, 30% keyword
   limit: 20,
@@ -271,7 +271,7 @@ const results = await cortex.memory.search(spaceId, query, {
 **Automatic Weight Tuning:**
 ```typescript
 // Adaptive weights based on query type
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   searchMode: "hybrid-adaptive",
   // System automatically adjusts weights:
   // - Exact phrases (e.g., "API key for OpenAI") → More keyword weight
@@ -291,7 +291,7 @@ Automatically generate and store summaries for long content, retrieve summaries 
 **Example:**
 ```typescript
 // Enable automatic summarization
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   summarization: {
     enabled: true,
@@ -301,21 +301,21 @@ const cortex = new Cortex({
 });
 
 // Store long content
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: `[5000 character technical document]`,
   metadata: { importance: 80 },
 });
 // System automatically generates summary and stores both
 
 // Retrieve summary first
-const results = await cortex.memory.search(spaceId, "deployment process", {
+const results = await memoir.memory.search(spaceId, "deployment process", {
   retrieveSummaries: true, // Return summaries only
 });
 
 console.log(results[0].summary); // 100-char summary
 
 // Fetch full content if needed
-const fullMemory = await cortex.memory.get(spaceId, results[0].id, {
+const fullMemory = await memoir.memory.get(spaceId, results[0].id, {
   includeFullContent: true,
 });
 console.log(fullMemory.content); // Full 5000-char content
@@ -355,11 +355,11 @@ Until these features are available, use these patterns:
 ```typescript
 async function hybridSearch(spaceId: string, query: string) {
   const [semantic, keyword] = await Promise.all([
-    cortex.memory.search(spaceId, query, {
+    memoir.memory.search(spaceId, query, {
       embedding: await embed(query),
       limit: 20,
     }),
-    cortex.memory.search(spaceId, query, {
+    memoir.memory.search(spaceId, query, {
       useKeywordSearch: true,
       limit: 20,
     }),
@@ -386,7 +386,7 @@ async function hybridSearch(spaceId: string, query: string) {
 ### Manual Categorization
 
 ```typescript
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: "...",
   metadata: {
     category: "Programming",
@@ -396,7 +396,7 @@ await cortex.memory.store(spaceId, {
 });
 
 // Search within category
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   filters: {
     "metadata.category": "Programming",
     "metadata.subcategory": "Python",
@@ -409,7 +409,7 @@ const results = await cortex.memory.search(spaceId, query, {
 ```typescript
 async function searchMultiSpace(spaces: string[], query: string) {
   const results = await Promise.all(
-    spaces.map(spaceId => cortex.memory.search(spaceId, query, { limit: 10 }))
+    spaces.map(spaceId => memoir.memory.search(spaceId, query, { limit: 10 }))
   );
   
   return results.flat().sort((a, b) => b.similarity - a.similarity);

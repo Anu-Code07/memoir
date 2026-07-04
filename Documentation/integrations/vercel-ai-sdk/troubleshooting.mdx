@@ -2,7 +2,7 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Common issues and solutions for Cortex Memory Provider with SDK v0.21.0+.
+Common issues and solutions for Memoir Provider with SDK v0.21.0+.
 
 ## SDK v0.17.0+ Breaking Changes
 
@@ -24,14 +24,14 @@ The actual error message includes additional configuration help text to guide us
 
 ```typescript
 // Old way (throws error)
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
 });
 
 // New way (v0.17.0+)
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
@@ -46,7 +46,7 @@ const cortexMemory = createCortexMemory({
 **Solution:** Provide a valid agent identifier:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   agentId: "my-assistant", // Valid non-empty string
 });
@@ -54,10 +54,10 @@ const cortexMemory = createCortexMemory({
 
 ## Installation Issues
 
-### "Cannot find module '@cortexmemory/sdk'"
+### "Cannot find module '@memoir/sdk'"
 
 <Terminal>
-npm install @cortexmemory/sdk@latest
+npm install @memoir/sdk@latest
 </Terminal>
 
 ### "Peer dependency warnings"
@@ -84,13 +84,13 @@ The AI SDK supports versions 3, 4, 5, and 6 (`^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0
 
 2. Ensure Convex is running: `npx convex dev`
 
-3. Verify Cortex backend is deployed to Convex
+3. Verify Memoir backend is deployed to Convex
 
 ### "Convex function not found"
 
-**Cause:** Cortex schema not deployed to Convex.
+**Cause:** Memoir schema not deployed to Convex.
 
-**Solution:** Run `npx @cortexmemory/cli init` to set up the backend, or manually copy schema files from `@cortexmemory/sdk/convex-dev/`.
+**Solution:** Run `npx @memoir/cli init` to set up the backend, or manually copy schema files from `@memoir/sdk/convex-dev/`.
 
 ## Memory Issues
 
@@ -112,7 +112,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Add embeddings for better search
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -143,7 +143,7 @@ const cortexMemory = createCortexMemory({
 
 ```typescript
 // Ensure consistent configuration
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!, // Same URL
   memorySpaceId: "my-agent", // Same space ID
   userId: currentUser.id, // Same user ID
@@ -161,7 +161,7 @@ const cortexMemory = createCortexMemory({
 **Solution:** Check environment variables:
 
 ```env
-CORTEX_GRAPH_SYNC=true
+MEMOIR_GRAPH_SYNC=true
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your-password
@@ -170,7 +170,7 @@ NEO4J_PASSWORD=your-password
 Or use explicit configuration:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   enableGraphMemory: true,
   graphConfig: {
@@ -201,14 +201,14 @@ const cortexMemory = createCortexMemory({
 **Solution:**
 
 ```env
-CORTEX_FACT_EXTRACTION=true
-CORTEX_FACT_EXTRACTION_MODEL=gpt-4o-mini
+MEMOIR_FACT_EXTRACTION=true
+MEMOIR_FACT_EXTRACTION_MODEL=gpt-4o-mini
 ```
 
 Or explicitly enable:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   enableFactExtraction: true,
 });
@@ -235,7 +235,7 @@ factExtractionConfig: {
 **Solution:**
 
 <Terminal>
-npm update ai @ai-sdk/openai @cortexmemory/vercel-ai-provider
+npm update ai @ai-sdk/openai @memoir/vercel-ai-provider
 </Terminal>
 
 ### "Property 'agentId' does not exist"
@@ -245,7 +245,7 @@ npm update ai @ai-sdk/openai @cortexmemory/vercel-ai-provider
 **Solution:** Update to latest version:
 
 <Terminal>
-npm update @cortexmemory/vercel-ai-provider
+npm update @memoir/vercel-ai-provider
 </Terminal>
 
 ## Edge Runtime Issues
@@ -267,7 +267,7 @@ Most Next.js edge runtimes support `process.env` for build-time variables.
 
 **Cause:** Edge runtimes don't have `fs`.
 
-**Solution:** Use web-standard APIs only. Cortex is fully edge-compatible.
+**Solution:** Use web-standard APIs only. Memoir is fully edge-compatible.
 
 ## Performance Issues
 
@@ -282,7 +282,7 @@ Most Next.js edge runtimes support `process.env` for build-time variables.
 **Solutions:**
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   memorySearchLimit: 3, // Reduce from default 5
   minMemoryRelevance: 0.8, // Higher = fewer, more relevant results
@@ -327,7 +327,7 @@ enableStreamMetrics: true, // Default is true
 ### Enable Debug Logging
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   debug: true,
 });
@@ -343,7 +343,7 @@ This will log:
 ### Custom Logger
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // ...
   logger: {
     debug: (...args) => console.log("[DEBUG]", ...args),
@@ -356,9 +356,9 @@ const cortexMemory = createCortexMemory({
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/SaintNick1214/Project-Cortex/issues) - Bug reports
-- [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions) - Questions
-- [Quickstart Demo](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider/quickstart) - Working example
+- [GitHub Issues](https://github.com/Anu-Code07/memoir/issues) - Bug reports
+- [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions) - Questions
+- [Quickstart Demo](https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider/quickstart) - Working example
 - [Getting Started Guide](/integrations/vercel-ai-sdk/getting-started) - Setup tutorial
 
 ## Next Steps

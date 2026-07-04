@@ -4,7 +4,7 @@
  * Tests three-layer orchestration (ACID + Vector + Facts)
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -13,7 +13,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory API with Fact Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _cleanup: TestCleanup;
 
   // Use ctx-scoped IDs for parallel execution isolation
@@ -24,7 +24,7 @@ describe("Memory API with Fact Integration", () => {
   const testUserName = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL || "" });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL || "" });
     const client = new ConvexClient(process.env.CONVEX_URL || "");
     _cleanup = new TestCleanup(client);
   });
@@ -35,7 +35,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("remember() should extract and store facts when extractFacts callback provided", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: testConversationId,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -60,7 +60,7 @@ describe("Memory API with Fact Integration", () => {
       ];
     };
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: testConversationId,
       userMessage: "I prefer dark mode",
@@ -91,7 +91,7 @@ describe("Memory API with Fact Integration", () => {
     const specificConvId = `${testConversationId}-param-propagation`;
     const specificParticipantId = "agent-param-test";
 
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: specificConvId,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -111,7 +111,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: specificConvId,
       userMessage: "Test message for parameter propagation",
@@ -138,7 +138,7 @@ describe("Memory API with Fact Integration", () => {
     expect(fact.sourceRef?.messageIds!.length).toBe(2);
 
     // Now test that filtering by userId actually works
-    const filteredFacts = await cortex.facts.list({
+    const filteredFacts = await memoir.facts.list({
       memorySpaceId: testMemorySpaceId,
       userId: testUserId,
     });
@@ -150,7 +150,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("remember() should handle fact extraction errors gracefully", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-error`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -165,7 +165,7 @@ describe("Memory API with Fact Integration", () => {
       throw new Error("Extraction failed");
     };
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-error`,
       userMessage: "Test message",
@@ -183,7 +183,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("forget() should cascade delete associated facts", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-delete`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -203,7 +203,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    const rememberResult = await cortex.memory.remember({
+    const rememberResult = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-delete`,
       userMessage: "Test",
@@ -218,7 +218,7 @@ describe("Memory API with Fact Integration", () => {
     const memoryId = rememberResult.memories[0].memoryId;
 
     // Forget the memory
-    const forgetResult = await cortex.memory.forget(
+    const forgetResult = await memoir.memory.forget(
       testMemorySpaceId,
       memoryId,
       { deleteConversation: false },
@@ -231,7 +231,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("get() should enrich memory with associated facts", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-get`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -251,7 +251,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    const rememberResult = await cortex.memory.remember({
+    const rememberResult = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-get`,
       userMessage: "I love TypeScript!",
@@ -265,7 +265,7 @@ describe("Memory API with Fact Integration", () => {
     const memoryId = rememberResult.memories[0].memoryId;
 
     // Get with enrichment
-    const enriched = await cortex.memory.get(testMemorySpaceId, memoryId, {
+    const enriched = await memoir.memory.get(testMemorySpaceId, memoryId, {
       includeConversation: true,
     });
 
@@ -279,7 +279,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("search() should enrich results with facts", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-search`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -299,7 +299,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-search`,
       userMessage: "I'm from San Francisco",
@@ -310,7 +310,7 @@ describe("Memory API with Fact Integration", () => {
       extractFacts,
     });
 
-    const results = await cortex.memory.search(
+    const results = await memoir.memory.search(
       testMemorySpaceId,
       "San Francisco",
       {
@@ -330,7 +330,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("multiple facts should be extracted from single conversation", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-multi`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -364,7 +364,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-multi`,
       userMessage: "I'm a software engineer at Google with 5 years experience",
@@ -385,7 +385,7 @@ describe("Memory API with Fact Integration", () => {
 
   test("facts should maintain sourceRef links to memories and conversations", async () => {
     // Create conversation first
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       conversationId: `${testConversationId}-sourceref`,
       type: "user-agent",
       memorySpaceId: testMemorySpaceId,
@@ -405,7 +405,7 @@ describe("Memory API with Fact Integration", () => {
       },
     ];
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: testMemorySpaceId,
       conversationId: `${testConversationId}-sourceref`,
       userMessage: "I like the blue theme",

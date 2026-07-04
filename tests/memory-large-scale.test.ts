@@ -11,7 +11,7 @@
  * They are essential for validating SDK behavior at scale.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "./helpers/isolation";
 import { jest } from "@jest/globals";
@@ -23,7 +23,7 @@ const ctx = createTestRunContext();
 jest.setTimeout(120000);
 
 describe("Memory Large-Scale Operations", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   // Use ctx-scoped IDs for parallel execution isolation
@@ -31,7 +31,7 @@ describe("Memory Large-Scale Operations", () => {
   const BATCH_SIZE = 100;
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
   });
 
@@ -52,7 +52,7 @@ describe("Memory Large-Scale Operations", () => {
       const createPromises = [];
       for (let i = 0; i < BATCH_SIZE; i++) {
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Large-scale list test memory ${i.toString().padStart(3, "0")}`,
             contentType: "raw",
             userId: listTestUserId,
@@ -71,7 +71,7 @@ describe("Memory Large-Scale Operations", () => {
     afterAll(async () => {
       // Cleanup created memories
       if (createdMemoryIds.length > 0) {
-        await cortex.memory.deleteMany({
+        await memoir.memory.deleteMany({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: listTestUserId,
         });
@@ -79,7 +79,7 @@ describe("Memory Large-Scale Operations", () => {
     }, 60000);
 
     it("lists all 100+ memories without limit", async () => {
-      const result = await cortex.memory.list({
+      const result = await memoir.memory.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: listTestUserId,
       });
@@ -89,7 +89,7 @@ describe("Memory Large-Scale Operations", () => {
 
     it("respects limit parameter for pagination", async () => {
       const limit = 25;
-      const result = await cortex.memory.list({
+      const result = await memoir.memory.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: listTestUserId,
         limit,
@@ -99,7 +99,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("correctly counts memories", async () => {
-      const count = await cortex.memory.count({
+      const count = await memoir.memory.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: listTestUserId,
       });
@@ -108,7 +108,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("can filter by sourceType", async () => {
-      const result = await cortex.memory.list({
+      const result = await memoir.memory.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: listTestUserId,
         sourceType: "system",
@@ -133,7 +133,7 @@ describe("Memory Large-Scale Operations", () => {
       const createPromises = [];
       for (let i = 0; i < BATCH_SIZE; i++) {
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Large-scale delete test memory ${i}`,
             contentType: "raw",
             userId: deleteTestUserId,
@@ -148,7 +148,7 @@ describe("Memory Large-Scale Operations", () => {
       await Promise.all(createPromises);
 
       // Verify count before delete
-      const countBefore = await cortex.memory.count({
+      const countBefore = await memoir.memory.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: deleteTestUserId,
       });
@@ -156,7 +156,7 @@ describe("Memory Large-Scale Operations", () => {
 
       // Delete all at once
       const startTime = Date.now();
-      const deleteResult = await cortex.memory.deleteMany({
+      const deleteResult = await memoir.memory.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: deleteTestUserId,
       });
@@ -169,7 +169,7 @@ describe("Memory Large-Scale Operations", () => {
       expect(duration).toBeLessThan(60000);
 
       // Verify count after delete
-      const countAfter = await cortex.memory.count({
+      const countAfter = await memoir.memory.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: deleteTestUserId,
       });
@@ -183,7 +183,7 @@ describe("Memory Large-Scale Operations", () => {
       const createPromises = [];
       for (let i = 0; i < 30; i++) {
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Filter delete test ${i}`,
             contentType: "raw",
             userId: filteredUserId,
@@ -198,7 +198,7 @@ describe("Memory Large-Scale Operations", () => {
       await Promise.all(createPromises);
 
       // Delete by sourceType
-      const deleteResult = await cortex.memory.deleteMany({
+      const deleteResult = await memoir.memory.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: filteredUserId,
         sourceType: "system",
@@ -207,7 +207,7 @@ describe("Memory Large-Scale Operations", () => {
       expect(deleteResult.deleted).toBeGreaterThanOrEqual(30);
 
       // Verify all are deleted
-      const remaining = await cortex.memory.list({
+      const remaining = await memoir.memory.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: filteredUserId,
       });
@@ -237,7 +237,7 @@ describe("Memory Large-Scale Operations", () => {
       for (let i = 0; i < BATCH_SIZE; i++) {
         const topic = topics[i % topics.length];
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Research note ${i}: ${topic} is an important field in computer science and technology`,
             contentType: "raw",
             userId: searchTestUserId,
@@ -256,7 +256,7 @@ describe("Memory Large-Scale Operations", () => {
     afterAll(async () => {
       // Cleanup
       if (createdMemoryIds.length > 0) {
-        await cortex.memory.deleteMany({
+        await memoir.memory.deleteMany({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: searchTestUserId,
         });
@@ -265,7 +265,7 @@ describe("Memory Large-Scale Operations", () => {
 
     it("returns results respecting limit parameter", async () => {
       const limit = 10;
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "machine learning technology",
         { limit },
@@ -275,7 +275,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("filters by minScore correctly", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "artificial intelligence research",
         { minScore: 0.5, limit: 50 },
@@ -286,7 +286,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("returns results ordered by relevance", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "neural networks deep learning",
         { limit: 20 },
@@ -297,7 +297,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("combines limit and userId filters", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "technology research",
         { limit: 15, userId: searchTestUserId },
@@ -307,7 +307,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("combines limit and tags filters", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "computer science",
         { limit: 20, tags: ["machine-learning"] },
@@ -320,7 +320,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("combines limit and minImportance filters", async () => {
-      const results = await cortex.memory.search(
+      const results = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "important field",
         { limit: 30, minImportance: 80 },
@@ -345,7 +345,7 @@ describe("Memory Large-Scale Operations", () => {
       const createPromises = [];
       for (let i = 0; i < BATCH_SIZE; i++) {
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Bulk update test ${i}`,
             contentType: "raw",
             userId: updateTestUserId,
@@ -361,7 +361,7 @@ describe("Memory Large-Scale Operations", () => {
 
       // Bulk update importance
       const startTime = Date.now();
-      const updateResult = await cortex.memory.updateMany(
+      const updateResult = await memoir.memory.updateMany(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: updateTestUserId,
@@ -376,7 +376,7 @@ describe("Memory Large-Scale Operations", () => {
       expect(duration).toBeLessThan(60000);
 
       // Verify updates applied
-      const updated = await cortex.memory.list({
+      const updated = await memoir.memory.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: updateTestUserId,
         limit: 50,
@@ -387,7 +387,7 @@ describe("Memory Large-Scale Operations", () => {
       }
 
       // Cleanup
-      await cortex.memory.deleteMany({
+      await memoir.memory.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: updateTestUserId,
       });
@@ -407,7 +407,7 @@ describe("Memory Large-Scale Operations", () => {
       const createPromises = [];
       for (let i = 0; i < 50; i++) {
         createPromises.push(
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Export scale test ${i}: Data for JSON/CSV export`,
             contentType: "raw",
             userId: exportTestUserId,
@@ -425,7 +425,7 @@ describe("Memory Large-Scale Operations", () => {
 
     afterAll(async () => {
       if (createdMemoryIds.length > 0) {
-        await cortex.memory.deleteMany({
+        await memoir.memory.deleteMany({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: exportTestUserId,
         });
@@ -433,7 +433,7 @@ describe("Memory Large-Scale Operations", () => {
     }, 60000);
 
     it("exports 50+ memories to JSON", async () => {
-      const result = await cortex.memory.export({
+      const result = await memoir.memory.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "json",
         userId: exportTestUserId,
@@ -445,7 +445,7 @@ describe("Memory Large-Scale Operations", () => {
     });
 
     it("exports 50+ memories to CSV", async () => {
-      const result = await cortex.memory.export({
+      const result = await memoir.memory.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "csv",
         userId: exportTestUserId,

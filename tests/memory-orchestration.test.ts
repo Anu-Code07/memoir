@@ -1,7 +1,7 @@
 /**
  * E2E Tests: Memory Orchestration
  *
- * Tests the new full-orchestration behavior of cortex.memory.remember():
+ * Tests the new full-orchestration behavior of memoir.memory.remember():
  * - Auto-registration of memory spaces
  * - Auto-creation of user profiles
  * - Auto-registration of agents
@@ -10,7 +10,7 @@
  * - Default memorySpaceId behavior
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import type { SkippableLayer } from "../src/types";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "./helpers/isolation";
@@ -20,7 +20,7 @@ import { jest } from "@jest/globals";
 const ctx = createTestRunContext();
 
 describe("Memory Orchestration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
@@ -28,7 +28,7 @@ describe("Memory Orchestration", () => {
   const TEST_PREFIX = ctx.runId;
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
   });
 
@@ -43,7 +43,7 @@ describe("Memory Orchestration", () => {
   describe("Owner Validation", () => {
     it("should require either userId or agentId", async () => {
       await expect(
-        cortex.memory.remember({
+        memoir.memory.remember({
           memorySpaceId: `${TEST_PREFIX}-space-1`,
           conversationId: `${TEST_PREFIX}-conv-1`,
           userMessage: "Hello",
@@ -54,7 +54,7 @@ describe("Memory Orchestration", () => {
     });
 
     it("should accept userId with userName and agentId", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-2`,
         conversationId: `${TEST_PREFIX}-conv-2`,
         userMessage: "Hello",
@@ -70,7 +70,7 @@ describe("Memory Orchestration", () => {
 
     it("should require agentId when userId is provided", async () => {
       await expect(
-        cortex.memory.remember({
+        memoir.memory.remember({
           memorySpaceId: `${TEST_PREFIX}-space-no-agent`,
           conversationId: `${TEST_PREFIX}-conv-no-agent`,
           userMessage: "Hello",
@@ -87,7 +87,7 @@ describe("Memory Orchestration", () => {
       // the conversation model requires either:
       // - userId for "user-agent" type
       // - memorySpaceIds array for "agent-agent" (Hive Mode)
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-3`,
         conversationId: `${TEST_PREFIX}-conv-3`,
         userMessage: "System event",
@@ -101,7 +101,7 @@ describe("Memory Orchestration", () => {
 
     it("should require userName when userId is provided", async () => {
       await expect(
-        cortex.memory.remember({
+        memoir.memory.remember({
           memorySpaceId: `${TEST_PREFIX}-space-4`,
           conversationId: `${TEST_PREFIX}-conv-4`,
           userMessage: "Hello",
@@ -123,11 +123,11 @@ describe("Memory Orchestration", () => {
       const newSpaceId = `${TEST_PREFIX}-new-space-${Date.now()}`;
 
       // Verify space doesn't exist
-      const spaceBefore = await cortex.memorySpaces.get(newSpaceId);
+      const spaceBefore = await memoir.memorySpaces.get(newSpaceId);
       expect(spaceBefore).toBeNull();
 
       // Call remember - should auto-register
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: newSpaceId,
         conversationId: `${TEST_PREFIX}-conv-new-1`,
         userMessage: "Hello",
@@ -138,7 +138,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify space now exists
-      const spaceAfter = await cortex.memorySpaces.get(newSpaceId);
+      const spaceAfter = await memoir.memorySpaces.get(newSpaceId);
       expect(spaceAfter).not.toBeNull();
       expect(spaceAfter?.memorySpaceId).toBe(newSpaceId);
     });
@@ -147,7 +147,7 @@ describe("Memory Orchestration", () => {
       // Capture console.warn
       const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         // memorySpaceId not provided
         conversationId: `${TEST_PREFIX}-conv-default-1`,
         userMessage: "Hello",
@@ -179,11 +179,11 @@ describe("Memory Orchestration", () => {
       const newUserId = `${TEST_PREFIX}-new-user-${Date.now()}`;
 
       // Verify user doesn't exist
-      const userBefore = await cortex.users.get(newUserId);
+      const userBefore = await memoir.users.get(newUserId);
       expect(userBefore).toBeNull();
 
       // Call remember - should auto-create user
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-user-auto`,
         conversationId: `${TEST_PREFIX}-conv-user-auto-1`,
         userMessage: "Hello",
@@ -194,7 +194,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify user now exists
-      const userAfter = await cortex.users.get(newUserId);
+      const userAfter = await memoir.users.get(newUserId);
       expect(userAfter).not.toBeNull();
       expect(userAfter?.id).toBe(newUserId);
     });
@@ -203,11 +203,11 @@ describe("Memory Orchestration", () => {
       const newUserId = `${TEST_PREFIX}-skip-user-${Date.now()}`;
 
       // Verify user doesn't exist
-      const userBefore = await cortex.users.get(newUserId);
+      const userBefore = await memoir.users.get(newUserId);
       expect(userBefore).toBeNull();
 
       // Call remember with skipLayers: ['users']
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-skip-user`,
         conversationId: `${TEST_PREFIX}-conv-skip-user-1`,
         userMessage: "Hello",
@@ -219,7 +219,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify user was NOT created
-      const userAfter = await cortex.users.get(newUserId);
+      const userAfter = await memoir.users.get(newUserId);
       expect(userAfter).toBeNull();
     });
   });
@@ -233,12 +233,12 @@ describe("Memory Orchestration", () => {
       const newAgentId = `${TEST_PREFIX}-new-agent-${Date.now()}`;
 
       // Verify agent doesn't exist
-      const agentBefore = await cortex.agents.exists(newAgentId);
+      const agentBefore = await memoir.agents.exists(newAgentId);
       expect(agentBefore).toBe(false);
 
       // Call remember with agentId - should auto-register
       // Skip conversations since agent-only memories don't support user-agent conversations
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-agent-auto`,
         conversationId: `${TEST_PREFIX}-conv-agent-auto-1`,
         userMessage: "System task",
@@ -248,7 +248,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify agent now exists
-      const agentAfter = await cortex.agents.exists(newAgentId);
+      const agentAfter = await memoir.agents.exists(newAgentId);
       expect(agentAfter).toBe(true);
     });
 
@@ -256,12 +256,12 @@ describe("Memory Orchestration", () => {
       const newAgentId = `${TEST_PREFIX}-skip-agent-${Date.now()}`;
 
       // Verify agent doesn't exist
-      const agentBefore = await cortex.agents.exists(newAgentId);
+      const agentBefore = await memoir.agents.exists(newAgentId);
       expect(agentBefore).toBe(false);
 
       // Call remember with skipLayers: ['agents', 'conversations']
       // Agent-only memories skip conversations since they require user-agent or Hive Mode setup
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-skip-agent`,
         conversationId: `${TEST_PREFIX}-conv-skip-agent-1`,
         userMessage: "Task",
@@ -271,7 +271,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify agent was NOT created
-      const agentAfter = await cortex.agents.exists(newAgentId);
+      const agentAfter = await memoir.agents.exists(newAgentId);
       expect(agentAfter).toBe(false);
     });
   });
@@ -284,7 +284,7 @@ describe("Memory Orchestration", () => {
     it("should skip conversation layer when 'conversations' is in skipLayers", async () => {
       const convId = `${TEST_PREFIX}-skip-conv-${Date.now()}`;
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-skip-conv`,
         conversationId: convId,
         userMessage: "Hello",
@@ -296,7 +296,7 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify conversation was NOT created
-      const conv = await cortex.conversations.get(convId);
+      const conv = await memoir.conversations.get(convId);
       expect(conv).toBeNull();
     });
 
@@ -304,7 +304,7 @@ describe("Memory Orchestration", () => {
       const spaceId = `${TEST_PREFIX}-space-skip-vector`;
       const convId = `${TEST_PREFIX}-conv-skip-vector-${Date.now()}`;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: convId,
         userMessage: "Hello",
@@ -320,7 +320,7 @@ describe("Memory Orchestration", () => {
     });
 
     it("should skip facts layer when 'facts' is in skipLayers", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-skip-facts`,
         conversationId: `${TEST_PREFIX}-conv-skip-facts-${Date.now()}`,
         userMessage: "My name is John",
@@ -351,7 +351,7 @@ describe("Memory Orchestration", () => {
         "graph",
       ];
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-multi-skip`,
         conversationId: `${TEST_PREFIX}-conv-multi-skip-${Date.now()}`,
         userMessage: "Hello",
@@ -377,13 +377,13 @@ describe("Memory Orchestration", () => {
       const newAgentId = `${TEST_PREFIX}-combo-agent-${Date.now()}`;
 
       // Verify neither exists
-      const userBefore = await cortex.users.get(newUserId);
-      const agentBefore = await cortex.agents.exists(newAgentId);
+      const userBefore = await memoir.users.get(newUserId);
+      const agentBefore = await memoir.agents.exists(newAgentId);
       expect(userBefore).toBeNull();
       expect(agentBefore).toBe(false);
 
       // Call remember with both userId and agentId
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: `${TEST_PREFIX}-space-combo`,
         conversationId: `${TEST_PREFIX}-conv-combo-${Date.now()}`,
         userMessage: "Hello from user",
@@ -394,8 +394,8 @@ describe("Memory Orchestration", () => {
       });
 
       // Verify both were created
-      const userAfter = await cortex.users.get(newUserId);
-      const agentAfter = await cortex.agents.exists(newAgentId);
+      const userAfter = await memoir.users.get(newUserId);
+      const agentAfter = await memoir.agents.exists(newAgentId);
       expect(userAfter).not.toBeNull();
       expect(agentAfter).toBe(true);
     });
@@ -414,13 +414,13 @@ describe("Memory Orchestration", () => {
       const convId = `${TEST_PREFIX}-full-orch-conv-${timestamp}`;
 
       // All entities should not exist initially
-      const spaceBefore = await cortex.memorySpaces.get(spaceId);
-      const userBefore = await cortex.users.get(userId);
+      const spaceBefore = await memoir.memorySpaces.get(spaceId);
+      const userBefore = await memoir.users.get(userId);
       expect(spaceBefore).toBeNull();
       expect(userBefore).toBeNull();
 
       // Single remember() call
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: convId,
         userMessage: "My favorite color is blue",
@@ -442,17 +442,17 @@ describe("Memory Orchestration", () => {
 
       // Verify all orchestrations happened
       // 1. Memory space was created
-      const spaceAfter = await cortex.memorySpaces.get(spaceId);
+      const spaceAfter = await memoir.memorySpaces.get(spaceId);
       expect(spaceAfter).not.toBeNull();
       expect(spaceAfter?.memorySpaceId).toBe(spaceId);
 
       // 2. User was created
-      const userAfter = await cortex.users.get(userId);
+      const userAfter = await memoir.users.get(userId);
       expect(userAfter).not.toBeNull();
       expect(userAfter?.id).toBe(userId);
 
       // 3. Conversation was created
-      const conv = await cortex.conversations.get(convId);
+      const conv = await memoir.conversations.get(convId);
       expect(conv).not.toBeNull();
       expect(conv?.messageCount).toBeGreaterThan(0);
 

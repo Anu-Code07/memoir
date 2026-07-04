@@ -247,7 +247,7 @@ export class MemoryAPI {
         try {
           return await config.generate!(text);
         } catch (error) {
-          console.warn("[Cortex] Custom embedding generation failed:", error);
+          console.warn("[Memoir] Custom embedding generation failed:", error);
           return null;
         }
       };
@@ -275,7 +275,7 @@ export class MemoryAPI {
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.warn("[Cortex] OpenAI embedding API error:", errorText);
+            console.warn("[Memoir] OpenAI embedding API error:", errorText);
             return null;
           }
 
@@ -284,14 +284,14 @@ export class MemoryAPI {
           };
           return data.data?.[0]?.embedding || null;
         } catch (error) {
-          console.warn("[Cortex] OpenAI embedding generation failed:", error);
+          console.warn("[Memoir] OpenAI embedding generation failed:", error);
           return null;
         }
       };
     }
 
     // No valid config
-    console.warn("[Cortex] Invalid embedding config, no embedding generation available");
+    console.warn("[Memoir] Invalid embedding config, no embedding generation available");
     return async () => null;
   }
 
@@ -314,7 +314,7 @@ export class MemoryAPI {
 
   /**
    * Helper: Find and cascade delete facts linked to a memory
-   * Graph sync is automatic when CORTEX_GRAPH_SYNC=true and graphAdapter is configured
+   * Graph sync is automatic when MEMOIR_GRAPH_SYNC=true and graphAdapter is configured
    */
   private async cascadeDeleteFacts(
     memorySpaceId: string,
@@ -347,7 +347,7 @@ export class MemoryAPI {
 
   /**
    * Helper: Archive facts (mark as expired)
-   * Graph sync is automatic when CORTEX_GRAPH_SYNC=true and graphAdapter is configured
+   * Graph sync is automatic when MEMOIR_GRAPH_SYNC=true and graphAdapter is configured
    */
   private async archiveFacts(
     memorySpaceId: string,
@@ -429,11 +429,11 @@ export class MemoryAPI {
       // Handle async observers - fire and forget to avoid blocking
       if (result instanceof Promise) {
         result.catch((e) =>
-          console.warn("[Cortex] Observer onLayerUpdate failed:", e),
+          console.warn("[Memoir] Observer onLayerUpdate failed:", e),
         );
       }
     } catch (e) {
-      console.warn("[Cortex] Observer onLayerUpdate threw:", e);
+      console.warn("[Memoir] Observer onLayerUpdate threw:", e);
     }
   }
 
@@ -449,11 +449,11 @@ export class MemoryAPI {
       const result = observer.onRememberStart(orchestrationId);
       if (result instanceof Promise) {
         result.catch((e) =>
-          console.warn("[Cortex] Observer onRememberStart failed:", e),
+          console.warn("[Memoir] Observer onRememberStart failed:", e),
         );
       }
     } catch (e) {
-      console.warn("[Cortex] Observer onRememberStart threw:", e);
+      console.warn("[Memoir] Observer onRememberStart threw:", e);
     }
   }
 
@@ -469,11 +469,11 @@ export class MemoryAPI {
       const result = observer.onRememberComplete(summary);
       if (result instanceof Promise) {
         result.catch((e) =>
-          console.warn("[Cortex] Observer onRememberComplete failed:", e),
+          console.warn("[Memoir] Observer onRememberComplete failed:", e),
         );
       }
     } catch (e) {
-      console.warn("[Cortex] Observer onRememberComplete threw:", e);
+      console.warn("[Memoir] Observer onRememberComplete threw:", e);
     }
   }
 
@@ -489,11 +489,11 @@ export class MemoryAPI {
       const result = observer.onRecallStart(orchestrationId);
       if (result instanceof Promise) {
         result.catch((e) =>
-          console.warn("[Cortex] Observer onRecallStart failed:", e),
+          console.warn("[Memoir] Observer onRecallStart failed:", e),
         );
       }
     } catch (e) {
-      console.warn("[Cortex] Observer onRecallStart threw:", e);
+      console.warn("[Memoir] Observer onRecallStart threw:", e);
     }
   }
 
@@ -509,11 +509,11 @@ export class MemoryAPI {
       const result = observer.onRecallComplete(summary);
       if (result instanceof Promise) {
         result.catch((e) =>
-          console.warn("[Cortex] Observer onRecallComplete failed:", e),
+          console.warn("[Memoir] Observer onRecallComplete failed:", e),
         );
       }
     } catch (e) {
-      console.warn("[Cortex] Observer onRecallComplete threw:", e);
+      console.warn("[Memoir] Observer onRecallComplete threw:", e);
     }
   }
 
@@ -620,7 +620,7 @@ export class MemoryAPI {
       // Not specified - use default with warning
       memorySpaceId = DEFAULT_MEMORY_SPACE_ID;
       warnings.push(
-        `[Cortex Warning] No memorySpaceId provided, using '${DEFAULT_MEMORY_SPACE_ID}'. ` +
+        `[Memoir Warning] No memorySpaceId provided, using '${DEFAULT_MEMORY_SPACE_ID}'. ` +
           "Consider explicitly setting a memorySpaceId for proper memory isolation.",
       );
     } else if (memorySpaceId.trim().length === 0) {
@@ -690,7 +690,7 @@ export class MemoryAPI {
 
   /**
    * Ensure memory space exists, auto-register if not
-   * Graph sync is automatic when CORTEX_GRAPH_SYNC=true and graphAdapter is configured
+   * Graph sync is automatic when MEMOIR_GRAPH_SYNC=true and graphAdapter is configured
    */
   private async ensureMemorySpaceExists(memorySpaceId: string): Promise<void> {
     if (!this.memorySpacesAPI) {
@@ -836,7 +836,7 @@ export class MemoryAPI {
       // No LLM client available - return function that logs and returns null
       return async (): Promise<ExtractedFact[] | null> => {
         console.debug(
-          "[Cortex] LLM fact extraction configured but client could not be created. " +
+          "[Memoir] LLM fact extraction configured but client could not be created. " +
             "Ensure openai or @anthropic-ai/sdk is installed.",
         );
         return null;
@@ -851,7 +851,7 @@ export class MemoryAPI {
       try {
         return await client.extractFacts(userMessage, agentResponse);
       } catch (error) {
-        console.error("[Cortex] LLM fact extraction failed:", error);
+        console.error("[Memoir] LLM fact extraction failed:", error);
         return null;
       }
     };
@@ -874,7 +874,7 @@ export class MemoryAPI {
    * @example
    * ```typescript
    * // Full orchestration (default)
-   * await cortex.memory.remember({
+   * await memoir.memory.remember({
    *   memorySpaceId: 'user-123-space',
    *   userId: 'user-123',
    *   userName: 'Alex',
@@ -884,7 +884,7 @@ export class MemoryAPI {
    * });
    *
    * // Skip facts and graph (lightweight mode)
-   * await cortex.memory.remember({
+   * await memoir.memory.remember({
    *   memorySpaceId: 'user-123-space',
    *   agentId: 'quick-bot',
    *   conversationId: 'conv-456',
@@ -932,7 +932,7 @@ export class MemoryAPI {
     }
 
     // Determine if we should sync to graph (automatic when graphAdapter is configured)
-    // Graph sync is controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization
+    // Graph sync is controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization
     const shouldSyncToGraph =
       this.graphAdapter !== undefined &&
       !this.shouldSkipLayer("graph", skipLayers);
@@ -1524,7 +1524,7 @@ export class MemoryAPI {
                     factEmbedding = embeddingResult ?? undefined;
                   } catch (embeddingError) {
                     console.warn(
-                      "[Cortex] Failed to generate fact embedding, continuing without:",
+                      "[Memoir] Failed to generate fact embedding, continuing without:",
                       embeddingError,
                     );
                   }
@@ -1701,7 +1701,7 @@ export class MemoryAPI {
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // STEP 7: GRAPH (automatic when CORTEX_GRAPH_SYNC=true)
+    // STEP 7: GRAPH (automatic when MEMOIR_GRAPH_SYNC=true)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Graph sync is handled automatically by each layer when graphAdapter is configured
     // We just need to notify the observer of the status
@@ -1782,7 +1782,7 @@ export class MemoryAPI {
    * @example
    * ```typescript
    * // Basic usage
-   * const result = await cortex.memory.rememberStream({
+   * const result = await memoir.memory.rememberStream({
    *   memorySpaceId: 'agent-1',
    *   conversationId: 'conv-123',
    *   userMessage: 'What is the weather?',
@@ -1792,7 +1792,7 @@ export class MemoryAPI {
    * });
    *
    * // With progressive features
-   * const result = await cortex.memory.rememberStream({
+   * const result = await memoir.memory.rememberStream({
    *   memorySpaceId: 'agent-1',
    *   conversationId: 'conv-123',
    *   userMessage: 'Explain quantum computing',
@@ -1830,7 +1830,7 @@ export class MemoryAPI {
       // Not specified - use default with warning
       memorySpaceId = DEFAULT_MEMORY_SPACE_ID;
       console.warn(
-        `[Cortex Warning] No memorySpaceId provided, using '${DEFAULT_MEMORY_SPACE_ID}'. ` +
+        `[Memoir Warning] No memorySpaceId provided, using '${DEFAULT_MEMORY_SPACE_ID}'. ` +
           "Consider explicitly setting a memorySpaceId for proper memory isolation.",
       );
     } else if (memorySpaceId.trim().length === 0) {
@@ -1917,7 +1917,7 @@ export class MemoryAPI {
     );
 
     // Determine if we should sync to graph (automatic when graphAdapter is configured)
-    // Graph sync is controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization
+    // Graph sync is controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization
     const shouldSyncToGraph =
       this.graphAdapter !== undefined &&
       !this.shouldSkipLayer("graph", skipLayers);
@@ -2421,12 +2421,12 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memory.forget('agent-1', 'mem-123', {
+   * await memoir.memory.forget('agent-1', 'mem-123', {
    *   deleteConversation: true,
    * });
    *
    * // Disable graph sync
-   * await cortex.memory.forget('agent-1', 'mem-123', {
+   * await memoir.memory.forget('agent-1', 'mem-123', {
    *   deleteConversation: true,
    *   syncToGraph: false,
    * });
@@ -2444,12 +2444,12 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memory.forget('user-123-space', 'mem-123', {
+   * await memoir.memory.forget('user-123-space', 'mem-123', {
    *   deleteConversation: true,
    * });
    *
    * // Disable graph sync
-   * await cortex.memory.forget('user-123-space', 'mem-123', {
+   * await memoir.memory.forget('user-123-space', 'mem-123', {
    *   deleteConversation: true,
    *   syncToGraph: false,
    * });
@@ -2472,7 +2472,7 @@ export class MemoryAPI {
     }
 
     // Graph sync is automatic when graphAdapter is configured
-    // (controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization)
+    // (controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization)
 
     // Delete from vector (graph sync handled automatically)
     await this.vector.delete(memorySpaceId, memoryId);
@@ -2529,7 +2529,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const enriched = await cortex.memory.get('user-123-space', 'mem-123', {
+   * const enriched = await memoir.memory.get('user-123-space', 'mem-123', {
    *   includeConversation: true,
    * });
    * ```
@@ -2598,7 +2598,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.memory.search('user-123-space', 'password', {
+   * const results = await memoir.memory.search('user-123-space', 'password', {
    *   embedding: await embed('password'),
    *   enrichConversation: true,
    * });
@@ -2624,7 +2624,7 @@ export class MemoryAPI {
         effectiveEmbedding = (await this.embeddingGenerator(query)) ?? undefined;
       } catch (error) {
         // Embedding generation failed - fall back to text search
-        console.warn("[Cortex] Auto-embedding generation failed in search(), falling back to text search:", error);
+        console.warn("[Memoir] Auto-embedding generation failed in search(), falling back to text search:", error);
       }
     }
 
@@ -2747,7 +2747,7 @@ export class MemoryAPI {
    * @example
    * ```typescript
    * // Minimal usage - full orchestration
-   * const result = await cortex.memory.recall({
+   * const result = await memoir.memory.recall({
    *   memorySpaceId: 'user-123-space',
    *   query: 'user preferences',
    * });
@@ -2761,7 +2761,7 @@ export class MemoryAPI {
    * });
    *
    * // With semantic search (recommended)
-   * const result = await cortex.memory.recall({
+   * const result = await memoir.memory.recall({
    *   memorySpaceId: 'user-123-space',
    *   query: 'user preferences',
    *   embedding: await embed('user preferences'),
@@ -2832,7 +2832,7 @@ export class MemoryAPI {
         effectiveEmbedding = (await this.embeddingGenerator(params.query)) ?? undefined;
       } catch (error) {
         // Embedding generation failed - fall back to text search
-        console.warn("[Cortex] Auto-embedding generation failed, falling back to text search:", error);
+        console.warn("[Memoir] Auto-embedding generation failed, falling back to text search:", error);
       }
     }
 
@@ -3021,7 +3021,7 @@ export class MemoryAPI {
         }
         // Graph expansion failed - continue with direct results
         console.warn(
-          "[Cortex] Graph expansion failed, continuing without:",
+          "[Memoir] Graph expansion failed, continuing without:",
           error,
         );
       }
@@ -3165,7 +3165,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memory.store('user-123-space', {
+   * await memoir.memory.store('user-123-space', {
    *   content: 'User prefers dark mode',
    *   contentType: 'raw',
    *   source: { type: 'system' },
@@ -3255,7 +3255,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const updated = await cortex.memory.update('user-123-space', 'mem-123', {
+   * const updated = await memoir.memory.update('user-123-space', 'mem-123', {
    *   content: 'Updated content',
    *   importance: 80,
    * });
@@ -3345,7 +3345,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.memory.delete('user-123-space', 'mem-123');
+   * const result = await memoir.memory.delete('user-123-space', 'mem-123');
    * console.log(`Deleted ${result.factsDeleted} associated facts`);
    * ```
    */
@@ -3365,7 +3365,7 @@ export class MemoryAPI {
     }
 
     // Graph sync is automatic when graphAdapter is configured
-    // (controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization)
+    // (controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization)
     const shouldCascade = options?.cascadeDeleteFacts !== false; // Default: true
 
     // Delete facts if cascade enabled (graph sync handled automatically)
@@ -3619,7 +3619,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.memory.archive('user-123-space', 'mem-123');
+   * const result = await memoir.memory.archive('user-123-space', 'mem-123');
    * console.log(`Archived ${result.factsArchived} associated facts`);
    * ```
    */
@@ -3660,7 +3660,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const restored = await cortex.memory.restoreFromArchive('agent-1', 'mem-123');
+   * const restored = await memoir.memory.restoreFromArchive('agent-1', 'mem-123');
    * ```
    */
   async restoreFromArchive(
@@ -3701,7 +3701,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const v1 = await cortex.memory.getVersion('user-123-space', 'mem-123', 1);
+   * const v1 = await memoir.memory.getVersion('user-123-space', 'mem-123', 1);
    * if (v1) {
    *   console.log(`Version 1 content: ${v1.content}`);
    * }
@@ -3735,7 +3735,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.memory.getHistory('user-123-space', 'mem-123');
+   * const history = await memoir.memory.getHistory('user-123-space', 'mem-123');
    * history.forEach(v => console.log(`v${v.version}: ${v.content}`));
    * ```
    */
@@ -3768,7 +3768,7 @@ export class MemoryAPI {
    *
    * @example
    * ```typescript
-   * const historicalMemory = await cortex.memory.getAtTimestamp(
+   * const historicalMemory = await memoir.memory.getAtTimestamp(
    *   'user-123-space',
    *   'mem-password',
    *   new Date('2025-08-01')

@@ -18,20 +18,20 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 describe("Facts API - Universal Filters", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const TEST_MEMSPACE_ID = `universal-filter-test-${Date.now()}`;
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup test facts (best-effort - ignore errors)
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -47,7 +47,7 @@ describe("Facts API - Universal Filters", () => {
       const otherUser = "user-bob";
 
       // Store facts for different users
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: targetUser,
         fact: "Alice prefers dark mode",
@@ -56,7 +56,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: otherUser,
         fact: "Bob prefers light mode",
@@ -66,7 +66,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by userId
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         userId: targetUser,
       });
@@ -84,7 +84,7 @@ describe("Facts API - Universal Filters", () => {
       const calendarAgent = "calendar-agent";
 
       // Store facts from different agents in same space (Hive Mode)
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         participantId: emailAgent,
         fact: "User receives emails at 9am",
@@ -93,7 +93,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         participantId: calendarAgent,
         fact: "User has meetings on Tuesdays",
@@ -103,7 +103,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by participantId
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         participantId: emailAgent,
       });
@@ -121,7 +121,7 @@ describe("Facts API - Universal Filters", () => {
 
       // Store multiple facts for target user
       for (let i = 0; i < 3; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           userId: targetUser,
           fact: `Fact ${i} for Charlie`,
@@ -132,7 +132,7 @@ describe("Facts API - Universal Filters", () => {
       }
 
       // Store fact for different user
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "other-user",
         fact: "Other user fact",
@@ -142,7 +142,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Count by userId
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: spaceId,
         userId: targetUser,
       });
@@ -161,7 +161,7 @@ describe("Facts API - Universal Filters", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Store fact after cutoff
-      const recentFact = await cortex.facts.store({
+      const recentFact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Recent fact",
         factType: "knowledge",
@@ -170,7 +170,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by createdAfter
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         createdAfter: cutoffDate,
       });
@@ -185,7 +185,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-created-before`;
 
       // Store old fact
-      const oldFact = await cortex.facts.store({
+      const oldFact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Old fact",
         factType: "knowledge",
@@ -202,7 +202,7 @@ describe("Facts API - Universal Filters", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Store new fact after cutoff
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "New fact",
         factType: "knowledge",
@@ -211,7 +211,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by createdBefore
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         createdBefore: cutoffDate,
       });
@@ -237,7 +237,7 @@ describe("Facts API - Universal Filters", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Store fact in range
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: `${searchTerm} fact in range`,
         factType: "knowledge",
@@ -250,7 +250,7 @@ describe("Facts API - Universal Filters", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Store fact after range
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: `${searchTerm} fact after range`,
         factType: "knowledge",
@@ -259,7 +259,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Search with date range
-      const results = await cortex.facts.search(spaceId, searchTerm, {
+      const results = await memoir.facts.search(spaceId, searchTerm, {
         createdAfter: startDate,
         createdBefore: endDate,
       });
@@ -282,7 +282,7 @@ describe("Facts API - Universal Filters", () => {
         const spaceId = `${TEST_MEMSPACE_ID}-source-${sourceType}`;
 
         // Store fact with target sourceType
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           fact: `Fact from ${sourceType}`,
           factType: "knowledge",
@@ -292,7 +292,7 @@ describe("Facts API - Universal Filters", () => {
 
         // Store fact with different sourceType
         const otherType = sourceType === "manual" ? "system" : "manual";
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           fact: `Fact from ${otherType}`,
           factType: "knowledge",
@@ -301,7 +301,7 @@ describe("Facts API - Universal Filters", () => {
         });
 
         // Test: Filter by sourceType
-        const results = await cortex.facts.list({
+        const results = await memoir.facts.list({
           memorySpaceId: spaceId,
           sourceType,
         });
@@ -320,7 +320,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-tags-any`;
 
       // Store fact with tag1
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with tag1",
         factType: "knowledge",
@@ -330,7 +330,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store fact with tag2
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with tag2",
         factType: "knowledge",
@@ -340,7 +340,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store fact with no matching tags
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with different tags",
         factType: "knowledge",
@@ -350,7 +350,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by tags (any match - default)
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         tags: ["tag1", "tag2"],
         tagMatch: "any",
@@ -370,7 +370,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-tags-all`;
 
       // Store fact with both required tags
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with all required tags",
         factType: "knowledge",
@@ -380,7 +380,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store fact with only one required tag
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with partial tags",
         factType: "knowledge",
@@ -390,7 +390,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by tags (all match)
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         tags: ["important", "verified"],
         tagMatch: "all",
@@ -410,7 +410,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-confidence-gte`;
 
       // Store high confidence fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "High confidence fact",
         factType: "knowledge",
@@ -419,7 +419,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store low confidence fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Low confidence fact",
         factType: "knowledge",
@@ -428,7 +428,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by minConfidence (shorthand)
-      const results1 = await cortex.facts.list({
+      const results1 = await memoir.facts.list({
         memorySpaceId: spaceId,
         minConfidence: 80,
       });
@@ -447,7 +447,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-confidence-range`;
 
       // Store facts with different confidence levels
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Very high confidence",
         factType: "knowledge",
@@ -455,7 +455,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Medium confidence",
         factType: "knowledge",
@@ -463,7 +463,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Low confidence",
         factType: "knowledge",
@@ -472,7 +472,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by minConfidence (most common use case)
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         minConfidence: 70,
       });
@@ -489,7 +489,7 @@ describe("Facts API - Universal Filters", () => {
       const searchTerm = "confidence-test";
 
       // Store high confidence fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: `${searchTerm} high confidence`,
         factType: "knowledge",
@@ -498,7 +498,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store low confidence fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: `${searchTerm} low confidence`,
         factType: "knowledge",
@@ -507,7 +507,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Search with minConfidence
-      const results = await cortex.facts.search(spaceId, searchTerm, {
+      const results = await memoir.facts.search(spaceId, searchTerm, {
         minConfidence: 80,
       });
 
@@ -524,7 +524,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-metadata`;
 
       // Store fact with target metadata
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with priority high",
         factType: "knowledge",
@@ -534,7 +534,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store fact with different metadata
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact with priority low",
         factType: "knowledge",
@@ -544,7 +544,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Filter by metadata
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         metadata: { priority: "high" },
       });
@@ -563,7 +563,7 @@ describe("Facts API - Universal Filters", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-sort-confidence`;
 
       // Store facts with different confidence levels
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Low confidence",
         factType: "knowledge",
@@ -571,7 +571,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "High confidence",
         factType: "knowledge",
@@ -579,7 +579,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Medium confidence",
         factType: "knowledge",
@@ -588,7 +588,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Sort by confidence descending
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         sortBy: "confidence",
         sortOrder: "desc",
@@ -608,7 +608,7 @@ describe("Facts API - Universal Filters", () => {
 
       // Store 5 facts
       for (let i = 0; i < 5; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           fact: `Fact ${i}`,
           factType: "knowledge",
@@ -618,7 +618,7 @@ describe("Facts API - Universal Filters", () => {
       }
 
       // Test: Get first page (limit 2)
-      const page1 = await cortex.facts.list({
+      const page1 = await memoir.facts.list({
         memorySpaceId: spaceId,
         limit: 2,
         offset: 0,
@@ -627,7 +627,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Get second page (limit 2, offset 2)
-      const page2 = await cortex.facts.list({
+      const page2 = await memoir.facts.list({
         memorySpaceId: spaceId,
         limit: 2,
         offset: 2,
@@ -654,7 +654,7 @@ describe("Facts API - Universal Filters", () => {
       const targetUser = "user-david";
 
       // Store target fact matching all criteria
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: targetUser,
         participantId: "agent-1",
@@ -667,7 +667,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store facts missing one criterion each
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "other-user", // Wrong user
         participantId: "agent-1",
@@ -679,7 +679,7 @@ describe("Facts API - Universal Filters", () => {
         metadata: { category: "ui" },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: targetUser,
         participantId: "agent-1",
@@ -691,7 +691,7 @@ describe("Facts API - Universal Filters", () => {
         metadata: { category: "ui" },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: targetUser,
         participantId: "agent-1",
@@ -704,7 +704,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Complex query with multiple filters
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         userId: targetUser,
         participantId: "agent-1",
@@ -735,7 +735,7 @@ describe("Facts API - Universal Filters", () => {
       const subject = "user-eve";
 
       // Store facts for same subject
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "eve",
         fact: "Eve prefers dark mode",
@@ -745,7 +745,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "conversation",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "eve",
         fact: "Eve works at TechCorp",
@@ -755,7 +755,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "conversation",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "eve",
         fact: "Eve knows Python (low confidence)",
@@ -766,7 +766,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Query by subject with filters
-      const results = await cortex.facts.queryBySubject({
+      const results = await memoir.facts.queryBySubject({
         memorySpaceId: spaceId,
         subject,
         userId: "eve",
@@ -789,7 +789,7 @@ describe("Facts API - Universal Filters", () => {
       const searchTerm = "comprehensive";
 
       // Store target fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "user-frank",
         participantId: "search-agent",
@@ -801,7 +801,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Store facts that don't match all criteria
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "other-user",
         participantId: "search-agent",
@@ -812,7 +812,7 @@ describe("Facts API - Universal Filters", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: "user-frank",
         participantId: "other-agent",
@@ -824,7 +824,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Complex search with filters
-      const results = await cortex.facts.search(spaceId, searchTerm, {
+      const results = await memoir.facts.search(spaceId, searchTerm, {
         userId: "user-frank",
         participantId: "search-agent",
         factType: "knowledge",
@@ -857,7 +857,7 @@ describe("Facts API - Universal Filters", () => {
       };
 
       // Store fact matching filters
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         userId: filters.userId,
         fact: "Consistent filter test",
@@ -868,7 +868,7 @@ describe("Facts API - Universal Filters", () => {
       });
 
       // Test: Use filters (same pattern as Memory API)
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         userId: filters.userId,
         tags: filters.tags,

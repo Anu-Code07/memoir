@@ -4,7 +4,7 @@
 
 ## Why This Proof Matters
 
-All other proofs tested **graph database mechanics** (CRUD, sync, traversal). This proof tests the **REAL PURPOSE**: How graph integration enhances Cortex's multi-layer memory retrieval process.
+All other proofs tested **graph database mechanics** (CRUD, sync, traversal). This proof tests the **REAL PURPOSE**: How graph integration enhances Memoir's multi-layer memory retrieval process.
 
 ## What It Demonstrates
 
@@ -330,7 +330,7 @@ Graph finds things you didn't explicitly search for:
 - Small datasets
 - Budget/complexity constraints
 
-### For Cortex SDK Users
+### For Memoir SDK Users
 
 **The proof shows that graph integration is valuable when:**
 
@@ -361,8 +361,8 @@ Use this pattern in your retrieval logic:
 ```typescript
 async function enrichedRetrieval(query: string) {
   // Step 1: Base retrieval (L2 + L3)
-  const memories = await cortex.vector.search(memorySpaceId, query);
-  const facts = await cortex.facts.search(memorySpaceId, query);
+  const memories = await memoir.vector.search(memorySpaceId, query);
+  const facts = await memoir.facts.search(memorySpaceId, query);
 
   // Step 2: Graph enrichment (optional, based on query complexity)
   if (needsDeepContext) {

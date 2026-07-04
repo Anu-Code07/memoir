@@ -100,7 +100,7 @@ export interface TestRunContext {
  *
  *   it("creates a user", async () => {
  *     const userId = ctx.userId("alice");
- *     await cortex.users.update(userId, { name: "Alice" });
+ *     await memoir.users.update(userId, { name: "Alice" });
  *   });
  * });
  * ```

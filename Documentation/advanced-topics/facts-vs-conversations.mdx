@@ -8,7 +8,7 @@ Understand the trade-offs between storing raw conversations versus extracted fac
 
 ## Overview
 
-Cortex supports three storage strategies:
+Memoir supports three storage strategies:
 
 1. **Raw Conversations** - Store complete dialogue verbatim
 2. **Extracted Facts** - Store LLM-distilled knowledge only
@@ -30,7 +30,7 @@ Each has distinct advantages and trade-offs in terms of cost, performance, compl
 **Example:**
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-personal',
   conversationId: 'conv-123',
   userMessage: 'Hey, I just wanted to let you know that I moved from Paris to London last week. I found a great flat in Shoreditch and my commute to the office in Canary Wharf is about 30 minutes. Oh and I'm working at Acme Corp now as a senior engineer.',
@@ -83,7 +83,7 @@ await cortex.memory.remember({
 **Example:**
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-personal',
   conversationId: 'conv-123',
   userMessage: 'Hey, I just wanted to let you know that I moved from Paris to London last week. I found a great flat in Shoreditch and my commute to the office in Canary Wharf is about 30 minutes. Oh and I'm working at Acme Corp now as a senior engineer.',
@@ -143,7 +143,7 @@ await cortex.memory.remember({
 **Example:**
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   agentId: "agent-1",
   conversationId: "conv-123",
   userMessage: "...",
@@ -211,7 +211,7 @@ async function intelligentRetrieval(
   query: string,
 ) {
   // Tier 1: Get relevant facts (primary retrieval)
-  const facts = await cortex.memory.search(memorySpaceId, query, {
+  const facts = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     userId,
     contentType: "fact",
@@ -219,7 +219,7 @@ async function intelligentRetrieval(
   });
 
   // Tier 2: Get vector summaries for additional context
-  const vectorSummaries = await cortex.memory.search(memorySpaceId, query, {
+  const vectorSummaries = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     userId,
     contentType: "summarized", // Summarized raw conversations
@@ -233,7 +233,7 @@ async function intelligentRetrieval(
   for (const fact of criticalFacts.slice(0, 2)) {
     // Top 2 critical facts
     if (fact.conversationRef) {
-      const conversation = await cortex.conversations.get(
+      const conversation = await memoir.conversations.get(
         fact.conversationRef.conversationId,
       );
 
@@ -273,7 +273,7 @@ async function buildAdaptiveContext(
   };
 
   // Always get facts (tier 1)
-  context.facts = await cortex.memory.search(memorySpaceId, query, {
+  context.facts = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     userId,
     contentType: "fact",
@@ -288,7 +288,7 @@ async function buildAdaptiveContext(
 
   // For moderate complexity, add vector summaries (tier 2)
   if (complexity === "moderate") {
-    context.summaries = await cortex.memory.search(memorySpaceId, query, {
+    context.summaries = await memoir.memory.search(memorySpaceId, query, {
       embedding: await embed(query),
       userId,
       contentType: "summarized",
@@ -301,7 +301,7 @@ async function buildAdaptiveContext(
   // For complex queries, add selective raw context (tier 3)
   if (complexity === "complex") {
     // Get summaries
-    context.summaries = await cortex.memory.search(memorySpaceId, query, {
+    context.summaries = await memoir.memory.search(memorySpaceId, query, {
       embedding: await embed(query),
       userId,
       contentType: "summarized",
@@ -312,7 +312,7 @@ async function buildAdaptiveContext(
     const topFacts = context.facts.slice(0, 3);
     for (const fact of topFacts) {
       if (fact.conversationRef && fact.metadata.importance >= 80) {
-        const convo = await cortex.conversations.get(
+        const convo = await memoir.conversations.get(
           fact.conversationRef.conversationId,
         );
 
@@ -595,7 +595,7 @@ Unlimited history, constant token usage
 
 ```typescript
 // Store both
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "support-bot-space",
   conversationId: "conv-456",
   userMessage: customerMessage,
@@ -607,7 +607,7 @@ await cortex.memory.remember({
 });
 
 // Normal retrieval: Use facts (fast)
-const relevantFacts = await cortex.memory.search("support-agent", query, {
+const relevantFacts = await memoir.memory.search("support-agent", query, {
   userId: customerId,
   contentType: "fact",
   limit: 5,
@@ -616,7 +616,7 @@ const relevantFacts = await cortex.memory.search("support-agent", query, {
 // When need exact quote: Fetch raw
 if (needsExactQuote) {
   const fact = relevantFacts[0];
-  const conversation = await cortex.conversations.get(
+  const conversation = await memoir.conversations.get(
     fact.conversationRef.conversationId,
   );
 
@@ -650,7 +650,7 @@ if (needsExactQuote) {
 
 ```typescript
 // Only extract and store facts
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-456-personal",
   conversationId: "conv-789",
   userMessage: userMessage,
@@ -662,7 +662,7 @@ await cortex.memory.remember({
 });
 
 // Retrieval is always fast and relevant
-const context = await cortex.memory.search("personal-assistant", query, {
+const context = await memoir.memory.search("personal-assistant", query, {
   userId,
   contentType: "fact",
   limit: 20, // Can afford more facts (small tokens)
@@ -692,7 +692,7 @@ const context = await cortex.memory.search("personal-assistant", query, {
 
 ```typescript
 // Extract coding-specific facts
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-dev-workspace',
   conversationId: 'conv-code-123',
   userMessage: 'I prefer functional components with hooks, no class components. Always use const arrow functions and destructure props.',
@@ -710,7 +710,7 @@ await cortex.memory.remember({
 // 4. "Developer destructures props"
 
 // Fast retrieval for suggestions
-const prefs = await cortex.memory.search('code-assistant', 'coding style', {
+const prefs = await memoir.memory.search('code-assistant', 'coding style', {
   userId: devId,
   contentType: 'fact',
   metadata: { category: 'preference' }
@@ -882,7 +882,7 @@ Total: 184MB = $0.09/month
 
 ```typescript
 async function migrateToFacts(memorySpaceId: string) {
-  const conversations = await cortex.conversations.list({
+  const conversations = await memoir.conversations.list({
     memorySpaceId,
     limit: 1000,
   });
@@ -893,7 +893,7 @@ async function migrateToFacts(memorySpaceId: string) {
   for (const conversation of conversations) {
     try {
       // Get conversation history
-      const messages = await cortex.conversations.getHistory(
+      const messages = await memoir.conversations.getHistory(
         conversation.conversationId,
       );
 
@@ -947,7 +947,7 @@ console.log(
 
 ```typescript
 // Change configuration
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
 
   factExtraction: {
@@ -957,7 +957,7 @@ const cortex = new Cortex({
 });
 
 // New conversations get both
-await cortex.memory.remember({
+await memoir.memory.remember({
   extractFacts: true,
   storeRaw: true, // Both layers
 });
@@ -971,7 +971,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Delete vector entries for raw conversations
-const rawMemories = await cortex.memory.list("agent-1", {
+const rawMemories = await memoir.memory.list("agent-1", {
   contentType: "raw",
   source: { type: "conversation" },
   limit: 10000,
@@ -979,14 +979,14 @@ const rawMemories = await cortex.memory.list("agent-1", {
 
 for (const memory of rawMemories.memories) {
   // Only delete if facts exist for this conversation
-  const facts = await cortex.memory.search("agent-1", "*", {
+  const facts = await memoir.memory.search("agent-1", "*", {
     conversationRef: { conversationId: memory.conversationRef.conversationId },
     contentType: "fact",
   });
 
   if (facts.length > 0) {
     // Has facts, safe to delete raw vector entry
-    await cortex.memory.delete("agent-1", memory.id);
+    await memoir.memory.delete("agent-1", memory.id);
   }
 }
 
@@ -1005,7 +1005,7 @@ const DEFAULT_CONFIG = {
   minFactConfidence: 0.7,
 };
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   ...params,
   ...DEFAULT_CONFIG,
 });
@@ -1035,7 +1035,7 @@ async function measureRetrievalPerformance() {
   for (const query of queries) {
     // Test raw
     const rawStart = Date.now();
-    await cortex.memory.search("agent-1", query, {
+    await memoir.memory.search("agent-1", query, {
       contentType: "raw",
       userId,
     });
@@ -1043,7 +1043,7 @@ async function measureRetrievalPerformance() {
 
     // Test facts
     const factStart = Date.now();
-    await cortex.memory.search("agent-1", query, {
+    await memoir.memory.search("agent-1", query, {
       contentType: "fact",
       userId,
     });
@@ -1102,7 +1102,7 @@ async function rememberSelectively(params: RememberParams) {
     params.userMessage.length > 100 || // Long message (worth distilling)
     containsKeywords(params.userMessage, ["prefer", "always", "never"]); // Preference indicators
 
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     ...params,
     extractFacts: shouldExtract,
     storeRaw: true,
@@ -1222,7 +1222,7 @@ if (metrics.factPerformance > metrics.rawPerformance * 1.5) {
 - Fast, precise retrieval via facts
 - Flexibility to adjust later
 - Industry-leading token efficiency
-- Cortex-unique compliance advantage (ACID audit trails)
+- Memoir-unique compliance advantage (ACID audit trails)
 
 **Transition path:**
 
@@ -1231,7 +1231,7 @@ if (metrics.factPerformance > metrics.rawPerformance * 1.5) {
 3. Optimize based on your specific needs
 4. Consider Cloud Mode auto-extraction for convenience (planned)
 
-**Remember:** Cortex's ACID layer means you always have raw conversations as backup, even if you only index facts in vector layer. This is a unique advantage - other memory systems typically discard raw data to save storage.
+**Remember:** Memoir's ACID layer means you always have raw conversations as backup, even if you only index facts in vector layer. This is a unique advantage - other memory systems typically discard raw data to save storage.
 
 ## Next Steps
 
@@ -1242,4 +1242,4 @@ if (metrics.factPerformance > metrics.rawPerformance * 1.5) {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

@@ -8,7 +8,7 @@
  * - Session-based authentication
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { createAuthContext } from "../../src/auth/context";
 import { createTestRunContext } from "../helpers/isolation";
 import { generateTenantId, generateTenantUserId } from "../helpers/tenancy";
@@ -25,12 +25,12 @@ describeWithConvex("Auth Integration E2E", () => {
   beforeAll(async () => {
     testMemorySpaceId = `space_auth_e2e_${ctx.runId}`;
 
-    // Create a temp Cortex to register memory space
-    const tempCortex = new Cortex({
+    // Create a temp Memoir to register memory space
+    const tempMemoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
     });
 
-    await tempCortex.memorySpaces.register({
+    await tempMemoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Auth E2E Test Space",
       type: "custom",
@@ -39,10 +39,10 @@ describeWithConvex("Auth Integration E2E", () => {
 
   afterAll(async () => {
     try {
-      const tempCortex = new Cortex({
+      const tempMemoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
       });
-      await tempCortex.memorySpaces.delete(testMemorySpaceId, {
+      await tempMemoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -56,7 +56,7 @@ describeWithConvex("Auth Integration E2E", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("Scenario 1: Clerk OAuth Integration", () => {
-    it("should initialize Cortex with Clerk-style auth context", async () => {
+    it("should initialize Memoir with Clerk-style auth context", async () => {
       // Simulate Clerk session data
       const clerkAuthContext = createAuthContext({
         userId: "user_2abc123xyz789",
@@ -85,18 +85,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: clerkAuthContext,
       });
 
       // Verify auth context is properly set
-      expect(cortex.auth?.userId).toBe("user_2abc123xyz789");
-      expect(cortex.auth?.organizationId).toBe("org_def456uvw");
-      expect(cortex.auth?.authProvider).toBe("clerk");
+      expect(memoir.auth?.userId).toBe("user_2abc123xyz789");
+      expect(memoir.auth?.organizationId).toBe("org_def456uvw");
+      expect(memoir.auth?.authProvider).toBe("clerk");
 
       // Create a conversation with this auth
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: {
@@ -108,7 +108,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(conv.tenantId).toBe("tenant_clerk_demo");
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -117,7 +117,7 @@ describeWithConvex("Auth Integration E2E", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("Scenario 2: Auth0 JWT Integration", () => {
-    it("should initialize Cortex with Auth0-style auth context", async () => {
+    it("should initialize Memoir with Auth0-style auth context", async () => {
       // Simulate Auth0 decoded JWT
       const auth0AuthContext = createAuthContext({
         userId: "auth0|507f1f77bcf86cd799439011",
@@ -149,18 +149,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: auth0AuthContext,
       });
 
       // Verify auth context
-      expect(cortex.auth?.userId).toBe("auth0|507f1f77bcf86cd799439011");
-      expect(cortex.auth?.authProvider).toBe("auth0");
-      expect((cortex.auth?.claims?.permissions as string[])?.length).toBe(2);
+      expect(memoir.auth?.userId).toBe("auth0|507f1f77bcf86cd799439011");
+      expect(memoir.auth?.authProvider).toBe("auth0");
+      expect((memoir.auth?.claims?.permissions as string[])?.length).toBe(2);
 
       // Create a fact with this auth
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: testMemorySpaceId,
         fact: "User authenticated via Auth0",
         factType: "knowledge",
@@ -172,7 +172,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(fact.tenantId).toBe("my-auth0-tenant");
 
       // Cleanup
-      await cortex.facts.delete(testMemorySpaceId, fact.factId);
+      await memoir.facts.delete(testMemorySpaceId, fact.factId);
     });
   });
 
@@ -181,7 +181,7 @@ describeWithConvex("Auth Integration E2E", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("Scenario 3: Firebase Auth Integration", () => {
-    it("should initialize Cortex with Firebase-style auth context", async () => {
+    it("should initialize Memoir with Firebase-style auth context", async () => {
       // Simulate Firebase decoded token
       const firebaseAuthContext = createAuthContext({
         userId: "firebase:abc123xyz789",
@@ -212,18 +212,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: firebaseAuthContext,
       });
 
       // Verify auth context
-      expect(cortex.auth?.userId).toBe("firebase:abc123xyz789");
-      expect(cortex.auth?.authProvider).toBe("firebase");
-      expect(cortex.auth?.claims?.email).toBe("user@example.com");
+      expect(memoir.auth?.userId).toBe("firebase:abc123xyz789");
+      expect(memoir.auth?.authProvider).toBe("firebase");
+      expect(memoir.auth?.claims?.email).toBe("user@example.com");
 
       // Create session
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: firebaseAuthContext.userId,
         tenantId: "my-firebase-project",
         metadata: {
@@ -234,7 +234,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(session.tenantId).toBe("my-firebase-project");
 
       // Cleanup
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
     });
   });
 
@@ -243,7 +243,7 @@ describeWithConvex("Auth Integration E2E", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("Scenario 4: NextAuth Session Integration", () => {
-    it("should initialize Cortex with NextAuth-style auth context", async () => {
+    it("should initialize Memoir with NextAuth-style auth context", async () => {
       // Simulate NextAuth session
       const nextauthAuthContext = createAuthContext({
         userId: "cluser123abc456",
@@ -265,18 +265,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: nextauthAuthContext,
       });
 
       // Verify auth context
-      expect(cortex.auth?.userId).toBe("cluser123abc456");
-      expect(cortex.auth?.authProvider).toBe("nextauth");
-      expect(cortex.auth?.authMethod).toBe("session");
+      expect(memoir.auth?.userId).toBe("cluser123abc456");
+      expect(memoir.auth?.authProvider).toBe("nextauth");
+      expect(memoir.auth?.authMethod).toBe("session");
 
       // Store user profile
-      await cortex.users.update(nextauthAuthContext.userId, {
+      await memoir.users.update(nextauthAuthContext.userId, {
         displayName: "Bob Wilson",
         email: "bob@example.com",
         avatarUrl: "https://example.com/bob.jpg",
@@ -286,11 +286,11 @@ describeWithConvex("Auth Integration E2E", () => {
       });
 
       // Verify profile
-      const profile = await cortex.users.get(nextauthAuthContext.userId);
+      const profile = await memoir.users.get(nextauthAuthContext.userId);
       expect(profile?.data?.displayName).toBe("Bob Wilson");
 
       // Cleanup
-      await cortex.users.delete(nextauthAuthContext.userId, {
+      await memoir.users.delete(nextauthAuthContext.userId, {
         cascade: false,
       });
     });
@@ -301,7 +301,7 @@ describeWithConvex("Auth Integration E2E", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("Scenario 5: API Key Authentication", () => {
-    it("should initialize Cortex with API key auth context", async () => {
+    it("should initialize Memoir with API key auth context", async () => {
       // Simulate API key authentication
       const apiKeyAuthContext = createAuthContext({
         userId: "api_service_account",
@@ -322,18 +322,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: apiKeyAuthContext,
       });
 
       // Verify auth context
-      expect(cortex.auth?.userId).toBe("api_service_account");
-      expect(cortex.auth?.authMethod).toBe("api_key");
-      expect((cortex.auth?.claims?.scope as string[])?.length).toBe(3);
+      expect(memoir.auth?.userId).toBe("api_service_account");
+      expect(memoir.auth?.authMethod).toBe("api_key");
+      expect((memoir.auth?.claims?.scope as string[])?.length).toBe(3);
 
       // Perform operations
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: {
@@ -345,7 +345,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(conv.tenantId).toBe("enterprise_tenant");
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -379,18 +379,18 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: customAuthContext,
       });
 
       // Verify auth context
-      expect(cortex.auth?.userId).toBe("emp_12345@acmecorp");
-      expect(cortex.auth?.authProvider).toBe("acme-sso");
-      expect(cortex.auth?.claims?.department).toBe("engineering");
+      expect(memoir.auth?.userId).toBe("emp_12345@acmecorp");
+      expect(memoir.auth?.authProvider).toBe("acme-sso");
+      expect(memoir.auth?.claims?.department).toBe("engineering");
 
       // Create organizational data
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: testMemorySpaceId,
         fact: "Platform team uses microservices architecture",
         factType: "knowledge",
@@ -406,7 +406,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(fact.tenantId).toBe("acme_enterprise");
 
       // Cleanup
-      await cortex.facts.delete(testMemorySpaceId, fact.factId);
+      await memoir.facts.delete(testMemorySpaceId, fact.factId);
     });
   });
 
@@ -429,13 +429,13 @@ describeWithConvex("Auth Integration E2E", () => {
         authenticatedAt: Date.now() - 3600000, // 1 hour ago
       });
 
-      const cortex1 = new Cortex({
+      const memoir1 = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: initialAuth,
       });
 
       // Create initial data
-      const conv = await cortex1.conversations.create({
+      const conv = await memoir1.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId, agentId: "test-agent" },
@@ -451,19 +451,19 @@ describeWithConvex("Auth Integration E2E", () => {
         authenticatedAt: Date.now(), // Fresh token
       });
 
-      const cortex2 = new Cortex({
+      const memoir2 = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: refreshedAuth,
       });
 
       // Should be able to access same data
-      const retrieved = await cortex2.conversations.get(conv.conversationId);
+      const retrieved = await memoir2.conversations.get(conv.conversationId);
 
       expect(retrieved).not.toBeNull();
       expect(retrieved?.conversationId).toBe(conv.conversationId);
 
       // Cleanup
-      await cortex2.conversations.delete(conv.conversationId);
+      await memoir2.conversations.delete(conv.conversationId);
     });
   });
 
@@ -478,17 +478,17 @@ describeWithConvex("Auth Integration E2E", () => {
         userId: "simple_user_123",
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: minimalAuth,
       });
 
       // Should still work
-      expect(cortex.auth?.userId).toBe("simple_user_123");
-      expect(cortex.auth?.tenantId).toBeUndefined();
+      expect(memoir.auth?.userId).toBe("simple_user_123");
+      expect(memoir.auth?.tenantId).toBeUndefined();
 
       // Create data without tenant scoping
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: minimalAuth.userId, agentId: "test-agent" },
@@ -497,7 +497,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(conv.conversationId).toBeDefined();
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -553,25 +553,25 @@ describeWithConvex("Auth Integration E2E", () => {
         },
       });
 
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: fullAuth,
       });
 
       // Verify all fields
-      expect(cortex.auth?.userId).toBe("full_user_xyz");
-      expect(cortex.auth?.tenantId).toBe("full_tenant");
-      expect(cortex.auth?.organizationId).toBe("full_org");
-      expect(cortex.auth?.sessionId).toBe("full_session");
-      expect(cortex.auth?.authProvider).toBe("comprehensive");
-      expect(cortex.auth?.authMethod).toBe("oauth");
-      expect((cortex.auth?.claims?.roles as string[])?.length).toBe(3);
-      expect((cortex.auth?.metadata?.device as { type: string })?.type).toBe(
+      expect(memoir.auth?.userId).toBe("full_user_xyz");
+      expect(memoir.auth?.tenantId).toBe("full_tenant");
+      expect(memoir.auth?.organizationId).toBe("full_org");
+      expect(memoir.auth?.sessionId).toBe("full_session");
+      expect(memoir.auth?.authProvider).toBe("comprehensive");
+      expect(memoir.auth?.authMethod).toBe("oauth");
+      expect((memoir.auth?.claims?.roles as string[])?.length).toBe(3);
+      expect((memoir.auth?.metadata?.device as { type: string })?.type).toBe(
         "desktop",
       );
 
       // Create data with full context
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: testMemorySpaceId,
         fact: "Full auth test fact",
         factType: "knowledge",
@@ -583,7 +583,7 @@ describeWithConvex("Auth Integration E2E", () => {
       expect(fact.tenantId).toBe("full_tenant");
 
       // Cleanup
-      await cortex.facts.delete(testMemorySpaceId, fact.factId);
+      await memoir.facts.delete(testMemorySpaceId, fact.factId);
     });
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Comprehensive Data Validation for ALL Graph-Integrated Cortex APIs
+ * Comprehensive Data Validation for ALL Graph-Integrated Memoir APIs
  *
  * This tests that data ACTUALLY appears in the graph databases,
  * not just that operations don't error.
@@ -18,7 +18,7 @@
  * Run with: npx tsx tests/graph/comprehensive-data-validation.ts
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter } from "../../src/graph";
 
 let testsRun = 0;
@@ -63,7 +63,7 @@ async function testWithDatabase(name: string, config: any) {
   await adapter.connect(config);
   await adapter.clearDatabase();
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: process.env.CONVEX_URL || "http://127.0.0.1:3210",
     graph: { adapter },
   });
@@ -77,7 +77,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("1️⃣  Conversations API");
 
-    const conv = await cortex.conversations.create(
+    const conv = await memoir.conversations.create(
       {
         memorySpaceId: testSpace,
         type: "user-agent",
@@ -103,7 +103,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("2️⃣  Vector API (Memories)");
 
-    const memory = await cortex.vector.store(
+    const memory = await memoir.vector.store(
       testSpace,
       {
         content: "Test memory content",
@@ -137,7 +137,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("3️⃣  Facts API");
 
-    const fact = await cortex.facts.store(
+    const fact = await memoir.facts.store(
       {
         memorySpaceId: testSpace,
         userId: testUser,
@@ -167,7 +167,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("4️⃣  Contexts API");
 
-    const context = await cortex.contexts.create(
+    const context = await memoir.contexts.create(
       {
         purpose: "Test context",
         memorySpaceId: testSpace,
@@ -198,7 +198,7 @@ async function testWithDatabase(name: string, config: any) {
     // which syncs if configured. Need to pass syncToGraph to underlying immutable.store
     // For now, users are stored as Immutable nodes with immutableType: "user"
 
-    const _userProfile = await cortex.users.update(testUser, {
+    const _userProfile = await memoir.users.update(testUser, {
       displayName: "Test User",
       email: "test@example.com",
       preferences: { theme: "dark" },
@@ -226,7 +226,7 @@ async function testWithDatabase(name: string, config: any) {
     console.log("6️⃣  Agents API");
 
     const agentId = `test-agent-${Date.now()}`;
-    const _agent = await cortex.agents.register({
+    const _agent = await memoir.agents.register({
       id: agentId,
       name: "Test Agent",
       description: "Validation test agent",
@@ -247,7 +247,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("7️⃣  MemorySpaces API");
 
-    const space = await cortex.memorySpaces.register(
+    const space = await memoir.memorySpaces.register(
       {
         memorySpaceId: `${testSpace}-registered`,
         name: "Test Space",
@@ -281,7 +281,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("8️⃣  Immutable API");
 
-    await cortex.immutable.store(
+    await memoir.immutable.store(
       {
         type: "kb-article",
         id: "test-article-1",
@@ -316,7 +316,7 @@ async function testWithDatabase(name: string, config: any) {
     // ========================================================================
     console.log("9️⃣  Mutable API");
 
-    await cortex.mutable.set(
+    await memoir.mutable.set(
       "test-namespace",
       "test-key",
       { value: 42, label: "test" },
@@ -399,14 +399,14 @@ async function main() {
     await testWithDatabase("Neo4j", {
       uri: "bolt://localhost:7687",
       username: "neo4j",
-      password: "cortex-dev-password",
+      password: "memoir-dev-password",
     });
 
     // Test Memgraph
     await testWithDatabase("Memgraph", {
       uri: "bolt://localhost:7688",
       username: "memgraph",
-      password: "cortex-dev-password",
+      password: "memoir-dev-password",
     });
 
     console.log(

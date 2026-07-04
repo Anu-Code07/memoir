@@ -6,10 +6,10 @@ FSL-1.1-Apache-2.0
 
 ## Notice
 
-Copyright 2025 Nicholas Geil / Saint Nick LLC
+Copyright 2025 Nicholas Geil / Anu-Code07
 
 ---
 
-This package is part of the Cortex Memory project and is licensed under the same terms.
+This package is part of the Memoir project and is licensed under the same terms.
 
 See the main LICENSE file at: ../../LICENSE.md

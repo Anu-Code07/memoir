@@ -5,13 +5,13 @@
  * enabling accurate count/list assertions in parallel test environments.
  *
  * These replace conflict-prone global assertions like:
- *   expect(await cortex.users.count()).toBeGreaterThanOrEqual(3)
+ *   expect(await memoir.users.count()).toBeGreaterThanOrEqual(3)
  *
  * With isolated assertions like:
- *   expect(await countUsers(cortex, ctx)).toBe(3)
+ *   expect(await countUsers(memoir, ctx)).toBe(3)
  */
 
-import type { Cortex } from "../../src";
+import type { Memoir } from "../../src";
 import type { TestRunContext } from "./isolation";
 
 /**
@@ -37,46 +37,46 @@ function filterByPrefix<T>(
 /**
  * Count users belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Number of users matching the run prefix
  */
 export async function countUsers(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<number> {
-  const result = await cortex.users.list({ limit: 1000 });
+  const result = await memoir.users.list({ limit: 1000 });
   return filterByPrefix(result.users, ctx.runId, ["id"]).length;
 }
 
 /**
  * List users belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Users matching the run prefix
  */
 export async function listUsers<T extends { id: string }>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<T[]> {
-  const result = await cortex.users.list({ limit: 1000 });
+  const result = await memoir.users.list({ limit: 1000 });
   return filterByPrefix(result.users, ctx.runId, ["id"]) as unknown as T[];
 }
 
 /**
  * Assert that exactly N users exist for this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param expectedCount - Expected number of users
  */
 export async function expectUserCount(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   expectedCount: number,
 ): Promise<void> {
-  const count = await countUsers(cortex, ctx);
+  const count = await countUsers(memoir, ctx);
   if (count !== expectedCount) {
     throw new Error(
       `Expected ${expectedCount} users for run ${ctx.runId}, but found ${count}`,
@@ -91,30 +91,30 @@ export async function expectUserCount(
 /**
  * Count agents belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Number of agents matching the run prefix
  */
 export async function countAgents(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<number> {
-  const agents = await cortex.agents.list();
+  const agents = await memoir.agents.list();
   return filterByPrefix(agents, ctx.runId, ["agentId"]).length;
 }
 
 /**
  * List agents belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Agents matching the run prefix
  */
 export async function listAgents<T extends { agentId: string }>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<T[]> {
-  const agents = await cortex.agents.list();
+  const agents = await memoir.agents.list();
   return filterByPrefix(agents, ctx.runId, ["agentId"]) as unknown as T[];
 }
 
@@ -125,30 +125,30 @@ export async function listAgents<T extends { agentId: string }>(
 /**
  * Count memory spaces belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Number of memory spaces matching the run prefix
  */
 export async function countMemorySpaces(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<number> {
-  const result = await cortex.memorySpaces.list();
+  const result = await memoir.memorySpaces.list();
   return filterByPrefix(result.spaces, ctx.runId, ["memorySpaceId"]).length;
 }
 
 /**
  * List memory spaces belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Memory spaces matching the run prefix
  */
 export async function listMemorySpaces<T extends { memorySpaceId: string }>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<T[]> {
-  const result = await cortex.memorySpaces.list();
+  const result = await memoir.memorySpaces.list();
   return filterByPrefix(result.spaces, ctx.runId, [
     "memorySpaceId",
   ]) as unknown as T[];
@@ -161,18 +161,18 @@ export async function listMemorySpaces<T extends { memorySpaceId: string }>(
 /**
  * Count conversations belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Optional specific memory space ID
  * @returns Number of conversations matching the run prefix
  */
 export async function countConversations(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   memorySpaceId?: string,
 ): Promise<number> {
   const options = memorySpaceId ? { memorySpaceId } : {};
-  const result = await cortex.conversations.list(options);
+  const result = await memoir.conversations.list(options);
   return filterByPrefix(result.conversations, ctx.runId, [
     "memorySpaceId",
     "conversationId",
@@ -182,16 +182,16 @@ export async function countConversations(
 /**
  * List conversations belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Optional specific memory space ID
  * @returns Conversations matching the run prefix
  */
 export async function listConversations<
   T extends { memorySpaceId: string; conversationId: string },
->(cortex: Cortex, ctx: TestRunContext, memorySpaceId?: string): Promise<T[]> {
+>(memoir: Memoir, ctx: TestRunContext, memorySpaceId?: string): Promise<T[]> {
   const options = memorySpaceId ? { memorySpaceId } : {};
-  const result = await cortex.conversations.list(options);
+  const result = await memoir.conversations.list(options);
   return filterByPrefix(result.conversations, ctx.runId, [
     "memorySpaceId",
     "conversationId",
@@ -205,15 +205,15 @@ export async function listConversations<
 /**
  * Count contexts belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Number of contexts matching the run prefix
  */
 export async function countContexts(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
 ): Promise<number> {
-  const contexts = await cortex.contexts.list();
+  const contexts = await memoir.contexts.list();
   return filterByPrefix(contexts, ctx.runId, ["memorySpaceId", "contextId"])
     .length;
 }
@@ -221,14 +221,14 @@ export async function countContexts(
 /**
  * List contexts belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @returns Contexts matching the run prefix
  */
 export async function listContexts<
   T extends { memorySpaceId: string; contextId: string },
->(cortex: Cortex, ctx: TestRunContext): Promise<T[]> {
-  const contexts = await cortex.contexts.list();
+>(memoir: Memoir, ctx: TestRunContext): Promise<T[]> {
+  const contexts = await memoir.contexts.list();
   return filterByPrefix(contexts, ctx.runId, [
     "memorySpaceId",
     "contextId",
@@ -242,36 +242,36 @@ export async function listContexts<
 /**
  * Count immutable records belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param type - Optional filter by type
  * @returns Number of immutable records matching the run prefix
  */
 export async function countImmutable(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   type?: string,
 ): Promise<number> {
   const options = type ? { type } : {};
-  const records = await cortex.immutable.list(options);
+  const records = await memoir.immutable.list(options);
   return filterByPrefix(records, ctx.runId, ["type", "id"]).length;
 }
 
 /**
  * List immutable records belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param type - Optional filter by type
  * @returns Immutable records matching the run prefix
  */
 export async function listImmutable<T extends { type: string; id: string }>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   type?: string,
 ): Promise<T[]> {
   const options = type ? { type } : {};
-  const records = await cortex.immutable.list(options);
+  const records = await memoir.immutable.list(options);
   return filterByPrefix(records, ctx.runId, ["type", "id"]) as unknown as T[];
 }
 
@@ -284,17 +284,17 @@ export async function listImmutable<T extends { type: string; id: string }>(
  * Note: mutable.list requires a namespace, so this counts records
  * in the provided namespace that belong to this test run.
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param namespace - Required namespace to list from
  * @returns Number of mutable records matching the run prefix
  */
 export async function countMutable(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   namespace: string,
 ): Promise<number> {
-  const records = await cortex.mutable.list({ namespace });
+  const records = await memoir.mutable.list({ namespace });
   return filterByPrefix(records, ctx.runId, ["namespace", "key"]).length;
 }
 
@@ -303,17 +303,17 @@ export async function countMutable(
  * Note: mutable.list requires a namespace, so this lists records
  * in the provided namespace that belong to this test run.
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param namespace - Required namespace to list from
  * @returns Mutable records matching the run prefix
  */
 export async function listMutable<T extends { namespace: string; key: string }>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   namespace: string,
 ): Promise<T[]> {
-  const records = await cortex.mutable.list({ namespace });
+  const records = await memoir.mutable.list({ namespace });
   return filterByPrefix(records, ctx.runId, [
     "namespace",
     "key",
@@ -327,13 +327,13 @@ export async function listMutable<T extends { namespace: string; key: string }>(
 /**
  * Count facts in a memory space belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Memory space ID (should be prefixed with run ID)
  * @returns Number of facts in the memory space
  */
 export async function countFacts(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   memorySpaceId: string,
 ): Promise<number> {
@@ -342,20 +342,20 @@ export async function countFacts(
       `Warning: memorySpaceId ${memorySpaceId} does not belong to run ${ctx.runId}`,
     );
   }
-  const facts = await cortex.facts.list({ memorySpaceId });
+  const facts = await memoir.facts.list({ memorySpaceId });
   return facts.length;
 }
 
 /**
  * List facts in a memory space belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Memory space ID (should be prefixed with run ID)
  * @returns Facts in the memory space
  */
 export async function listFacts<T>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   memorySpaceId: string,
 ): Promise<T[]> {
@@ -364,7 +364,7 @@ export async function listFacts<T>(
       `Warning: memorySpaceId ${memorySpaceId} does not belong to run ${ctx.runId}`,
     );
   }
-  const facts = await cortex.facts.list({ memorySpaceId });
+  const facts = await memoir.facts.list({ memorySpaceId });
   return facts as unknown as T[];
 }
 
@@ -375,13 +375,13 @@ export async function listFacts<T>(
 /**
  * Count memories in a memory space belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Memory space ID (should be prefixed with run ID)
  * @returns Number of memories in the memory space
  */
 export async function countMemories(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   memorySpaceId: string,
 ): Promise<number> {
@@ -390,20 +390,20 @@ export async function countMemories(
       `Warning: memorySpaceId ${memorySpaceId} does not belong to run ${ctx.runId}`,
     );
   }
-  const memories = await cortex.vector.list({ memorySpaceId });
+  const memories = await memoir.vector.list({ memorySpaceId });
   return memories.length;
 }
 
 /**
  * List memories in a memory space belonging to this test run
  *
- * @param cortex - Cortex SDK instance
+ * @param memoir - Memoir SDK instance
  * @param ctx - Test run context
  * @param memorySpaceId - Memory space ID (should be prefixed with run ID)
  * @returns Memories in the memory space
  */
 export async function listMemories<T>(
-  cortex: Cortex,
+  memoir: Memoir,
   ctx: TestRunContext,
   memorySpaceId: string,
 ): Promise<T[]> {
@@ -412,7 +412,7 @@ export async function listMemories<T>(
       `Warning: memorySpaceId ${memorySpaceId} does not belong to run ${ctx.runId}`,
     );
   }
-  const memories = await cortex.vector.list({ memorySpaceId });
+  const memories = await memoir.vector.list({ memorySpaceId });
   return memories as unknown as T[];
 }
 

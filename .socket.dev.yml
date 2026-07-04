@@ -10,9 +10,9 @@ issueRules:
     action: ignore
 
   - type: networkAccess
-    reason: "Cortex SDK uses Convex SDK for cloud database operations"
+    reason: "Memoir SDK uses Convex SDK for cloud database operations"
     packages:
-      - "@cortexmemory/sdk"
+      - "@memoir/sdk"
     action: ignore
 
 # Monitor high-risk changes
@@ -42,6 +42,6 @@ packageOverrides:
     networkAccess: allowed
     reason: "Official Convex SDK - cloud database client"
 
-  "@cortexmemory/sdk":
+  "@memoir/sdk":
     networkAccess: allowed
-    reason: "Cortex Memory SDK - wraps Convex for memory operations"
+    reason: "Memoir SDK - wraps Convex for memory operations"

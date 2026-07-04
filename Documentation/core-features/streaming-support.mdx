@@ -32,7 +32,7 @@ const response = await streamText({
   messages: [{ role: 'user', content: 'What is AI?' }],
 });
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-123',
   userMessage: 'What is AI?',
@@ -58,7 +58,7 @@ const stream = await openai.chat.completions.create({
   stream: true,
 });
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-456',
   userMessage: 'Hello!',
@@ -78,7 +78,7 @@ async function* generateResponse() {
   yield 'World!';
 }
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-789',
   userMessage: 'Say hello',
@@ -108,7 +108,7 @@ for await (const chunk of stream) {
 }
 
 // Separate storage step
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'agent-1',
   userMessage: 'Hello!',
   agentResponse: fullResponse,
@@ -122,7 +122,7 @@ await cortex.memory.remember({
 
 ```typescript
 // One call - automatic buffering + storage
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'agent-1',
   conversationId: 'conv-123',
   userMessage: 'Hello!',
@@ -144,12 +144,12 @@ console.log('Stored:', result.fullResponse);
 
 ```typescript
 // Automatic extraction with LLM configured
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   llm: openai('gpt-4'),  // Enables automatic fact extraction
 });
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-123',
   userMessage: 'My favorite color is blue and I love pizza',
@@ -167,7 +167,7 @@ result.facts.forEach(f => console.log(`- ${f.fact}`));
 
 ```typescript
 // Override automatic extraction
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-123',
   userMessage: 'I prefer TypeScript',
@@ -190,7 +190,7 @@ const result = await cortex.memory.rememberStream({
 ```typescript
 import { embed } from '@ai-sdk/openai';
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-123',
   userMessage: 'What is machine learning?',
@@ -214,13 +214,13 @@ const result = await cortex.memory.rememberStream({
 
 ```typescript
 // app/api/chat/route.ts
-import { Cortex } from '@cortexmemory/sdk';
+import { Memoir } from '@memoir/sdk';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 export const runtime = 'edge';
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
@@ -233,7 +233,7 @@ export async function POST(req: Request) {
   });
 
   // Store in background (non-blocking)
-  cortex.memory.rememberStream({
+  memoir.memory.rememberStream({
     memorySpaceId: 'edge-chat',
     conversationId: `conv-${userId}-${Date.now()}`,
     userMessage: message,
@@ -282,7 +282,7 @@ All three work seamlessly with `rememberStream()`.
 Monitor streaming progress with real-time callbacks:
 
 ```typescript
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: 'user-space',
   conversationId: 'conv-123',
   userMessage: 'Explain quantum computing',
@@ -319,7 +319,7 @@ const result = await cortex.memory.rememberStream({
 </Callout>
 
 ```typescript
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   // ... params
 });
 
@@ -346,7 +346,7 @@ console.log(result.streamMetrics);
 
 ```typescript
 try {
-  const result = await cortex.memory.rememberStream({
+  const result = await memoir.memory.rememberStream({
     memorySpaceId: 'user-space',
     conversationId: 'conv-123',
     userMessage: 'Long explanation...',
@@ -374,7 +374,7 @@ try {
 
 ```typescript
 // Don't await if you don't need the result
-cortex.memory.rememberStream({
+memoir.memory.rememberStream({
   // ... params
 }).catch(console.error);
 
@@ -390,7 +390,7 @@ cortex.memory.rememberStream({
 const response = await streamText({...});
 
 // Fire-and-forget storage
-cortex.memory.rememberStream({
+memoir.memory.rememberStream({
   responseStream: response.textStream,
   // ...
 }).catch(console.error);
@@ -407,8 +407,8 @@ ReadableStream and AsyncIterable can only be consumed once. Don't try to reuse s
 
 ```typescript
 // Bad: Can't consume same stream twice
-await cortex.memory.rememberStream({ responseStream: stream, ... });
-await cortex.memory.rememberStream({ responseStream: stream, ... });  // Fails!
+await memoir.memory.rememberStream({ responseStream: stream, ... });
+await memoir.memory.rememberStream({ responseStream: stream, ... });  // Fails!
 
 // Good: Use separate streams or tee the stream
 const [stream1, stream2] = stream.tee();

@@ -2,13 +2,13 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Official and community integrations for Cortex Memory.
+Official and community integrations for Memoir.
 
 ## Production Ready Integrations
 
 ### Vercel AI SDK (Production Ready)
 
-**Package**: `@cortexmemory/vercel-ai-provider` | **Version**: v0.27.2 | **SDK**: v0.21.0+
+**Package**: `@memoir/vercel-ai-provider` | **Version**: v0.27.2 | **SDK**: v0.21.0+
 
 Add persistent memory to Next.js applications with full streaming support, layer visualization, and memory orchestration.
 
@@ -32,17 +32,17 @@ npm install && npm run dev
 </Terminal>
 
 <Terminal title="Option 2: Use CLI to scaffold project">
-cortex init my-app --template vercel-ai-quickstart
+memoir init my-app --template vercel-ai-quickstart
 </Terminal>
 
 **Example:**
 
 ```typescript
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
@@ -50,7 +50,7 @@ const cortexMemory = createCortexMemory({
 });
 
 const result = await streamText({
-  model: cortexMemory(openai("gpt-4o-mini")),
+  model: memoirMemory(openai("gpt-4o-mini")),
   messages,
 });
 ```
@@ -59,7 +59,7 @@ const result = await streamText({
 
 - [Getting Started Guide](/integrations/vercel-ai-sdk/getting-started)
 - [API Reference](/integrations/vercel-ai-sdk/api-reference)
-- [Quickstart Demo](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider/quickstart)
+- [Quickstart Demo](https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider/quickstart)
 
 ---
 
@@ -70,10 +70,10 @@ const result = await streamText({
 **Status**: DIY Integration Guide  
 **Documentation**: [Auth Providers Guide](/integrations/auth-providers)
 
-Cortex provides a framework-agnostic AuthContext API. This guide shows patterns for integrating with Auth0, Clerk, NextAuth, Firebase, or custom JWT systems.
+Memoir provides a framework-agnostic AuthContext API. This guide shows patterns for integrating with Auth0, Clerk, NextAuth, Firebase, or custom JWT systems.
 
 <Callout type="warning">
-Cortex does NOT include specific auth provider packages. You integrate your existing auth system using the AuthContext API.
+Memoir does NOT include specific auth provider packages. You integrate your existing auth system using the AuthContext API.
 </Callout>
 
 **What you get:**
@@ -83,7 +83,7 @@ Cortex does NOT include specific auth provider packages. You integrate your exis
 - Example adapters for common providers
 - DIY implementation guidance
 
-**What Cortex provides:**
+**What Memoir provides:**
 
 - `createAuthContext()` function
 - Automatic user/tenant field injection
@@ -128,8 +128,8 @@ None yet. Build an integration and share it with the community!
 
 Want an integration with your favorite framework?
 
-- [Open an issue](https://github.com/SaintNick1214/Project-Cortex/issues/new)
-- [Start a discussion](https://github.com/SaintNick1214/Project-Cortex/discussions)
+- [Open an issue](https://github.com/Anu-Code07/memoir/issues/new)
+- [Start a discussion](https://github.com/Anu-Code07/memoir/discussions)
 - [Contribute](/project/contributing)
 
 ---

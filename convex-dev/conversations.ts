@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversations API (Layer 1a)
+ * Memoir SDK - Conversations API (Layer 1a)
  *
  * ACID-compliant immutable conversation storage
  * memorySpace-scoped with participantId tracking (Hive Mode)

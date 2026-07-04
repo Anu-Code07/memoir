@@ -1,8 +1,8 @@
-# Getting Started with Cortex Memory for Vercel AI SDK
+# Getting Started with Memoir for Vercel AI SDK
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Complete guide to adding persistent memory to your Next.js application using Cortex Memory SDK v0.21.0+.
+Complete guide to adding persistent memory to your Next.js application using Memoir SDK v0.21.0+.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Complete guide to adding persistent memory to your Next.js application using Cor
 
 ## Option 1: Run the Quickstart Demo (Recommended)
 
-The **fastest way** to understand Cortex Memory is with our interactive quickstart demo. This is a complete Next.js app with:
+The **fastest way** to understand Memoir is with our interactive quickstart demo. This is a complete Next.js app with:
 
 - Real-time layer flow visualization
 - Live memory orchestration
@@ -44,19 +44,19 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) and:
 
 1. **Send a message** like "Hi, I'm Alex and I work at Acme Corp as an engineer"
-2. **Watch the Layer Flow Diagram** show data flowing through all 7 Cortex layers in real-time
+2. **Watch the Layer Flow Diagram** show data flowing through all 7 Memoir layers in real-time
 3. **Ask a question** like "What do you remember about me?"
 4. **Refresh the page** and see memory persists across sessions
 5. **Try fact updates** - say "I actually prefer purple" after mentioning "I like blue" to see belief revision
 
-[View Quickstart Documentation](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider/quickstart)
+[View Quickstart Documentation](https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider/quickstart)
 
 ## Option 2: Add to Existing Project
 
 ### Step 1: Install Dependencies
 
 <Terminal>
-npm install @cortexmemory/vercel-ai-provider @cortexmemory/sdk ai convex
+npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
 npm install @ai-sdk/openai
 </Terminal>
 
@@ -65,10 +65,10 @@ You can also use `@ai-sdk/anthropic`, `@ai-sdk/google`, or other providers.
 ### Step 2: Set Up Convex Backend
 
 <Terminal>
-npx @cortexmemory/cli init
+npx @memoir/cli init
 </Terminal>
 
-Follow the wizard to set up Convex with Cortex backend automatically.
+Follow the wizard to set up Convex with Memoir backend automatically.
 
 ### Step 2.5: Deploy Convex Schema
 
@@ -94,11 +94,11 @@ OPENAI_API_KEY=sk-your-key-here
 MEMORY_SPACE_ID=my-chatbot
 
 # Optional: Enable fact extraction (SDK v0.18.0+)
-CORTEX_FACT_EXTRACTION=true
-CORTEX_FACT_EXTRACTION_MODEL=gpt-4o-mini
+MEMOIR_FACT_EXTRACTION=true
+MEMOIR_FACT_EXTRACTION_MODEL=gpt-4o-mini
 
 # Optional: Enable graph sync (SDK v0.19.0+)
-# CORTEX_GRAPH_SYNC=true
+# MEMOIR_GRAPH_SYNC=true
 # NEO4J_URI=bolt://localhost:7687
 # NEO4J_USERNAME=neo4j
 # NEO4J_PASSWORD=your-password
@@ -108,7 +108,7 @@ CORTEX_FACT_EXTRACTION_MODEL=gpt-4o-mini
 
 ```typescript
 // app/api/chat/route.ts
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
@@ -145,8 +145,8 @@ export async function POST(req: Request) {
       : modelMessagesResult;
 
   // Create memory-augmented model with async initialization
-  // Use createCortexMemoryAsync for graph memory support
-  const cortexMemory = await createCortexMemoryAsync({
+  // Use createMemoirMemoryAsync for graph memory support
+  const memoirMemory = await createMemoirMemoryAsync({
     convexUrl: process.env.CONVEX_URL!,
     memorySpaceId: process.env.MEMORY_SPACE_ID || "default-chat",
 
@@ -173,13 +173,13 @@ export async function POST(req: Request) {
     },
 
     // Optional: Enable enhanced features
-    enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === "true",
-    enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === "true",
+    enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === "true",
+    enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === "true",
   });
 
   // Stream response with memory integration
   const result = await streamText({
-    model: cortexMemory(openai("gpt-4o-mini")),
+    model: memoirMemory(openai("gpt-4o-mini")),
     messages: modelMessages,
     system: `You are a helpful assistant with long-term memory.
 You remember everything users tell you and can recall it naturally.`,
@@ -293,7 +293,7 @@ npm run dev
 ]} />
 
 <Callout type="info">
-Use `createCortexMemoryAsync` (with `await`) instead of `createCortexMemory` when you need graph memory support or want automatic configuration from environment variables.
+Use `createMemoirMemoryAsync` (with `await`) instead of `createMemoirMemory` when you need graph memory support or want automatic configuration from environment variables.
 </Callout>
 
 ## Dynamic User Resolution
@@ -302,7 +302,7 @@ For authentication systems:
 
 ```typescript
 import { auth } from "@clerk/nextjs";
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -311,7 +311,7 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const cortexMemory = await createCortexMemoryAsync({
+  const memoirMemory = await createMemoirMemoryAsync({
     convexUrl: process.env.CONVEX_URL!,
     memorySpaceId: "app",
     userId,
@@ -320,7 +320,7 @@ export async function POST(req: Request) {
     conversationId: `conv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   });
 
-  // ... use cortexMemory
+  // ... use memoirMemory
 }
 ```
 
@@ -329,14 +329,14 @@ export async function POST(req: Request) {
 Different memory space per team/tenant:
 
 ```typescript
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
 export async function POST(req: Request) {
   const { teamId, messages, conversationId } = await req.json();
 
-  const cortexMemory = await createCortexMemoryAsync({
+  const memoirMemory = await createMemoirMemoryAsync({
     convexUrl: process.env.CONVEX_URL!,
     memorySpaceId: `team-${teamId}`, // Isolated per team
     userId: currentUser.id,
@@ -346,7 +346,7 @@ export async function POST(req: Request) {
   });
 
   const result = await streamText({
-    model: cortexMemory(openai("gpt-4o-mini")),
+    model: memoirMemory(openai("gpt-4o-mini")),
     messages,
   });
 
@@ -366,8 +366,8 @@ Set environment variables in Vercel dashboard:
 - `NEXT_PUBLIC_CONVEX_URL`
 - `OPENAI_API_KEY`
 - `MEMORY_SPACE_ID` (optional)
-- `CORTEX_FACT_EXTRACTION` (optional)
-- `CORTEX_GRAPH_SYNC` (optional)
+- `MEMOIR_FACT_EXTRACTION` (optional)
+- `MEMOIR_GRAPH_SYNC` (optional)
 
 ## Troubleshooting
 
@@ -376,7 +376,7 @@ Set environment variables in Vercel dashboard:
 Add `agentId` to your configuration (required in SDK v0.17.0+):
 
 ```typescript
-const cortexMemory = await createCortexMemoryAsync({
+const memoirMemory = await createMemoirMemoryAsync({
   // ... other config
   agentId: "my-assistant", // Add this!
 });

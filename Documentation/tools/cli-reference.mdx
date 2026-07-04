@@ -2,20 +2,20 @@
 id: cli-reference
 title: CLI Reference
 sidebar_position: 1
-description: Command-line tool for managing Cortex Memory deployments
+description: Command-line tool for managing Memoir deployments
 ---
 
-# Cortex CLI Reference
+# Memoir CLI Reference
 
 <Callout type="info">
 
-**Last Updated**: 2026-01-08 | **CLI Version**: 0.27.4 | **Package**: `@cortexmemory/cli`
+**Last Updated**: 2026-01-08 | **CLI Version**: 0.27.4 | **Package**: `@memoir/cli`
 
 </Callout>
 
-## What is Cortex CLI?
+## What is Memoir CLI?
 
-The Cortex CLI is a command-line tool for managing Cortex Memory deployments, performing administrative tasks, and streamlining development workflows. It provides comprehensive functionality for:
+The Memoir CLI is a command-line tool for managing Memoir deployments, performing administrative tasks, and streamlining development workflows. It provides comprehensive functionality for:
 
 - **Project initialization** and lifecycle management
 - **Database operations** and statistics
@@ -28,19 +28,19 @@ The Cortex CLI is a command-line tool for managing Cortex Memory deployments, pe
 
 Install via Homebrew (Recommended):
 
-<Terminal>brew install cortex-memory/tap/cli</Terminal>
+<Terminal>brew install memoir/tap/cli</Terminal>
 
 Or install globally via npm:
 
-<Terminal>npm install -g @cortexmemory/cli</Terminal>
+<Terminal>npm install -g @memoir/cli</Terminal>
 
 Or use with npx (no installation needed):
 
-<Terminal>npx @cortexmemory/cli &lt;command&gt;</Terminal>
+<Terminal>npx @memoir/cli &lt;command&gt;</Terminal>
 
 Or install as dev dependency in your project:
 
-<Terminal>npm install --save-dev @cortexmemory/cli</Terminal>
+<Terminal>npm install --save-dev @memoir/cli</Terminal>
 
 **Requirements**: Node.js >= 20
 
@@ -49,20 +49,20 @@ Or install as dev dependency in your project:
 The most common workflow for getting started:
 
 <Steps>
-  <Step title="Initialize a new Cortex project">
-    <Terminal>cortex init my-cortex-app</Terminal>
+  <Step title="Initialize a new Memoir project">
+    <Terminal>memoir init my-memoir-app</Terminal>
   </Step>
   <Step title="Start development services">
-    <Terminal>cortex start</Terminal>
+    <Terminal>memoir start</Terminal>
   </Step>
   <Step title="Check status">
-    <Terminal>cortex status</Terminal>
+    <Terminal>memoir status</Terminal>
   </Step>
   <Step title="View database statistics">
-    <Terminal>cortex db stats</Terminal>
+    <Terminal>memoir db stats</Terminal>
   </Step>
   <Step title="List memory spaces">
-    <Terminal>cortex spaces list</Terminal>
+    <Terminal>memoir spaces list</Terminal>
   </Step>
 </Steps>
 
@@ -72,48 +72,48 @@ The most common workflow for getting started:
 
 ### Project Lifecycle
 
-Commands for managing your Cortex project lifecycle:
+Commands for managing your Memoir project lifecycle:
 
-- [`cortex init`](#cortex-init) - Initialize a new Cortex Memory project
-- [`cortex start`](#cortex-start) - Start development services
-- [`cortex stop`](#cortex-stop) - Stop background services
-- [`cortex dev`](#cortex-dev) - Interactive development mode (Expo-style)
-- [`cortex status`](#cortex-status) - Show status dashboard
+- [`memoir init`](#memoir-init) - Initialize a new Memoir project
+- [`memoir start`](#memoir-start) - Start development services
+- [`memoir stop`](#memoir-stop) - Stop background services
+- [`memoir dev`](#memoir-dev) - Interactive development mode (Expo-style)
+- [`memoir status`](#memoir-status) - Show status dashboard
 
 ### Configuration
 
 Commands for managing CLI configuration:
 
-- [`cortex config`](#cortex-config) - Configuration management
-- [`cortex use`](#cortex-use) - Switch deployment context
+- [`memoir config`](#memoir-config) - Configuration management
+- [`memoir use`](#memoir-use) - Switch deployment context
 
 ### Data Operations
 
 Commands for managing data:
 
-- [`cortex memory`](#cortex-memory) - Memory operations (vector store)
-- [`cortex users`](#cortex-users) - User management with GDPR support
-- [`cortex spaces`](#cortex-spaces) - Memory space operations
-- [`cortex facts`](#cortex-facts) - Facts operations
-- [`cortex conversations`](#cortex-conversations-alias-convs) - Conversation operations
+- [`memoir memory`](#memoir) - Memory operations (vector store)
+- [`memoir users`](#memoir-users) - User management with GDPR support
+- [`memoir spaces`](#memoir-spaces) - Memory space operations
+- [`memoir facts`](#memoir-facts) - Facts operations
+- [`memoir conversations`](#memoir-conversations-alias-convs) - Conversation operations
 
 ### Database
 
 Commands for database-wide operations:
 
-- [`cortex db stats`](#cortex-db-stats) - Show database statistics
-- [`cortex db clear`](#cortex-db-clear) - Clear entire database
-- [`cortex db backup`](#cortex-db-backup) - Backup database
-- [`cortex db restore`](#cortex-db-restore) - Restore from backup
-- [`cortex db export`](#cortex-db-export) - Export all data
+- [`memoir db stats`](#memoir-db-stats) - Show database statistics
+- [`memoir db clear`](#memoir-db-clear) - Clear entire database
+- [`memoir db backup`](#memoir-db-backup) - Backup database
+- [`memoir db restore`](#memoir-db-restore) - Restore from backup
+- [`memoir db export`](#memoir-db-export) - Export all data
 
 ### Deployment
 
 Commands for deploying and updating:
 
-- [`cortex deploy`](#cortex-deploy) - Deploy schema and functions
-- [`cortex update`](#cortex-update) - Update packages across deployments
-- [`cortex convex`](#cortex-convex) - Convex management
+- [`memoir deploy`](#memoir-deploy) - Deploy schema and functions
+- [`memoir update`](#memoir-update) - Update packages across deployments
+- [`memoir convex`](#memoir-convex) - Convex management
 
 ---
 
@@ -148,14 +148,14 @@ Most data operation commands also support:
 
 ### Project Lifecycle Commands
 
-#### `cortex init`
+#### `memoir init`
 
-Initialize a new Cortex Memory project with interactive setup wizard.
+Initialize a new Memoir project with interactive setup wizard.
 
 **Usage:**
 
 ```bash
-cortex init [directory] [options]
+memoir init [directory] [options]
 ```
 
 **Arguments:**
@@ -178,7 +178,7 @@ cortex init [directory] [options]
   rows={[
     ["`basic`", "Interactive CLI + HTTP API server (default)"],
     ["`vercel-ai-quickstart`", "Next.js ChatGPT-style web app with Vercel AI SDK"],
-    ["`chat-sdk`", "Full-featured chat app based on vercel/ai-chatbot with Cortex Memory"],
+    ["`chat-sdk`", "Full-featured chat app based on vercel/ai-chatbot with Memoir"],
   ]}
 />
 
@@ -186,22 +186,22 @@ cortex init [directory] [options]
 
 ```bash
 # Interactive setup (recommended)
-cortex init
+memoir init
 
 # Create project with local Convex (fastest)
-cortex init my-app --local
+memoir init my-app --local
 
 # Create project with cloud Convex
-cortex init my-app --cloud
+memoir init my-app --cloud
 
 # Create and start immediately
-cortex init my-app --local --start
+memoir init my-app --local --start
 
 # Skip graph database setup
-cortex init my-app --skip-graph
+memoir init my-app --skip-graph
 
 # Use Chat SDK template (full-featured chat app)
-cortex init my-chatbot --template chat-sdk
+memoir init my-chatbot --template chat-sdk
 ```
 
 **What It Does:**
@@ -211,8 +211,8 @@ cortex init my-chatbot --template chat-sdk
 3. Optionally sets up graph database (Neo4j or Memgraph)
 4. Optionally configures OpenAI API key
 5. Installs dependencies
-6. Deploys Cortex backend functions
-7. Saves deployment configuration to `~/.cortexrc`
+6. Deploys Memoir backend functions
+7. Saves deployment configuration to `~/.memoirrc`
 8. Optionally installs Vercel AI quickstart demo
 
 **Related:**
@@ -222,14 +222,14 @@ cortex init my-chatbot --template chat-sdk
 
 ---
 
-#### `cortex start`
+#### `memoir start`
 
 Start development services for all enabled deployments.
 
 **Usage:**
 
 ```bash
-cortex start [options]
+memoir start [options]
 ```
 
 **Options:**
@@ -244,24 +244,24 @@ cortex start [options]
 
 ```bash
 # Start all enabled deployments
-cortex start
+memoir start
 
 # Start specific deployment
-cortex start --deployment production
+memoir start --deployment production
 
 # Start with local Convex
-cortex start --local
+memoir start --local
 
 # Start in foreground (see logs)
-cortex start --deployment local --foreground
+memoir start --deployment local --foreground
 
 # Start only graph databases
-cortex start --graph-only
+memoir start --graph-only
 ```
 
 **What It Does:**
 
-1. Reads deployment configuration from `~/.cortexrc`
+1. Reads deployment configuration from `~/.memoirrc`
 2. For each enabled deployment:
    - Starts graph database if configured
    - Deploys functions to production (for cloud deployments)
@@ -271,20 +271,20 @@ cortex start --graph-only
 
 **Related:**
 
-- [Configuration: Managing Deployments](#cortex-config)
-- [`cortex stop`](#cortex-stop)
-- [`cortex dev`](#cortex-dev)
+- [Configuration: Managing Deployments](#memoir-config)
+- [`memoir stop`](#memoir-stop)
+- [`memoir dev`](#memoir-dev)
 
 ---
 
-#### `cortex stop`
+#### `memoir stop`
 
 Stop background services (Convex, graph database, and apps).
 
 **Usage:**
 
 ```bash
-cortex stop [options]
+memoir stop [options]
 ```
 
 **Options:**
@@ -299,16 +299,16 @@ cortex stop [options]
 
 ```bash
 # Stop all services
-cortex stop
+memoir stop
 
 # Stop specific deployment
-cortex stop --deployment local
+memoir stop --deployment local
 
 # Stop specific app
-cortex stop --app quickstart
+memoir stop --app quickstart
 
 # Stop only Convex (leave graph running)
-cortex stop --convex-only
+memoir stop --convex-only
 ```
 
 **What It Does:**
@@ -321,19 +321,19 @@ cortex stop --convex-only
 
 **Related:**
 
-- [`cortex start`](#cortex-start)
-- [`cortex status`](#cortex-status)
+- [`memoir start`](#memoir-start)
+- [`memoir status`](#memoir-status)
 
 ---
 
-#### `cortex dev`
+#### `memoir dev`
 
 Start interactive development mode with Expo-style interface.
 
 **Usage:**
 
 ```bash
-cortex dev [options]
+memoir dev [options]
 ```
 
 **Options:**
@@ -355,13 +355,13 @@ cortex dev [options]
 
 ```bash
 # Start interactive dev mode
-cortex dev
+memoir dev
 
 # Dev mode for specific deployment
-cortex dev --deployment local
+memoir dev --deployment local
 
 # Force local mode
-cortex dev --local
+memoir dev --local
 ```
 
 **What It Does:**
@@ -384,19 +384,19 @@ cortex dev --local
 
 **Related:**
 
-- [`cortex start`](#cortex-start)
-- [`cortex status`](#cortex-status)
+- [`memoir start`](#memoir-start)
+- [`memoir status`](#memoir-status)
 
 ---
 
-#### `cortex status`
+#### `memoir status`
 
-Show Cortex setup status dashboard for all deployments.
+Show Memoir setup status dashboard for all deployments.
 
 **Usage:**
 
 ```bash
-cortex status [options]
+memoir status [options]
 ```
 
 **Options:**
@@ -409,13 +409,13 @@ cortex status [options]
 
 ```bash
 # Show status for all deployments
-cortex status
+memoir status
 
 # Status for specific deployment
-cortex status --deployment production
+memoir status --deployment production
 
 # JSON output
-cortex status --format json
+memoir status --format json
 ```
 
 **What It Shows:**
@@ -430,25 +430,25 @@ cortex status --format json
 
 **Related:**
 
-- [`cortex start`](#cortex-start)
-- [`cortex config list`](#cortex-config-list)
+- [`memoir start`](#memoir-start)
+- [`memoir config list`](#memoir-config-list)
 
 ---
 
 ### Configuration Commands
 
-#### `cortex config`
+#### `memoir config`
 
 Manage CLI configuration. The config command has multiple subcommands:
 
-##### `cortex config show`
+##### `memoir config show`
 
 Show current configuration.
 
 **Usage:**
 
 ```bash
-cortex config show [options]
+memoir config show [options]
 ```
 
 **Options:**
@@ -459,29 +459,29 @@ cortex config show [options]
 
 ```bash
 # Show configuration
-cortex config show
+memoir config show
 
 # JSON output
-cortex config show --format json
+memoir config show --format json
 ```
 
 ---
 
-##### `cortex config list`
+##### `memoir config list`
 
 List all deployments in table format.
 
 **Usage:**
 
 ```bash
-cortex config list
+memoir config list
 ```
 
 **Examples:**
 
 ```bash
 # List all deployments and apps
-cortex config list
+memoir config list
 ```
 
 **Output:**
@@ -493,36 +493,36 @@ cortex config list
 
 ---
 
-##### `cortex config set`
+##### `memoir config set`
 
 Set a configuration value.
 
 **Usage:**
 
 ```bash
-cortex config set <key> <value>
+memoir config set <key> <value>
 ```
 
 **Examples:**
 
 ```bash
 # Set default deployment
-cortex config set default production
+memoir config set default production
 
 # Set output format
-cortex config set format json
+memoir config set format json
 ```
 
 ---
 
-##### `cortex config test`
+##### `memoir config test`
 
 Test connection to Convex deployment.
 
 **Usage:**
 
 ```bash
-cortex config test [options]
+memoir config test [options]
 ```
 
 **Options:**
@@ -533,22 +533,22 @@ cortex config test [options]
 
 ```bash
 # Test default deployment
-cortex config test
+memoir config test
 
 # Test specific deployment
-cortex config test --deployment production
+memoir config test --deployment production
 ```
 
 ---
 
-##### `cortex config add-deployment`
+##### `memoir config add-deployment`
 
 Add a new deployment configuration.
 
 **Usage:**
 
 ```bash
-cortex config add-deployment [name] [options]
+memoir config add-deployment [name] [options]
 ```
 
 **Options:**
@@ -556,201 +556,201 @@ cortex config add-deployment [name] [options]
 - `-u, --url <url>` - Convex deployment URL
 - `-k, --key <key>` - Convex deploy key
 - `--default` - Set as default deployment [default: false]
-- `--json-only` - Only save to ~/.cortexrc (skip .env.local) [default: false]
+- `--json-only` - Only save to ~/.memoirrc (skip .env.local) [default: false]
 
 **Examples:**
 
 ```bash
 # Interactive mode
-cortex config add-deployment
+memoir config add-deployment
 
 # Add cloud deployment
-cortex config add-deployment cloud \
+memoir config add-deployment cloud \
   --url https://my-app.convex.cloud \
   --key "prod|abc123..."
 
 # Add and set as default
-cortex config add-deployment staging \
+memoir config add-deployment staging \
   --url https://staging.convex.cloud \
   --default
 ```
 
 ---
 
-##### `cortex config remove-deployment`
+##### `memoir config remove-deployment`
 
 Remove a deployment configuration.
 
 **Usage:**
 
 ```bash
-cortex config remove-deployment [name] [options]
+memoir config remove-deployment [name] [options]
 ```
 
 **Options:**
 
-- `--json-only` - Only remove from ~/.cortexrc (skip .env.local) [default: false]
+- `--json-only` - Only remove from ~/.memoirrc (skip .env.local) [default: false]
 
 **Examples:**
 
 ```bash
 # Interactive mode
-cortex config remove-deployment
+memoir config remove-deployment
 
 # Remove specific deployment
-cortex config remove-deployment staging
+memoir config remove-deployment staging
 ```
 
 **Note:** Cannot remove the default deployment. Set a different default first.
 
 ---
 
-##### `cortex config set-key`
+##### `memoir config set-key`
 
 Set or update the deploy key for a deployment.
 
 **Usage:**
 
 ```bash
-cortex config set-key [deployment] [options]
+memoir config set-key [deployment] [options]
 ```
 
 **Options:**
 
 - `-k, --key <key>` - Deploy key (will prompt if not provided)
-- `--json-only` - Only update ~/.cortexrc (skip .env.local) [default: false]
+- `--json-only` - Only update ~/.memoirrc (skip .env.local) [default: false]
 
 **Examples:**
 
 ```bash
 # Interactive mode
-cortex config set-key
+memoir config set-key
 
 # Set key for specific deployment
-cortex config set-key production --key "prod|abc123..."
+memoir config set-key production --key "prod|abc123..."
 ```
 
 ---
 
-##### `cortex config set-url`
+##### `memoir config set-url`
 
 Set or update the URL for a deployment.
 
 **Usage:**
 
 ```bash
-cortex config set-url [deployment] [options]
+memoir config set-url [deployment] [options]
 ```
 
 **Options:**
 
 - `-u, --url <url>` - Deployment URL (will prompt if not provided)
-- `--json-only` - Only update ~/.cortexrc (skip .env.local) [default: false]
+- `--json-only` - Only update ~/.memoirrc (skip .env.local) [default: false]
 
 **Examples:**
 
 ```bash
 # Interactive mode
-cortex config set-url
+memoir config set-url
 
 # Set URL for specific deployment
-cortex config set-url production --url "https://new-app.convex.cloud"
+memoir config set-url production --url "https://new-app.convex.cloud"
 ```
 
 ---
 
-##### `cortex config set-path`
+##### `memoir config set-path`
 
-Set project path for a deployment (enables `cortex start -d <name>` from anywhere).
+Set project path for a deployment (enables `memoir start -d <name>` from anywhere).
 
 **Usage:**
 
 ```bash
-cortex config set-path <deployment> [path]
+memoir config set-path <deployment> [path]
 ```
 
 **Examples:**
 
 ```bash
 # Set path to current directory
-cortex config set-path production
+memoir config set-path production
 
 # Set specific path
-cortex config set-path production /path/to/project
+memoir config set-path production /path/to/project
 ```
 
 ---
 
-##### `cortex config enable`
+##### `memoir config enable`
 
-Enable a deployment or app (will be started with `cortex start`).
+Enable a deployment or app (will be started with `memoir start`).
 
 **Usage:**
 
 ```bash
-cortex config enable <name>
+memoir config enable <name>
 ```
 
 **Examples:**
 
 ```bash
 # Enable deployment
-cortex config enable production
+memoir config enable production
 
 # Enable app
-cortex config enable quickstart
+memoir config enable quickstart
 ```
 
 ---
 
-##### `cortex config disable`
+##### `memoir config disable`
 
-Disable a deployment or app (will not be started with `cortex start`).
+Disable a deployment or app (will not be started with `memoir start`).
 
 **Usage:**
 
 ```bash
-cortex config disable <name>
+memoir config disable <name>
 ```
 
 **Examples:**
 
 ```bash
 # Disable deployment
-cortex config disable staging
+memoir config disable staging
 
 # Disable app
-cortex config disable quickstart
+memoir config disable quickstart
 ```
 
 ---
 
-##### `cortex config path`
+##### `memoir config path`
 
 Show configuration file paths.
 
 **Usage:**
 
 ```bash
-cortex config path
+memoir config path
 ```
 
 **Shows:**
 
-- User config path (`~/.cortexrc`)
+- User config path (`~/.memoirrc`)
 - Project config paths
 - Environment variables
 
 ---
 
-##### `cortex config reset`
+##### `memoir config reset`
 
 Reset configuration to defaults.
 
 **Usage:**
 
 ```bash
-cortex config reset [options]
+memoir config reset [options]
 ```
 
 **Options:**
@@ -761,7 +761,7 @@ cortex config reset [options]
 
 ```bash
 # Reset configuration
-cortex config reset
+memoir config reset
 ```
 
 <Callout type="warning">
@@ -770,14 +770,14 @@ This cannot be undone.
 
 ---
 
-#### `cortex use`
+#### `memoir use`
 
 Set current deployment for all commands (session context).
 
 **Usage:**
 
 ```bash
-cortex use [deployment] [options]
+memoir use [deployment] [options]
 ```
 
 **Options:**
@@ -788,13 +788,13 @@ cortex use [deployment] [options]
 
 ```bash
 # Show current deployment
-cortex use
+memoir use
 
 # Switch to production
-cortex use production
+memoir use production
 
 # Clear current deployment
-cortex use --clear
+memoir use --clear
 ```
 
 **What It Does:**
@@ -807,18 +807,18 @@ cortex use --clear
 
 ### Memory Commands
 
-#### `cortex memory`
+#### `memoir memory`
 
 Manage memories (vector store). The memory command has multiple subcommands:
 
-##### `cortex memory list`
+##### `memoir memory list`
 
 List memories in a memory space.
 
 **Usage:**
 
 ```bash
-cortex memory list [options]
+memoir memory list [options]
 ```
 
 **Options:**
@@ -833,13 +833,13 @@ cortex memory list [options]
 
 ```bash
 # List memories in a space
-cortex memory list --space agent-1
+memoir memory list --space agent-1
 
 # Filter by user
-cortex memory list --space agent-1 --user user-123
+memoir memory list --space agent-1 --user user-123
 
 # Increase limit
-cortex memory list --space agent-1 --limit 100
+memoir memory list --space agent-1 --limit 100
 ```
 
 **Related:**
@@ -849,14 +849,14 @@ cortex memory list --space agent-1 --limit 100
 
 ---
 
-##### `cortex memory search`
+##### `memoir memory search`
 
 Search memories by content.
 
 **Usage:**
 
 ```bash
-cortex memory search <query> [options]
+memoir memory search <query> [options]
 ```
 
 **Options:**
@@ -871,25 +871,25 @@ cortex memory search <query> [options]
 
 ```bash
 # Search memories
-cortex memory search "password preferences" --space agent-1
+memoir memory search "password preferences" --space agent-1
 
 # Search for specific user
-cortex memory search "API keys" --space agent-1 --user user-123
+memoir memory search "API keys" --space agent-1 --user user-123
 
 # Increase results
-cortex memory search "configuration" --space agent-1 --limit 50
+memoir memory search "configuration" --space agent-1 --limit 50
 ```
 
 ---
 
-##### `cortex memory get`
+##### `memoir memory get`
 
 Get details of a specific memory.
 
 **Usage:**
 
 ```bash
-cortex memory get <memoryId> [options]
+memoir memory get <memoryId> [options]
 ```
 
 **Options:**
@@ -903,22 +903,22 @@ cortex memory get <memoryId> [options]
 
 ```bash
 # Get memory details
-cortex memory get mem-123 --space agent-1
+memoir memory get mem-123 --space agent-1
 
 # Include source conversation
-cortex memory get mem-123 --space agent-1 --include-conversation
+memoir memory get mem-123 --space agent-1 --include-conversation
 ```
 
 ---
 
-##### `cortex memory delete`
+##### `memoir memory delete`
 
 Delete a specific memory.
 
 **Usage:**
 
 ```bash
-cortex memory delete <memoryId> [options]
+memoir memory delete <memoryId> [options]
 ```
 
 **Options:**
@@ -932,10 +932,10 @@ cortex memory delete <memoryId> [options]
 
 ```bash
 # Delete memory
-cortex memory delete mem-123 --space agent-1
+memoir memory delete mem-123 --space agent-1
 
 # Delete with cascade (also deletes facts)
-cortex memory delete mem-123 --space agent-1 --cascade
+memoir memory delete mem-123 --space agent-1 --cascade
 ```
 
 <Callout type="warning">
@@ -944,14 +944,14 @@ Deletion is permanent and cannot be undone.
 
 ---
 
-##### `cortex memory clear`
+##### `memoir memory clear`
 
 Clear multiple memories.
 
 **Usage:**
 
 ```bash
-cortex memory clear [options]
+memoir memory clear [options]
 ```
 
 **Options:**
@@ -966,13 +966,13 @@ cortex memory clear [options]
 
 ```bash
 # Clear all memories in a space
-cortex memory clear --space agent-1
+memoir memory clear --space agent-1
 
 # Clear memories for specific user
-cortex memory clear --space agent-1 --user user-123
+memoir memory clear --space agent-1 --user user-123
 
 # Clear by source type
-cortex memory clear --space agent-1 --source conversation
+memoir memory clear --space agent-1 --source conversation
 ```
 
 <Callout type="warning">
@@ -981,14 +981,14 @@ This operation is permanent and cannot be undone.
 
 ---
 
-##### `cortex memory export`
+##### `memoir memory export`
 
 Export memories to a file.
 
 **Usage:**
 
 ```bash
-cortex memory export [options]
+memoir memory export [options]
 ```
 
 **Options:**
@@ -1004,25 +1004,25 @@ cortex memory export [options]
 
 ```bash
 # Export memories
-cortex memory export --space agent-1 --output memories.json
+memoir memory export --space agent-1 --output memories.json
 
 # Export with facts
-cortex memory export --space agent-1 --include-facts
+memoir memory export --space agent-1 --include-facts
 
 # Export as CSV
-cortex memory export --space agent-1 --format csv --output memories.csv
+memoir memory export --space agent-1 --format csv --output memories.csv
 ```
 
 ---
 
-##### `cortex memory stats`
+##### `memoir memory stats`
 
 Show memory statistics for a space.
 
 **Usage:**
 
 ```bash
-cortex memory stats [options]
+memoir memory stats [options]
 ```
 
 **Options:**
@@ -1035,22 +1035,22 @@ cortex memory stats [options]
 
 ```bash
 # Show statistics
-cortex memory stats --space agent-1
+memoir memory stats --space agent-1
 
 # JSON output
-cortex memory stats --space agent-1 --format json
+memoir memory stats --space agent-1 --format json
 ```
 
 ---
 
-##### `cortex memory archive`
+##### `memoir memory archive`
 
 Archive a memory (soft delete).
 
 **Usage:**
 
 ```bash
-cortex memory archive <memoryId> [options]
+memoir memory archive <memoryId> [options]
 ```
 
 **Options:**
@@ -1063,21 +1063,21 @@ cortex memory archive <memoryId> [options]
 
 ```bash
 # Archive memory
-cortex memory archive mem-123 --space agent-1
+memoir memory archive mem-123 --space agent-1
 ```
 
-**Note:** Archived memories can be restored later using `cortex memory restore`.
+**Note:** Archived memories can be restored later using `memoir memory restore`.
 
 ---
 
-##### `cortex memory restore`
+##### `memoir memory restore`
 
 Restore an archived memory.
 
 **Usage:**
 
 ```bash
-cortex memory restore <memoryId> [options]
+memoir memory restore <memoryId> [options]
 ```
 
 **Options:**
@@ -1089,25 +1089,25 @@ cortex memory restore <memoryId> [options]
 
 ```bash
 # Restore memory
-cortex memory restore mem-123 --space agent-1
+memoir memory restore mem-123 --space agent-1
 ```
 
 ---
 
 ### User Commands
 
-#### `cortex users`
+#### `memoir users`
 
 Manage user profiles and data with GDPR compliance support.
 
-##### `cortex users list`
+##### `memoir users list`
 
 List all user profiles with usage stats.
 
 **Usage:**
 
 ```bash
-cortex users list [options]
+memoir users list [options]
 ```
 
 **Options:**
@@ -1121,13 +1121,13 @@ cortex users list [options]
 
 ```bash
 # List users
-cortex users list
+memoir users list
 
 # List without stats (faster)
-cortex users list --no-stats
+memoir users list --no-stats
 
 # Increase limit
-cortex users list --limit 100
+memoir users list --limit 100
 ```
 
 **Related:**
@@ -1137,14 +1137,14 @@ cortex users list --limit 100
 
 ---
 
-##### `cortex users get`
+##### `memoir users get`
 
 Get user profile details.
 
 **Usage:**
 
 ```bash
-cortex users get <userId> [options]
+memoir users get <userId> [options]
 ```
 
 **Options:**
@@ -1157,22 +1157,22 @@ cortex users get <userId> [options]
 
 ```bash
 # Get user profile
-cortex users get user-123
+memoir users get user-123
 
 # Include version history
-cortex users get user-123 --include-history
+memoir users get user-123 --include-history
 ```
 
 ---
 
-##### `cortex users delete`
+##### `memoir users delete`
 
 Delete user profile with optional GDPR cascade deletion.
 
 **Usage:**
 
 ```bash
-cortex users delete <userId> [options]
+memoir users delete <userId> [options]
 ```
 
 **Options:**
@@ -1187,13 +1187,13 @@ cortex users delete <userId> [options]
 
 ```bash
 # Delete user profile only
-cortex users delete user-123
+memoir users delete user-123
 
 # GDPR cascade deletion (all user data)
-cortex users delete user-123 --cascade
+memoir users delete user-123 --cascade
 
 # Dry run to preview deletion
-cortex users delete user-123 --cascade --dry-run
+memoir users delete user-123 --cascade --dry-run
 ```
 
 <Callout type="warning">
@@ -1214,14 +1214,14 @@ Cascade deletion permanently removes ALL user data:
 
 ---
 
-##### `cortex users delete-many`
+##### `memoir users delete-many`
 
 Delete multiple users with optional GDPR cascade.
 
 **Usage:**
 
 ```bash
-cortex users delete-many <userIds...> [options]
+memoir users delete-many <userIds...> [options]
 ```
 
 **Options:**
@@ -1235,25 +1235,25 @@ cortex users delete-many <userIds...> [options]
 
 ```bash
 # Delete multiple users
-cortex users delete-many user-1 user-2 user-3
+memoir users delete-many user-1 user-2 user-3
 
 # Delete with cascade
-cortex users delete-many user-1 user-2 --cascade
+memoir users delete-many user-1 user-2 --cascade
 
 # Dry run
-cortex users delete-many user-1 user-2 --cascade --dry-run
+memoir users delete-many user-1 user-2 --cascade --dry-run
 ```
 
 ---
 
-##### `cortex users export`
+##### `memoir users export`
 
 Export all user data (GDPR data portability).
 
 **Usage:**
 
 ```bash
-cortex users export <userId> [options]
+memoir users export <userId> [options]
 ```
 
 **Options:**
@@ -1265,10 +1265,10 @@ cortex users export <userId> [options]
 
 ```bash
 # Export user data
-cortex users export user-123
+memoir users export user-123
 
 # Custom output file
-cortex users export user-123 --output user-data.json
+memoir users export user-123 --output user-data.json
 ```
 
 **Related:**
@@ -1277,14 +1277,14 @@ cortex users export user-123 --output user-data.json
 
 ---
 
-##### `cortex users stats`
+##### `memoir users stats`
 
 Show statistics for a user.
 
 **Usage:**
 
 ```bash
-cortex users stats <userId> [options]
+memoir users stats <userId> [options]
 ```
 
 **Options:**
@@ -1296,22 +1296,22 @@ cortex users stats <userId> [options]
 
 ```bash
 # Show user statistics
-cortex users stats user-123
+memoir users stats user-123
 
 # JSON output
-cortex users stats user-123 --format json
+memoir users stats user-123 --format json
 ```
 
 ---
 
-##### `cortex users update`
+##### `memoir users update`
 
 Update user profile data.
 
 **Usage:**
 
 ```bash
-cortex users update <userId> [options]
+memoir users update <userId> [options]
 ```
 
 **Options:**
@@ -1324,22 +1324,22 @@ cortex users update <userId> [options]
 
 ```bash
 # Update user data
-cortex users update user-123 --data '{"name":"John","role":"admin"}'
+memoir users update user-123 --data '{"name":"John","role":"admin"}'
 
 # Update from file
-cortex users update user-123 --file user-data.json
+memoir users update user-123 --file user-data.json
 ```
 
 ---
 
-##### `cortex users create`
+##### `memoir users create`
 
 Create a new user profile.
 
 **Usage:**
 
 ```bash
-cortex users create <userId> [options]
+memoir users create <userId> [options]
 ```
 
 **Options:**
@@ -1351,22 +1351,22 @@ cortex users create <userId> [options]
 
 ```bash
 # Create user
-cortex users create user-123
+memoir users create user-123
 
 # Create with data
-cortex users create user-123 --data '{"name":"John","email":"john@example.com"}'
+memoir users create user-123 --data '{"name":"John","email":"john@example.com"}'
 ```
 
 ---
 
-##### `cortex users exists`
+##### `memoir users exists`
 
 Check if a user exists.
 
 **Usage:**
 
 ```bash
-cortex users exists <userId> [options]
+memoir users exists <userId> [options]
 ```
 
 **Options:**
@@ -1377,25 +1377,25 @@ cortex users exists <userId> [options]
 
 ```bash
 # Check if user exists
-cortex users exists user-123
+memoir users exists user-123
 ```
 
 ---
 
 ### Memory Space Commands
 
-#### `cortex spaces`
+#### `memoir spaces`
 
 Manage memory spaces.
 
-##### `cortex spaces list`
+##### `memoir spaces list`
 
 List all memory spaces.
 
 **Usage:**
 
 ```bash
-cortex spaces list [options]
+memoir spaces list [options]
 ```
 
 **Options:**
@@ -1410,13 +1410,13 @@ cortex spaces list [options]
 
 ```bash
 # List all memory spaces
-cortex spaces list
+memoir spaces list
 
 # Filter by type
-cortex spaces list --type team
+memoir spaces list --type team
 
 # Filter by status
-cortex spaces list --status active
+memoir spaces list --status active
 ```
 
 **Related:**
@@ -1426,14 +1426,14 @@ cortex spaces list --status active
 
 ---
 
-##### `cortex spaces create`
+##### `memoir spaces create`
 
 Create a new memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces create <spaceId> [options]
+memoir spaces create <spaceId> [options]
 ```
 
 **Options:**
@@ -1447,22 +1447,22 @@ cortex spaces create <spaceId> [options]
 
 ```bash
 # Create team space
-cortex spaces create team-alpha --type team --name "Team Alpha"
+memoir spaces create team-alpha --type team --name "Team Alpha"
 
 # Create with metadata
-cortex spaces create project-1 --type project --metadata '{"owner":"user-123"}'
+memoir spaces create project-1 --type project --metadata '{"owner":"user-123"}'
 ```
 
 ---
 
-##### `cortex spaces get`
+##### `memoir spaces get`
 
 Get memory space details.
 
 **Usage:**
 
 ```bash
-cortex spaces get <spaceId> [options]
+memoir spaces get <spaceId> [options]
 ```
 
 **Options:**
@@ -1474,22 +1474,22 @@ cortex spaces get <spaceId> [options]
 
 ```bash
 # Get space details
-cortex spaces get team-alpha
+memoir spaces get team-alpha
 
 # JSON output
-cortex spaces get team-alpha --format json
+memoir spaces get team-alpha --format json
 ```
 
 ---
 
-##### `cortex spaces delete`
+##### `memoir spaces delete`
 
 Delete a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces delete <spaceId> [options]
+memoir spaces delete <spaceId> [options]
 ```
 
 **Options:**
@@ -1503,10 +1503,10 @@ cortex spaces delete <spaceId> [options]
 
 ```bash
 # Delete space
-cortex spaces delete team-alpha
+memoir spaces delete team-alpha
 
 # Delete with cascade (all data)
-cortex spaces delete team-alpha --cascade --reason "Project completed"
+memoir spaces delete team-alpha --cascade --reason "Project completed"
 ```
 
 <Callout type="warning">
@@ -1520,14 +1520,14 @@ Cascade deletion permanently removes:
 
 ---
 
-##### `cortex spaces archive`
+##### `memoir spaces archive`
 
 Archive a memory space (soft delete).
 
 **Usage:**
 
 ```bash
-cortex spaces archive <spaceId> [options]
+memoir spaces archive <spaceId> [options]
 ```
 
 **Options:**
@@ -1540,19 +1540,19 @@ cortex spaces archive <spaceId> [options]
 
 ```bash
 # Archive space
-cortex spaces archive project-apollo --reason "Project completed"
+memoir spaces archive project-apollo --reason "Project completed"
 ```
 
 ---
 
-##### `cortex spaces reactivate`
+##### `memoir spaces reactivate`
 
 Reactivate an archived memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces reactivate <spaceId> [options]
+memoir spaces reactivate <spaceId> [options]
 ```
 
 **Options:**
@@ -1563,19 +1563,19 @@ cortex spaces reactivate <spaceId> [options]
 
 ```bash
 # Reactivate space
-cortex spaces reactivate project-apollo
+memoir spaces reactivate project-apollo
 ```
 
 ---
 
-##### `cortex spaces stats`
+##### `memoir spaces stats`
 
 Get statistics for a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces stats <spaceId> [options]
+memoir spaces stats <spaceId> [options]
 ```
 
 **Options:**
@@ -1587,22 +1587,22 @@ cortex spaces stats <spaceId> [options]
 
 ```bash
 # Get statistics
-cortex spaces stats team-alpha
+memoir spaces stats team-alpha
 
 # JSON output
-cortex spaces stats team-alpha --format json
+memoir spaces stats team-alpha --format json
 ```
 
 ---
 
-##### `cortex spaces participants`
+##### `memoir spaces participants`
 
 List participants in a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces participants <spaceId> [options]
+memoir spaces participants <spaceId> [options]
 ```
 
 **Options:**
@@ -1614,19 +1614,19 @@ cortex spaces participants <spaceId> [options]
 
 ```bash
 # List participants
-cortex spaces participants team-alpha
+memoir spaces participants team-alpha
 ```
 
 ---
 
-##### `cortex spaces add-participant`
+##### `memoir spaces add-participant`
 
 Add a participant to a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces add-participant <spaceId> [options]
+memoir spaces add-participant <spaceId> [options]
 ```
 
 **Options:**
@@ -1639,22 +1639,22 @@ cortex spaces add-participant <spaceId> [options]
 
 ```bash
 # Add user participant
-cortex spaces add-participant team-alpha --id user-123 --type user
+memoir spaces add-participant team-alpha --id user-123 --type user
 
 # Add AI agent participant
-cortex spaces add-participant team-alpha --id agent-1 --type ai-agent
+memoir spaces add-participant team-alpha --id agent-1 --type ai-agent
 ```
 
 ---
 
-##### `cortex spaces remove-participant`
+##### `memoir spaces remove-participant`
 
 Remove a participant from a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces remove-participant <spaceId> [options]
+memoir spaces remove-participant <spaceId> [options]
 ```
 
 **Options:**
@@ -1667,19 +1667,19 @@ cortex spaces remove-participant <spaceId> [options]
 
 ```bash
 # Remove participant
-cortex spaces remove-participant team-alpha --id user-123
+memoir spaces remove-participant team-alpha --id user-123
 ```
 
 ---
 
-##### `cortex spaces update`
+##### `memoir spaces update`
 
 Update a memory space.
 
 **Usage:**
 
 ```bash
-cortex spaces update <spaceId> [options]
+memoir spaces update <spaceId> [options]
 ```
 
 **Options:**
@@ -1693,22 +1693,22 @@ cortex spaces update <spaceId> [options]
 
 ```bash
 # Update name
-cortex spaces update team-alpha --name "Team Alpha v2"
+memoir spaces update team-alpha --name "Team Alpha v2"
 
 # Update metadata
-cortex spaces update team-alpha --metadata '{"updated":true}'
+memoir spaces update team-alpha --metadata '{"updated":true}'
 ```
 
 ---
 
-##### `cortex spaces count`
+##### `memoir spaces count`
 
 Count memory spaces.
 
 **Usage:**
 
 ```bash
-cortex spaces count [options]
+memoir spaces count [options]
 ```
 
 **Options:**
@@ -1721,22 +1721,22 @@ cortex spaces count [options]
 
 ```bash
 # Count all spaces
-cortex spaces count
+memoir spaces count
 
 # Count by type
-cortex spaces count --type team
+memoir spaces count --type team
 ```
 
 ---
 
-##### `cortex spaces search`
+##### `memoir spaces search`
 
 Search memory spaces by name.
 
 **Usage:**
 
 ```bash
-cortex spaces search <query> [options]
+memoir spaces search <query> [options]
 ```
 
 **Options:**
@@ -1751,28 +1751,28 @@ cortex spaces search <query> [options]
 
 ```bash
 # Search spaces
-cortex spaces search "alpha"
+memoir spaces search "alpha"
 
 # Search with filter
-cortex spaces search "team" --type team
+memoir spaces search "team" --type team
 ```
 
 ---
 
 ### Facts Commands
 
-#### `cortex facts`
+#### `memoir facts`
 
 Manage extracted facts.
 
-##### `cortex facts list`
+##### `memoir facts list`
 
 List facts in a memory space.
 
 **Usage:**
 
 ```bash
-cortex facts list [options]
+memoir facts list [options]
 ```
 
 **Options:**
@@ -1788,13 +1788,13 @@ cortex facts list [options]
 
 ```bash
 # List facts
-cortex facts list --space agent-1
+memoir facts list --space agent-1
 
 # Filter by type
-cortex facts list --space agent-1 --type preference
+memoir facts list --space agent-1 --type preference
 
 # Filter by user
-cortex facts list --space agent-1 --user user-123
+memoir facts list --space agent-1 --user user-123
 ```
 
 **Related:**
@@ -1804,14 +1804,14 @@ cortex facts list --space agent-1 --user user-123
 
 ---
 
-##### `cortex facts search`
+##### `memoir facts search`
 
 Search facts by content.
 
 **Usage:**
 
 ```bash
-cortex facts search <query> [options]
+memoir facts search <query> [options]
 ```
 
 **Options:**
@@ -1826,22 +1826,22 @@ cortex facts search <query> [options]
 
 ```bash
 # Search facts
-cortex facts search "dark mode" --space agent-1
+memoir facts search "dark mode" --space agent-1
 
 # Search by type
-cortex facts search "preference" --space agent-1 --type preference
+memoir facts search "preference" --space agent-1 --type preference
 ```
 
 ---
 
-##### `cortex facts get`
+##### `memoir facts get`
 
 Get fact details.
 
 **Usage:**
 
 ```bash
-cortex facts get <factId> [options]
+memoir facts get <factId> [options]
 ```
 
 **Options:**
@@ -1854,22 +1854,22 @@ cortex facts get <factId> [options]
 
 ```bash
 # Get fact details
-cortex facts get fact-123 --space agent-1
+memoir facts get fact-123 --space agent-1
 
 # JSON output
-cortex facts get fact-123 --space agent-1 --format json
+memoir facts get fact-123 --space agent-1 --format json
 ```
 
 ---
 
-##### `cortex facts delete`
+##### `memoir facts delete`
 
 Delete a fact.
 
 **Usage:**
 
 ```bash
-cortex facts delete <factId> [options]
+memoir facts delete <factId> [options]
 ```
 
 **Options:**
@@ -1882,19 +1882,19 @@ cortex facts delete <factId> [options]
 
 ```bash
 # Delete fact
-cortex facts delete fact-123 --space agent-1
+memoir facts delete fact-123 --space agent-1
 ```
 
 ---
 
-##### `cortex facts export`
+##### `memoir facts export`
 
 Export facts to a file.
 
 **Usage:**
 
 ```bash
-cortex facts export [options]
+memoir facts export [options]
 ```
 
 **Options:**
@@ -1909,22 +1909,22 @@ cortex facts export [options]
 
 ```bash
 # Export facts
-cortex facts export --space agent-1 --output facts.json
+memoir facts export --space agent-1 --output facts.json
 
 # Export as CSV
-cortex facts export --space agent-1 --format csv --output facts.csv
+memoir facts export --space agent-1 --format csv --output facts.csv
 ```
 
 ---
 
-##### `cortex facts count`
+##### `memoir facts count`
 
 Count facts in a memory space.
 
 **Usage:**
 
 ```bash
-cortex facts count [options]
+memoir facts count [options]
 ```
 
 **Options:**
@@ -1937,22 +1937,22 @@ cortex facts count [options]
 
 ```bash
 # Count facts
-cortex facts count --space agent-1
+memoir facts count --space agent-1
 
 # Count by type
-cortex facts count --space agent-1 --type preference
+memoir facts count --space agent-1 --type preference
 ```
 
 ---
 
-##### `cortex facts clear`
+##### `memoir facts clear`
 
 Clear all facts in a memory space.
 
 **Usage:**
 
 ```bash
-cortex facts clear [options]
+memoir facts clear [options]
 ```
 
 **Options:**
@@ -1966,10 +1966,10 @@ cortex facts clear [options]
 
 ```bash
 # Clear all facts
-cortex facts clear --space agent-1
+memoir facts clear --space agent-1
 
 # Clear specific type
-cortex facts clear --space agent-1 --type preference
+memoir facts clear --space agent-1 --type preference
 ```
 
 <Callout type="warning">
@@ -1980,18 +1980,18 @@ This operation is permanent and cannot be undone.
 
 ### Conversation Commands
 
-#### `cortex conversations` (alias: `convs`)
+#### `memoir conversations` (alias: `convs`)
 
 Manage conversations.
 
-##### `cortex conversations list`
+##### `memoir conversations list`
 
 List conversations.
 
 **Usage:**
 
 ```bash
-cortex conversations list [options]
+memoir conversations list [options]
 ```
 
 **Options:**
@@ -2007,16 +2007,16 @@ cortex conversations list [options]
 
 ```bash
 # List conversations
-cortex conversations list
+memoir conversations list
 
 # Filter by space
-cortex conversations list --space agent-1
+memoir conversations list --space agent-1
 
 # Filter by user
-cortex conversations list --user user-123
+memoir conversations list --user user-123
 
 # Filter by type
-cortex conversations list --type user-agent
+memoir conversations list --type user-agent
 ```
 
 **Related:**
@@ -2026,14 +2026,14 @@ cortex conversations list --type user-agent
 
 ---
 
-##### `cortex conversations get`
+##### `memoir conversations get`
 
 Get conversation details with messages.
 
 **Usage:**
 
 ```bash
-cortex conversations get <conversationId> [options]
+memoir conversations get <conversationId> [options]
 ```
 
 **Options:**
@@ -2046,25 +2046,25 @@ cortex conversations get <conversationId> [options]
 
 ```bash
 # Get conversation
-cortex conversations get conv-123
+memoir conversations get conv-123
 
 # Show more messages
-cortex conversations get conv-123 --messages 50
+memoir conversations get conv-123 --messages 50
 
 # JSON output
-cortex conversations get conv-123 --format json
+memoir conversations get conv-123 --format json
 ```
 
 ---
 
-##### `cortex conversations delete`
+##### `memoir conversations delete`
 
 Delete a conversation.
 
 **Usage:**
 
 ```bash
-cortex conversations delete <conversationId> [options]
+memoir conversations delete <conversationId> [options]
 ```
 
 **Options:**
@@ -2076,19 +2076,19 @@ cortex conversations delete <conversationId> [options]
 
 ```bash
 # Delete conversation
-cortex conversations delete conv-123
+memoir conversations delete conv-123
 ```
 
 ---
 
-##### `cortex conversations export`
+##### `memoir conversations export`
 
 Export a conversation to a file.
 
 **Usage:**
 
 ```bash
-cortex conversations export <conversationId> [options]
+memoir conversations export <conversationId> [options]
 ```
 
 **Options:**
@@ -2101,22 +2101,22 @@ cortex conversations export <conversationId> [options]
 
 ```bash
 # Export as JSON
-cortex conversations export conv-123
+memoir conversations export conv-123
 
 # Export as text
-cortex conversations export conv-123 --format txt --output conv.txt
+memoir conversations export conv-123 --format txt --output conv.txt
 ```
 
 ---
 
-##### `cortex conversations count`
+##### `memoir conversations count`
 
 Count conversations.
 
 **Usage:**
 
 ```bash
-cortex conversations count [options]
+memoir conversations count [options]
 ```
 
 **Options:**
@@ -2130,25 +2130,25 @@ cortex conversations count [options]
 
 ```bash
 # Count all conversations
-cortex conversations count
+memoir conversations count
 
 # Count by space
-cortex conversations count --space agent-1
+memoir conversations count --space agent-1
 
 # Count by user
-cortex conversations count --user user-123
+memoir conversations count --user user-123
 ```
 
 ---
 
-##### `cortex conversations clear`
+##### `memoir conversations clear`
 
 Clear conversations.
 
 **Usage:**
 
 ```bash
-cortex conversations clear [options]
+memoir conversations clear [options]
 ```
 
 **Options:**
@@ -2162,10 +2162,10 @@ cortex conversations clear [options]
 
 ```bash
 # Clear all conversations in space
-cortex conversations clear --space agent-1
+memoir conversations clear --space agent-1
 
 # Clear for specific user
-cortex conversations clear --space agent-1 --user user-123
+memoir conversations clear --space agent-1 --user user-123
 ```
 
 <Callout type="warning">
@@ -2174,14 +2174,14 @@ This operation is permanent and cannot be undone.
 
 ---
 
-##### `cortex conversations messages`
+##### `memoir conversations messages`
 
 List messages in a conversation.
 
 **Usage:**
 
 ```bash
-cortex conversations messages <conversationId> [options]
+memoir conversations messages <conversationId> [options]
 ```
 
 **Options:**
@@ -2194,24 +2194,24 @@ cortex conversations messages <conversationId> [options]
 
 ```bash
 # List messages
-cortex conversations messages conv-123
+memoir conversations messages conv-123
 
 # Show more messages
-cortex conversations messages conv-123 --limit 100
+memoir conversations messages conv-123 --limit 100
 ```
 
 ---
 
 ### Database Commands
 
-#### `cortex db stats`
+#### `memoir db stats`
 
 Show database statistics.
 
 **Usage:**
 
 ```bash
-cortex db stats [options]
+memoir db stats [options]
 ```
 
 **Options:**
@@ -2223,10 +2223,10 @@ cortex db stats [options]
 
 ```bash
 # Show statistics
-cortex db stats
+memoir db stats
 
 # JSON output
-cortex db stats --format json
+memoir db stats --format json
 ```
 
 **Shows:**
@@ -2240,14 +2240,14 @@ cortex db stats --format json
 
 ---
 
-#### `cortex db clear`
+#### `memoir db clear`
 
 Clear entire database.
 
 **Usage:**
 
 ```bash
-cortex db clear [options]
+memoir db clear [options]
 ```
 
 **Options:**
@@ -2259,10 +2259,10 @@ cortex db clear [options]
 
 ```bash
 # Clear database (with confirmation)
-cortex db clear
+memoir db clear
 
 # Skip confirmation
-cortex db clear --yes
+memoir db clear --yes
 ```
 
 <Callout type="warning" title="DANGER">
@@ -2278,30 +2278,30 @@ This permanently deletes:
 
 ---
 
-#### `cortex db backup`
+#### `memoir db backup`
 
 Backup database to a file.
 
 **Usage:**
 
 ```bash
-cortex db backup [options]
+memoir db backup [options]
 ```
 
 **Options:**
 
 - `-d, --deployment <name>` - Target deployment
-- `-o, --output <file>` - Output file path [default: "cortex-backup.json"]
+- `-o, --output <file>` - Output file path [default: "memoir-backup.json"]
 - `--include-all` - Include all data (may be large) [default: false]
 
 **Examples:**
 
 ```bash
 # Backup (spaces and users only)
-cortex db backup
+memoir db backup
 
 # Full backup (all data)
-cortex db backup --include-all --output full-backup.json
+memoir db backup --include-all --output full-backup.json
 ```
 
 **What It Backs Up:**
@@ -2311,14 +2311,14 @@ cortex db backup --include-all --output full-backup.json
 
 ---
 
-#### `cortex db restore`
+#### `memoir db restore`
 
 Restore database from a backup file.
 
 **Usage:**
 
 ```bash
-cortex db restore [options]
+memoir db restore [options]
 ```
 
 **Options:**
@@ -2332,10 +2332,10 @@ cortex db restore [options]
 
 ```bash
 # Preview restore
-cortex db restore --input backup.json --dry-run
+memoir db restore --input backup.json --dry-run
 
 # Restore backup
-cortex db restore --input backup.json
+memoir db restore --input backup.json
 ```
 
 <Callout type="warning">
@@ -2344,43 +2344,43 @@ Existing data may be overwritten.
 
 ---
 
-#### `cortex db export`
+#### `memoir db export`
 
 Export all data to JSON.
 
 **Usage:**
 
 ```bash
-cortex db export [options]
+memoir db export [options]
 ```
 
 **Options:**
 
 - `-d, --deployment <name>` - Target deployment
-- `-o, --output <file>` - Output file path [default: "cortex-export.json"]
+- `-o, --output <file>` - Output file path [default: "memoir-export.json"]
 
 **Examples:**
 
 ```bash
 # Export all data
-cortex db export
+memoir db export
 
 # Custom output file
-cortex db export --output data-export.json
+memoir db export --output data-export.json
 ```
 
 ---
 
 ### Deployment Commands
 
-#### `cortex deploy`
+#### `memoir deploy`
 
 Deploy schema and functions to Convex.
 
 **Usage:**
 
 ```bash
-cortex deploy [options]
+memoir deploy [options]
 ```
 
 **Options:**
@@ -2395,16 +2395,16 @@ cortex deploy [options]
 
 ```bash
 # Deploy to default deployment
-cortex deploy
+memoir deploy
 
 # Deploy to specific deployment
-cortex deploy --deployment production
+memoir deploy --deployment production
 
 # Deploy to local
-cortex deploy --local
+memoir deploy --local
 
 # Deploy without prompts
-cortex deploy --push
+memoir deploy --push
 ```
 
 **What It Does:**
@@ -2415,18 +2415,18 @@ cortex deploy --push
 
 **Related:**
 
-- [`cortex update`](#cortex-update)
+- [`memoir update`](#memoir-update)
 
 ---
 
-#### `cortex update`
+#### `memoir update`
 
-Update `@cortexmemory/sdk` and `convex` packages across all enabled deployments and apps.
+Update `@memoir/sdk` and `convex` packages across all enabled deployments and apps.
 
 **Usage:**
 
 ```bash
-cortex update [options]
+memoir update [options]
 ```
 
 **Options:**
@@ -2435,9 +2435,9 @@ cortex update [options]
 - `-a, --app <name>` - Target a specific app only
 - `--apps-only` - Only update apps (skip deployments) [default: false]
 - `--deployments-only` - Only update deployments (skip apps) [default: false]
-- `--dev` - Use dev mode (link to local SDK via CORTEX_SDK_DEV_PATH) [default: false]
+- `--dev` - Use dev mode (link to local SDK via MEMOIR_SDK_DEV_PATH) [default: false]
 - `--sync-template` - Sync app template files (components, routes, etc.) [default: false]
-- `--sdk-version <version>` - Specific Cortex SDK version to install
+- `--sdk-version <version>` - Specific Memoir SDK version to install
 - `--convex-version <version>` - Specific Convex version to install
 - `--provider-version <version>` - Specific vercel-ai-provider version to install
 - `-y, --yes` - Auto-accept all updates [default: false]
@@ -2446,23 +2446,23 @@ cortex update [options]
 
 ```bash
 # Update all (shows status dashboard)
-cortex update
+memoir update
 
 # Update specific deployment
-cortex update --deployment production
+memoir update --deployment production
 
 # Update specific app
-cortex update --app quickstart
+memoir update --app quickstart
 
 # Update with template sync
-cortex update --app quickstart --sync-template
+memoir update --app quickstart --sync-template
 
 # Specific versions
-cortex update --sdk-version 0.27.4 --convex-version 1.31.2
+memoir update --sdk-version 0.27.4 --convex-version 1.31.2
 
 # Dev mode (link to local SDK)
-export CORTEX_SDK_DEV_PATH=/path/to/Project-Cortex
-cortex update --dev --app quickstart
+export MEMOIR_SDK_DEV_PATH=/path/to/Project-Memoir
+memoir update --dev --app quickstart
 ```
 
 **What It Does:**
@@ -2475,24 +2475,24 @@ cortex update --dev --app quickstart
 
 **Related:**
 
-- [`cortex deploy`](#cortex-deploy)
+- [`memoir deploy`](#memoir-deploy)
 
 ---
 
 ### Convex Commands
 
-#### `cortex convex`
+#### `memoir convex`
 
 Manage Convex deployments. The convex command has multiple subcommands:
 
-##### `cortex convex status`
+##### `memoir convex status`
 
 Check Convex deployment status.
 
 **Usage:**
 
 ```bash
-cortex convex status [options]
+memoir convex status [options]
 ```
 
 **Options:**
@@ -2503,22 +2503,22 @@ cortex convex status [options]
 
 ```bash
 # Check status
-cortex convex status
+memoir convex status
 
 # Specific deployment
-cortex convex status --deployment production
+memoir convex status --deployment production
 ```
 
 ---
 
-##### `cortex convex dev`
+##### `memoir convex dev`
 
 Start Convex in development mode.
 
 **Usage:**
 
 ```bash
-cortex convex dev [options]
+memoir convex dev [options]
 ```
 
 **Options:**
@@ -2532,25 +2532,25 @@ cortex convex dev [options]
 
 ```bash
 # Start dev server
-cortex convex dev
+memoir convex dev
 
 # Local mode
-cortex convex dev --local
+memoir convex dev --local
 
 # Run once (for CI)
-cortex convex dev --once
+memoir convex dev --once
 ```
 
 ---
 
-##### `cortex convex logs`
+##### `memoir convex logs`
 
 View Convex deployment logs.
 
 **Usage:**
 
 ```bash
-cortex convex logs [options]
+memoir convex logs [options]
 ```
 
 **Options:**
@@ -2565,25 +2565,25 @@ cortex convex logs [options]
 
 ```bash
 # View logs
-cortex convex logs
+memoir convex logs
 
 # Tail logs
-cortex convex logs --tail
+memoir convex logs --tail
 
 # View production logs
-cortex convex logs --prod
+memoir convex logs --prod
 ```
 
 ---
 
-##### `cortex convex dashboard`
+##### `memoir convex dashboard`
 
 Open Convex dashboard in browser.
 
 **Usage:**
 
 ```bash
-cortex convex dashboard [options]
+memoir convex dashboard [options]
 ```
 
 **Options:**
@@ -2596,47 +2596,47 @@ cortex convex dashboard [options]
 
 ```bash
 # Open dashboard
-cortex convex dashboard
+memoir convex dashboard
 
 # Open local dashboard
-cortex convex dashboard --local
+memoir convex dashboard --local
 ```
 
 ---
 
-##### `cortex convex schema`
+##### `memoir convex schema`
 
 View schema information.
 
 **Usage:**
 
 ```bash
-cortex convex schema
+memoir convex schema
 ```
 
 **Examples:**
 
 ```bash
 # View schema tables
-cortex convex schema
+memoir convex schema
 ```
 
 **Shows:**
 
-- All Cortex SDK tables
+- All Memoir SDK tables
 - Table descriptions
 - Layer organization
 
 ---
 
-##### `cortex convex init`
+##### `memoir convex init`
 
 Initialize Convex in current project.
 
 **Usage:**
 
 ```bash
-cortex convex init [options]
+memoir convex init [options]
 ```
 
 **Options:**
@@ -2648,19 +2648,19 @@ cortex convex init [options]
 
 ```bash
 # Initialize Convex
-cortex convex init
+memoir convex init
 ```
 
 ---
 
-##### `cortex convex env`
+##### `memoir convex env`
 
 Manage environment variables.
 
 **Usage:**
 
 ```bash
-cortex convex env [options]
+memoir convex env [options]
 ```
 
 **Options:**
@@ -2674,13 +2674,13 @@ cortex convex env [options]
 
 ```bash
 # List env vars
-cortex convex env --list
+memoir convex env --list
 
 # Set env var
-cortex convex env --set OPENAI_API_KEY=sk-...
+memoir convex env --set OPENAI_API_KEY=sk-...
 
 # Production env
-cortex convex env --list --prod
+memoir convex env --list --prod
 ```
 
 ---
@@ -2693,12 +2693,12 @@ The CLI uses a hierarchical configuration system.
 
 1. **CLI flags**: `--url`, `--key`, `--deployment`
 2. **Environment variables**: `CONVEX_URL`, `CONVEX_DEPLOY_KEY`
-3. **Project config**: `./cortex.config.json`
-4. **User config**: `~/.cortexrc`
+3. **Project config**: `./memoir.config.json`
+4. **User config**: `~/.memoirrc`
 
 ### User Config File
 
-**Location:** `~/.cortexrc`
+**Location:** `~/.memoirrc`
 
 **Format:** JSON
 
@@ -2707,27 +2707,27 @@ The CLI uses a hierarchical configuration system.
   "deployments": {
     "local": {
       "url": "http://127.0.0.1:3210",
-      "deployment": "anonymous:anonymous-cortex-sdk-local",
-      "projectPath": "/Users/me/projects/my-cortex-app",
+      "deployment": "anonymous:anonymous-memoir-sdk-local",
+      "projectPath": "/Users/me/projects/my-memoir-app",
       "enabled": true
     },
     "staging": {
       "url": "https://staging.convex.cloud",
       "key": "staging|...",
-      "projectPath": "/Users/me/projects/my-cortex-app",
+      "projectPath": "/Users/me/projects/my-memoir-app",
       "enabled": false
     },
     "production": {
       "url": "https://prod.convex.cloud",
       "key": "prod|...",
-      "projectPath": "/Users/me/projects/my-cortex-app",
+      "projectPath": "/Users/me/projects/my-memoir-app",
       "enabled": false
     }
   },
   "apps": {
     "quickstart": {
       "type": "nextjs",
-      "projectPath": "/Users/me/projects/my-cortex-app",
+      "projectPath": "/Users/me/projects/my-memoir-app",
       "path": "quickstart",
       "port": 3000,
       "startCommand": "npm run dev",
@@ -2750,14 +2750,14 @@ The CLI uses a hierarchical configuration system.
     ["`deployments[name].key`", "string", "Convex deploy key (optional for local)"],
     ["`deployments[name].deployment`", "string", "Convex deployment name (optional)"],
     ["`deployments[name].projectPath`", "string", "Path to project directory"],
-    ["`deployments[name].enabled`", "boolean", "Auto-start with `cortex start`"],
+    ["`deployments[name].enabled`", "boolean", "Auto-start with `memoir start`"],
     ["`apps`", "object", "Named app configurations"],
     ["`apps[name].type`", "string", 'App type (e.g., "nextjs")'],
     ["`apps[name].projectPath`", "string", "Path to project root"],
     ["`apps[name].path`", "string", "Relative path to app"],
     ["`apps[name].port`", "number", "Port number"],
     ["`apps[name].startCommand`", "string", "Command to start app"],
-    ["`apps[name].enabled`", "boolean", "Auto-start with `cortex start`"],
+    ["`apps[name].enabled`", "boolean", "Auto-start with `memoir start`"],
     ["`default`", "string", "Default deployment name"],
     ["`format`", "string", "Default output format"],
     ["`confirmDangerous`", "boolean", "Require confirmation for dangerous operations"],
@@ -2783,16 +2783,16 @@ The CLI recognizes these environment variables:
     ["`MEMGRAPH_URI`", "Memgraph connection URI"],
     ["`MEMGRAPH_USERNAME`", "Memgraph username"],
     ["`MEMGRAPH_PASSWORD`", "Memgraph password"],
-    ["`CORTEX_GRAPH_SYNC`", 'Enable graph sync ("true"/"false")'],
+    ["`MEMOIR_GRAPH_SYNC`", 'Enable graph sync ("true"/"false")'],
     ["`OPENAI_API_KEY`", "OpenAI API key"],
-    ["`CORTEX_SDK_DEV_PATH`", "Path to local SDK for dev mode"],
+    ["`MEMOIR_SDK_DEV_PATH`", "Path to local SDK for dev mode"],
     ["`DEBUG`", "Enable debug output"],
   ]}
 />
 
 ### Configuration Commands
 
-See [`cortex config`](#cortex-config) for managing configuration.
+See [`memoir config`](#memoir-config) for managing configuration.
 
 ---
 
@@ -2807,10 +2807,10 @@ Validation runs automatically when you use certain commands:
 <DataTable
   headers={["Command", "Validation Type", "Description"]}
   rows={[
-    ["`cortex status`", "Full", "Checks paths + Convex URL accessibility"],
-    ["`cortex config list`", "Full", "Checks paths + Convex URL accessibility"],
-    ["`cortex config show`", "Full", "Checks paths + Convex URL accessibility"],
-    ["`cortex start`", "Path only", "Checks paths only (faster startup)"],
+    ["`memoir status`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir config list`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir config show`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir start`", "Path only", "Checks paths only (faster startup)"],
   ]}
 />
 
@@ -2866,11 +2866,11 @@ You can also manually remove deployments and apps:
 
 Remove a deployment:
 
-<Terminal>cortex config remove-deployment &lt;name&gt;</Terminal>
+<Terminal>memoir config remove-deployment &lt;name&gt;</Terminal>
 
 View current config to verify cleanup:
 
-<Terminal>cortex config show</Terminal>
+<Terminal>memoir config show</Terminal>
 
 ---
 
@@ -2882,7 +2882,7 @@ The CLI provides GDPR-compliant data management features.
 
 When deleting users with the `--cascade` flag, ALL user data is permanently removed:
 
-<Terminal>cortex users delete user-123 --cascade</Terminal>
+<Terminal>memoir users delete user-123 --cascade</Terminal>
 
 **What Gets Deleted:**
 
@@ -2898,24 +2898,24 @@ When deleting users with the `--cascade` flag, ALL user data is permanently remo
 
 Use `--verify` (enabled by default) to check deletion completeness:
 
-<Terminal>cortex users delete user-123 --cascade --verify</Terminal>
+<Terminal>memoir users delete user-123 --cascade --verify</Terminal>
 
 **Dry Run:**
 
 Preview what would be deleted without actually deleting:
 
-<Terminal>cortex users delete user-123 --cascade --dry-run</Terminal>
+<Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
 
 ### Data Portability
 
 Export all user data in machine-readable format:
 
-<Terminal>cortex users export user-123 --output user-data.json</Terminal>
+<Terminal>memoir users export user-123 --output user-data.json</Terminal>
 
 **Related:**
 
-- [`cortex users delete`](#cortex-users-delete)
-- [`cortex users export`](#cortex-users-export)
+- [`memoir users delete`](#memoir-users-delete)
+- [`memoir users export`](#memoir-users-export)
 
 ---
 
@@ -2927,13 +2927,13 @@ The CLI includes multiple safety features for dangerous operations:
 
 Dangerous operations require explicit confirmation:
 
-<Terminal>cortex db clear</Terminal>
+<Terminal>memoir db clear</Terminal>
 
 This prompts: "Clear ALL data from local?"
 
 Bypass with `--yes` flag (use carefully):
 
-<Terminal>cortex db clear --yes</Terminal>
+<Terminal>memoir db clear --yes</Terminal>
 
 ### Dry Run Mode
 
@@ -2941,17 +2941,17 @@ Preview what would happen without executing:
 
 Preview user deletion:
 
-<Terminal>cortex users delete user-123 --cascade --dry-run</Terminal>
+<Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
 
 Preview database restore:
 
-<Terminal>cortex db restore --input backup.json --dry-run</Terminal>
+<Terminal>memoir db restore --input backup.json --dry-run</Terminal>
 
 ### Exact Confirmation
 
 For cascade deletions, you must type the exact ID:
 
-<Terminal>cortex users delete user-123 --cascade</Terminal>
+<Terminal>memoir users delete user-123 --cascade</Terminal>
 
 This prompts: Type "user-123" to confirm cascade deletion.
 
@@ -2959,7 +2959,7 @@ This prompts: Type "user-123" to confirm cascade deletion.
 
 Automatic verification after cascade deletions:
 
-<Terminal>cortex users delete user-123 --cascade --verify</Terminal>
+<Terminal>memoir users delete user-123 --cascade --verify</Terminal>
 
 This verifies all user data was deleted and reports any potential issues.
 
@@ -2972,22 +2972,22 @@ This verifies all user data was deleted and reports any potential issues.
 #### Command Not Found
 
 ```
-cortex: command not found
+memoir: command not found
 ```
 
 **Solution:**
 
 Install via Homebrew (Recommended):
 
-<Terminal>brew install cortex-memory/tap/cli</Terminal>
+<Terminal>brew install memoir/tap/cli</Terminal>
 
 Or install globally via npm:
 
-<Terminal>npm install -g @cortexmemory/cli</Terminal>
+<Terminal>npm install -g @memoir/cli</Terminal>
 
 Or use npx:
 
-<Terminal>npx @cortexmemory/cli &lt;command&gt;</Terminal>
+<Terminal>npx @memoir/cli &lt;command&gt;</Terminal>
 
 ---
 
@@ -3001,11 +3001,11 @@ No deployments configured
 
 Initialize a new project:
 
-<Terminal>cortex init</Terminal>
+<Terminal>memoir init</Terminal>
 
 Or add existing deployment:
 
-<Terminal>cortex config add-deployment</Terminal>
+<Terminal>memoir config add-deployment</Terminal>
 
 ---
 
@@ -3017,10 +3017,10 @@ Connection failed: ECONNREFUSED
 
 **Solutions:**
 
-- Check if Convex is running: `cortex status`
-- Start Convex: `cortex start`
-- Verify URL: `cortex config show`
-- Test connection: `cortex config test`
+- Check if Convex is running: `memoir status`
+- Start Convex: `memoir start`
+- Verify URL: `memoir config show`
+- Test connection: `memoir config test`
 
 ---
 
@@ -3040,7 +3040,7 @@ Clean up PID files:
 
 Or use dev mode and press 'k' to kill processes by port:
 
-<Terminal>cortex dev</Terminal>
+<Terminal>memoir dev</Terminal>
 
 ---
 
@@ -3054,11 +3054,11 @@ Schema sync failed: SDK not found
 
 Install SDK:
 
-<Terminal>npm install @cortexmemory/sdk</Terminal>
+<Terminal>npm install @memoir/sdk</Terminal>
 
 Or skip schema sync:
 
-<Terminal>cortex deploy --skip-sync</Terminal>
+<Terminal>memoir deploy --skip-sync</Terminal>
 
 ---
 
@@ -3082,11 +3082,11 @@ Enable debug output for troubleshooting:
 
 Via flag:
 
-<Terminal>cortex &lt;command&gt; --debug</Terminal>
+<Terminal>memoir &lt;command&gt; --debug</Terminal>
 
 Via environment variable:
 
-<Terminal>DEBUG=1 cortex &lt;command&gt;</Terminal>
+<Terminal>DEBUG=1 memoir &lt;command&gt;</Terminal>
 
 **Debug Output Includes:**
 
@@ -3102,15 +3102,15 @@ Via environment variable:
 
 General help:
 
-<Terminal>cortex --help</Terminal>
+<Terminal>memoir --help</Terminal>
 
 Command help:
 
-<Terminal>cortex &lt;command&gt; --help</Terminal>
+<Terminal>memoir &lt;command&gt; --help</Terminal>
 
 Subcommand help:
 
-<Terminal>cortex &lt;command&gt; &lt;subcommand&gt; --help</Terminal>
+<Terminal>memoir &lt;command&gt; &lt;subcommand&gt; --help</Terminal>
 
 ---
 
@@ -3120,19 +3120,19 @@ Subcommand help:
 
 <Steps>
   <Step title="Create new project with local Convex">
-    <Terminal>cortex init my-app --local</Terminal>
+    <Terminal>memoir init my-app --local</Terminal>
   </Step>
   <Step title="Navigate to project">
     <Terminal>cd my-app</Terminal>
   </Step>
   <Step title="Start development services">
-    <Terminal>cortex start</Terminal>
+    <Terminal>memoir start</Terminal>
   </Step>
   <Step title="Check status">
-    <Terminal>cortex status</Terminal>
+    <Terminal>memoir status</Terminal>
   </Step>
   <Step title="View database statistics">
-    <Terminal>cortex db stats</Terminal>
+    <Terminal>memoir db stats</Terminal>
   </Step>
 </Steps>
 
@@ -3142,25 +3142,25 @@ Subcommand help:
 
 <Steps>
   <Step title="Add deployments">
-    <Terminal>cortex config add-deployment local --url http://127.0.0.1:3210</Terminal>
-    <Terminal>cortex config add-deployment staging --url https://staging.convex.cloud --key "staging|..."</Terminal>
-    <Terminal>cortex config add-deployment production --url https://prod.convex.cloud --key "prod|..."</Terminal>
+    <Terminal>memoir config add-deployment local --url http://127.0.0.1:3210</Terminal>
+    <Terminal>memoir config add-deployment staging --url https://staging.convex.cloud --key "staging|..."</Terminal>
+    <Terminal>memoir config add-deployment production --url https://prod.convex.cloud --key "prod|..."</Terminal>
   </Step>
   <Step title="Set project paths">
-    <Terminal>cortex config set-path local /path/to/project</Terminal>
-    <Terminal>cortex config set-path staging /path/to/project</Terminal>
-    <Terminal>cortex config set-path production /path/to/project</Terminal>
+    <Terminal>memoir config set-path local /path/to/project</Terminal>
+    <Terminal>memoir config set-path staging /path/to/project</Terminal>
+    <Terminal>memoir config set-path production /path/to/project</Terminal>
   </Step>
   <Step title="Enable only local for auto-start">
-    <Terminal>cortex config enable local</Terminal>
-    <Terminal>cortex config disable staging</Terminal>
-    <Terminal>cortex config disable production</Terminal>
+    <Terminal>memoir config enable local</Terminal>
+    <Terminal>memoir config disable staging</Terminal>
+    <Terminal>memoir config disable production</Terminal>
   </Step>
   <Step title="Deploy to production">
-    <Terminal>cortex deploy --deployment production</Terminal>
+    <Terminal>memoir deploy --deployment production</Terminal>
   </Step>
   <Step title="View all deployments">
-    <Terminal>cortex config list</Terminal>
+    <Terminal>memoir config list</Terminal>
   </Step>
 </Steps>
 
@@ -3170,19 +3170,19 @@ Subcommand help:
 
 <Steps>
   <Step title="Search for user">
-    <Terminal>cortex users list | grep john@example.com</Terminal>
+    <Terminal>memoir users list | grep john@example.com</Terminal>
   </Step>
   <Step title="View user data">
-    <Terminal>cortex users stats user-123</Terminal>
+    <Terminal>memoir users stats user-123</Terminal>
   </Step>
   <Step title="Export user data (GDPR portability)">
-    <Terminal>cortex users export user-123 --output user-123-export.json</Terminal>
+    <Terminal>memoir users export user-123 --output user-123-export.json</Terminal>
   </Step>
   <Step title="Preview deletion">
-    <Terminal>cortex users delete user-123 --cascade --dry-run</Terminal>
+    <Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
   </Step>
   <Step title="Delete user data (GDPR right to erasure)">
-    <Terminal>cortex users delete user-123 --cascade --verify</Terminal>
+    <Terminal>memoir users delete user-123 --cascade --verify</Terminal>
   </Step>
 </Steps>
 
@@ -3192,7 +3192,7 @@ Subcommand help:
 
 <Steps>
   <Step title="Start interactive dev mode">
-    <Terminal>cortex dev</Terminal>
+    <Terminal>memoir dev</Terminal>
     
     **Keyboard shortcuts:**
     - `c` - clear screen
@@ -3222,16 +3222,16 @@ Subcommand help:
 
 <Steps>
   <Step title="Backup database">
-    <Terminal>cortex db backup --include-all --output backup-2026-01-01.json</Terminal>
+    <Terminal>memoir db backup --include-all --output backup-2026-01-01.json</Terminal>
   </Step>
   <Step title="Verify backup">
     <Terminal>ls -lh backup-2026-01-01.json</Terminal>
   </Step>
   <Step title="Clear database for testing">
-    <Terminal>cortex db clear --deployment local</Terminal>
+    <Terminal>memoir db clear --deployment local</Terminal>
   </Step>
   <Step title="Restore from backup">
-    <Terminal>cortex db restore --input backup-2026-01-01.json --deployment local</Terminal>
+    <Terminal>memoir db restore --input backup-2026-01-01.json --deployment local</Terminal>
   </Step>
 </Steps>
 
@@ -3241,20 +3241,20 @@ Subcommand help:
 
 <Steps>
   <Step title="Check current versions">
-    <Terminal>cortex update</Terminal>
+    <Terminal>memoir update</Terminal>
   </Step>
   <Step title="Update specific deployment">
-    <Terminal>cortex update --deployment production</Terminal>
+    <Terminal>memoir update --deployment production</Terminal>
   </Step>
   <Step title="Update all with specific version">
-    <Terminal>cortex update --sdk-version 0.27.4 --yes</Terminal>
+    <Terminal>memoir update --sdk-version 0.27.4 --yes</Terminal>
   </Step>
   <Step title="Update app with template sync">
-    <Terminal>cortex update --app quickstart --sync-template</Terminal>
+    <Terminal>memoir update --app quickstart --sync-template</Terminal>
   </Step>
   <Step title="Dev mode (link to local SDK)">
-    <Terminal>export CORTEX_SDK_DEV_PATH=/path/to/Project-Cortex</Terminal>
-    <Terminal>cortex update --dev --app quickstart</Terminal>
+    <Terminal>export MEMOIR_SDK_DEV_PATH=/path/to/Project-Memoir</Terminal>
+    <Terminal>memoir update --dev --app quickstart</Terminal>
   </Step>
 </Steps>
 
@@ -3266,15 +3266,15 @@ Subcommand help:
 
 Search for sensitive data:
 
-<Terminal>cortex memory search "password" --space agent-1</Terminal>
+<Terminal>memoir memory search "password" --space agent-1</Terminal>
 
 Review results and delete specific memory:
 
-<Terminal>cortex memory delete mem-456 --space agent-1</Terminal>
+<Terminal>memoir memory delete mem-456 --space agent-1</Terminal>
 
 Or clear all for a user:
 
-<Terminal>cortex memory clear --space agent-1 --user user-123</Terminal>
+<Terminal>memoir memory clear --space agent-1 --user user-123</Terminal>
 
 ---
 
@@ -3282,24 +3282,24 @@ Or clear all for a user:
 
 Create team space:
 
-<Terminal>cortex spaces create team-alpha --type team --name "Team Alpha"</Terminal>
+<Terminal>memoir spaces create team-alpha --type team --name "Team Alpha"</Terminal>
 
 Add participants:
 
-<Terminal>cortex spaces add-participant team-alpha --id user-123 --type user</Terminal>
-<Terminal>cortex spaces add-participant team-alpha --id agent-1 --type ai-agent</Terminal>
+<Terminal>memoir spaces add-participant team-alpha --id user-123 --type user</Terminal>
+<Terminal>memoir spaces add-participant team-alpha --id agent-1 --type ai-agent</Terminal>
 
 View statistics:
 
-<Terminal>cortex spaces stats team-alpha</Terminal>
+<Terminal>memoir spaces stats team-alpha</Terminal>
 
 List participants:
 
-<Terminal>cortex spaces participants team-alpha</Terminal>
+<Terminal>memoir spaces participants team-alpha</Terminal>
 
 Archive when done:
 
-<Terminal>cortex spaces archive team-alpha --reason "Project completed"</Terminal>
+<Terminal>memoir spaces archive team-alpha --reason "Project completed"</Terminal>
 
 ---
 
@@ -3307,15 +3307,15 @@ Archive when done:
 
 List conversations:
 
-<Terminal>cortex conversations list --space agent-1 --user user-123</Terminal>
+<Terminal>memoir conversations list --space agent-1 --user user-123</Terminal>
 
 Get specific conversation:
 
-<Terminal>cortex conversations get conv-789</Terminal>
+<Terminal>memoir conversations get conv-789</Terminal>
 
 Export to file:
 
-<Terminal>cortex conversations export conv-789 --format txt --output conv.txt</Terminal>
+<Terminal>memoir conversations export conv-789 --format txt --output conv.txt</Terminal>
 
 ---
 
@@ -3323,20 +3323,20 @@ Export to file:
 
 View overall stats:
 
-<Terminal>cortex db stats</Terminal>
+<Terminal>memoir db stats</Terminal>
 
 View space-specific stats:
 
-<Terminal>cortex spaces stats agent-1</Terminal>
-<Terminal>cortex memory stats --space agent-1</Terminal>
+<Terminal>memoir spaces stats agent-1</Terminal>
+<Terminal>memoir memory stats --space agent-1</Terminal>
 
 View user-specific stats:
 
-<Terminal>cortex users stats user-123</Terminal>
+<Terminal>memoir users stats user-123</Terminal>
 
 Export to JSON for analysis:
 
-<Terminal>cortex db stats --format json &gt; db-stats.json</Terminal>
+<Terminal>memoir db stats --format json &gt; db-stats.json</Terminal>
 
 ---
 
@@ -3345,7 +3345,7 @@ Export to JSON for analysis:
 ### v0.27.4 (Current)
 
 - Interactive dev mode with keyboard shortcuts
-- Multi-deployment support for `cortex start`
+- Multi-deployment support for `memoir start`
 - Template app management
 - Automatic schema sync from SDK
 - Graph database integration
@@ -3355,8 +3355,8 @@ Export to JSON for analysis:
 
 ### Related
 
-- [Changelog](https://github.com/SaintNick1214/Project-Cortex/blob/main/CHANGELOG)
-- [GitHub Releases](https://github.com/SaintNick1214/Project-Cortex/releases)
+- [Changelog](https://github.com/Anu-Code07/memoir/blob/main/CHANGELOG)
+- [GitHub Releases](https://github.com/Anu-Code07/memoir/releases)
 
 ---
 
@@ -3386,9 +3386,9 @@ Export to JSON for analysis:
 
 ### Repository
 
-- [GitHub Repository](https://github.com/SaintNick1214/Project-Cortex)
-- [npm Package](https://www.npmjs.com/package/@cortexmemory/cli)
-- [Report Issues](https://github.com/SaintNick1214/Project-Cortex/issues)
+- [GitHub Repository](https://github.com/Anu-Code07/memoir)
+- [npm Package](https://www.npmjs.com/package/@memoir/cli)
+- [Report Issues](https://github.com/Anu-Code07/memoir/issues)
 
 ---
 
@@ -3397,7 +3397,7 @@ Export to JSON for analysis:
 <QuickNav>
   <QuickNavItem 
     title="Installation" 
-    description="Install and configure Cortex" 
+    description="Install and configure Memoir" 
     href="/getting-started/installation" 
   />
   <QuickNavItem 
@@ -3416,6 +3416,6 @@ Export to JSON for analysis:
 
 ## License
 
-Cortex CLI is licensed under the FSL-1.1-Apache-2.0 license.
+Memoir CLI is licensed under the FSL-1.1-Apache-2.0 license.
 
-See [LICENSE.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/LICENSE) for details.
+See [LICENSE.md](https://github.com/Anu-Code07/memoir/blob/main/LICENSE) for details.

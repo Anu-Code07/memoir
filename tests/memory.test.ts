@@ -11,7 +11,7 @@
  * - memory-archive.test.ts: Archive and restore operations
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import { TestCleanup } from "./helpers/cleanup";
@@ -21,7 +21,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Convenience API (Layer 3)", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -32,7 +32,7 @@ describe("Memory Convenience API (Layer 3)", () => {
   const TEST_USER_NAME = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -53,7 +53,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     let _testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -69,7 +69,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     it("requires conversationRef for source.type=conversation", async () => {
       // Client-side validation: business logic check
       await expect(
-        cortex.memory.store(TEST_MEMSPACE_ID, {
+        memoir.memory.store(TEST_MEMSPACE_ID, {
           content: "Conversation memory",
           contentType: "raw",
           source: {
@@ -84,7 +84,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     });
 
     it("allows standalone for source.type=system", async () => {
-      const result = await cortex.memory.store(TEST_MEMSPACE_ID, {
+      const result = await memoir.memory.store(TEST_MEMSPACE_ID, {
         content: "System memory",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -97,7 +97,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     });
 
     it("delegates to vector.store correctly", async () => {
-      const result = await cortex.memory.store(TEST_MEMSPACE_ID, {
+      const result = await memoir.memory.store(TEST_MEMSPACE_ID, {
         content: "Test storage",
         contentType: "raw",
         source: { type: "tool", timestamp: Date.now() },
@@ -122,14 +122,14 @@ describe("Memory Convenience API (Layer 3)", () => {
   describe("Delegations", () => {
     describe("update()", () => {
       it("delegates to vector.update()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Original",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const result = await cortex.memory.update(
+        const result = await memoir.memory.update(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           {
@@ -153,7 +153,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           },
         ];
 
-        const storeResult = await cortex.memory.store(TEST_MEMSPACE_ID, {
+        const storeResult = await memoir.memory.store(TEST_MEMSPACE_ID, {
           content: "Original content for reextraction test",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -165,7 +165,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         const originalFactId = storeResult.facts[0].factId;
 
         // Update with reextractFacts option
-        const updateResult = await cortex.memory.update(
+        const updateResult = await memoir.memory.update(
           TEST_MEMSPACE_ID,
           storeResult.memory.memoryId,
           { content: "New updated content for reextraction" },
@@ -184,7 +184,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         expect(updateResult.factsReextracted!.length).toBeGreaterThanOrEqual(1);
 
         // Verify old fact was deleted (should be soft deleted/marked invalid)
-        const oldFact = await cortex.facts.get(
+        const oldFact = await memoir.facts.get(
           TEST_MEMSPACE_ID,
           originalFactId,
         );
@@ -203,14 +203,14 @@ describe("Memory Convenience API (Layer 3)", () => {
           },
         ];
 
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Content without fact extraction",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const result = await cortex.memory.update(
+        const result = await memoir.memory.update(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           { content: "Updated content" },
@@ -226,14 +226,14 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("delete()", () => {
       it("delegates to vector.delete()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "To delete",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const result = await cortex.memory.delete(
+        const result = await memoir.memory.delete(
           TEST_MEMSPACE_ID,
           memory.memoryId,
         );
@@ -245,14 +245,14 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("list()", () => {
       it("delegates to vector.list()", async () => {
-        await cortex.vector.store(TEST_MEMSPACE_ID, {
+        await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "List test",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const results = await cortex.memory.list({
+        const results = await memoir.memory.list({
           memorySpaceId: TEST_MEMSPACE_ID,
         });
 
@@ -262,7 +262,7 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("count()", () => {
       it("delegates to vector.count()", async () => {
-        const count = await cortex.memory.count({
+        const count = await memoir.memory.count({
           memorySpaceId: TEST_MEMSPACE_ID,
         });
 
@@ -274,7 +274,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     describe("updateMany()", () => {
       it("delegates to vector.updateMany()", async () => {
         for (let i = 0; i < 3; i++) {
-          await cortex.vector.store(TEST_MEMSPACE_ID, {
+          await memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Bulk update ${i}`,
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -282,7 +282,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           });
         }
 
-        const result = await cortex.memory.updateMany(
+        const result = await memoir.memory.updateMany(
           { memorySpaceId: TEST_MEMSPACE_ID, sourceType: "system" },
           { importance: 80 },
         );
@@ -294,7 +294,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     describe("deleteMany()", () => {
       it("delegates to vector.deleteMany()", async () => {
         for (let i = 0; i < 3; i++) {
-          await cortex.vector.store(TEST_MEMSPACE_ID, {
+          await memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Bulk delete ${i}`,
             contentType: "raw",
             userId: "user-bulk",
@@ -303,7 +303,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           });
         }
 
-        const result = await cortex.memory.deleteMany({
+        const result = await memoir.memory.deleteMany({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: "user-bulk",
         });
@@ -314,7 +314,7 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("export()", () => {
       it("delegates to vector.export()", async () => {
-        const result = await cortex.memory.export({
+        const result = await memoir.memory.export({
           memorySpaceId: TEST_MEMSPACE_ID,
           format: "json",
         });
@@ -325,14 +325,14 @@ describe("Memory Convenience API (Layer 3)", () => {
 
       it("exports in CSV format with proper structure", async () => {
         // Create a test memory with known fields
-        await cortex.vector.store(TEST_MEMSPACE_ID, {
+        await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "CSV export test memory",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 75, tags: ["csv-test"] },
         });
 
-        const result = await cortex.memory.export({
+        const result = await memoir.memory.export({
           memorySpaceId: TEST_MEMSPACE_ID,
           format: "csv",
         });
@@ -348,7 +348,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       it("includes embeddings when includeEmbeddings is true", async () => {
         // Create memory with embedding
         const embeddingVector = new Array(1536).fill(0.1);
-        await cortex.vector.store(TEST_MEMSPACE_ID, {
+        await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Memory with embedding for export",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -356,7 +356,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           embedding: embeddingVector,
         });
 
-        const resultWithEmbed = await cortex.memory.export({
+        const resultWithEmbed = await memoir.memory.export({
           memorySpaceId: TEST_MEMSPACE_ID,
           format: "json",
           includeEmbeddings: true,
@@ -375,7 +375,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       });
 
       it("excludes embeddings when includeEmbeddings is false or undefined", async () => {
-        const result = await cortex.memory.export({
+        const result = await memoir.memory.export({
           memorySpaceId: TEST_MEMSPACE_ID,
           format: "json",
           includeEmbeddings: false,
@@ -400,7 +400,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           },
         ];
 
-        await cortex.memory.store(TEST_MEMSPACE_ID, {
+        await memoir.memory.store(TEST_MEMSPACE_ID, {
           content: "Memory for export facts test",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -408,7 +408,7 @@ describe("Memory Convenience API (Layer 3)", () => {
           extractFacts,
         });
 
-        const result = await cortex.memory.export({
+        const result = await memoir.memory.export({
           memorySpaceId: TEST_MEMSPACE_ID,
           format: "json",
           includeFacts: true,
@@ -429,7 +429,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       it("exports empty result when no memories in space", async () => {
         const emptySpaceId = ctx.memorySpaceId("empty-export");
 
-        const result = await cortex.memory.export({
+        const result = await memoir.memory.export({
           memorySpaceId: emptySpaceId,
           format: "json",
         });
@@ -442,14 +442,14 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("archive()", () => {
       it("delegates to vector.archive()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "To archive",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const result = await cortex.memory.archive(
+        const result = await memoir.memory.archive(
           TEST_MEMSPACE_ID,
           memory.memoryId,
         );
@@ -461,18 +461,18 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("getVersion()", () => {
       it("delegates to vector.getVersion()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "V1",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        await cortex.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
+        await memoir.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
           content: "V2",
         });
 
-        const v1 = await cortex.memory.getVersion(
+        const v1 = await memoir.memory.getVersion(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           1,
@@ -485,18 +485,18 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("getHistory()", () => {
       it("delegates to vector.getHistory()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "V1",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        await cortex.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
+        await memoir.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
           content: "V2",
         });
 
-        const history = await cortex.memory.getHistory(
+        const history = await memoir.memory.getHistory(
           TEST_MEMSPACE_ID,
           memory.memoryId,
         );
@@ -509,14 +509,14 @@ describe("Memory Convenience API (Layer 3)", () => {
 
     describe("getAtTimestamp()", () => {
       it("delegates to vector.getAtTimestamp()", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Temporal",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
           metadata: { importance: 50, tags: [] },
         });
 
-        const atCreation = await cortex.memory.getAtTimestamp(
+        const atCreation = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           memory.createdAt,
@@ -531,7 +531,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         // Small delay to ensure memory is created after beforeCreation
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Created after timestamp",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -539,7 +539,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         });
 
         // Query with timestamp before memory was created
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           beforeCreation - 1000, // 1 second before beforeCreation
@@ -549,7 +549,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       });
 
       it("returns correct version when timestamp is between updates", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Version 1 content",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -560,7 +560,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         // Update to V2
-        await cortex.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
+        await memoir.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
           content: "Version 2 content",
         });
 
@@ -568,12 +568,12 @@ describe("Memory Convenience API (Layer 3)", () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         // Update to V3
-        await cortex.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
+        await memoir.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
           content: "Version 3 content",
         });
 
         // Query at time between V1 and V2 - should return V1
-        const atV1 = await cortex.memory.getAtTimestamp(
+        const atV1 = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           afterV1,
@@ -582,7 +582,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         expect(atV1!.content).toBe("Version 1 content");
 
         // Query at time after V2 but before V3 - should return V2
-        const atV2 = await cortex.memory.getAtTimestamp(
+        const atV2 = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           afterV2,
@@ -591,7 +591,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         expect(atV2!.content).toBe("Version 2 content");
 
         // Query at current time - should return V3 (latest)
-        const atNow = await cortex.memory.getAtTimestamp(
+        const atNow = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           Date.now(),
@@ -601,7 +601,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       });
 
       it("works with Date object input (converted to Unix timestamp)", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Date object test",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -610,7 +610,7 @@ describe("Memory Convenience API (Layer 3)", () => {
 
         // Test with Date object's timestamp
         const dateObj = new Date();
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           dateObj.getTime(),
@@ -621,7 +621,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       });
 
       it("returns exact version at version creation timestamp", async () => {
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Exact timestamp V1",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -629,7 +629,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         });
 
         // Query at the exact creation timestamp
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           memory.createdAt,
@@ -649,7 +649,7 @@ describe("Memory Convenience API (Layer 3)", () => {
   describe("Integration", () => {
     it("complete flow: remember → search(enrich) → get(enrich) → forget", async () => {
       // Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -660,7 +660,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       });
 
       // Remember
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "Integration test: password is XYZ",
@@ -678,7 +678,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Search with enrichment
-      const searchResults = await cortex.memory.search(
+      const searchResults = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "password",
         {
@@ -704,7 +704,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       ).toBeDefined();
 
       // Get with enrichment
-      const enrichedGet = (await cortex.memory.get(
+      const enrichedGet = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
         { includeConversation: true },
@@ -715,7 +715,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       expect(enrichedGet.sourceMessages).toHaveLength(1);
 
       // Forget (preserve ACID)
-      const forgot = await cortex.memory.forget(
+      const forgot = await memoir.memory.forget(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
       );
@@ -724,7 +724,7 @@ describe("Memory Convenience API (Layer 3)", () => {
       expect(forgot.restorable).toBe(true);
 
       // Verify ACID preserved
-      const convStillExists = await cortex.conversations.get(
+      const convStillExists = await memoir.conversations.get(
         conv.conversationId,
       );
 
@@ -732,7 +732,7 @@ describe("Memory Convenience API (Layer 3)", () => {
     });
 
     it("forget with deleteConversation removes from both layers", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -742,7 +742,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         },
       });
 
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "To be completely forgotten",
@@ -752,7 +752,7 @@ describe("Memory Convenience API (Layer 3)", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const forgot = await cortex.memory.forget(
+      const forgot = await memoir.memory.forget(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
         { deleteConversation: true, deleteEntireConversation: true },
@@ -762,14 +762,14 @@ describe("Memory Convenience API (Layer 3)", () => {
       expect(forgot.restorable).toBe(false);
 
       // Verify both layers deleted
-      const memory = await cortex.vector.get(
+      const memory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
       );
 
       expect(memory).toBeNull();
 
-      const conversation = await cortex.conversations.get(conv.conversationId);
+      const conversation = await memoir.conversations.get(conv.conversationId);
 
       expect(conversation).toBeNull();
     });

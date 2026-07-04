@@ -6,7 +6,7 @@
  * properly handles fact creation, updates, supersession, and deduplication.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -15,8 +15,8 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Streaming with Belief Revision", () => {
-  let cortex: Cortex;
-  let cortexWithLLM: Cortex;
+  let memoir: Memoir;
+  let memoirWithLLM: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
 
@@ -52,11 +52,11 @@ describe("Memory Streaming with Belief Revision", () => {
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
-    // Cortex without LLM (belief revision disabled by default)
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    // Memoir without LLM (belief revision disabled by default)
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
 
-    // Cortex with LLM configured (belief revision enabled by default)
-    cortexWithLLM = new Cortex({
+    // Memoir with LLM configured (belief revision enabled by default)
+    memoirWithLLM = new Memoir({
       convexUrl: CONVEX_URL,
       llm: {
         provider: "openai",
@@ -65,7 +65,7 @@ describe("Memory Streaming with Belief Revision", () => {
     });
 
     // Create memory space for tests
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       name: "Stream Belief Revision Test Space",
       type: "custom",
@@ -92,7 +92,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -128,7 +128,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -175,7 +175,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortexWithLLM.memory.rememberStream(
+      const result = await memoirWithLLM.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -199,7 +199,7 @@ describe("Memory Streaming with Belief Revision", () => {
       expect(result.facts).toBeDefined();
 
       // With LLM configured and beliefRevision: true, factRevisions should be present
-      if (cortexWithLLM.facts.hasBeliefRevision()) {
+      if (memoirWithLLM.facts.hasBeliefRevision()) {
         expect(result.factRevisions).toBeDefined();
         expect(Array.isArray(result.factRevisions)).toBe(true);
 
@@ -230,7 +230,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -253,7 +253,7 @@ describe("Memory Streaming with Belief Revision", () => {
       expect(result.facts[0].fact).toContain("Whiskers");
 
       // Verify fact was stored
-      const storedFacts = await cortex.facts.list({
+      const storedFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: TEST_USER_ID,
         predicate: "pet",
@@ -294,7 +294,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -341,7 +341,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -382,7 +382,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -436,7 +436,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: convId,
         userMessage: "Test skip facts",
@@ -471,7 +471,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -517,7 +517,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      await cortex.memory.rememberStream(
+      await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -544,7 +544,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result2 = await cortex.memory.rememberStream(
+      const result2 = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -561,7 +561,7 @@ describe("Memory Streaming with Belief Revision", () => {
       expect(result2.facts.length).toBe(1);
 
       // Verify both facts are stored
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: TEST_USER_ID,
       });
@@ -589,7 +589,7 @@ describe("Memory Streaming with Belief Revision", () => {
         },
       ];
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId,
@@ -615,7 +615,7 @@ describe("Memory Streaming with Belief Revision", () => {
 });
 
 describe("Memory Streaming Belief Revision E2E", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
 
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -634,7 +634,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
 
     client = new ConvexClient(CONVEX_URL);
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       llm: {
         provider: "openai",
@@ -642,7 +642,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
       },
     });
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       name: "Stream Belief E2E Test Space",
       type: "custom",
@@ -683,7 +683,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
       ];
 
       try {
-        const result = await cortex.memory.rememberStream(
+        const result = await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: convId,
@@ -704,7 +704,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
         // If we got facts, validate them
         if (result.facts.length >= 1) {
           // If belief revision ran, we should have factRevisions
-          if (cortex.facts.hasBeliefRevision() && result.factRevisions) {
+          if (memoir.facts.hasBeliefRevision() && result.factRevisions) {
             expect(result.factRevisions.length).toBeGreaterThan(0);
             // First fact should be ADD (new fact)
             expect(["ADD", "NONE"]).toContain(result.factRevisions[0].action);
@@ -741,7 +741,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
           },
         ];
 
-        await cortex.memory.rememberStream(
+        await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: convId1,
@@ -770,7 +770,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
           },
         ];
 
-        const result2 = await cortex.memory.rememberStream(
+        const result2 = await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: convId2,
@@ -791,7 +791,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
         // If we got facts, validate them
         if (result2.facts.length >= 1) {
           // If belief revision ran, check for SUPERSEDE action
-          if (cortex.facts.hasBeliefRevision() && result2.factRevisions) {
+          if (memoir.facts.hasBeliefRevision() && result2.factRevisions) {
             // Should have at least one revision
             expect(result2.factRevisions.length).toBeGreaterThan(0);
 
@@ -838,7 +838,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
         },
       ];
 
-      await cortex.memory.rememberStream(
+      await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId1,
@@ -855,7 +855,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
       // Try to store the same fact again (should be NONE)
       const convId2 = `${ctx.conversationId("stream-e2e")}-none-2`;
 
-      const result2 = await cortex.memory.rememberStream(
+      const result2 = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: convId2,
@@ -870,7 +870,7 @@ describe("Memory Streaming Belief Revision E2E", () => {
       );
 
       // If belief revision ran and detected duplicate
-      if (cortex.facts.hasBeliefRevision() && result2.factRevisions) {
+      if (memoir.facts.hasBeliefRevision() && result2.factRevisions) {
         console.log(
           "[E2E] Belief revision actions for duplicate:",
           result2.factRevisions.map((r) => ({

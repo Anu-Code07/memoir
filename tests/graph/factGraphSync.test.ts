@@ -2,7 +2,7 @@
  * Fact Graph Sync Tests
  *
  * Tests the automatic fact-to-graph synchronization that occurs when
- * CORTEX_GRAPH_SYNC=true and graphAdapter is configured.
+ * MEMOIR_GRAPH_SYNC=true and graphAdapter is configured.
  *
  * These tests verify:
  * - Facts are automatically synced to graph via BeliefRevisionService
@@ -28,7 +28,7 @@ const describeIfEnabled = GRAPH_TESTING_ENABLED ? describe : describe.skip;
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("Fact Graph Sync", () => {

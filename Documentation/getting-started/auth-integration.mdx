@@ -2,23 +2,23 @@
 id: auth-integration
 title: Auth Integration
 sidebar_position: 6
-description: Integrate Cortex with your existing authentication system
+description: Integrate Memoir with your existing authentication system
 ---
 
 # Auth Integration (2 Minutes)
 
-Quick guide: Integrate Cortex with your existing authentication system.
+Quick guide: Integrate Memoir with your existing authentication system.
 
 ## The Simple Truth
 
-**Cortex works with whatever auth system you already use.** No special integration, no proprietary protocol, no heavy lifting.
+**Memoir works with whatever auth system you already use.** No special integration, no proprietary protocol, no heavy lifting.
 
-**Your auth system** ‚Üí Extract `userId` ‚Üí **Pass to Cortex** ‚Üí Done.
+**Your auth system** ‚Üí Extract `userId` ‚Üí **Pass to Memoir** ‚Üí Done.
 
 ## 3-Line Integration
 
 <CodeBlock filename="auth-setup.ts" language="typescript" showLineNumbers highlightLines={[4, 5, 6, 11]}>
-{`import { Cortex, createAuthContext } from "@cortexmemory/sdk";
+{`import { Memoir, createAuthContext } from "@memoir/sdk";
 
 // 1. Extract from YOUR existing auth (any system)
 const auth = createAuthContext({
@@ -26,14 +26,14 @@ const auth = createAuthContext({
   tenantId: yourUser.tenantId, // Optional (for SaaS)
 });
 
-// 2. Pass to Cortex
-const cortex = new Cortex({
+// 2. Pass to Memoir
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth,
 });
 
 // 3. Use normally - userId auto-injected
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-space",
   userMessage: "Hello",
   agentResponse: "Hi!",
@@ -49,7 +49,7 @@ await cortex.memory.remember({
 ## Supported Auth Providers
 
 <Callout type="info">
-  Cortex is **framework-agnostic** ‚Äî it works with any auth system that provides a user ID.
+  Memoir is **framework-agnostic** ‚Äî it works with any auth system that provides a user ID.
 </Callout>
 
 Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚Äî **any system that provides a user ID**.
@@ -62,19 +62,19 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
       <Step title="Install Clerk SDK">
         <Terminal>npm install @clerk/nextjs</Terminal>
       </Step>
-      <Step title="Configure Cortex with Clerk">
+      <Step title="Configure Memoir with Clerk">
         ```typescript
-        import { Cortex, createAuthContext } from '@cortexmemory/sdk';
+        import { Memoir, createAuthContext } from '@memoir/sdk';
         import { auth } from '@clerk/nextjs';
         
-        export async function getCortexClient() {
+        export async function getMemoirClient() {
           const { userId, orgId } = auth();
           
           if (!userId) {
             throw new Error('Not authenticated');
           }
           
-          return new Cortex({
+          return new Memoir({
             convexUrl: process.env.CONVEX_URL!,
             auth: createAuthContext({
               userId,
@@ -100,9 +100,9 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
         const userId = session?.user?.sub;
         ```
       </Step>
-      <Step title="Configure Cortex">
+      <Step title="Configure Memoir">
         ```typescript
-        const cortex = new Cortex({
+        const memoir = new Memoir({
           convexUrl: process.env.CONVEX_URL!,
           auth: createAuthContext({
             userId: session.user.sub,
@@ -125,9 +125,9 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
         const session = await getServerSession();
         ```
       </Step>
-      <Step title="Configure Cortex">
+      <Step title="Configure Memoir">
         ```typescript
-        const cortex = new Cortex({
+        const memoir = new Memoir({
           convexUrl: process.env.CONVEX_URL!,
           auth: createAuthContext({
             userId: session.user.id,
@@ -150,9 +150,9 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
         const { data: { user } } = await supabase.auth.getUser();
         ```
       </Step>
-      <Step title="Configure Cortex">
+      <Step title="Configure Memoir">
         ```typescript
-        const cortex = new Cortex({
+        const memoir = new Memoir({
           convexUrl: process.env.CONVEX_URL!,
           auth: createAuthContext({
             userId: user.id,
@@ -172,7 +172,7 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
     // Verify your JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     
-    const cortex = new Cortex({
+    const memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: createAuthContext({
         userId: decoded.sub,
@@ -186,7 +186,7 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
   </TabItem>
 </Tabs>
 
-**The pattern is always the same** ‚Äî just map your auth data to Cortex's simple structure.
+**The pattern is always the same** ‚Äî just map your auth data to Memoir's simple structure.
 
 ## AuthContext Reference
 
@@ -205,7 +205,7 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT ‚
 </Callout>
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     userId: 'user-123',
@@ -216,7 +216,7 @@ const cortex = new Cortex({
 });
 
 // All operations are now scoped to customer-acme
-await cortex.memory.remember({...}); // tenantId auto-injected
+await memoir.memory.remember({...}); // tenantId auto-injected
 ```
 
 See [Isolation Boundaries](/security/isolation-boundaries) for the complete multi-tenancy guide.
@@ -229,10 +229,10 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
 
     ```typescript
     // You write:
-    await cortex.memory.remember({ memorySpaceId: "space-1", ... });
+    await memoir.memory.remember({ memorySpaceId: "space-1", ... });
 
     // SDK automatically does:
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       memorySpaceId: "space-1",
       userId: "user-123",      // ‚Üê From auth
       tenantId: "tenant-abc",  // ‚Üê From auth
@@ -245,7 +245,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
 
     ```typescript
     // You write:
-    const memories = await cortex.memory.search("space-1", "query");
+    const memories = await memoir.memory.search("space-1", "query");
 
     // SDK automatically filters:
     // WHERE memorySpaceId = "space-1" AND tenantId = "tenant-abc"
@@ -259,7 +259,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
 ## Security Best Practices
 
 <Callout type="warning" title="Server-Side Only">
-  Always create the Cortex client on the **server side**. Never expose your Convex URL or auth context to the client.
+  Always create the Memoir client on the **server side**. Never expose your Convex URL or auth context to the client.
 </Callout>
 
 <Callout type="danger" title="Never Trust Client Data">
@@ -271,47 +271,47 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
 <Tabs>
   <TabItem value="nextjs-app" label="Next.js App Router">
     ```typescript
-    // app/api/cortex/route.ts
-    import { Cortex, createAuthContext } from '@cortexmemory/sdk';
+    // app/api/memoir/route.ts
+    import { Memoir, createAuthContext } from '@memoir/sdk';
     import { auth } from '@clerk/nextjs';
     
     export async function POST(req: Request) {
       const { userId, orgId } = auth();
       
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: createAuthContext({ userId, tenantId: orgId }),
       });
       
-      // Use cortex...
+      // Use memoir...
     }
     ```
   </TabItem>
   <TabItem value="nextjs-pages" label="Next.js Pages Router">
     ```typescript
-    // pages/api/cortex.ts
-    import { Cortex, createAuthContext } from '@cortexmemory/sdk';
+    // pages/api/memoir.ts
+    import { Memoir, createAuthContext } from '@memoir/sdk';
     import { getAuth } from '@clerk/nextjs/server';
     
     export default async function handler(req, res) {
       const { userId, orgId } = getAuth(req);
       
-      const cortex = new Cortex({
+      const memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: createAuthContext({ userId, tenantId: orgId }),
       });
       
-      // Use cortex...
+      // Use memoir...
     }
     ```
   </TabItem>
   <TabItem value="express" label="Express.js">
     ```typescript
-    // middleware/cortex.ts
-    import { Cortex, createAuthContext } from '@cortexmemory/sdk';
+    // middleware/memoir.ts
+    import { Memoir, createAuthContext } from '@memoir/sdk';
     
-    export function cortexMiddleware(req, res, next) {
-      req.cortex = new Cortex({
+    export function memoirMiddleware(req, res, next) {
+      req.memoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: createAuthContext({
           userId: req.user.id,
@@ -323,7 +323,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
     
     // Use in routes
     app.post("/chat", async (req, res) => {
-      await req.cortex.memory.remember({...});
+      await req.memoir.memory.remember({...});
     });
     ```
   </TabItem>
@@ -336,25 +336,25 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
     // Create auth context
     const auth = createAuthContext({ userId, tenantId });
 
-    // Use with Cortex
-    const cortex = new Cortex({ convexUrl, auth });
+    // Use with Memoir
+    const memoir = new Memoir({ convexUrl, auth });
     ```
   </TabItem>
 </Tabs>
 
 ## Without Auth (For Testing)
 
-Cortex works without auth context for development and testing:
+Memoir works without auth context for development and testing:
 
 ```typescript
 // No auth - for prototypes/testing
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   // No auth
 });
 
 // Works, but you must set userId manually
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "test-space",
   userId: "test-user", // Manual
   userMessage: "Hello",
@@ -375,16 +375,16 @@ await cortex.memory.remember({
 
 <Accordion>
   <AccordionItem title="Do I need to install provider-specific packages?" defaultOpen={true}>
-    **No!** Cortex doesn't require any auth provider SDKs. Use whatever you already have.
+    **No!** Memoir doesn't require any auth provider SDKs. Use whatever you already have.
   </AccordionItem>
   <AccordionItem title="What if I change auth providers?">
-    Just update your extraction code. Cortex doesn't care where `userId` comes from.
+    Just update your extraction code. Memoir doesn't care where `userId` comes from.
   </AccordionItem>
   <AccordionItem title="Do I need webhooks or callbacks?">
     **No!** Auth context is request-scoped. No async integrations needed.
   </AccordionItem>
   <AccordionItem title="What about RBAC/permissions?">
-    Store in `metadata` field. Cortex provides data isolation, you handle authorization logic.
+    Store in `metadata` field. Memoir provides data isolation, you handle authorization logic.
   </AccordionItem>
   <AccordionItem title="Can I test without real auth?">
     **Yes!** Use test values: `createAuthContext({ userId: "test-user" })`
@@ -396,7 +396,7 @@ await cortex.memory.remember({
 <QuickNav>
   <QuickNavItem 
     title="Five-Minute Quickstart" 
-    description="Get Cortex running in minutes"
+    description="Get Memoir running in minutes"
     href="/getting-started/five-minute-quickstart"
   />
   <QuickNavItem 

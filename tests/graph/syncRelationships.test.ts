@@ -1,7 +1,7 @@
 /**
  * Sync Relationships Tests
  *
- * Unit tests for graph relationship sync functions that create edges between Cortex entities.
+ * Unit tests for graph relationship sync functions that create edges between Memoir entities.
  */
 
 import { CypherGraphAdapter } from "../../src/graph";
@@ -30,7 +30,7 @@ const describeIfEnabled = GRAPH_TESTING_ENABLED ? describe : describe.skip;
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("Sync Relationships", () => {

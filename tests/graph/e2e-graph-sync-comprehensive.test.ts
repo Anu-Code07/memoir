@@ -4,7 +4,7 @@
  * Tests the complete graph synchronization flow against REAL graph databases.
  * Validates:
  * - Both Neo4j and Memgraph adapters
- * - Automatic graph sync when CORTEX_GRAPH_SYNC=true
+ * - Automatic graph sync when MEMOIR_GRAPH_SYNC=true
  * - Fact and Entity node creation
  * - All relationship types (MENTIONS, SUPERSEDES, EXTRACTED_FROM, IN_SPACE, etc.)
  * - Multi-tenancy isolation in graph
@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter, initializeGraphSchema } from "../../src/graph";
 import type { GraphAdapter } from "../../src/graph";
 import { createNamedTestRunContext } from "../helpers";
@@ -31,13 +31,13 @@ const describeIfEnabled = GRAPH_TESTING_ENABLED ? describe : describe.skip;
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 const MEMGRAPH_CONFIG = {
   uri: process.env.MEMGRAPH_URI || "bolt://localhost:7688",
   username: process.env.MEMGRAPH_USERNAME || "memgraph",
-  password: process.env.MEMGRAPH_PASSWORD || "cortex-dev-password",
+  password: process.env.MEMGRAPH_PASSWORD || "memoir-dev-password",
 };
 
 const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -55,7 +55,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
     .forEach(({ name, config }) => {
       describe(`Graph Database: ${name}`, () => {
         const ctx = createNamedTestRunContext(`e2e-graph-${name.toLowerCase()}`);
-        let cortex: Cortex;
+        let memoir: Memoir;
         let graphAdapter: GraphAdapter;
         const TEST_MEMSPACE = ctx.memorySpaceId("comprehensive");
 
@@ -66,8 +66,8 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           await graphAdapter.clearDatabase();
           await initializeGraphSchema(graphAdapter);
 
-          // Initialize Cortex with graph adapter
-          cortex = new Cortex({
+          // Initialize Memoir with graph adapter
+          memoir = new Memoir({
             convexUrl: CONVEX_URL,
             graph: {
               adapter: graphAdapter,
@@ -75,7 +75,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           });
 
           // Create test memory space
-          await cortex.memorySpaces.register({
+          await memoir.memorySpaces.register({
             memorySpaceId: TEST_MEMSPACE,
             type: "personal",
             name: `${name} Comprehensive Test Space`,
@@ -87,7 +87,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
 
         afterAll(async () => {
           try {
-            await cortex.memorySpaces.delete(TEST_MEMSPACE, {
+            await memoir.memorySpaces.delete(TEST_MEMSPACE, {
               cascade: true,
               reason: "e2e test cleanup",
             });
@@ -96,7 +96,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           }
           await graphAdapter.clearDatabase();
           await graphAdapter.disconnect();
-          cortex.close();
+          memoir.close();
         });
 
         // ============================================================================
@@ -104,7 +104,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         // ============================================================================
         describe("Fact Node Creation", () => {
           it("should create Fact node in graph when fact is stored", async () => {
-            const storedFact = await cortex.facts.store({
+            const storedFact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Alice is a software engineer",
               factType: "identity",
@@ -135,7 +135,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           });
 
           it("should store fact with all optional properties in graph", async () => {
-            const storedFact = await cortex.facts.store({
+            const storedFact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Bob works at TechCorp since 2020",
               factType: "relationship",
@@ -166,7 +166,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         // ============================================================================
         describe("Entity Node Creation", () => {
           it("should create Entity nodes from fact.entities array", async () => {
-            const _fact = await cortex.facts.store({
+            const _fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Sarah climbs at Planet Granite in San Francisco",
               factType: "knowledge",
@@ -215,7 +215,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
 
           it("should create Entity nodes from subject/object fields (fallback)", async () => {
             // Store fact without entities array - should use subject/object as fallback
-            await cortex.facts.store({
+            await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Charlie knows Python",
               factType: "knowledge",
@@ -251,7 +251,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         // ============================================================================
         describe("MENTIONS Relationships", () => {
           it("should create MENTIONS edges from Fact to Entity nodes", async () => {
-            const fact = await cortex.facts.store({
+            const fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "David manages the Marketing team",
               factType: "relationship",
@@ -296,7 +296,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         // ============================================================================
         describe("Predicate-Based Relationships", () => {
           it("should create typed relationships from predicate (e.g., WORKS_AT)", async () => {
-            const fact = await cortex.facts.store({
+            const fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Emma works at Google",
               factType: "relationship",
@@ -321,7 +321,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           });
 
           it("should create relationships from enriched relations array", async () => {
-            const _fact = await cortex.facts.store({
+            const _fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Frank mentors Grace in AI research",
               factType: "relationship",
@@ -358,7 +358,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         // ============================================================================
         describe("IN_SPACE Relationships", () => {
           it("should create IN_SPACE edge from Fact to MemorySpace", async () => {
-            const fact = await cortex.facts.store({
+            const fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Test fact for IN_SPACE relationship",
               factType: "knowledge",
@@ -387,7 +387,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           it("should create EXTRACTED_FROM edge when fact has sourceRef", async () => {
             // First create a conversation
             const convId = ctx.conversationId("extraction");
-            await cortex.conversations.create({
+            await memoir.conversations.create({
               memorySpaceId: TEST_MEMSPACE,
               conversationId: convId,
               type: "user-agent",
@@ -399,7 +399,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             });
 
             // Add a message to the conversation
-            await cortex.conversations.addMessage({
+            await memoir.conversations.addMessage({
               conversationId: convId,
               message: {
                 role: "user",
@@ -410,7 +410,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Store fact with sourceRef to the conversation
-            const fact = await cortex.facts.store({
+            const fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Helen prefers dark mode",
               factType: "preference",
@@ -445,7 +445,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         describe("SUPERSEDES Relationships", () => {
           it("should create SUPERSEDES edge when fact supersedes another", async () => {
             // Create initial fact
-            const initialFact = await cortex.facts.revise({
+            const initialFact = await memoir.facts.revise({
               memorySpaceId: TEST_MEMSPACE,
               fact: {
                 fact: "Ivan's favorite color is blue",
@@ -460,7 +460,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             expect(initialFact.action).toBe("ADD");
 
             // Supersede with new fact
-            const _supersedingFact = await cortex.facts.revise({
+            const _supersedingFact = await memoir.facts.revise({
               memorySpaceId: TEST_MEMSPACE,
               fact: {
                 fact: "Ivan's favorite color is green",
@@ -493,7 +493,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
 
           it("should track fact history via SUPERSEDES chain", async () => {
             // Create a chain of supersessions
-            const _fact1 = await cortex.facts.revise({
+            const _fact1 = await memoir.facts.revise({
               memorySpaceId: TEST_MEMSPACE,
               fact: {
                 fact: "Julia lives in Boston",
@@ -505,7 +505,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
               },
             });
 
-            const _fact2 = await cortex.facts.revise({
+            const _fact2 = await memoir.facts.revise({
               memorySpaceId: TEST_MEMSPACE,
               fact: {
                 fact: "Julia lives in New York",
@@ -538,8 +538,8 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
           it("should store tenantId on Fact nodes", async () => {
             const tenantId = "tenant-org-123";
             
-            // Create Cortex with tenant context (requires both userId and tenantId)
-            const tenantCortex = new Cortex({
+            // Create Memoir with tenant context (requires both userId and tenantId)
+            const tenantMemoir = new Memoir({
               convexUrl: CONVEX_URL,
               graph: {
                 adapter: graphAdapter,
@@ -551,13 +551,13 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             });
 
             const tenantMemSpace = ctx.memorySpaceId("tenant-test");
-            await tenantCortex.memorySpaces.register({
+            await tenantMemoir.memorySpaces.register({
               memorySpaceId: tenantMemSpace,
               type: "personal",
               name: "Tenant Test Space",
             });
 
-            const fact = await tenantCortex.facts.store({
+            const fact = await tenantMemoir.facts.store({
               memorySpaceId: tenantMemSpace,
               fact: "Tenant-specific fact data",
               factType: "custom",
@@ -578,11 +578,11 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             expect(factNodes[0].properties.tenantId).toBe(tenantId);
 
             // Cleanup
-            await tenantCortex.memorySpaces.delete(tenantMemSpace, {
+            await tenantMemoir.memorySpaces.delete(tenantMemSpace, {
               cascade: true,
               reason: "tenant test cleanup",
             });
-            tenantCortex.close();
+            tenantMemoir.close();
           });
         });
 
@@ -592,7 +592,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
         describe("Graph Querying and Traversal", () => {
           beforeEach(async () => {
             // Create interconnected facts for traversal tests
-            await cortex.facts.store({
+            await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Kevin works at Acme Corp",
               factType: "relationship",
@@ -604,7 +604,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
               tags: ["team"],
             });
 
-            await cortex.facts.store({
+            await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Lisa works at Acme Corp",
               factType: "relationship",
@@ -616,7 +616,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
               tags: ["team"],
             });
 
-            await cortex.facts.store({
+            await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Kevin knows Lisa",
               factType: "relationship",
@@ -690,7 +690,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             const convId = ctx.conversationId("mem-conv");
             
             // Store memory via remember()
-            const result = await cortex.memory.remember({
+            const result = await memoir.memory.remember({
               memorySpaceId: TEST_MEMSPACE,
               conversationId: convId,
               userMessage: "I'm planning a trip to Japan next summer",
@@ -725,7 +725,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             const flowConvId = ctx.conversationId("complete-flow");
             
             // 1. Store conversation and memory
-            const memResult = await cortex.memory.remember({
+            const memResult = await memoir.memory.remember({
               memorySpaceId: TEST_MEMSPACE,
               conversationId: flowConvId,
               userMessage: "My name is Morgan and I work at DataTech as a data scientist",
@@ -738,7 +738,7 @@ describeIfEnabled("E2E: Comprehensive Graph Sync Tests", () => {
             });
 
             // 2. Store related fact
-            const fact = await cortex.facts.store({
+            const fact = await memoir.facts.store({
               memorySpaceId: TEST_MEMSPACE,
               fact: "Morgan works at DataTech as a data scientist",
               factType: "identity",

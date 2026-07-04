@@ -30,12 +30,12 @@ allow-licenses:
 # on how the scanner resolves them, so we include both formats.
 allow-dependencies-licenses:
   # Internal packages by npm name
-  - "pkg:npm/@cortexmemory/sdk"
-  - "pkg:npm/@cortexmemory/cli"
-  - "pkg:npm/@cortexmemory/vercel-ai-provider"
-  - "pkg:npm/@cortexmemory/vercel-ai-quickstart"
+  - "pkg:npm/@memoir/sdk"
+  - "pkg:npm/@memoir/cli"
+  - "pkg:npm/@memoir/vercel-ai-provider"
+  - "pkg:npm/@memoir/vercel-ai-quickstart"
   # Internal packages by workspace path (scanner sometimes uses lockfile paths)
-  - "pkg:npm/packages/cortex-cli"
+  - "pkg:npm/packages/memoir-cli"
   - "pkg:npm/packages/vercel-ai-provider"
   # Vercel AI SDK packages - Apache-2.0 licensed but scanner can't always
   # resolve licenses from nested lockfiles or transitive dependencies.

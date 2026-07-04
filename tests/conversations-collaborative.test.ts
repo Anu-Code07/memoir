@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Collaborative Conversations Tests
+ * Memoir SDK - Collaborative Conversations Tests
  *
  * Tests the Shareable Chats Phase 4 implementation:
  * - Collaborative conversation creation with multiple users
@@ -10,7 +10,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import { generateTenantId, createTenantAuthContext } from "./helpers/tenancy";
 import { ConvexClient } from "convex/browser";
@@ -18,7 +18,7 @@ import { ConvexClient } from "convex/browser";
 describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
   const ctx = createNamedTestRunContext("collab");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -29,7 +29,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
     console.log(`\n🧪 Collaborative Tests - Run ID: ${ctx.runId}\n`);
 
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -39,7 +39,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
   afterAll(async () => {
     console.log(`\n🧹 Cleaning up test run ${ctx.runId}...`);
     await scopedCleanup.cleanupAll();
-    cortex.close();
+    memoir.close();
     await client.close();
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -52,7 +52,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const user3 = ctx.userId("collab-user-3");
       const agent = ctx.agentId("collab-agent-1");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -72,7 +72,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const user = ctx.userId("collab-user-na");
       const agent = ctx.agentId("collab-agent-na");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
@@ -90,7 +90,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const owner = ctx.userId("collab-owner");
       const agent = ctx.agentId("collab-agent-a");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: owner, agentId: agent },
@@ -110,7 +110,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const approved = ctx.userId("collab-approved-ap");
       const agent = ctx.agentId("collab-agent-ap");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -136,7 +136,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const owner = ctx.userId("msg-owner-user");
       const agent = ctx.agentId("msg-owner-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: owner, agentId: agent },
@@ -147,7 +147,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       });
 
       // Add message as owner
-      const updated = await cortex.conversations.addMessage({
+      const updated = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -166,7 +166,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const participant = ctx.userId("msg-participant-2");
       const agent = ctx.agentId("msg-agent-2");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -180,7 +180,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       });
 
       // Add message as non-owner participant
-      const updated = await cortex.conversations.addMessage({
+      const updated = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -199,7 +199,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const approved = ctx.userId("msg-approved-3");
       const agent = ctx.agentId("msg-agent-3");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -214,7 +214,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       });
 
       // Add message as pre-approved participant
-      const updated = await cortex.conversations.addMessage({
+      const updated = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -235,7 +235,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const participant = ctx.userId("approve-participant");
       const agent = ctx.agentId("approve-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -249,7 +249,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       });
 
       // Add pending message
-      const withPending = await cortex.conversations.addMessage({
+      const withPending = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -262,7 +262,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       expect(pendingMsg.approvalStatus).toBe("pending");
 
       // Approve the message
-      const approved = await cortex.conversations.approveMessage({
+      const approved = await memoir.conversations.approveMessage({
         conversationId: conv.conversationId,
         messageId: pendingMsg.id,
       });
@@ -281,7 +281,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const participant = ctx.userId("reject-participant");
       const agent = ctx.agentId("reject-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: {
@@ -295,7 +295,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       });
 
       // Add pending message
-      const withPending = await cortex.conversations.addMessage({
+      const withPending = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -307,7 +307,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const pendingMsg = withPending.messages[withPending.messages.length - 1];
 
       // Reject the message
-      const rejected = await cortex.conversations.rejectMessage({
+      const rejected = await memoir.conversations.rejectMessage({
         conversationId: conv.conversationId,
         messageId: pendingMsg.id,
       });
@@ -324,7 +324,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const user = ctx.userId("no-approval-user");
       const agent = ctx.agentId("no-approval-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
@@ -333,7 +333,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
         },
       });
 
-      const updated = await cortex.conversations.addMessage({
+      const updated = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -355,7 +355,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       const agent = ctx.agentId("compat-agent");
 
       // Create without collaborativeSettings
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
@@ -364,7 +364,7 @@ describe("Collaborative Conversations (Shareable Chats Phase 4)", () => {
       expect(conv.collaborativeSettings).toBeUndefined();
 
       // Messages should work without approval flow
-      const updated = await cortex.conversations.addMessage({
+      const updated = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",

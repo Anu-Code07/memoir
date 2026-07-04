@@ -338,14 +338,14 @@ async function main() {
     await testDatabase("Neo4j", {
       uri: "bolt://localhost:7687",
       username: "neo4j",
-      password: "cortex-dev-password",
+      password: "memoir-dev-password",
     });
 
     // Test Memgraph
     await testDatabase("Memgraph", {
       uri: "bolt://localhost:7688",
       username: "memgraph",
-      password: "cortex-dev-password",
+      password: "memoir-dev-password",
     });
 
     console.log(

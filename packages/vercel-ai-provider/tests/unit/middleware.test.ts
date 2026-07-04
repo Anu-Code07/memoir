@@ -16,7 +16,7 @@ import {
   generateId,
 } from "../../src/memory-middleware";
 import { createLogger } from "../../src/types";
-import type { CortexMemoryConfig } from "../../src/types";
+import type { MemoirMemoryConfig } from "../../src/types";
 import { createTestConfig, createMockMemories } from "../helpers/test-utils";
 
 describe("Middleware Functions", () => {

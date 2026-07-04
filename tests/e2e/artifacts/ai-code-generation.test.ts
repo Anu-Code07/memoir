@@ -9,7 +9,7 @@
  * - User navigates version history with undo/redo
  */
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import { createTestRunContext } from "../../helpers/isolation";
 import {
   generateTenantId,
@@ -24,7 +24,7 @@ const ctx = createTestRunContext();
 const describeWithConvex = process.env.CONVEX_URL ? describe : describe.skip;
 
 describeWithConvex("E2E: AI Code Generation Flow", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let testTenantId: string;
   let testUserId: string;
   let testMemorySpaceId: string;
@@ -39,13 +39,13 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     const authContext = createTenantAuthContext(testTenantId, testUserId);
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authContext,
     });
 
     // Register memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "AI Code Generation E2E Test Space",
       type: "custom",
@@ -56,7 +56,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
     // Clean up artifacts
     for (const artifactId of createdArtifactIds) {
       try {
-        await cortex.artifacts.delete(artifactId, true);
+        await memoir.artifacts.delete(artifactId, true);
       } catch {
         // Ignore cleanup errors
       }
@@ -64,7 +64,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     // Clean up memory space
     try {
-      await cortex.memorySpaces.delete(testMemorySpaceId, {
+      await memoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -88,7 +88,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     it("should stream code artifact from AI response", async () => {
       // Step 1: AI tool call creates artifact in draft state
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "User Data Fetcher",
         content: "", // Start with empty content
@@ -108,7 +108,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(artifact.version).toBe(1);
 
       // Step 2: Start streaming session (AI begins generating)
-      const startResult = await cortex.artifacts.startStreaming({
+      const startResult = await memoir.artifacts.startStreaming({
         artifactId: artifact.artifactId,
       });
 
@@ -123,7 +123,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       const chunks = aiGeneratedCode.match(/.{1,50}/gs) || [];
 
       for (const chunk of chunks) {
-        const chunkResult = await cortex.artifacts.appendContent({
+        const chunkResult = await memoir.artifacts.appendContent({
           artifactId: artifact.artifactId,
           sessionId,
           chunk,
@@ -134,7 +134,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       }
 
       // Step 4: Finalize streaming (AI finished generating)
-      const finalResult = await cortex.artifacts.finalizeStreaming({
+      const finalResult = await memoir.artifacts.finalizeStreaming({
         artifactId: artifact.artifactId,
         sessionId,
         changeSummary: "Initial AI-generated code",
@@ -144,7 +144,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(finalResult.currentState).toBe("final");
 
       // Step 5: Verify artifact is retrievable with complete content
-      const retrieved = await cortex.artifacts.get(artifact.artifactId);
+      const retrieved = await memoir.artifacts.get(artifact.artifactId);
       expect(retrieved).not.toBeNull();
       expect(retrieved?.content).toBe(aiGeneratedCode);
       expect(retrieved?.title).toBe("User Data Fetcher");
@@ -169,7 +169,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     beforeAll(async () => {
       // Create initial artifact
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Greeting Function",
         content: originalCode,
@@ -184,12 +184,12 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     it("should update artifact via AI tool and maintain version history", async () => {
       // Step 1: Verify initial state
-      const initial = await cortex.artifacts.get(artifactId);
+      const initial = await memoir.artifacts.get(artifactId);
       expect(initial?.content).toBe(originalCode);
       expect(initial?.version).toBe(1);
 
       // Step 2: AI updates the artifact (simulating updateArtifact tool call)
-      const updated = await cortex.artifacts.update(artifactId, updatedCode, {
+      const updated = await memoir.artifacts.update(artifactId, updatedCode, {
         changeSummary: "Added customizable greeting parameter",
         changedBy: "ai-assistant",
       });
@@ -198,7 +198,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(updated.version).toBe(2);
 
       // Step 3: Verify version history
-      const history = await cortex.artifacts.getHistory(artifactId);
+      const history = await memoir.artifacts.getHistory(artifactId);
       expect(history.length).toBe(2);
 
       // First version (create)
@@ -214,11 +214,11 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     it("should support undo/redo navigation", async () => {
       // Step 1: Undo to previous version
-      const undoResult = await cortex.artifacts.undo(artifactId);
+      const undoResult = await memoir.artifacts.undo(artifactId);
       expect(undoResult.success).toBe(true);
       expect(undoResult.currentVersion).toBe(1);
 
-      const afterUndo = await cortex.artifacts.get(artifactId);
+      const afterUndo = await memoir.artifacts.get(artifactId);
       expect(afterUndo?.content).toBe(originalCode);
 
       // Step 2: Verify version is still 2 but pointer is 1
@@ -226,36 +226,36 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(afterUndo?.versionPointer).toBe(1);
 
       // Step 3: Redo to restore
-      const redoResult = await cortex.artifacts.redo(artifactId);
+      const redoResult = await memoir.artifacts.redo(artifactId);
       expect(redoResult.success).toBe(true);
       expect(redoResult.currentVersion).toBe(2);
 
       // Step 4: Verify final state
-      const final = await cortex.artifacts.get(artifactId);
+      const final = await memoir.artifacts.get(artifactId);
       expect(final?.content).toBe(updatedCode);
       expect(final?.versionPointer).toBe(2);
     });
 
     it("should handle undo at initial version gracefully", async () => {
       // Reset to version 1
-      await cortex.artifacts.undo(artifactId);
+      await memoir.artifacts.undo(artifactId);
 
       // Try to undo again - should throw UNDO_NOT_AVAILABLE
-      await expect(cortex.artifacts.undo(artifactId)).rejects.toThrow(
+      await expect(memoir.artifacts.undo(artifactId)).rejects.toThrow(
         /UNDO_NOT_AVAILABLE/,
       );
 
       // Clean up - restore to latest
-      await cortex.artifacts.redo(artifactId);
+      await memoir.artifacts.redo(artifactId);
     });
 
     it("should handle redo at latest version gracefully", async () => {
       // Verify at latest version
-      const current = await cortex.artifacts.get(artifactId);
+      const current = await memoir.artifacts.get(artifactId);
       expect(current?.versionPointer).toBe(current?.version);
 
       // Try to redo - should throw REDO_NOT_AVAILABLE
-      await expect(cortex.artifacts.redo(artifactId)).rejects.toThrow(
+      await expect(memoir.artifacts.redo(artifactId)).rejects.toThrow(
         /REDO_NOT_AVAILABLE/,
       );
     });
@@ -277,7 +277,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     beforeAll(async () => {
       // Create artifact with first version
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Progressive Code",
         content: versions[0],
@@ -290,14 +290,14 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
       // Create subsequent versions
       for (let i = 1; i < versions.length; i++) {
-        await cortex.artifacts.update(artifactId, versions[i], {
+        await memoir.artifacts.update(artifactId, versions[i], {
           changeSummary: `AI update v${i + 1}`,
         });
       }
     });
 
     it("should have 4 versions in history", async () => {
-      const history = await cortex.artifacts.getHistory(artifactId);
+      const history = await memoir.artifacts.getHistory(artifactId);
       expect(history.length).toBe(4);
 
       for (let i = 0; i < 4; i++) {
@@ -308,7 +308,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     it("should retrieve specific versions", async () => {
       for (let i = 1; i <= 4; i++) {
-        const version = await cortex.artifacts.getVersion(artifactId, i);
+        const version = await memoir.artifacts.getVersion(artifactId, i);
         expect(version).not.toBeNull();
         expect(version?.version).toBe(i);
         expect(version?.content).toBe(versions[i - 1]);
@@ -317,37 +317,37 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
 
     it("should navigate through all versions with undo", async () => {
       // Start at v4
-      let artifact = await cortex.artifacts.get(artifactId);
+      let artifact = await memoir.artifacts.get(artifactId);
       expect(artifact?.versionPointer).toBe(4);
 
       // Undo to v3
-      let undoResult = await cortex.artifacts.undo(artifactId);
+      let undoResult = await memoir.artifacts.undo(artifactId);
       expect(undoResult.success).toBe(true);
       expect(undoResult.currentVersion).toBe(3);
-      artifact = await cortex.artifacts.get(artifactId);
+      artifact = await memoir.artifacts.get(artifactId);
       expect(artifact?.content).toBe(versions[2]);
 
       // Undo to v2
-      undoResult = await cortex.artifacts.undo(artifactId);
+      undoResult = await memoir.artifacts.undo(artifactId);
       expect(undoResult.success).toBe(true);
-      artifact = await cortex.artifacts.get(artifactId);
+      artifact = await memoir.artifacts.get(artifactId);
       expect(artifact?.content).toBe(versions[1]);
 
       // Undo to v1
-      undoResult = await cortex.artifacts.undo(artifactId);
+      undoResult = await memoir.artifacts.undo(artifactId);
       expect(undoResult.success).toBe(true);
-      artifact = await cortex.artifacts.get(artifactId);
+      artifact = await memoir.artifacts.get(artifactId);
       expect(artifact?.content).toBe(versions[0]);
 
       // Restore to latest for other tests
-      await cortex.artifacts.redo(artifactId);
-      await cortex.artifacts.redo(artifactId);
-      await cortex.artifacts.redo(artifactId);
+      await memoir.artifacts.redo(artifactId);
+      await memoir.artifacts.redo(artifactId);
+      await memoir.artifacts.redo(artifactId);
     });
 
     it("should handle invalid version request", async () => {
       // Request non-existent version
-      const result = await cortex.artifacts.getVersion(artifactId, 99);
+      const result = await memoir.artifacts.getVersion(artifactId, 99);
       expect(result).toBeNull();
     });
   });
@@ -359,7 +359,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
   describe("Scenario 4: Streaming Pause/Resume", () => {
     it("should support pause and resume during streaming", async () => {
       // Create artifact
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Pausable Stream",
         content: "",
@@ -370,19 +370,19 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       createdArtifactIds.push(artifact.artifactId);
 
       // Start streaming
-      const { sessionId } = await cortex.artifacts.startStreaming({
+      const { sessionId } = await memoir.artifacts.startStreaming({
         artifactId: artifact.artifactId,
       });
 
       // Append some content
-      await cortex.artifacts.appendContent({
+      await memoir.artifacts.appendContent({
         artifactId: artifact.artifactId,
         sessionId,
         chunk: "First chunk. ",
       });
 
       // Pause streaming
-      const pauseResult = await cortex.artifacts.pauseStreaming({
+      const pauseResult = await memoir.artifacts.pauseStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -390,7 +390,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(pauseResult.currentState).toBe("paused");
 
       // Resume streaming
-      const resumeResult = await cortex.artifacts.resumeStreaming({
+      const resumeResult = await memoir.artifacts.resumeStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -398,14 +398,14 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(resumeResult.currentState).toBe("streaming");
 
       // Continue appending
-      await cortex.artifacts.appendContent({
+      await memoir.artifacts.appendContent({
         artifactId: artifact.artifactId,
         sessionId,
         chunk: "Second chunk after resume.",
       });
 
       // Finalize
-      const finalResult = await cortex.artifacts.finalizeStreaming({
+      const finalResult = await memoir.artifacts.finalizeStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -414,7 +414,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(finalResult.currentState).toBe("final");
 
       // Verify final content
-      const finalArtifact = await cortex.artifacts.get(artifact.artifactId);
+      const finalArtifact = await memoir.artifacts.get(artifact.artifactId);
       expect(finalArtifact?.content).toBe("First chunk. Second chunk after resume.");
     });
   });
@@ -426,7 +426,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
   describe("Scenario 5: Streaming Cancellation", () => {
     it("should cancel streaming and revert to draft", async () => {
       // Create artifact in draft state (required to start streaming)
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Cancellable Stream",
         content: "Initial content",
@@ -437,19 +437,19 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       createdArtifactIds.push(artifact.artifactId);
 
       // Start streaming
-      const { sessionId } = await cortex.artifacts.startStreaming({
+      const { sessionId } = await memoir.artifacts.startStreaming({
         artifactId: artifact.artifactId,
       });
 
       // Append some content
-      await cortex.artifacts.appendContent({
+      await memoir.artifacts.appendContent({
         artifactId: artifact.artifactId,
         sessionId,
         chunk: "New streaming content...",
       });
 
       // Cancel streaming
-      const cancelResult = await cortex.artifacts.cancelStreaming({
+      const cancelResult = await memoir.artifacts.cancelStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -458,7 +458,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       expect(cancelResult.currentState).toBe("draft");
 
       // Verify state is reset
-      const retrieved = await cortex.artifacts.get(artifact.artifactId);
+      const retrieved = await memoir.artifacts.get(artifact.artifactId);
       expect(retrieved?.streamingState).toBe("draft");
     });
   });
@@ -492,7 +492,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
       ];
 
       for (const config of testArtifacts) {
-        const artifact = await cortex.artifacts.create({
+        const artifact = await memoir.artifacts.create({
           memorySpaceId: testMemorySpaceId,
           ...config,
           streamingState: "final",
@@ -502,7 +502,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
     });
 
     it("should list artifacts by kind", async () => {
-      const codeArtifacts = await cortex.artifacts.list({
+      const codeArtifacts = await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         kind: "code",
       });
@@ -514,7 +514,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
     });
 
     it("should list artifacts by tags", async () => {
-      const testTaggedArtifacts = await cortex.artifacts.list({
+      const testTaggedArtifacts = await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         tags: ["test"],
       });
@@ -523,7 +523,7 @@ describeWithConvex("E2E: AI Code Generation Flow", () => {
     });
 
     it("should count artifacts matching filter", async () => {
-      const count = await cortex.artifacts.count({
+      const count = await memoir.artifacts.count({
         memorySpaceId: testMemorySpaceId,
         streamingState: "final",
       });

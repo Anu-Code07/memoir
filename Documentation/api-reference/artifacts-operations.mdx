@@ -13,7 +13,7 @@ description: Complete API reference for versioned artifact management with strea
 
 </Callout>
 
-Complete API reference for the Artifacts API (`cortex.artifacts.*`), providing versioned document management with streaming support, undo/redo, and file attachments.
+Complete API reference for the Artifacts API (`memoir.artifacts.*`), providing versioned document management with streaming support, undo/redo, and file attachments.
 
 ## Overview
 
@@ -131,7 +131,7 @@ interface Artifact {
 Create a new artifact.
 
 ```typescript
-const artifact = await cortex.artifacts.create(options: CreateArtifactOptions): Promise<Artifact>;
+const artifact = await memoir.artifacts.create(options: CreateArtifactOptions): Promise<Artifact>;
 ```
 
 **Parameters:**
@@ -161,7 +161,7 @@ const artifact = await cortex.artifacts.create(options: CreateArtifactOptions): 
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const artifact = await cortex.artifacts.create({
+const artifact = await memoir.artifacts.create({
   memorySpaceId: "user-123-workspace",
   title: "API Handler",
   content: `export async function handler(req, res) {
@@ -182,9 +182,9 @@ console.log(artifact.version);    // 1
 <TabItem value="python" label="Python">
 
 ```python
-from cortex import CreateArtifactOptions
+from memoir import CreateArtifactOptions
 
-artifact = await cortex.artifacts.create(
+artifact = await memoir.artifacts.create(
     CreateArtifactOptions(
         memory_space_id="user-123-workspace",
         title="API Handler",
@@ -208,14 +208,14 @@ print(artifact.artifact_id)  # "art-abc123def456"
 Retrieve an artifact by ID.
 
 ```typescript
-const artifact = await cortex.artifacts.get(artifactId: string): Promise<Artifact | null>;
+const artifact = await memoir.artifacts.get(artifactId: string): Promise<Artifact | null>;
 ```
 
 <Tabs>
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const artifact = await cortex.artifacts.get("art-abc123def456");
+const artifact = await memoir.artifacts.get("art-abc123def456");
 
 if (artifact) {
   console.log(artifact.title);         // "API Handler"
@@ -229,7 +229,7 @@ if (artifact) {
 <TabItem value="python" label="Python">
 
 ```python
-artifact = await cortex.artifacts.get("art-abc123def456")
+artifact = await memoir.artifacts.get("art-abc123def456")
 
 if artifact:
     print(artifact.title)
@@ -246,7 +246,7 @@ if artifact:
 Update an artifact's content. Creates a new version in history.
 
 ```typescript
-const artifact = await cortex.artifacts.update(
+const artifact = await memoir.artifacts.update(
   artifactId: string,
   content: string,
   options?: UpdateArtifactOptions
@@ -271,7 +271,7 @@ const artifact = await cortex.artifacts.update(
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const updated = await cortex.artifacts.update(
+const updated = await memoir.artifacts.update(
   "art-abc123def456",
   `export async function handler(req, res) {
   // Added error handling
@@ -295,9 +295,9 @@ console.log(updated.version); // 2
 <TabItem value="python" label="Python">
 
 ```python
-from cortex import UpdateArtifactOptions
+from memoir import UpdateArtifactOptions
 
-updated = await cortex.artifacts.update(
+updated = await memoir.artifacts.update(
     "art-abc123def456",
     "# Updated content...",
     UpdateArtifactOptions(
@@ -318,7 +318,7 @@ print(updated.version)  # 2
 Delete an artifact. Supports soft delete (default) or hard delete.
 
 ```typescript
-const result = await cortex.artifacts.delete(
+const result = await memoir.artifacts.delete(
   artifactId: string,
   hard?: boolean  // Default: false (soft delete)
 ): Promise<DeleteArtifactResult>;
@@ -340,11 +340,11 @@ interface DeleteArtifactResult {
 
 ```typescript
 // Soft delete (recoverable)
-const result = await cortex.artifacts.delete("art-abc123def456");
+const result = await memoir.artifacts.delete("art-abc123def456");
 console.log(result.deleted); // true
 
 // Hard delete (permanent)
-const hardResult = await cortex.artifacts.delete("art-abc123def456", true);
+const hardResult = await memoir.artifacts.delete("art-abc123def456", true);
 console.log(hardResult.versionsPurged); // 5
 ```
 
@@ -353,10 +353,10 @@ console.log(hardResult.versionsPurged); // 5
 
 ```python
 # Soft delete
-result = await cortex.artifacts.delete("art-abc123def456")
+result = await memoir.artifacts.delete("art-abc123def456")
 
 # Hard delete
-result = await cortex.artifacts.delete("art-abc123def456", hard=True)
+result = await memoir.artifacts.delete("art-abc123def456", hard=True)
 ```
 
 </TabItem>
@@ -369,7 +369,7 @@ result = await cortex.artifacts.delete("art-abc123def456", hard=True)
 List artifacts with filtering and pagination.
 
 ```typescript
-const artifacts = await cortex.artifacts.list(filter: ListArtifactsFilter): Promise<Artifact[]>;
+const artifacts = await memoir.artifacts.list(filter: ListArtifactsFilter): Promise<Artifact[]>;
 ```
 
 **Filter Parameters:**
@@ -400,7 +400,7 @@ const artifacts = await cortex.artifacts.list(filter: ListArtifactsFilter): Prom
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const codeArtifacts = await cortex.artifacts.list({
+const codeArtifacts = await memoir.artifacts.list({
   memorySpaceId: "user-123-workspace",
   kind: "code",
   streamingState: "final",
@@ -417,9 +417,9 @@ console.log(`Found ${codeArtifacts.length} code artifacts`);
 <TabItem value="python" label="Python">
 
 ```python
-from cortex import ListArtifactsFilter
+from memoir import ListArtifactsFilter
 
-artifacts = await cortex.artifacts.list(
+artifacts = await memoir.artifacts.list(
     ListArtifactsFilter(
         memory_space_id="user-123-workspace",
         kind="code",
@@ -440,11 +440,11 @@ artifacts = await cortex.artifacts.list(
 Count artifacts matching a filter.
 
 ```typescript
-const count = await cortex.artifacts.count(filter: CountArtifactsFilter): Promise<number>;
+const count = await memoir.artifacts.count(filter: CountArtifactsFilter): Promise<number>;
 ```
 
 ```typescript
-const count = await cortex.artifacts.count({
+const count = await memoir.artifacts.count({
   memorySpaceId: "user-123-workspace",
   kind: "code",
   streamingState: "final",
@@ -462,7 +462,7 @@ console.log(`${count} finalized code artifacts`);
 Undo the last change. Moves the version pointer backward without deleting history.
 
 ```typescript
-const result = await cortex.artifacts.undo(artifactId: string): Promise<{
+const result = await memoir.artifacts.undo(artifactId: string): Promise<{
   success: boolean;
   artifactId: string;
   previousVersion: number;
@@ -476,7 +476,7 @@ const result = await cortex.artifacts.undo(artifactId: string): Promise<{
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const result = await cortex.artifacts.undo("art-abc123def456");
+const result = await memoir.artifacts.undo("art-abc123def456");
 
 console.log(result.previousVersion); // 3
 console.log(result.currentVersion);  // 2
@@ -488,7 +488,7 @@ console.log(result.canRedo);         // true (can redo)
 <TabItem value="python" label="Python">
 
 ```python
-result = await cortex.artifacts.undo("art-abc123def456")
+result = await memoir.artifacts.undo("art-abc123def456")
 
 print(result.current_version)  # 2
 print(result.can_undo)         # True
@@ -511,7 +511,7 @@ Thrown when at version 1 (no previous version exists).
 Redo a previously undone change. Moves the version pointer forward.
 
 ```typescript
-const result = await cortex.artifacts.redo(artifactId: string): Promise<{
+const result = await memoir.artifacts.redo(artifactId: string): Promise<{
   success: boolean;
   artifactId: string;
   previousVersion: number;
@@ -522,7 +522,7 @@ const result = await cortex.artifacts.redo(artifactId: string): Promise<{
 ```
 
 ```typescript
-const result = await cortex.artifacts.redo("art-abc123def456");
+const result = await memoir.artifacts.redo("art-abc123def456");
 
 console.log(result.currentVersion); // 3 (back to latest)
 console.log(result.canRedo);        // false (at latest)
@@ -541,7 +541,7 @@ Thrown when already at the latest version.
 Get the version history of an artifact.
 
 ```typescript
-const history = await cortex.artifacts.getHistory(
+const history = await memoir.artifacts.getHistory(
   artifactId: string,
   options?: GetArtifactHistoryOptions
 ): Promise<ArtifactVersion[]>;
@@ -558,7 +558,7 @@ const history = await cortex.artifacts.getHistory(
 />
 
 ```typescript
-const history = await cortex.artifacts.getHistory("art-abc123def456", {
+const history = await memoir.artifacts.getHistory("art-abc123def456", {
   limit: 10,
   sortOrder: "desc",
 });
@@ -577,14 +577,14 @@ for (const version of history) {
 Get a specific version of an artifact.
 
 ```typescript
-const version = await cortex.artifacts.getVersion(
+const version = await memoir.artifacts.getVersion(
   artifactId: string,
   version: number
 ): Promise<ArtifactVersion | null>;
 ```
 
 ```typescript
-const v2 = await cortex.artifacts.getVersion("art-abc123def456", 2);
+const v2 = await memoir.artifacts.getVersion("art-abc123def456", 2);
 
 if (v2) {
   console.log(v2.content);        // Content at version 2
@@ -602,7 +602,7 @@ if (v2) {
 Start a streaming session for an artifact. Transitions to `streaming` state.
 
 ```typescript
-const result = await cortex.artifacts.startStreaming(
+const result = await memoir.artifacts.startStreaming(
   params: StartStreamingParams
 ): Promise<{
   success: boolean;
@@ -618,7 +618,7 @@ const result = await cortex.artifacts.startStreaming(
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const { sessionId, artifactId } = await cortex.artifacts.startStreaming({
+const { sessionId, artifactId } = await memoir.artifacts.startStreaming({
   artifactId: "art-abc123def456",
 });
 
@@ -630,9 +630,9 @@ console.log(`Streaming session: ${sessionId}`);
 <TabItem value="python" label="Python">
 
 ```python
-from cortex import StartStreamingParams
+from memoir import StartStreamingParams
 
-result = await cortex.artifacts.start_streaming(
+result = await memoir.artifacts.start_streaming(
     StartStreamingParams(artifact_id="art-abc123def456")
 )
 
@@ -649,7 +649,7 @@ print(result.session_id)
 Append a content chunk during streaming.
 
 ```typescript
-const result = await cortex.artifacts.appendContent(
+const result = await memoir.artifacts.appendContent(
   params: AppendContentParams
 ): Promise<{
   success: boolean;
@@ -675,7 +675,7 @@ const result = await cortex.artifacts.appendContent(
 ```typescript
 // Stream AI-generated content
 for await (const chunk of aiStream) {
-  const result = await cortex.artifacts.appendContent({
+  const result = await memoir.artifacts.appendContent({
     artifactId: "art-abc123def456",
     sessionId,
     chunk: chunk.text,
@@ -692,7 +692,7 @@ for await (const chunk of aiStream) {
 Pause an active streaming session. Preserves current content.
 
 ```typescript
-const result = await cortex.artifacts.pauseStreaming(
+const result = await memoir.artifacts.pauseStreaming(
   params: StreamingSessionParams
 ): Promise<{
   success: boolean;
@@ -707,7 +707,7 @@ const result = await cortex.artifacts.pauseStreaming(
 ```
 
 ```typescript
-const paused = await cortex.artifacts.pauseStreaming({
+const paused = await memoir.artifacts.pauseStreaming({
   artifactId: "art-abc123def456",
   sessionId,
 });
@@ -722,7 +722,7 @@ console.log(`Paused with ${paused.bytesReceived} bytes received`);
 Resume a paused streaming session.
 
 ```typescript
-const result = await cortex.artifacts.resumeStreaming(
+const result = await memoir.artifacts.resumeStreaming(
   params: StreamingSessionParams
 ): Promise<{
   success: boolean;
@@ -736,7 +736,7 @@ const result = await cortex.artifacts.resumeStreaming(
 ```
 
 ```typescript
-const resumed = await cortex.artifacts.resumeStreaming({
+const resumed = await memoir.artifacts.resumeStreaming({
   artifactId: "art-abc123def456",
   sessionId,
 });
@@ -751,7 +751,7 @@ const resumed = await cortex.artifacts.resumeStreaming({
 Cancel an active streaming session. Returns to `draft` state.
 
 ```typescript
-const result = await cortex.artifacts.cancelStreaming(
+const result = await memoir.artifacts.cancelStreaming(
   params: StreamingSessionParams
 ): Promise<{
   success: boolean;
@@ -767,7 +767,7 @@ const result = await cortex.artifacts.cancelStreaming(
 ```
 
 ```typescript
-const cancelled = await cortex.artifacts.cancelStreaming({
+const cancelled = await memoir.artifacts.cancelStreaming({
   artifactId: "art-abc123def456",
   sessionId,
 });
@@ -782,7 +782,7 @@ console.log(`Cancelled. Content preserved: ${cancelled.contentPreserved}`);
 Complete a streaming session. Creates a new version and transitions to `final`.
 
 ```typescript
-const result = await cortex.artifacts.finalizeStreaming(
+const result = await memoir.artifacts.finalizeStreaming(
   params: FinalizeStreamingParams
 ): Promise<{
   success: boolean;
@@ -811,7 +811,7 @@ const result = await cortex.artifacts.finalizeStreaming(
 <TabItem value="typescript" label="TypeScript">
 
 ```typescript
-const final = await cortex.artifacts.finalizeStreaming({
+const final = await memoir.artifacts.finalizeStreaming({
   artifactId: "art-abc123def456",
   sessionId,
   changeSummary: "AI-generated implementation",
@@ -825,9 +825,9 @@ console.log(`Total duration: ${final.totalDurationMs}ms`);
 <TabItem value="python" label="Python">
 
 ```python
-from cortex import FinalizeStreamingParams
+from memoir import FinalizeStreamingParams
 
-final = await cortex.artifacts.finalize_streaming(
+final = await memoir.artifacts.finalize_streaming(
     FinalizeStreamingParams(
         artifact_id="art-abc123def456",
         session_id=session_id,
@@ -850,7 +850,7 @@ print(f"Finalized as version {final.version}")
 Directly set the streaming state. Use with caution - prefer streaming methods for proper transitions.
 
 ```typescript
-const result = await cortex.artifacts.setStreamingState(
+const result = await memoir.artifacts.setStreamingState(
   artifactId: string,
   streamingState: StreamingState
 ): Promise<{
@@ -864,10 +864,10 @@ const result = await cortex.artifacts.setStreamingState(
 
 ```typescript
 // Mark as error state
-await cortex.artifacts.setStreamingState("art-abc123def456", "error");
+await memoir.artifacts.setStreamingState("art-abc123def456", "error");
 
 // Reset to draft for editing
-await cortex.artifacts.setStreamingState("art-abc123def456", "draft");
+await memoir.artifacts.setStreamingState("art-abc123def456", "draft");
 ```
 
 ---
@@ -879,7 +879,7 @@ await cortex.artifacts.setStreamingState("art-abc123def456", "draft");
 Upload a file and attach it to an artifact.
 
 ```typescript
-const result = await cortex.artifacts.uploadFile(params: {
+const result = await memoir.artifacts.uploadFile(params: {
   artifactId: string;
   file: Blob;
   filename: string;
@@ -903,7 +903,7 @@ const result = await cortex.artifacts.uploadFile(params: {
 ```typescript
 const imageBlob = await fetchImageBlob();
 
-const result = await cortex.artifacts.uploadFile({
+const result = await memoir.artifacts.uploadFile({
   artifactId: "art-abc123def456",
   file: imageBlob,
   filename: "diagram.png",
@@ -927,13 +927,13 @@ console.log(`Size: ${result.fileRef.size} bytes`);
 Get a signed URL for the artifact's attached file.
 
 ```typescript
-const url = await cortex.artifacts.getFileUrl(
+const url = await memoir.artifacts.getFileUrl(
   artifactId: string
 ): Promise<string | null>;
 ```
 
 ```typescript
-const url = await cortex.artifacts.getFileUrl("art-abc123def456");
+const url = await memoir.artifacts.getFileUrl("art-abc123def456");
 
 if (url) {
   // Display image or download file
@@ -948,7 +948,7 @@ if (url) {
 Detach the file from an artifact. Optionally delete from storage.
 
 ```typescript
-const result = await cortex.artifacts.detachFile(
+const result = await memoir.artifacts.detachFile(
   artifactId: string,
   deleteFile?: boolean  // Default: false
 ): Promise<{
@@ -963,10 +963,10 @@ const result = await cortex.artifacts.detachFile(
 
 ```typescript
 // Detach but keep file in storage
-const result = await cortex.artifacts.detachFile("art-abc123def456");
+const result = await memoir.artifacts.detachFile("art-abc123def456");
 
 // Detach and delete file
-const result = await cortex.artifacts.detachFile("art-abc123def456", true);
+const result = await memoir.artifacts.detachFile("art-abc123def456", true);
 console.log(`File deleted: ${result.fileDeleted}`);
 ```
 
@@ -998,13 +998,13 @@ console.log(`File deleted: ${result.fileDeleted}`);
 ## Complete Streaming Example
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
 
 async function generateCodeArtifact(prompt: string, memorySpaceId: string) {
   // 1. Create artifact in draft state
-  const artifact = await cortex.artifacts.create({
+  const artifact = await memoir.artifacts.create({
     memorySpaceId,
     title: "Generated Code",
     content: "",
@@ -1014,7 +1014,7 @@ async function generateCodeArtifact(prompt: string, memorySpaceId: string) {
   });
 
   // 2. Start streaming session
-  const { sessionId } = await cortex.artifacts.startStreaming({
+  const { sessionId } = await memoir.artifacts.startStreaming({
     artifactId: artifact.artifactId,
   });
 
@@ -1023,7 +1023,7 @@ async function generateCodeArtifact(prompt: string, memorySpaceId: string) {
     const aiStream = await generateWithAI(prompt);
 
     for await (const chunk of aiStream) {
-      await cortex.artifacts.appendContent({
+      await memoir.artifacts.appendContent({
         artifactId: artifact.artifactId,
         sessionId,
         chunk: chunk.text,
@@ -1031,16 +1031,16 @@ async function generateCodeArtifact(prompt: string, memorySpaceId: string) {
     }
 
     // 4. Finalize successfully
-    const result = await cortex.artifacts.finalizeStreaming({
+    const result = await memoir.artifacts.finalizeStreaming({
       artifactId: artifact.artifactId,
       sessionId,
       changeSummary: `Generated from: ${prompt}`,
     });
 
-    return await cortex.artifacts.get(artifact.artifactId);
+    return await memoir.artifacts.get(artifact.artifactId);
   } catch (error) {
     // Cancel on error
-    await cortex.artifacts.cancelStreaming({
+    await memoir.artifacts.cancelStreaming({
       artifactId: artifact.artifactId,
       sessionId,
     });
@@ -1060,11 +1060,11 @@ import {
   createArtifactTools,
   useArtifacts,
   ARTIFACT_STREAM_EVENTS,
-} from "@cortexmemory/vercel-ai-provider";
+} from "@memoir/vercel-ai-provider";
 
 // Create AI tools
 const tools = createArtifactTools({
-  storage: cortex.artifacts,
+  storage: memoir.artifacts,
   writer: dataStreamWriter,
 });
 

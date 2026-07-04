@@ -9,7 +9,7 @@
  * - Multi-user collaboration patterns
  */
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import { createTestRunContext } from "../../helpers/isolation";
 import {
   generateTenantId,
@@ -24,7 +24,7 @@ const ctx = createTestRunContext();
 const describeWithConvex = process.env.CONVEX_URL ? describe : describe.skip;
 
 describeWithConvex("E2E: Document Collaboration Flow", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let testTenantId: string;
   let testUserId: string;
   let testMemorySpaceId: string;
@@ -40,13 +40,13 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     const authContext = createTenantAuthContext(testTenantId, testUserId);
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authContext,
     });
 
     // Register memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Document Collaboration E2E Test Space",
       type: "custom",
@@ -57,7 +57,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     // Clean up artifacts
     for (const artifactId of createdArtifactIds) {
       try {
-        await cortex.artifacts.delete(artifactId, true);
+        await memoir.artifacts.delete(artifactId, true);
       } catch {
         // Ignore cleanup errors
       }
@@ -66,7 +66,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     // Clean up conversations
     for (const conversationId of createdConversationIds) {
       try {
-        await cortex.conversations.delete(conversationId);
+        await memoir.conversations.delete(conversationId);
       } catch {
         // Ignore cleanup errors
       }
@@ -74,7 +74,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     // Clean up memory space
     try {
-      await cortex.memorySpaces.delete(testMemorySpaceId, {
+      await memoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -108,7 +108,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     let documentId: string;
 
     it("should create document with initial content", async () => {
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: documentVersions[0].title,
         content: documentVersions[0].content,
@@ -131,7 +131,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     it("should build version history with multiple updates", async () => {
       // Update to v2
-      let updated = await cortex.artifacts.update(documentId, documentVersions[1].content, {
+      let updated = await memoir.artifacts.update(documentId, documentVersions[1].content, {
         title: documentVersions[1].title,
         changeSummary: "Added second agenda item",
       });
@@ -139,7 +139,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       expect(updated.versionPointer).toBe(2);
 
       // Update to v3
-      updated = await cortex.artifacts.update(documentId, documentVersions[2].content, {
+      updated = await memoir.artifacts.update(documentId, documentVersions[2].content, {
         title: documentVersions[2].title,
         changeSummary: "Added action items section",
       });
@@ -147,7 +147,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       expect(updated.versionPointer).toBe(3);
 
       // Update to v4 (final)
-      updated = await cortex.artifacts.update(documentId, documentVersions[3].content, {
+      updated = await memoir.artifacts.update(documentId, documentVersions[3].content, {
         title: documentVersions[3].title,
         changeSummary: "Added next steps, marked as final",
       });
@@ -155,7 +155,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       expect(updated.versionPointer).toBe(4);
 
       // Verify version history
-      const history = await cortex.artifacts.getHistory(documentId);
+      const history = await memoir.artifacts.getHistory(documentId);
       expect(history.length).toBe(4);
 
       for (let i = 0; i < 4; i++) {
@@ -166,36 +166,36 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     it("should navigate version history with undo/redo", async () => {
       // Start at v4
-      let doc = await cortex.artifacts.get(documentId);
+      let doc = await memoir.artifacts.get(documentId);
       expect(doc?.versionPointer).toBe(4);
       expect(doc?.content).toBe(documentVersions[3].content);
 
       // Undo to v3
-      let undoResult = await cortex.artifacts.undo(documentId);
+      let undoResult = await memoir.artifacts.undo(documentId);
       expect(undoResult.success).toBe(true);
       expect(undoResult.currentVersion).toBe(3);
-      doc = await cortex.artifacts.get(documentId);
+      doc = await memoir.artifacts.get(documentId);
       expect(doc?.content).toBe(documentVersions[2].content);
 
       // Undo to v2
-      undoResult = await cortex.artifacts.undo(documentId);
+      undoResult = await memoir.artifacts.undo(documentId);
       expect(undoResult.success).toBe(true);
-      doc = await cortex.artifacts.get(documentId);
+      doc = await memoir.artifacts.get(documentId);
       expect(doc?.content).toBe(documentVersions[1].content);
 
       // Redo to v3
-      const redoResult = await cortex.artifacts.redo(documentId);
+      const redoResult = await memoir.artifacts.redo(documentId);
       expect(redoResult.success).toBe(true);
       expect(redoResult.currentVersion).toBe(3);
-      doc = await cortex.artifacts.get(documentId);
+      doc = await memoir.artifacts.get(documentId);
       expect(doc?.content).toBe(documentVersions[2].content);
 
       // Verify we can retrieve any historical version directly
-      const v1 = await cortex.artifacts.getVersion(documentId, 1);
+      const v1 = await memoir.artifacts.getVersion(documentId, 1);
       expect(v1?.content).toBe(documentVersions[0].content);
 
       // Restore to latest
-      await cortex.artifacts.redo(documentId);
+      await memoir.artifacts.redo(documentId);
     });
   });
 
@@ -209,7 +209,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     beforeAll(async () => {
       // Create a conversation
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: {
@@ -222,7 +222,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     });
 
     it("should create document linked to conversation", async () => {
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "AI-Generated Summary",
         content: "# Summary\n\nThis document was generated during our conversation.",
@@ -242,7 +242,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     });
 
     it("should maintain conversation reference across updates", async () => {
-      const updated = await cortex.artifacts.update(
+      const updated = await memoir.artifacts.update(
         documentId,
         "# Summary\n\nUpdated content from follow-up conversation.",
         {
@@ -261,7 +261,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
   describe("Scenario 3: Sequential Document Operations", () => {
     it("should handle rapid sequential updates correctly", async () => {
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Rapid Update Test",
         content: "Initial content",
@@ -274,7 +274,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       // Perform sequential updates
       const updateCount = 5;
       for (let i = 1; i <= updateCount; i++) {
-        await cortex.artifacts.update(
+        await memoir.artifacts.update(
           artifact.artifactId,
           `Content version ${i + 1}`,
           { changeSummary: `Update ${i}` },
@@ -282,12 +282,12 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       }
 
       // Verify final state
-      const final = await cortex.artifacts.get(artifact.artifactId);
+      const final = await memoir.artifacts.get(artifact.artifactId);
       expect(final?.version).toBe(updateCount + 1);
       expect(final?.content).toBe(`Content version ${updateCount + 1}`);
 
       // Verify complete history
-      const history = await cortex.artifacts.getHistory(artifact.artifactId);
+      const history = await memoir.artifacts.getHistory(artifact.artifactId);
       expect(history.length).toBe(updateCount + 1);
     });
   });
@@ -300,7 +300,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     let documentId: string;
 
     it("should create document with rich metadata", async () => {
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Project Proposal",
         content: "# Project Proposal\n\nExecutive summary...",
@@ -325,7 +325,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
     });
 
     it("should update metadata and tags", async () => {
-      const updated = await cortex.artifacts.update(
+      const updated = await memoir.artifacts.update(
         documentId,
         "# Project Proposal - Revised\n\nExecutive summary with updates...",
         {
@@ -355,7 +355,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
   describe("Scenario 5: Document Soft Delete", () => {
     it("should soft delete document and exclude from listings", async () => {
       // Create document
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "To Be Deleted",
         content: "This document will be soft deleted",
@@ -367,11 +367,11 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       createdArtifactIds.push(artifact.artifactId);
 
       // Soft delete
-      const result = await cortex.artifacts.delete(artifact.artifactId, false);
+      const result = await memoir.artifacts.delete(artifact.artifactId, false);
       expect(result.deleted).toBe(true);
 
       // Should not appear in regular listings
-      const listings = await cortex.artifacts.list({
+      const listings = await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         tags: ["delete-test"],
       });
@@ -380,7 +380,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
       expect(found).toBeUndefined();
 
       // Should appear when including deleted
-      const deletedListings = await cortex.artifacts.list({
+      const deletedListings = await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         tags: ["delete-test"],
         includeDeleted: true,
@@ -402,7 +402,7 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
     beforeAll(async () => {
       // Create document with multiple versions
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "History Test",
         content: "Version 1",
@@ -415,24 +415,24 @@ describeWithConvex("E2E: Document Collaboration Flow", () => {
 
       // Create more versions
       for (let i = 2; i <= 10; i++) {
-        await cortex.artifacts.update(documentId, `Version ${i}`);
+        await memoir.artifacts.update(documentId, `Version ${i}`);
       }
     });
 
     it("should retrieve full history", async () => {
-      const history = await cortex.artifacts.getHistory(documentId);
+      const history = await memoir.artifacts.getHistory(documentId);
       expect(history.length).toBe(10);
     });
 
     it("should retrieve history with limit", async () => {
-      const history = await cortex.artifacts.getHistory(documentId, {
+      const history = await memoir.artifacts.getHistory(documentId, {
         limit: 3,
       });
       expect(history.length).toBe(3);
     });
 
     it("should retrieve history with limit", async () => {
-      const history = await cortex.artifacts.getHistory(documentId, {
+      const history = await memoir.artifacts.getHistory(documentId, {
         limit: 7,
       });
 

@@ -6,7 +6,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "../helpers";
 import { ProgressiveFactExtractor } from "../../src/memory/streaming/FactExtractor";
@@ -15,7 +15,7 @@ import type { FactsAPI } from "../../src/facts";
 describe("ProgressiveFactExtractor - Deduplication", () => {
   const ctx = createNamedTestRunContext("stream-dedup");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -28,7 +28,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
       `\n🧪 Streaming Fact Deduplication Tests - Run ID: ${ctx.runId}\n`,
     );
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -44,7 +44,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
 
   describe("Constructor with deduplication config", () => {
     it("creates extractor with default structural deduplication", () => {
-      const factsApi = cortex.facts as FactsAPI;
+      const factsApi = memoir.facts as FactsAPI;
 
       const extractor = new ProgressiveFactExtractor(
         factsApi,
@@ -56,7 +56,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
     });
 
     it("creates extractor with custom config", () => {
-      const factsApi = cortex.facts as FactsAPI;
+      const factsApi = memoir.facts as FactsAPI;
 
       const extractor = new ProgressiveFactExtractor(
         factsApi,
@@ -73,7 +73,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
     });
 
     it("creates extractor with deduplication disabled", () => {
-      const factsApi = cortex.facts as FactsAPI;
+      const factsApi = memoir.facts as FactsAPI;
 
       const extractor = new ProgressiveFactExtractor(
         factsApi,
@@ -91,7 +91,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
 
   describe("Cross-session deduplication during extraction", () => {
     it("prevents duplicates across extractor instances", async () => {
-      const factsApi = cortex.facts as FactsAPI;
+      const factsApi = memoir.facts as FactsAPI;
       const convId = ctx.conversationId("stream-dedup");
       const memSpaceId = ctx.memorySpaceId("cross-extract");
 
@@ -142,7 +142,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
       );
 
       // Count facts - should be 1 due to cross-session deduplication
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: memSpaceId,
         subject: TEST_USER_ID,
       });
@@ -151,7 +151,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
     });
 
     it("deduplicates within a single streaming session", async () => {
-      const factsApi = cortex.facts as FactsAPI;
+      const factsApi = memoir.facts as FactsAPI;
       const convId = ctx.conversationId("single-session");
       const memSpaceId = ctx.memorySpaceId("single-session");
 
@@ -218,13 +218,13 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
       const agentId = ctx.agentId("stream-agent");
 
       // Register entities
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: memSpaceId,
         type: "personal",
       });
 
-      await cortex.users.getOrCreate(userId, { displayName: "Stream User" });
-      await cortex.agents.register({ id: agentId, name: "Stream Agent" });
+      await memoir.users.getOrCreate(userId, { displayName: "Stream User" });
+      await memoir.agents.register({ id: agentId, name: "Stream Agent" });
 
       // Create a mock stream
       async function* createMockStream() {
@@ -248,7 +248,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
       // Call rememberStream with fact extraction
       // Note: Since belief revision is now "batteries included" (always enabled by default),
       // we must explicitly disable it to test the deduplication fallback path.
-      await cortex.memory.rememberStream(
+      await memoir.memory.rememberStream(
         {
           memorySpaceId: memSpaceId,
           conversationId: ctx.conversationId("stream-1"),
@@ -283,7 +283,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
         },
       });
 
-      await cortex.memory.rememberStream(
+      await memoir.memory.rememberStream(
         {
           memorySpaceId: memSpaceId,
           conversationId: ctx.conversationId("stream-2"),
@@ -311,7 +311,7 @@ describe("ProgressiveFactExtractor - Deduplication", () => {
       );
 
       // Count facts - should be deduplicated
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: memSpaceId,
         subject: userId,
       });

@@ -10,25 +10,25 @@
  */
 
 import { describe, it, expect, beforeAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 // All valid memory space types and statuses
 const ALL_SPACE_TYPES = ["personal", "team", "project", "custom"] as const;
 const ALL_SPACE_STATUSES = ["active", "archived"] as const;
 
 describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const BASE_ID = `filter-space-test-${Date.now()}`;
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   describe.each(ALL_SPACE_TYPES)("Type: %s", (spaceType) => {
     it(`list() should filter by type="${spaceType}"`, async () => {
       // Register space with target type
       const spaceId = `${BASE_ID}-type-${spaceType}`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: spaceType,
         name: `Test ${spaceType} space`,
@@ -37,7 +37,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       // Register space with different type as noise
       if (spaceType !== "personal") {
         const noiseId = `${BASE_ID}-noise-${spaceType}`;
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: noiseId,
           type: "personal",
           name: "Noise personal space",
@@ -45,7 +45,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: List with type filter
-      const results = await cortex.memorySpaces.list({ type: spaceType });
+      const results = await memoir.memorySpaces.list({ type: spaceType });
 
       // Validate
       expect(results.spaces.length).toBeGreaterThanOrEqual(1);
@@ -63,7 +63,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
     it(`list() should filter by status="${status}"`, async () => {
       // Register space (active by default)
       const spaceId = `${BASE_ID}-status-${status}`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "personal",
         name: `Test space for ${status} status`,
@@ -71,11 +71,11 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Archive if testing archived status
       if (status === "archived") {
-        await cortex.memorySpaces.archive(spaceId);
+        await memoir.memorySpaces.archive(spaceId);
       }
 
       // Execute: List with status filter
-      const results = await cortex.memorySpaces.list({ status });
+      const results = await memoir.memorySpaces.list({ status });
 
       // Validate
       expect(results.spaces.length).toBeGreaterThanOrEqual(1);
@@ -90,7 +90,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       // This test assumes no team spaces exist
       // Create only personal spaces
       const spaceId = `${BASE_ID}-empty-type`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "personal",
         name: "Only personal space",
@@ -98,14 +98,14 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Query for team type - may not be empty in test environment
       // So we just verify no error is thrown
-      const results = await cortex.memorySpaces.list({ type: "team" });
+      const results = await memoir.memorySpaces.list({ type: "team" });
       expect(Array.isArray(results.spaces)).toBe(true);
     });
 
     it("should combine type and status filters", async () => {
       // Register active team space
       const activeTeamId = `${BASE_ID}-active-team`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: activeTeamId,
         type: "team",
         name: "Active team space",
@@ -113,7 +113,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Register active personal space (different type)
       const activePersonalId = `${BASE_ID}-active-personal`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: activePersonalId,
         type: "personal",
         name: "Active personal space",
@@ -121,15 +121,15 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Archive a team space
       const archivedTeamId = `${BASE_ID}-archived-team`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: archivedTeamId,
         type: "team",
         name: "Archived team space",
       });
-      await cortex.memorySpaces.archive(archivedTeamId);
+      await memoir.memorySpaces.archive(archivedTeamId);
 
       // Execute: Filter by type AND status
-      const results = await cortex.memorySpaces.list({
+      const results = await memoir.memorySpaces.list({
         type: "team",
         status: "active",
       });
@@ -150,7 +150,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       const spacesByType: Record<string, any> = {};
       for (const spaceType of ALL_SPACE_TYPES) {
         const spaceId = `${BASE_ID}-all-types-${spaceType}`;
-        const space = await cortex.memorySpaces.register({
+        const space = await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: spaceType,
           name: `Test ${spaceType} space`,
@@ -160,7 +160,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Verify each type filter returns correct spaces
       for (const spaceType of ALL_SPACE_TYPES) {
-        const results = await cortex.memorySpaces.list({ type: spaceType });
+        const results = await memoir.memorySpaces.list({ type: spaceType });
         expect(results.spaces.length).toBeGreaterThanOrEqual(1);
         expect(results.spaces.every((s: any) => s.type === spaceType)).toBe(
           true,
@@ -177,14 +177,14 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
     it("should test status transition (active → archived)", async () => {
       // Register active space
       const spaceId = `${BASE_ID}-transition`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Transitioning space",
       });
 
       // Verify it's in active list
-      const activeResults = await cortex.memorySpaces.list({
+      const activeResults = await memoir.memorySpaces.list({
         status: "active",
       });
       expect(
@@ -192,10 +192,10 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       ).toBe(true);
 
       // Archive it
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Verify it's now in archived list
-      const archivedResults = await cortex.memorySpaces.list({
+      const archivedResults = await memoir.memorySpaces.list({
         status: "archived",
       });
       expect(
@@ -203,7 +203,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       ).toBe(true);
 
       // Verify it's NOT in active list anymore
-      const activeResultsAfter = await cortex.memorySpaces.list({
+      const activeResultsAfter = await memoir.memorySpaces.list({
         status: "active",
       });
       expect(
@@ -216,7 +216,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       const customIds = [];
       for (let i = 0; i < 3; i++) {
         const spaceId = `${BASE_ID}-multiple-custom-${i}`;
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "custom",
           name: `Custom space ${i}`,
@@ -225,7 +225,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       }
 
       // Query for custom type
-      const results = await cortex.memorySpaces.list({ type: "custom" });
+      const results = await memoir.memorySpaces.list({ type: "custom" });
 
       // Should return at least our 3 custom spaces
       expect(results.spaces.length).toBeGreaterThanOrEqual(3);
@@ -243,21 +243,21 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
     it("list() without filters should return all spaces", async () => {
       // Register spaces of different types
       const personalId = `${BASE_ID}-no-filter-personal`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: personalId,
         type: "personal",
         name: "Personal space",
       });
 
       const teamId = `${BASE_ID}-no-filter-team`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: teamId,
         type: "team",
         name: "Team space",
       });
 
       // List all (no filters)
-      const allResults = await cortex.memorySpaces.list({});
+      const allResults = await memoir.memorySpaces.list({});
 
       // Should include both
       expect(allResults.spaces.length).toBeGreaterThanOrEqual(2);
@@ -269,7 +269,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
     it("archived filter should exclude active spaces", async () => {
       // Register active space
       const activeId = `${BASE_ID}-exclude-active`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: activeId,
         type: "project",
         name: "Active space",
@@ -277,15 +277,15 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Register and archive another space
       const archivedId = `${BASE_ID}-archived-only`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: archivedId,
         type: "project",
         name: "To be archived",
       });
-      await cortex.memorySpaces.archive(archivedId);
+      await memoir.memorySpaces.archive(archivedId);
 
       // Query for archived only
-      const archivedResults = await cortex.memorySpaces.list({
+      const archivedResults = await memoir.memorySpaces.list({
         status: "archived",
       });
 
@@ -299,7 +299,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
     it("should filter different types with same status independently", async () => {
       // Register active personal space
       const personalId = `${BASE_ID}-same-status-personal`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: personalId,
         type: "personal",
         name: "Active personal",
@@ -307,14 +307,14 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
 
       // Register active team space
       const teamId = `${BASE_ID}-same-status-team`;
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: teamId,
         type: "team",
         name: "Active team",
       });
 
       // List active personal only
-      const personalResults = await cortex.memorySpaces.list({
+      const personalResults = await memoir.memorySpaces.list({
         type: "personal",
         status: "active",
       });
@@ -325,7 +325,7 @@ describe("Memory Spaces API - Comprehensive Filter Coverage", () => {
       expect(personalIds).not.toContain(teamId);
 
       // List active team only
-      const teamResults = await cortex.memorySpaces.list({
+      const teamResults = await memoir.memorySpaces.list({
         type: "team",
         status: "active",
       });

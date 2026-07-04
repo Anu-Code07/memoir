@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Artifacts API
+ * Memoir SDK - Artifacts API
  *
  * Versioned artifact management with full undo/redo support
  *
@@ -182,7 +182,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const artifact = await cortex.artifacts.create({
+   * const artifact = await memoir.artifacts.create({
    *   memorySpaceId: 'user-123-space',
    *   title: 'Code Snippet',
    *   content: 'function hello() { return "world"; }',
@@ -231,7 +231,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const artifact = await cortex.artifacts.get('art-abc123def456');
+   * const artifact = await memoir.artifacts.get('art-abc123def456');
    * if (artifact) {
    *   console.log(artifact.title, artifact.content);
    * }
@@ -259,7 +259,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const updated = await cortex.artifacts.update(
+   * const updated = await memoir.artifacts.update(
    *   'art-abc123def456',
    *   'function hello() { return "updated world"; }',
    *   { changeSummary: 'Fixed return value' }
@@ -318,7 +318,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.artifacts.delete('art-abc123def456');
+   * const result = await memoir.artifacts.delete('art-abc123def456');
    * console.log(result.deleted); // true
    * ```
    */
@@ -359,7 +359,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const artifacts = await cortex.artifacts.list({
+   * const artifacts = await memoir.artifacts.list({
    *   memorySpaceId: 'user-123-space',
    *   streamingState: 'final',
    *   tags: ['important'],
@@ -405,7 +405,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.artifacts.count({
+   * const count = await memoir.artifacts.count({
    *   memorySpaceId: 'user-123-space',
    *   streamingState: 'final',
    * });
@@ -447,11 +447,11 @@ export class ArtifactsAPI {
    * @example
    * ```typescript
    * // Make changes
-   * await cortex.artifacts.update('art-abc123', 'version 2 content');
-   * await cortex.artifacts.update('art-abc123', 'version 3 content');
+   * await memoir.artifacts.update('art-abc123', 'version 2 content');
+   * await memoir.artifacts.update('art-abc123', 'version 3 content');
    *
    * // Undo to version 2
-   * const undone = await cortex.artifacts.undo('art-abc123');
+   * const undone = await memoir.artifacts.undo('art-abc123');
    * console.log(undone.content); // "version 2 content"
    * ```
    *
@@ -501,10 +501,10 @@ export class ArtifactsAPI {
    * @example
    * ```typescript
    * // After undoing
-   * await cortex.artifacts.undo('art-abc123');
+   * await memoir.artifacts.undo('art-abc123');
    *
    * // Redo to restore
-   * const redone = await cortex.artifacts.redo('art-abc123');
+   * const redone = await memoir.artifacts.redo('art-abc123');
    * console.log(redone.content); // Back to latest version content
    * ```
    *
@@ -550,7 +550,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.artifacts.getHistory('art-abc123');
+   * const history = await memoir.artifacts.getHistory('art-abc123');
    * for (const version of history) {
    *   console.log(`v${version.version}: ${version.changeSummary || 'No note'}`);
    * }
@@ -588,7 +588,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const v2 = await cortex.artifacts.getVersion('art-abc123', 2);
+   * const v2 = await memoir.artifacts.getVersion('art-abc123', 2);
    * console.log(v2.content);
    * ```
    */
@@ -626,12 +626,12 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const { sessionId, artifact } = await cortex.artifacts.startStreaming({
+   * const { sessionId, artifact } = await memoir.artifacts.startStreaming({
    *   artifactId: 'art-abc123',
    * });
    *
    * // Now append content chunks...
-   * await cortex.artifacts.appendContent({
+   * await memoir.artifacts.appendContent({
    *   artifactId: 'art-abc123',
    *   sessionId,
    *   chunk: 'First chunk of content...',
@@ -677,7 +677,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.artifacts.appendContent({
+   * await memoir.artifacts.appendContent({
    *   artifactId: 'art-abc123',
    *   sessionId: 'session-xyz',
    *   chunk: 'More content...',
@@ -872,7 +872,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const final = await cortex.artifacts.finalizeStreaming({
+   * const final = await memoir.artifacts.finalizeStreaming({
    *   artifactId: 'art-abc123',
    *   sessionId: 'session-xyz',
    *   changeSummary: 'AI-generated code completion',
@@ -951,7 +951,7 @@ export class ArtifactsAPI {
    * @example
    * ```typescript
    * // Mark as error state
-   * await cortex.artifacts.setStreamingState('art-abc123', 'error');
+   * await memoir.artifacts.setStreamingState('art-abc123', 'error');
    * ```
    */
   async setStreamingState(
@@ -1009,7 +1009,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const artifact = await cortex.artifacts.uploadFile({
+   * const artifact = await memoir.artifacts.uploadFile({
    *   artifactId: 'art-abc123',
    *   file: imageBlob,
    *   filename: 'diagram.png',
@@ -1105,7 +1105,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const url = await cortex.artifacts.getFileUrl('art-abc123', 'file-xyz');
+   * const url = await memoir.artifacts.getFileUrl('art-abc123', 'file-xyz');
    * // Use url to display or download the file
    * ```
    */
@@ -1135,7 +1135,7 @@ export class ArtifactsAPI {
    *
    * @example
    * ```typescript
-   * const artifact = await cortex.artifacts.detachFile(
+   * const artifact = await memoir.artifacts.detachFile(
    *   'art-abc123',
    *   'file-xyz789'
    * );

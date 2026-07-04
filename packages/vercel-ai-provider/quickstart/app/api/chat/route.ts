@@ -1,8 +1,8 @@
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
 import type {
   LayerObserver,
-  CortexMemoryConfig,
-} from "@cortexmemory/vercel-ai-provider";
+  MemoirMemoryConfig,
+} from "@memoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
@@ -11,13 +11,13 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
 } from "ai";
-import { getCortex } from "@/lib/cortex";
+import { getMemoir } from "@/lib/memoir";
 
 // Create OpenAI client for embeddings
 const openaiClient = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // System prompt for the assistant
-const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Cortex.
+const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Memoir.
 
 Your capabilities:
 - You remember everything users tell you across conversations
@@ -36,14 +36,14 @@ Example interactions:
 - User: "My favorite color is blue" → Remember their preference
 - User: "What do you know about me?" → List everything you remember`;
 
-// Create Cortex Memory config factory
-// Uses createCortexMemoryAsync for graph support when CORTEX_GRAPH_SYNC=true
-function getCortexMemoryConfig(
+// Create Memoir config factory
+// Uses createMemoirMemoryAsync for graph support when MEMOIR_GRAPH_SYNC=true
+function getMemoirMemoryConfig(
   memorySpaceId: string,
   userId: string,
   conversationId: string,
   layerObserver?: LayerObserver,
-): CortexMemoryConfig {
+): MemoirMemoryConfig {
   return {
     convexUrl: process.env.CONVEX_URL!,
     memorySpaceId,
@@ -54,17 +54,17 @@ function getCortexMemoryConfig(
 
     // Agent identification (required for user-agent conversations in SDK v0.17.0+)
     agentId: "quickstart-assistant",
-    agentName: "Cortex Demo Assistant",
+    agentName: "Memoir Demo Assistant",
 
     // Conversation ID for chat history isolation
     conversationId,
 
     // Enable graph memory sync (auto-configured via env vars)
     // When true, uses CypherGraphAdapter to sync to Neo4j/Memgraph
-    enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === "true",
+    enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === "true",
 
     // Enable fact extraction (auto-configured via env vars)
-    enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === "true",
+    enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === "true",
 
     // Belief Revision (v0.24.0+)
     // Automatically handles fact updates, supersessions, and deduplication
@@ -278,7 +278,7 @@ export async function POST(req: Request) {
           };
 
           // Build config with the observer and conversation ID
-          const config = getCortexMemoryConfig(
+          const config = getMemoirMemoryConfig(
             memorySpaceId || "quickstart-demo",
             userId || "demo-user",
             conversationId,
@@ -286,12 +286,12 @@ export async function POST(req: Request) {
           );
 
           // Create memory-augmented model with async initialization (enables graph support)
-          // This connects to Neo4j/Memgraph if CORTEX_GRAPH_SYNC=true
-          const cortexMemory = await createCortexMemoryAsync(config);
+          // This connects to Neo4j/Memgraph if MEMOIR_GRAPH_SYNC=true
+          const memoirMemory = await createMemoirMemoryAsync(config);
 
           // Stream response with automatic memory integration
           const result = streamText({
-            model: cortexMemory(openai("gpt-4o-mini")),
+            model: memoirMemory(openai("gpt-4o-mini")),
             messages: modelMessages,
             system: SYSTEM_PROMPT,
           });
@@ -302,11 +302,11 @@ export async function POST(req: Request) {
           // If this is a new conversation, create it in the SDK and update the title
           if (isNewConversation && messageText) {
             try {
-              const cortex = getCortex();
+              const memoir = getMemoir();
               const title = generateTitle(messageText);
 
               // Create the conversation with the SDK
-              await cortex.conversations.create({
+              await memoir.conversations.create({
                 memorySpaceId: memorySpaceId || "quickstart-demo",
                 conversationId,
                 type: "user-agent",

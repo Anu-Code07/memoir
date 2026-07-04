@@ -1,5 +1,5 @@
 /**
- * Cortex Convex Functions - Users API
+ * Memoir Convex Functions - Users API
  *
  * Backend functions for user profile management.
  * Most operations delegate to immutable store with type='user'.

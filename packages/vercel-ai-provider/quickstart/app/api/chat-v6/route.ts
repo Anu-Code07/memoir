@@ -1,7 +1,7 @@
 /**
  * Chat API Route (AI SDK v6 Style)
  *
- * This route uses AI SDK v6's patterns while maintaining full Cortex Memory
+ * This route uses AI SDK v6's patterns while maintaining full Memoir
  * capabilities including:
  * - Memory recall (reading past memories)
  * - Memory storage (saving new conversations)
@@ -14,10 +14,10 @@
  */
 
 import {
-  createCortexMemoryAsync,
+  createMemoirMemoryAsync,
   createLayerStreamObserver,
-} from "@cortexmemory/vercel-ai-provider";
-import type { CortexMemoryConfig } from "@cortexmemory/vercel-ai-provider";
+} from "@memoir/vercel-ai-provider";
+import type { MemoirMemoryConfig } from "@memoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
@@ -26,13 +26,13 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
 } from "ai";
-import { getCortex } from "@/lib/cortex";
+import { getMemoir } from "@/lib/memoir";
 
 // Create OpenAI client for embeddings
 const openaiClient = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // System prompt for the assistant
-const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Cortex.
+const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Memoir.
 
 Your capabilities:
 - You remember everything users tell you across conversations
@@ -46,13 +46,13 @@ Behavior guidelines:
 - Help demonstrate the memory system by showing what you remember`;
 
 /**
- * Create Cortex Memory config - IDENTICAL to v5 route for feature parity
+ * Create Memoir config - IDENTICAL to v5 route for feature parity
  */
-function getCortexMemoryConfig(
+function getMemoirMemoryConfig(
   memorySpaceId: string,
   userId: string,
   conversationId: string,
-): Omit<CortexMemoryConfig, "layerObserver"> {
+): Omit<MemoirMemoryConfig, "layerObserver"> {
   return {
     convexUrl: process.env.CONVEX_URL!,
     memorySpaceId,
@@ -62,17 +62,17 @@ function getCortexMemoryConfig(
     userName: "Demo User",
 
     // Agent identification
-    agentId: "cortex-memory-agent",
-    agentName: "Cortex v6 Assistant",
+    agentId: "memoir-agent",
+    agentName: "Memoir v6 Assistant",
 
     // Conversation ID for chat history isolation
     conversationId,
 
     // Enable graph memory sync
-    enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === "true",
+    enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === "true",
 
     // Enable fact extraction - CRITICAL for memory to work!
-    enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === "true",
+    enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === "true",
 
     // Belief Revision - handles fact updates and supersessions
     beliefRevision: {
@@ -235,21 +235,21 @@ export async function POST(req: Request) {
           emitTo(writer);
 
           // Build config with observer
-          const config = getCortexMemoryConfig(
+          const config = getMemoirMemoryConfig(
             memorySpaceId,
             userId,
             conversationId,
           );
 
           // Create memory-augmented model - THIS handles both recall AND storage!
-          const cortexMemory = await createCortexMemoryAsync({
+          const memoirMemory = await createMemoirMemoryAsync({
             ...config,
             layerObserver: observer,
           });
 
           // Stream response with automatic memory integration
           const result = streamText({
-            model: cortexMemory(openai("gpt-4o-mini")),
+            model: memoirMemory(openai("gpt-4o-mini")),
             messages: modelMessages,
             system: SYSTEM_PROMPT,
           });
@@ -260,14 +260,14 @@ export async function POST(req: Request) {
           // Create conversation if new
           if (isNewConversation && messageText) {
             try {
-              const cortex = getCortex();
-              await cortex.conversations.create({
+              const memoir = getMemoir();
+              await memoir.conversations.create({
                 memorySpaceId,
                 conversationId,
                 type: "user-agent",
                 participants: {
                   userId,
-                  agentId: "cortex-memory-agent",
+                  agentId: "memoir-agent",
                 },
                 metadata: { title: generateTitle(messageText) },
               });

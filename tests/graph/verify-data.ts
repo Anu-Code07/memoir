@@ -21,7 +21,7 @@ async function verify() {
   await neo4j.connect({
     uri: "bolt://localhost:7687",
     username: "neo4j",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   const neo4jNodes = await neo4j.countNodes();
@@ -58,7 +58,7 @@ async function verify() {
   await memgraph.connect({
     uri: "bolt://localhost:7688",
     username: "memgraph",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   const memgraphNodes = await memgraph.countNodes();

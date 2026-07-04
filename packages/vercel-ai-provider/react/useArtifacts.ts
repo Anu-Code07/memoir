@@ -1,12 +1,12 @@
 /**
- * React hooks for tracking Cortex artifacts
+ * React hooks for tracking Memoir artifacts
  *
  * These hooks provide state management for artifact visualization,
  * automatically parsing artifact events from the AI SDK stream.
  *
  * @example
  * ```typescript
- * import { useArtifacts, useArtifact } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useArtifacts, useArtifact } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatWithArtifacts() {
@@ -32,14 +32,14 @@
 
 import { useState, useCallback, useRef } from "react";
 import type {
-  CortexArtifact,
+  MemoirArtifact,
   StreamingState,
   ArtifactKind,
 } from "../src/artifacts/types";
 import { ARTIFACT_STREAM_EVENTS } from "../src/artifacts/types";
 
 // Re-export types for convenience
-export type { CortexArtifact, StreamingState, ArtifactKind };
+export type { MemoirArtifact, StreamingState, ArtifactKind };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Types
@@ -50,7 +50,7 @@ export type { CortexArtifact, StreamingState, ArtifactKind };
  */
 export interface ArtifactState {
   /** Partial artifact data (may be incomplete during streaming) */
-  artifact: Partial<CortexArtifact>;
+  artifact: Partial<MemoirArtifact>;
   /** Current streaming state */
   status: StreamingState;
   /** Progress (0-1) during streaming */
@@ -66,13 +66,13 @@ export interface ArtifactState {
  */
 export interface UseArtifactsOptions {
   /** Called when a new artifact is created */
-  onArtifactCreate?: (artifact: Partial<CortexArtifact>) => void;
+  onArtifactCreate?: (artifact: Partial<MemoirArtifact>) => void;
 
   /** Called when an artifact is updated */
-  onArtifactUpdate?: (artifact: Partial<CortexArtifact>) => void;
+  onArtifactUpdate?: (artifact: Partial<MemoirArtifact>) => void;
 
   /** Called when an artifact completes streaming */
-  onArtifactComplete?: (artifact: CortexArtifact) => void;
+  onArtifactComplete?: (artifact: MemoirArtifact) => void;
 
   /** Called on artifact error */
   onArtifactError?: (
@@ -122,12 +122,12 @@ export interface UseArtifactOptions {
 
   /** Called when artifact content updates */
   onUpdate?: (
-    artifact: Partial<CortexArtifact>,
-    prevArtifact: Partial<CortexArtifact>
+    artifact: Partial<MemoirArtifact>,
+    prevArtifact: Partial<MemoirArtifact>
   ) => void;
 
   /** Called when artifact completes */
-  onComplete?: (artifact: CortexArtifact) => void;
+  onComplete?: (artifact: MemoirArtifact) => void;
 
   /** Called on error */
   onError?: (error: { message: string; code?: string }) => void;
@@ -141,7 +141,7 @@ export interface UseArtifactOptions {
  */
 export interface UseArtifactResult {
   /** Current artifact data (partial during streaming) */
-  data: Partial<CortexArtifact> | null;
+  data: Partial<MemoirArtifact> | null;
 
   /** Current status */
   status: StreamingState | "idle";
@@ -174,7 +174,7 @@ export interface UseArtifactResult {
  *
  * @example
  * ```tsx
- * import { useArtifacts } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useArtifacts } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatWithArtifacts() {
@@ -220,7 +220,7 @@ export function useArtifacts(
 
       const data = part.data as {
         artifactId?: string;
-        artifact?: Partial<CortexArtifact>;
+        artifact?: Partial<MemoirArtifact>;
         chunk?: string;
         progress?: number;
         error?: { message: string; code?: string };
@@ -285,7 +285,7 @@ export function useArtifacts(
                 current === artifactId ? null : current
               );
               callbacksRef.current.onArtifactComplete?.(
-                completed.artifact as CortexArtifact
+                completed.artifact as MemoirArtifact
               );
             }
             break;
@@ -369,7 +369,7 @@ export function useArtifacts(
  *
  * @example
  * ```tsx
- * import { useArtifact } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useArtifact } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function CodeArtifactViewer({ artifactId }: { artifactId: string }) {
@@ -403,7 +403,7 @@ export function useArtifacts(
 export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
   const { artifactId } = options;
 
-  const [data, setData] = useState<Partial<CortexArtifact> | null>(null);
+  const [data, setData] = useState<Partial<MemoirArtifact> | null>(null);
   const [status, setStatus] = useState<StreamingState | "idle">("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<{ message: string; code?: string } | null>(
@@ -412,7 +412,7 @@ export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
 
   const callbacksRef = useRef(options);
   callbacksRef.current = options;
-  const prevDataRef = useRef<Partial<CortexArtifact> | null>(null);
+  const prevDataRef = useRef<Partial<MemoirArtifact> | null>(null);
 
   const handleDataPart = useCallback(
     (dataPart: unknown) => {
@@ -421,7 +421,7 @@ export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
 
       const eventData = part.data as {
         artifactId?: string;
-        artifact?: Partial<CortexArtifact>;
+        artifact?: Partial<MemoirArtifact>;
         chunk?: string;
         progress?: number;
         error?: { message: string; code?: string };
@@ -464,7 +464,7 @@ export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
         case ARTIFACT_STREAM_EVENTS.COMPLETE: {
           setData((prev) => {
             const completed = { ...prev, ...eventData.artifact };
-            callbacksRef.current.onComplete?.(completed as CortexArtifact);
+            callbacksRef.current.onComplete?.(completed as MemoirArtifact);
             return completed;
           });
           setStatus("final");
@@ -511,7 +511,7 @@ export function useArtifact(options: UseArtifactOptions): UseArtifactResult {
  *
  * @example
  * ```tsx
- * import { useLayerTracking, useArtifacts, createCombinedDataHandler } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useLayerTracking, useArtifacts, createCombinedDataHandler } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {

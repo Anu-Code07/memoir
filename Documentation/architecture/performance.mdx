@@ -2,11 +2,11 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Optimization techniques, scaling strategies, resilience layer, and performance characteristics of Cortex on Convex.
+Optimization techniques, scaling strategies, resilience layer, and performance characteristics of Memoir on Convex.
 
 ## Overview
 
-Cortex is designed for **high performance** at scale with **built-in resilience**. With proper indexing, query patterns, and the resilience layer, Cortex handles millions of memories, thousands of memory spaces, and hundreds of concurrent users efficiently.
+Memoir is designed for **high performance** at scale with **built-in resilience**. With proper indexing, query patterns, and the resilience layer, Memoir handles millions of memories, thousands of memory spaces, and hundreds of concurrent users efficiently.
 
 **Performance Characteristics:**
 
@@ -26,10 +26,10 @@ Cortex is designed for **high performance** at scale with **built-in resilience*
 
 ### Built-In Protection
 
-Cortex includes a **resilience layer** that protects all operations from overload and failures:
+Memoir includes a **resilience layer** that protects all operations from overload and failures:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   resilience: {
     // Token Bucket Rate Limiter
@@ -141,7 +141,7 @@ const cortex = new Cortex({
 
 ```typescript
 // Track resilience metrics (synchronous method, no await needed)
-const metrics = cortex.getResilienceMetrics();
+const metrics = memoir.getResilienceMetrics();
 
 console.log({
   rateLimitHits: metrics.rateLimiter.requestsThrottled,
@@ -314,7 +314,7 @@ let cursor = null;
 let allMemories = [];
 
 do {
-  const page = await cortex.memory.list("agent-1", {
+  const page = await memoir.memory.list("agent-1", {
     cursor,
     limit: 100,
   });
@@ -424,7 +424,7 @@ async function embedWithCache(text: string): Promise<number[]> {
 }
 
 // Common queries benefit
-await cortex.memory.search("agent-1", "user preferences", {
+await memoir.memory.search("agent-1", "user preferences", {
   embedding: await embedWithCache("user preferences"), // Cached!
 });
 ```
@@ -440,7 +440,7 @@ await cortex.memory.search("agent-1", "user preferences", {
 ```typescript
 // Slow: One at a time
 for (const item of items) {
-  await cortex.memory.store("agent-1", item);
+  await memoir.memory.store("agent-1", item);
 }
 // N round trips, N transactions
 
@@ -485,16 +485,16 @@ await convexClient.mutation(api.memories.storeBatch, {
 
 ```typescript
 // Sequential: Slow
-const memories = await cortex.memory.search("agent-1", query);
-const contexts = await cortex.contexts.list({ memorySpaceId: "agent-1" });
-const user = await cortex.users.get("user-123");
+const memories = await memoir.memory.search("agent-1", query);
+const contexts = await memoir.contexts.list({ memorySpaceId: "agent-1" });
+const user = await memoir.users.get("user-123");
 // 3× latency
 
 // Parallel: Fast
 const [memories, contexts, user] = await Promise.all([
-  cortex.memory.search("agent-1", query),
-  cortex.contexts.list({ memorySpaceId: "agent-1" }),
-  cortex.users.get("user-123"),
+  memoir.memory.search("agent-1", query),
+  memoir.contexts.list({ memorySpaceId: "agent-1" }),
+  memoir.users.get("user-123"),
 ]);
 // 1× latency
 ```
@@ -507,7 +507,7 @@ const [memories, contexts, user] = await Promise.all([
 
 ```typescript
 // Aggressive retention saves storage
-await cortex.agents.configure("temp-agent", {
+await memoir.agents.configure("temp-agent", {
   memoryVersionRetention: 1, // Only current version
 });
 
@@ -522,7 +522,7 @@ await cortex.agents.configure("temp-agent", {
 // Only embed important memories
 const shouldEmbed = importance >= 70;
 
-await cortex.memory.store("agent-1", {
+await memoir.memory.store("agent-1", {
   content: text,
   embedding: shouldEmbed ? await embed(text) : undefined,
   metadata: { importance },
@@ -540,7 +540,7 @@ await cortex.memory.store("agent-1", {
 // Store summarized content (planned feature or DIY)
 const summary = await summarize(longContent);  // 1000 chars -> 100 chars
 
-await cortex.memory.store('agent-1', {
+await memoir.memory.store('agent-1', {
   content: summary,  // ← 10× smaller
   contentType: 'summarized',
   embedding: await embed(summary),  // Smaller embedding input
@@ -566,7 +566,7 @@ Convex automatically scales:
 - **Writes:** High throughput (distributed writes)
 - **Storage:** Unlimited (auto-sharding)
 
-**Cortex benefits:**
+**Memoir benefits:**
 
 - No manual sharding needed
 - No capacity planning
@@ -884,12 +884,12 @@ export const getStorageStats = query({
 
 ```typescript
 // Agent-specific queries (fast)
-const memories = await cortex.memory.search("agent-1", query);
+const memories = await memoir.memory.search("agent-1", query);
 
 // Cross-agent queries (slower)
-const allAgents = await cortex.agents.list();
+const allAgents = await memoir.agents.list();
 const allMemories = await Promise.all(
-  allAgents.map((a) => cortex.memory.search(a.id, query)),
+  allAgents.map((a) => memoir.memory.search(a.id, query)),
 );
 ```
 
@@ -897,12 +897,12 @@ const allMemories = await Promise.all(
 
 ```typescript
 // Always set reasonable limits
-const results = await cortex.memory.search("agent-1", query, {
+const results = await memoir.memory.search("agent-1", query, {
   limit: 20, // Don't return 1000s of results
 });
 
 // Don't load everything
-const all = await cortex.memory.list("agent-1"); // Could be huge!
+const all = await memoir.memory.list("agent-1"); // Could be huge!
 ```
 
 ### 3. Index Common Filters
@@ -1015,4 +1015,4 @@ const wrapQuery =
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

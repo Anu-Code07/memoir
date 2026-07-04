@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Immutable Store API (Layer 1b)
+ * Memoir SDK - Immutable Store API (Layer 1b)
  *
  * ACID-compliant versioned immutable storage for shared data
  * Types: kb-article, policy, audit-log, feedback, user, etc.

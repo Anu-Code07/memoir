@@ -2,22 +2,22 @@
 id: authentication
 title: Authentication
 sidebar_position: 1
-description: Understanding authentication context in Cortex for user tracking, multi-tenancy, and session management
+description: Understanding authentication context in Memoir for user tracking, multi-tenancy, and session management
 ---
 
 # Authentication
 
-Understanding authentication context in Cortex for user tracking, multi-tenancy, and session management.
+Understanding authentication context in Memoir for user tracking, multi-tenancy, and session management.
 
 ## Overview
 
 <Callout type="info" title="Key Concept">
-  Auth context is **just data** — not a protocol or SDK. Extract it from your auth system (whatever that is) and pass it to Cortex.
+  Auth context is **just data** — not a protocol or SDK. Extract it from your auth system (whatever that is) and pass it to Memoir.
 </Callout>
 
 <FlowDiagram 
   title="Authentication Flow" 
-  caption="Your auth system → Cortex SDK → Auto-injected to all operations"
+  caption="Your auth system → Memoir SDK → Auto-injected to all operations"
 >
   <FlowNode 
     title="Your Auth System" 
@@ -34,7 +34,7 @@ Understanding authentication context in Cortex for user tracking, multi-tenancy,
     userId • tenantId • sessionId • metadata
   </FlowNode>
   <FlowNode 
-    title="Cortex SDK" 
+    title="Memoir SDK" 
     icon="package" 
     variant="success"
   >
@@ -104,7 +104,7 @@ function extractAuth(token: string) {
   <Step title="Create Auth Context">
 
 ```typescript
-import { createAuthContext } from "@cortexmemory/sdk";
+import { createAuthContext } from "@memoir/sdk";
 
 const auth = createAuthContext({
   userId: extracted.userId,
@@ -114,24 +114,24 @@ const auth = createAuthContext({
 ```
 
   </Step>
-  <Step title="Initialize Cortex">
+  <Step title="Initialize Memoir">
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth,
 });
 ```
 
   </Step>
-  <Step title="Use Cortex">
+  <Step title="Use Memoir">
 
 All operations automatically include auth context:
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-space",
   userMessage: "Hello",
   agentResponse: "Hi!",
@@ -201,8 +201,8 @@ app.use((req, res, next) => {
 
 // Route uses auth
 app.post("/chat", (req, res) => {
-  const cortex = new Cortex({ convexUrl, auth: req.auth });
-  // Use cortex...
+  const memoir = new Memoir({ convexUrl, auth: req.auth });
+  // Use memoir...
 });
 ```
 
@@ -216,7 +216,7 @@ const auth = createAuthContext({
   metadata: { hostname: os.hostname() },
 });
 
-const cortex = new Cortex({ convexUrl, auth });
+const memoir = new Memoir({ convexUrl, auth });
 ```
 
   </TabItem>
@@ -232,7 +232,7 @@ const serviceAuth = createAuthContext({
   },
 });
 
-const cortex = new Cortex({ convexUrl, auth: serviceAuth });
+const memoir = new Memoir({ convexUrl, auth: serviceAuth });
 ```
 
   </TabItem>
@@ -265,7 +265,7 @@ const auth = createAuthContext({
 
 ```typescript
 async function validateAuth(auth: AuthContext) {
-  const user = await cortex.users.get(auth.userId);
+  const user = await memoir.users.get(auth.userId);
   if (!user) throw new Error("User not found");
   return true;
 }
@@ -277,7 +277,7 @@ async function validateAuth(auth: AuthContext) {
 
 ```typescript
 // Expire old sessions periodically
-await cortex.sessions.expireIdle({
+await memoir.sessions.expireIdle({
   idleTimeout: 30 * 60 * 1000, // 30 minutes
 });
 ```

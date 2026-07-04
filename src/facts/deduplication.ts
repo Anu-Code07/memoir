@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Fact Deduplication Service
+ * Memoir SDK - Fact Deduplication Service
  *
  * Cross-session fact deduplication with configurable strategies:
  * - exact: Normalized text match (fastest, lowest accuracy)
@@ -234,7 +234,7 @@ export class FactDeduplicationService {
       // Check if generateEmbedding is available
       if (!config.generateEmbedding) {
         console.warn(
-          "[Cortex] Semantic deduplication requested but no generateEmbedding function provided. Falling back to structural.",
+          "[Memoir] Semantic deduplication requested but no generateEmbedding function provided. Falling back to structural.",
         );
         return { isDuplicate: false };
       }
@@ -417,7 +417,7 @@ export class FactDeduplicationService {
     // Fallback from semantic to structural if no embedding function
     if (config.strategy === "semantic" && !config.generateEmbedding) {
       console.warn(
-        "[Cortex] Semantic deduplication requested but no generateEmbedding function available. Falling back to structural strategy.",
+        "[Memoir] Semantic deduplication requested but no generateEmbedding function available. Falling back to structural strategy.",
       );
       return {
         ...config,

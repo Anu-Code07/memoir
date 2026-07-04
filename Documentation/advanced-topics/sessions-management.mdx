@@ -8,7 +8,7 @@ Native session lifecycle management for user-facing agentic platforms with multi
 
 ## Overview
 
-Cortex provides built-in session management through the `cortex.sessions.*` API. Sessions track user interactions, manage activity timeouts, and provide isolated context for conversations.
+Memoir provides built-in session management through the `memoir.sessions.*` API. Sessions track user interactions, manage activity timeouts, and provide isolated context for conversations.
 
 **Why Sessions Matter:**
 
@@ -20,14 +20,14 @@ Cortex provides built-in session management through the `cortex.sessions.*` API.
 ## Quick Start
 
 ```typescript
-import { Cortex } from "@cortex-platform/sdk";
+import { Memoir } from "@memoir-platform/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // Start a session when user connects
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     deviceType: "web",
@@ -36,10 +36,10 @@ const session = await cortex.sessions.create({
 });
 
 // Keep session alive with heartbeat
-await cortex.sessions.touch(session.sessionId);
+await memoir.sessions.touch(session.sessionId);
 
 // End session on logout
-await cortex.sessions.end(session.sessionId);
+await memoir.sessions.end(session.sessionId);
 ```
 
 ## Session Lifecycle
@@ -70,7 +70,7 @@ Timeouts are configurable via the [Governance Policies](/architecture/governance
 
 ```typescript
 // Create a new session
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   tenantId: "tenant-abc", // Optional: multi-tenant isolation
   memorySpaceId: "personal", // Optional: associate with memory space
@@ -82,7 +82,7 @@ const session = await cortex.sessions.create({
 });
 
 // Or get existing session if active, create new if not
-const session = await cortex.sessions.getOrCreate("user-123", {
+const session = await memoir.sessions.getOrCreate("user-123", {
   deviceType: "web",
 });
 ```
@@ -93,7 +93,7 @@ Keep sessions alive by calling `touch()` on user interactions:
 
 ```typescript
 // Update activity timestamp
-await cortex.sessions.touch(session.sessionId);
+await memoir.sessions.touch(session.sessionId);
 
 // Prevents session from going idle
 // Call on message send, page navigation, etc.
@@ -103,14 +103,14 @@ await cortex.sessions.touch(session.sessionId);
 
 ```typescript
 // End single session (on logout)
-await cortex.sessions.end(session.sessionId);
+await memoir.sessions.end(session.sessionId);
 
 // End all sessions for user (on password change)
-const result = await cortex.sessions.endAll("user-123");
+const result = await memoir.sessions.endAll("user-123");
 console.log(`Ended ${result.ended} sessions`);
 
 // End sessions for specific tenant only
-await cortex.sessions.endAll("user-123", {
+await memoir.sessions.endAll("user-123", {
   tenantId: "tenant-abc",
 });
 ```
@@ -119,16 +119,16 @@ await cortex.sessions.endAll("user-123", {
 
 ```typescript
 // Get specific session
-const session = await cortex.sessions.get("session-xyz");
+const session = await memoir.sessions.get("session-xyz");
 
 // List active sessions for user
-const activeSessions = await cortex.sessions.list({
+const activeSessions = await memoir.sessions.list({
   userId: "user-123",
   status: "active",
 });
 
 // Count sessions by status
-const activeCount = await cortex.sessions.count({
+const activeCount = await memoir.sessions.count({
   tenantId: "tenant-abc",
   status: "active",
 });
@@ -147,16 +147,16 @@ async function handleUserConnection(
   deviceInfo: Record<string, unknown>,
 ) {
   // Try to resume existing active session
-  const existingSessions = await cortex.sessions.getActive(userId);
+  const existingSessions = await memoir.sessions.getActive(userId);
 
   if (existingSessions.length > 0) {
     const session = existingSessions[0];
-    await cortex.sessions.touch(session.sessionId);
+    await memoir.sessions.touch(session.sessionId);
     return session;
   }
 
   // Create new session
-  return cortex.sessions.create({
+  return memoir.sessions.create({
     userId,
     metadata: deviceInfo,
   });
@@ -170,7 +170,7 @@ Show users their active devices and allow remote logout:
 ```typescript
 // Get all active sessions for "active devices" UI
 async function getActiveSessions(userId: string) {
-  const sessions = await cortex.sessions.getActive(userId);
+  const sessions = await memoir.sessions.getActive(userId);
 
   return sessions.map((s) => ({
     id: s.sessionId,
@@ -182,11 +182,11 @@ async function getActiveSessions(userId: string) {
 
 // Logout from all other devices
 async function logoutOtherDevices(userId: string, currentSessionId: string) {
-  const sessions = await cortex.sessions.getActive(userId);
+  const sessions = await memoir.sessions.getActive(userId);
 
   for (const session of sessions) {
     if (session.sessionId !== currentSessionId) {
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
     }
   }
 }
@@ -199,9 +199,9 @@ Track platform engagement:
 ```typescript
 async function getSessionStats(tenantId: string) {
   const [active, idle, ended] = await Promise.all([
-    cortex.sessions.count({ tenantId, status: "active" }),
-    cortex.sessions.count({ tenantId, status: "idle" }),
-    cortex.sessions.count({ tenantId, status: "ended" }),
+    memoir.sessions.count({ tenantId, status: "active" }),
+    memoir.sessions.count({ tenantId, status: "idle" }),
+    memoir.sessions.count({ tenantId, status: "ended" }),
   ]);
 
   return {
@@ -219,7 +219,7 @@ Run periodic cleanup of idle sessions:
 ```typescript
 // Background job (e.g., cron every 15 minutes)
 async function cleanupIdleSessions() {
-  const result = await cortex.sessions.expireIdle({
+  const result = await memoir.sessions.expireIdle({
     tenantId: "tenant-abc",
     idleTimeout: 30 * 60 * 1000, // 30 minutes
   });
@@ -234,7 +234,7 @@ The `metadata` field is fully flexible and stores any data your application need
 
 ```typescript
 // Device and client info
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     deviceType: "mobile",
@@ -245,7 +245,7 @@ await cortex.sessions.create({
 });
 
 // Auth provider claims
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     authProvider: "auth0",
@@ -257,7 +257,7 @@ await cortex.sessions.create({
 });
 
 // Geographic context
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     ipAddress: "192.168.1.1",
@@ -274,14 +274,14 @@ Sessions support full multi-tenant isolation:
 
 ```typescript
 // Create tenant-scoped session
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   tenantId: "customer-abc",  // SaaS platform isolation
   metadata: { ... },
 });
 
 // Query sessions within tenant
-const tenantSessions = await cortex.sessions.list({
+const tenantSessions = await memoir.sessions.list({
   tenantId: "customer-abc",
   status: "active",
 });
@@ -290,7 +290,7 @@ const tenantSessions = await cortex.sessions.list({
 When using Auth Context, `tenantId` is automatically injected:
 
 ```typescript
-import { createAuthContext } from "@cortex-platform/sdk";
+import { createAuthContext } from "@memoir-platform/sdk";
 
 const auth = createAuthContext({
   userId: "user-123",
@@ -298,13 +298,13 @@ const auth = createAuthContext({
   tenantId: "tenant-abc", // Auto-injected to all operations
 });
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth,
 });
 
 // tenantId is automatically applied
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   // tenantId auto-injected from auth context
 });
@@ -316,7 +316,7 @@ Sessions are included in GDPR cascade deletion:
 
 ```typescript
 // When deleting a user, all their sessions are deleted
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Cascade includes:
 // - User profile
@@ -332,10 +332,10 @@ await cortex.users.delete("user-123", { cascade: true });
 The Sessions API throws `SessionValidationError` for validation failures:
 
 ```typescript
-import { SessionValidationError } from "@cortex-platform/sdk";
+import { SessionValidationError } from "@memoir-platform/sdk";
 
 try {
-  await cortex.sessions.create({
+  await memoir.sessions.create({
     userId: "", // Invalid: empty userId
   });
 } catch (error) {

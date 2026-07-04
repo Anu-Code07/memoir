@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "../helpers/isolation";
 import type {
@@ -23,7 +23,7 @@ const ctx = createTestRunContext();
 const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
 describe("Memory Orchestration Observer", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _client: ConvexClient;
 
   // Use ctx-scoped IDs for parallel execution isolation
@@ -75,7 +75,7 @@ describe("Memory Orchestration Observer", () => {
   });
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     _client = new ConvexClient(CONVEX_URL);
   });
 
@@ -91,7 +91,7 @@ describe("Memory Orchestration Observer", () => {
     it("observer.onRecallStart is called with orchestrationId", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -108,7 +108,7 @@ describe("Memory Orchestration Observer", () => {
     it("vector layer event emitted with phase: 'recall'", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -135,7 +135,7 @@ describe("Memory Orchestration Observer", () => {
     it("facts layer event emitted with phase: 'recall'", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -159,7 +159,7 @@ describe("Memory Orchestration Observer", () => {
     it("context layer event emitted with phase: 'recall'", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -183,7 +183,7 @@ describe("Memory Orchestration Observer", () => {
     it("observer.onRecallComplete called with RecallSummary", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -209,7 +209,7 @@ describe("Memory Orchestration Observer", () => {
 
     it("recall works without observer (backward compat)", async () => {
       // Call recall without observer
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         // No observer
@@ -241,7 +241,7 @@ describe("Memory Orchestration Observer", () => {
 
       try {
         // Recall should complete despite observer errors
-        const result = await cortex.memory.recall({
+        const result = await memoir.memory.recall({
           memorySpaceId: TEST_MEMSPACE_ID,
           query: "test query",
           observer: throwingObserver,
@@ -258,7 +258,7 @@ describe("Memory Orchestration Observer", () => {
     it("layer events include timing information", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -287,7 +287,7 @@ describe("Memory Orchestration Observer", () => {
     it("orchestrationId is consistent across all events", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -315,7 +315,7 @@ describe("Memory Orchestration Observer", () => {
         eventOrder.push("complete");
       });
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         observer,
@@ -341,7 +341,7 @@ describe("Memory Orchestration Observer", () => {
 
     beforeAll(async () => {
       // Create a conversation for testing
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -356,7 +356,7 @@ describe("Memory Orchestration Observer", () => {
     it("observer.onRememberStart is called (not onOrchestrationStart)", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test message for observer",
@@ -380,7 +380,7 @@ describe("Memory Orchestration Observer", () => {
     it("all layer events include phase: 'remember'", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test message for phases",
@@ -402,7 +402,7 @@ describe("Memory Orchestration Observer", () => {
     it("observer.onRememberComplete called (not onOrchestrationComplete)", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test message for complete",
@@ -426,7 +426,7 @@ describe("Memory Orchestration Observer", () => {
     });
 
     it("remember works without observer", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test without observer",
@@ -446,7 +446,7 @@ describe("Memory Orchestration Observer", () => {
     it("emits layer events for key remember layers", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test for layer events",
@@ -471,7 +471,7 @@ describe("Memory Orchestration Observer", () => {
     it("layer events progress from in_progress to complete", async () => {
       const observer = createMockObserver();
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test for status progression",
@@ -525,7 +525,7 @@ describe("Memory Orchestration Observer", () => {
 
       try {
         // Remember should complete despite observer errors
-        const result = await cortex.memory.remember({
+        const result = await memoir.memory.remember({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: testConversationId,
           userMessage: "Test with throwing observer",
@@ -565,7 +565,7 @@ describe("Memory Orchestration Observer", () => {
         },
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test async observer",
         observer: asyncObserver,
@@ -589,7 +589,7 @@ describe("Memory Orchestration Observer", () => {
         // Other methods not defined
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test partial observer",
         observer: partialObserver,
@@ -603,7 +603,7 @@ describe("Memory Orchestration Observer", () => {
       const emptyObserver: OrchestrationObserver = {};
 
       // Should not throw
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test empty observer",
         observer: emptyObserver,

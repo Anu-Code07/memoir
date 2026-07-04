@@ -5,7 +5,7 @@
  * Tests cover: core operations, client-side validation, integration, and edge cases.
  */
 
-import { Cortex, A2AValidationError } from "../src";
+import { Memoir, A2AValidationError } from "../src";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
 
@@ -13,7 +13,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const _ctx = createTestRunContext();
 
 describe("A2A Communication API", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _cleanup: TestCleanup;
 
   beforeAll(() => {
@@ -21,13 +21,13 @@ describe("A2A Communication API", () => {
       throw new Error("CONVEX_URL environment variable is required for tests");
     }
 
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL });
-    _cleanup = new TestCleanup(cortex.getClient());
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL });
+    _cleanup = new TestCleanup(memoir.getClient());
   });
 
   afterAll(async () => {
     // NOTE: Removed purgeAll() for parallel execution compatibility.
-    cortex.close();
+    memoir.close();
   });
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -38,7 +38,7 @@ describe("A2A Communication API", () => {
     const uniquePrefix = `a2a-send-${Date.now()}`;
 
     it("should send basic message between agents", async () => {
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-agent-1`,
         to: `${uniquePrefix}-agent-2`,
         message: "Hello from agent 1",
@@ -56,7 +56,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-bidir-agent-1`;
       const agent2 = `${uniquePrefix}-bidir-agent-2`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Bidirectional test message",
@@ -64,7 +64,7 @@ describe("A2A Communication API", () => {
       });
 
       // Verify sender memory exists
-      const senderMemory = await cortex.vector.get(
+      const senderMemory = await memoir.vector.get(
         agent1,
         result.senderMemoryId,
       );
@@ -72,7 +72,7 @@ describe("A2A Communication API", () => {
       expect(senderMemory?.content).toContain("Sent to");
 
       // Verify receiver memory exists
-      const receiverMemory = await cortex.vector.get(
+      const receiverMemory = await memoir.vector.get(
         agent2,
         result.receiverMemoryId,
       );
@@ -81,7 +81,7 @@ describe("A2A Communication API", () => {
     });
 
     it("should track in ACID conversation by default", async () => {
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-acid-agent-1`,
         to: `${uniquePrefix}-acid-agent-2`,
         message: "ACID conversation test",
@@ -94,7 +94,7 @@ describe("A2A Communication API", () => {
     });
 
     it("should skip ACID when trackConversation=false", async () => {
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-noacid-agent-1`,
         to: `${uniquePrefix}-noacid-agent-2`,
         message: "No ACID tracking test",
@@ -114,7 +114,7 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-user-agent-2`;
       const testUserId = `user-${uniquePrefix}`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Message about a specific user",
@@ -123,7 +123,7 @@ describe("A2A Communication API", () => {
       });
 
       // Verify memory has userId linked
-      const memory = await cortex.vector.get(agent1, result.senderMemoryId);
+      const memory = await memoir.vector.get(agent1, result.senderMemoryId);
       expect(memory?.userId).toBe(testUserId);
     });
 
@@ -131,14 +131,14 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-imp-agent-1`;
       const agent2 = `${uniquePrefix}-imp-agent-2`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "High importance message",
         importance: 95,
       });
 
-      const memory = await cortex.vector.get(agent1, result.senderMemoryId);
+      const memory = await memoir.vector.get(agent1, result.senderMemoryId);
       expect(memory?.importance).toBe(95);
     });
 
@@ -146,7 +146,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-meta-agent-1`;
       const agent2 = `${uniquePrefix}-meta-agent-2`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Message with metadata",
@@ -157,7 +157,7 @@ describe("A2A Communication API", () => {
         },
       });
 
-      const memory = await cortex.vector.get(agent1, result.senderMemoryId);
+      const memory = await memoir.vector.get(agent1, result.senderMemoryId);
       expect(memory?.tags).toContain("important");
       expect(memory?.tags).toContain("budget");
     });
@@ -166,13 +166,13 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-default-agent-1`;
       const agent2 = `${uniquePrefix}-default-agent-2`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Default importance message",
       });
 
-      const memory = await cortex.vector.get(agent1, result.senderMemoryId);
+      const memory = await memoir.vector.get(agent1, result.senderMemoryId);
       expect(memory?.importance).toBe(60);
     });
 
@@ -181,7 +181,7 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-ctx-agent-2`;
       const testContextId = `ctx-send-${Date.now()}`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Message with contextId",
@@ -190,7 +190,7 @@ describe("A2A Communication API", () => {
       });
 
       // Verify sender memory has contextId in metadata
-      const senderMemory = await cortex.vector.get(
+      const senderMemory = await memoir.vector.get(
         agent1,
         result.senderMemoryId,
       );
@@ -199,7 +199,7 @@ describe("A2A Communication API", () => {
       expect((senderMemory as any).metadata.contextId).toBe(testContextId);
 
       // Verify receiver memory has contextId in metadata
-      const receiverMemory = await cortex.vector.get(
+      const receiverMemory = await memoir.vector.get(
         agent2,
         result.receiverMemoryId,
       );
@@ -220,7 +220,7 @@ describe("A2A Communication API", () => {
         `${uniquePrefix}-recipient-3`,
       ];
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "Broadcast message to team",
@@ -236,7 +236,7 @@ describe("A2A Communication API", () => {
       const sender = `${uniquePrefix}-mem-sender`;
       const recipients = [`${uniquePrefix}-mem-r1`, `${uniquePrefix}-mem-r2`];
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "Broadcast with memories",
@@ -256,7 +256,7 @@ describe("A2A Communication API", () => {
         `${uniquePrefix}-count-r4`,
       ];
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "Counting broadcast",
@@ -275,7 +275,7 @@ describe("A2A Communication API", () => {
       );
 
       const startTime = Date.now();
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "Large broadcast test",
@@ -296,7 +296,7 @@ describe("A2A Communication API", () => {
         `${uniquePrefix}-noacid-r2`,
       ];
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "No ACID tracking broadcast",
@@ -320,7 +320,7 @@ describe("A2A Communication API", () => {
         `${uniquePrefix}-acid-r3`,
       ];
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "ACID tracking broadcast",
@@ -342,7 +342,7 @@ describe("A2A Communication API", () => {
       const recipients = [`${uniquePrefix}-ctx-r1`];
       const testContextId = `ctx-broadcast-${Date.now()}`;
 
-      const result = await cortex.a2a.broadcast({
+      const result = await memoir.a2a.broadcast({
         from: sender,
         to: recipients,
         message: "Broadcast with context",
@@ -351,7 +351,7 @@ describe("A2A Communication API", () => {
       });
 
       // Verify sender memory has contextId in metadata
-      const senderMemory = await cortex.vector.get(
+      const senderMemory = await memoir.vector.get(
         sender,
         result.senderMemoryIds[0],
       );
@@ -360,7 +360,7 @@ describe("A2A Communication API", () => {
       expect((senderMemory as any).metadata.contextId).toBe(testContextId);
 
       // Verify receiver memory has contextId in metadata
-      const receiverMemory = await cortex.vector.get(
+      const receiverMemory = await memoir.vector.get(
         recipients[0],
         result.receiverMemoryIds[0],
       );
@@ -379,7 +379,7 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-agent-2`;
 
       // Send multiple messages with different importance levels
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "First message",
@@ -387,7 +387,7 @@ describe("A2A Communication API", () => {
         metadata: { tags: ["budget"] },
       });
 
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent2,
         to: agent1,
         message: "Reply message",
@@ -395,7 +395,7 @@ describe("A2A Communication API", () => {
         metadata: { tags: ["budget"] },
       });
 
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Low importance message",
@@ -407,7 +407,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-agent-1`;
       const agent2 = `${uniquePrefix}-agent-2`;
 
-      const convo = await cortex.a2a.getConversation(agent1, agent2);
+      const convo = await memoir.a2a.getConversation(agent1, agent2);
 
       expect(convo.participants).toContain(agent1);
       expect(convo.participants).toContain(agent2);
@@ -419,7 +419,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-agent-1`;
       const agent2 = `${uniquePrefix}-agent-2`;
 
-      const convo = await cortex.a2a.getConversation(agent1, agent2);
+      const convo = await memoir.a2a.getConversation(agent1, agent2);
 
       // Messages should be in ascending chronological order
       for (let i = 1; i < convo.messages.length; i++) {
@@ -433,7 +433,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-agent-1`;
       const agent2 = `${uniquePrefix}-agent-2`;
 
-      const convo = await cortex.a2a.getConversation(agent1, agent2, {
+      const convo = await memoir.a2a.getConversation(agent1, agent2, {
         minImportance: 70,
       });
 
@@ -444,7 +444,7 @@ describe("A2A Communication API", () => {
     });
 
     it("should handle empty conversations", async () => {
-      const convo = await cortex.a2a.getConversation(
+      const convo = await memoir.a2a.getConversation(
         `${uniquePrefix}-nonexistent-1`,
         `${uniquePrefix}-nonexistent-2`,
       );
@@ -457,7 +457,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-agent-1`;
       const agent2 = `${uniquePrefix}-agent-2`;
 
-      const convo = await cortex.a2a.getConversation(agent1, agent2, {
+      const convo = await memoir.a2a.getConversation(agent1, agent2, {
         limit: 1,
       });
 
@@ -469,14 +469,14 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-agent-2`;
 
       // Get all messages first to establish time bounds
-      const allConvo = await cortex.a2a.getConversation(agent1, agent2);
+      const allConvo = await memoir.a2a.getConversation(agent1, agent2);
       expect(allConvo.messages.length).toBeGreaterThan(0);
 
       // Use the period from existing messages
       const since = new Date(allConvo.period.start - 1000); // 1 second before
       const until = new Date(allConvo.period.end + 1000); // 1 second after
 
-      const filteredConvo = await cortex.a2a.getConversation(agent1, agent2, {
+      const filteredConvo = await memoir.a2a.getConversation(agent1, agent2, {
         since,
         until,
         minImportance: 70,
@@ -495,7 +495,7 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-agent-2`;
 
       // Filter by "budget" tag which was set in beforeAll
-      const convo = await cortex.a2a.getConversation(agent1, agent2, {
+      const convo = await memoir.a2a.getConversation(agent1, agent2, {
         tags: ["budget"],
       });
 
@@ -514,7 +514,7 @@ describe("A2A Communication API", () => {
       const testUserId = `user-filter-${Date.now()}`;
 
       // Send messages with userId
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Message with userId",
@@ -523,7 +523,7 @@ describe("A2A Communication API", () => {
       });
 
       // Send message without userId
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Message without userId",
@@ -531,7 +531,7 @@ describe("A2A Communication API", () => {
       });
 
       // Filter by userId
-      const convo = await cortex.a2a.getConversation(agent1, agent2, {
+      const convo = await memoir.a2a.getConversation(agent1, agent2, {
         userId: testUserId,
       });
 
@@ -540,7 +540,7 @@ describe("A2A Communication API", () => {
       // All returned messages should have the userId
       for (const msg of convo.messages) {
         // Verify through memory lookup
-        const memory = await cortex.vector.get(agent1, msg.memoryId);
+        const memory = await memoir.vector.get(agent1, msg.memoryId);
         expect(memory?.userId).toBe(testUserId);
       }
     });
@@ -549,7 +549,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-agent-1`;
       const agent2 = `${uniquePrefix}-agent-2`;
 
-      const convo = await cortex.a2a.getConversation(agent1, agent2);
+      const convo = await memoir.a2a.getConversation(agent1, agent2);
 
       expect(convo.messageCount).toBeGreaterThan(0);
 
@@ -571,17 +571,17 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-agent-2`;
 
       // Get all messages first
-      const allConvo = await cortex.a2a.getConversation(agent1, agent2);
+      const allConvo = await memoir.a2a.getConversation(agent1, agent2);
 
       if (allConvo.messageCount >= 2) {
         // Get first message with limit 1
-        const firstPage = await cortex.a2a.getConversation(agent1, agent2, {
+        const firstPage = await memoir.a2a.getConversation(agent1, agent2, {
           limit: 1,
           offset: 0,
         });
 
         // Get second message with offset 1
-        const secondPage = await cortex.a2a.getConversation(agent1, agent2, {
+        const secondPage = await memoir.a2a.getConversation(agent1, agent2, {
           limit: 1,
           offset: 1,
         });
@@ -597,7 +597,7 @@ describe("A2A Communication API", () => {
   describe("request()", () => {
     it("should throw explaining pub/sub requirement", async () => {
       await expect(
-        cortex.a2a.request({
+        memoir.a2a.request({
           from: "test-requester",
           to: "test-responder",
           message: "What is the status?",
@@ -615,7 +615,7 @@ describe("A2A Communication API", () => {
     describe("send() validation", () => {
       it("should throw on missing from agent", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "",
             to: "agent-2",
             message: "test",
@@ -623,7 +623,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "",
             to: "agent-2",
             message: "test",
@@ -637,7 +637,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on missing to agent", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "",
             message: "test",
@@ -645,7 +645,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "agent-1",
             to: "",
             message: "test",
@@ -658,7 +658,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on empty message", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "",
@@ -666,7 +666,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "",
@@ -678,7 +678,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on whitespace-only message", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "   \n\t   ",
@@ -690,7 +690,7 @@ describe("A2A Communication API", () => {
         const largeMessage = "x".repeat(102401); // 100KB + 1 byte
 
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: largeMessage,
@@ -698,7 +698,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: largeMessage,
@@ -710,7 +710,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid importance (-1)", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -719,7 +719,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -732,7 +732,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid importance (101)", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -743,7 +743,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on non-integer importance", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -754,7 +754,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid agent ID format", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "agent@invalid!chars",
             to: "agent-2",
             message: "test",
@@ -764,7 +764,7 @@ describe("A2A Communication API", () => {
 
       it("should throw when from === to", async () => {
         await expect(
-          cortex.a2a.send({
+          memoir.a2a.send({
             from: "same-agent",
             to: "same-agent",
             message: "test",
@@ -772,7 +772,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.send({
+          await memoir.a2a.send({
             from: "same-agent",
             to: "same-agent",
             message: "test",
@@ -788,7 +788,7 @@ describe("A2A Communication API", () => {
     describe("broadcast() validation", () => {
       it("should throw on empty recipients array", async () => {
         await expect(
-          cortex.a2a.broadcast({
+          memoir.a2a.broadcast({
             from: "sender",
             to: [],
             message: "test",
@@ -796,7 +796,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.broadcast({
+          await memoir.a2a.broadcast({
             from: "sender",
             to: [],
             message: "test",
@@ -808,7 +808,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on duplicate recipients", async () => {
         await expect(
-          cortex.a2a.broadcast({
+          memoir.a2a.broadcast({
             from: "sender",
             to: ["recipient-1", "recipient-1", "recipient-2"],
             message: "test",
@@ -816,7 +816,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.broadcast({
+          await memoir.a2a.broadcast({
             from: "sender",
             to: ["recipient-1", "recipient-1"],
             message: "test",
@@ -835,7 +835,7 @@ describe("A2A Communication API", () => {
         );
 
         await expect(
-          cortex.a2a.broadcast({
+          memoir.a2a.broadcast({
             from: "sender",
             to: tooManyRecipients,
             message: "test",
@@ -843,7 +843,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.broadcast({
+          await memoir.a2a.broadcast({
             from: "sender",
             to: tooManyRecipients,
             message: "test",
@@ -857,7 +857,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid recipient ID", async () => {
         await expect(
-          cortex.a2a.broadcast({
+          memoir.a2a.broadcast({
             from: "sender",
             to: ["valid-recipient", "invalid@recipient!"],
             message: "test",
@@ -867,7 +867,7 @@ describe("A2A Communication API", () => {
 
       it("should throw when sender in recipients", async () => {
         await expect(
-          cortex.a2a.broadcast({
+          memoir.a2a.broadcast({
             from: "sender",
             to: ["recipient-1", "sender", "recipient-2"],
             message: "test",
@@ -875,7 +875,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.broadcast({
+          await memoir.a2a.broadcast({
             from: "sender",
             to: ["sender"],
             message: "test",
@@ -892,14 +892,14 @@ describe("A2A Communication API", () => {
         const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
         await expect(
-          cortex.a2a.getConversation("agent-1", "agent-2", {
+          memoir.a2a.getConversation("agent-1", "agent-2", {
             since: now,
             until: yesterday,
           }),
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.getConversation("agent-1", "agent-2", {
+          await memoir.a2a.getConversation("agent-1", "agent-2", {
             since: now,
             until: yesterday,
           });
@@ -910,7 +910,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid minImportance", async () => {
         await expect(
-          cortex.a2a.getConversation("agent-1", "agent-2", {
+          memoir.a2a.getConversation("agent-1", "agent-2", {
             minImportance: 150,
           }),
         ).rejects.toThrow(A2AValidationError);
@@ -918,13 +918,13 @@ describe("A2A Communication API", () => {
 
       it("should throw on limit = 0", async () => {
         await expect(
-          cortex.a2a.getConversation("agent-1", "agent-2", {
+          memoir.a2a.getConversation("agent-1", "agent-2", {
             limit: 0,
           }),
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.getConversation("agent-1", "agent-2", {
+          await memoir.a2a.getConversation("agent-1", "agent-2", {
             limit: 0,
           });
         } catch (error) {
@@ -934,7 +934,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on limit > 1000", async () => {
         await expect(
-          cortex.a2a.getConversation("agent-1", "agent-2", {
+          memoir.a2a.getConversation("agent-1", "agent-2", {
             limit: 1001,
           }),
         ).rejects.toThrow(A2AValidationError);
@@ -942,13 +942,13 @@ describe("A2A Communication API", () => {
 
       it("should throw on negative offset", async () => {
         await expect(
-          cortex.a2a.getConversation("agent-1", "agent-2", {
+          memoir.a2a.getConversation("agent-1", "agent-2", {
             offset: -1,
           }),
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.getConversation("agent-1", "agent-2", {
+          await memoir.a2a.getConversation("agent-1", "agent-2", {
             offset: -1,
           });
         } catch (error) {
@@ -957,13 +957,13 @@ describe("A2A Communication API", () => {
       });
 
       it("should throw on empty agent1", async () => {
-        await expect(cortex.a2a.getConversation("", "agent-2")).rejects.toThrow(
+        await expect(memoir.a2a.getConversation("", "agent-2")).rejects.toThrow(
           A2AValidationError,
         );
       });
 
       it("should throw on empty agent2", async () => {
-        await expect(cortex.a2a.getConversation("agent-1", "")).rejects.toThrow(
+        await expect(memoir.a2a.getConversation("agent-1", "")).rejects.toThrow(
           A2AValidationError,
         );
       });
@@ -972,7 +972,7 @@ describe("A2A Communication API", () => {
     describe("request() validation", () => {
       it("should throw on invalid timeout (< 1000ms)", async () => {
         await expect(
-          cortex.a2a.request({
+          memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -981,7 +981,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.request({
+          await memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -996,7 +996,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid timeout (> 300000ms)", async () => {
         await expect(
-          cortex.a2a.request({
+          memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -1007,7 +1007,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid retries (negative)", async () => {
         await expect(
-          cortex.a2a.request({
+          memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -1016,7 +1016,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.request({
+          await memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -1031,7 +1031,7 @@ describe("A2A Communication API", () => {
 
       it("should throw on invalid retries (> 10)", async () => {
         await expect(
-          cortex.a2a.request({
+          memoir.a2a.request({
             from: "agent-1",
             to: "agent-2",
             message: "test",
@@ -1042,7 +1042,7 @@ describe("A2A Communication API", () => {
 
       it("should throw when from === to", async () => {
         await expect(
-          cortex.a2a.request({
+          memoir.a2a.request({
             from: "same-agent",
             to: "same-agent",
             message: "test",
@@ -1050,7 +1050,7 @@ describe("A2A Communication API", () => {
         ).rejects.toThrow(A2AValidationError);
 
         try {
-          await cortex.a2a.request({
+          await memoir.a2a.request({
             from: "same-agent",
             to: "same-agent",
             message: "test",
@@ -1076,7 +1076,7 @@ describe("A2A Communication API", () => {
       const agent2 = `${uniquePrefix}-search-target`;
 
       // Send A2A message
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Searchable A2A message about quarterly budget",
@@ -1084,7 +1084,7 @@ describe("A2A Communication API", () => {
       });
 
       // Search for A2A messages
-      const searchResults = await cortex.vector.search(agent1, "budget", {
+      const searchResults = await memoir.vector.search(agent1, "budget", {
         sourceType: "a2a",
         limit: 10,
       });
@@ -1098,7 +1098,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-dir-agent-1`;
       const agent2 = `${uniquePrefix}-dir-agent-2`;
 
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Direction test message",
@@ -1106,14 +1106,14 @@ describe("A2A Communication API", () => {
       });
 
       // Query sender's memories - should have outbound
-      const senderMemories = await cortex.vector.list({
+      const senderMemories = await memoir.vector.list({
         memorySpaceId: agent1,
         sourceType: "a2a",
       });
       expect(senderMemories.length).toBeGreaterThan(0);
 
       // Query receiver's memories - should have inbound
-      const receiverMemories = await cortex.vector.list({
+      const receiverMemories = await memoir.vector.list({
         memorySpaceId: agent2,
         sourceType: "a2a",
       });
@@ -1124,7 +1124,7 @@ describe("A2A Communication API", () => {
       const agent1 = `${uniquePrefix}-tag-agent-1`;
       const agent2 = `${uniquePrefix}-tag-agent-2`;
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Tagged A2A message",
@@ -1134,7 +1134,7 @@ describe("A2A Communication API", () => {
         },
       });
 
-      const memory = await cortex.vector.get(agent1, result.senderMemoryId);
+      const memory = await memoir.vector.get(agent1, result.senderMemoryId);
       expect(memory?.tags).toContain("a2a");
       expect(memory?.tags).toContain("sent");
       expect(memory?.tags).toContain("custom-tag");
@@ -1146,7 +1146,7 @@ describe("A2A Communication API", () => {
       const testUserId = `user-gdpr-cascade-${Date.now()}`;
 
       // Send A2A message with userId
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "GDPR cascade test message",
@@ -1155,14 +1155,14 @@ describe("A2A Communication API", () => {
       });
 
       // Verify memories exist with userId
-      const senderMemory = await cortex.vector.get(
+      const senderMemory = await memoir.vector.get(
         agent1,
         result.senderMemoryId,
       );
       expect(senderMemory).not.toBeNull();
       expect(senderMemory!.userId).toBe(testUserId);
 
-      const receiverMemory = await cortex.vector.get(
+      const receiverMemory = await memoir.vector.get(
         agent2,
         result.receiverMemoryId,
       );
@@ -1170,25 +1170,25 @@ describe("A2A Communication API", () => {
       expect(receiverMemory!.userId).toBe(testUserId);
 
       // Delete memories by userId (GDPR cascade)
-      const deleteResult = await cortex.vector.deleteMany({
+      const deleteResult = await memoir.vector.deleteMany({
         memorySpaceId: agent1,
         userId: testUserId,
       });
       expect(deleteResult.deleted).toBeGreaterThanOrEqual(1);
 
-      await cortex.vector.deleteMany({
+      await memoir.vector.deleteMany({
         memorySpaceId: agent2,
         userId: testUserId,
       });
 
       // Verify memories are deleted
-      const senderCheck = await cortex.vector.get(
+      const senderCheck = await memoir.vector.get(
         agent1,
         result.senderMemoryId,
       );
       expect(senderCheck).toBeNull();
 
-      const receiverCheck = await cortex.vector.get(
+      const receiverCheck = await memoir.vector.get(
         agent2,
         result.receiverMemoryId,
       );
@@ -1201,7 +1201,7 @@ describe("A2A Communication API", () => {
       const agent3 = `${uniquePrefix}-hop-agent-3`;
 
       // Step 1: agent1 sends to agent2
-      const msg1 = await cortex.a2a.send({
+      const msg1 = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Request to forward to agent3",
@@ -1212,7 +1212,7 @@ describe("A2A Communication API", () => {
       expect(msg1.messageId).toBeDefined();
 
       // Step 2: agent2 forwards to agent3
-      const msg2 = await cortex.a2a.send({
+      const msg2 = await memoir.a2a.send({
         from: agent2,
         to: agent3,
         message: "Forwarded request from agent1",
@@ -1226,7 +1226,7 @@ describe("A2A Communication API", () => {
       expect(msg2.messageId).toBeDefined();
 
       // Step 3: agent3 responds back to agent2
-      const msg3 = await cortex.a2a.send({
+      const msg3 = await memoir.a2a.send({
         from: agent3,
         to: agent2,
         message: "Response for agent1",
@@ -1240,15 +1240,15 @@ describe("A2A Communication API", () => {
       expect(msg3.messageId).toBeDefined();
 
       // Verify conversation chain: agent1 ↔ agent2
-      const convo12 = await cortex.a2a.getConversation(agent1, agent2);
+      const convo12 = await memoir.a2a.getConversation(agent1, agent2);
       expect(convo12.messageCount).toBeGreaterThanOrEqual(1);
 
       // Verify conversation chain: agent2 ↔ agent3
-      const convo23 = await cortex.a2a.getConversation(agent2, agent3);
+      const convo23 = await memoir.a2a.getConversation(agent2, agent3);
       expect(convo23.messageCount).toBeGreaterThanOrEqual(2);
 
       // Verify agent2 has memories from both directions
-      const agent2Memories = await cortex.vector.list({
+      const agent2Memories = await memoir.vector.list({
         memorySpaceId: agent2,
         sourceType: "a2a",
       });
@@ -1266,7 +1266,7 @@ describe("A2A Communication API", () => {
       const workflowContextId = `workflow-${Date.now()}`;
 
       // Send multiple A2A messages for same workflow
-      const msg1 = await cortex.a2a.send({
+      const msg1 = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Start workflow task",
@@ -1274,7 +1274,7 @@ describe("A2A Communication API", () => {
         importance: 70,
       });
 
-      const msg2 = await cortex.a2a.send({
+      const msg2 = await memoir.a2a.send({
         from: agent2,
         to: agent1,
         message: "Acknowledge workflow task",
@@ -1282,7 +1282,7 @@ describe("A2A Communication API", () => {
         importance: 70,
       });
 
-      const msg3 = await cortex.a2a.send({
+      const msg3 = await memoir.a2a.send({
         from: agent1,
         to: agent2,
         message: "Complete workflow task",
@@ -1292,9 +1292,9 @@ describe("A2A Communication API", () => {
 
       // Verify all messages are linked to the same contextId
       const memories = [
-        await cortex.vector.get(agent1, msg1.senderMemoryId),
-        await cortex.vector.get(agent2, msg2.senderMemoryId),
-        await cortex.vector.get(agent1, msg3.senderMemoryId),
+        await memoir.vector.get(agent1, msg1.senderMemoryId),
+        await memoir.vector.get(agent2, msg2.senderMemoryId),
+        await memoir.vector.get(agent1, msg3.senderMemoryId),
       ];
 
       for (const memory of memories) {
@@ -1304,7 +1304,7 @@ describe("A2A Communication API", () => {
       }
 
       // Conversation should have all messages
-      const convo = await cortex.a2a.getConversation(agent1, agent2);
+      const convo = await memoir.a2a.getConversation(agent1, agent2);
       expect(convo.messageCount).toBeGreaterThanOrEqual(3);
     });
   });
@@ -1319,7 +1319,7 @@ describe("A2A Communication API", () => {
     it("should handle messages near 100KB limit", async () => {
       const nearLimitMessage = "x".repeat(100000); // Just under 100KB
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-large-1`,
         to: `${uniquePrefix}-large-2`,
         message: nearLimitMessage,
@@ -1332,7 +1332,7 @@ describe("A2A Communication API", () => {
     it("should handle special characters (emoji, unicode)", async () => {
       const specialMessage = "Hello! 👋 こんにちは 🎉 مرحبا 🚀";
 
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-unicode-1`,
         to: `${uniquePrefix}-unicode-2`,
         message: specialMessage,
@@ -1342,7 +1342,7 @@ describe("A2A Communication API", () => {
       expect(result.messageId).toBeDefined();
 
       // Verify message content is preserved
-      const memory = await cortex.vector.get(
+      const memory = await memoir.vector.get(
         `${uniquePrefix}-unicode-1`,
         result.senderMemoryId,
       );
@@ -1351,7 +1351,7 @@ describe("A2A Communication API", () => {
     });
 
     it("should handle agents with no prior communication", async () => {
-      const convo = await cortex.a2a.getConversation(
+      const convo = await memoir.a2a.getConversation(
         `${uniquePrefix}-newagent-1`,
         `${uniquePrefix}-newagent-2`,
       );
@@ -1367,7 +1367,7 @@ describe("A2A Communication API", () => {
 
       // Send 5 messages in rapid succession
       const promises = Array.from({ length: 5 }, (_, i) =>
-        cortex.a2a.send({
+        memoir.a2a.send({
           from: agent1,
           to: agent2,
           message: `Rapid message ${i + 1}`,
@@ -1385,7 +1385,7 @@ describe("A2A Communication API", () => {
 
     it("should handle agent IDs with allowed special chars", async () => {
       // Hyphens and underscores are allowed
-      const result = await cortex.a2a.send({
+      const result = await memoir.a2a.send({
         from: `${uniquePrefix}-agent_one-test`,
         to: `${uniquePrefix}-agent_two-test`,
         message: "Test with special agent IDs",
@@ -1397,7 +1397,7 @@ describe("A2A Communication API", () => {
 
     it("should handle boundary importance values", async () => {
       // Test importance = 0
-      const result0 = await cortex.a2a.send({
+      const result0 = await memoir.a2a.send({
         from: `${uniquePrefix}-imp0-1`,
         to: `${uniquePrefix}-imp0-2`,
         message: "Zero importance",
@@ -1406,7 +1406,7 @@ describe("A2A Communication API", () => {
       expect(result0.messageId).toBeDefined();
 
       // Test importance = 100
-      const result100 = await cortex.a2a.send({
+      const result100 = await memoir.a2a.send({
         from: `${uniquePrefix}-imp100-1`,
         to: `${uniquePrefix}-imp100-2`,
         message: "Max importance",

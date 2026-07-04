@@ -4,13 +4,13 @@
 **Last Updated**: 2026-01-09 | **Version**: v0.29.0+
 </Callout>
 
-Navigate relationships and traverse knowledge graphs using Cortex's document-oriented architecture.
+Navigate relationships and traverse knowledge graphs using Memoir's document-oriented architecture.
 
 > **Note:** This document covers advanced graph patterns and performance analysis. For basic context chain operations (creating, updating, querying), see **[Context Chains](/advanced-topics/context-chains)**.
 
 ## Overview
 
-Cortex is built on Convex, a **document-oriented database**, but provides **graph-like querying** through references and relationships. We call this **Graph-Lite** - you get graph capabilities without running a separate graph database.
+Memoir is built on Convex, a **document-oriented database**, but provides **graph-like querying** through references and relationships. We call this **Graph-Lite** - you get graph capabilities without running a separate graph database.
 
 **Your data IS a graph** - it's just stored in documents instead of native graph nodes and edges.
 
@@ -18,7 +18,7 @@ Cortex is built on Convex, a **document-oriented database**, but provides **grap
 
 ### Nodes (Entities)
 
-Every entity in Cortex is a graph node:
+Every entity in Memoir is a graph node:
 
 <DataTable
   headers={["Entity", "Description"]}
@@ -49,7 +49,7 @@ fromAgent/toAgent → Links A2A Messages between Agents
 
 ### Visualizing the Graph
 
-<FlowDiagram title="Cortex Implicit Graph Structure">
+<FlowDiagram title="Memoir Implicit Graph Structure">
   <FlowNode title="User-123" icon="user" variant="primary">Root entity with connections to conversations and memories</FlowNode>
   <FlowNode title="Conversation-456" icon="message" variant="secondary">ACID layer — triggered Context-001</FlowNode>
   <FlowNode title="Context-001 (Root)" icon="layers" variant="secondary">Parent of Finance and Customer contexts</FlowNode>
@@ -70,7 +70,7 @@ Context chains provide hierarchical graph traversal:
 
 ```typescript
 // Get complete context chain (multi-hop graph walk)
-const chain = await cortex.contexts.get("ctx-child", {
+const chain = await memoir.contexts.get("ctx-child", {
   includeChain: true, // ← Graph traversal!
 });
 
@@ -108,7 +108,7 @@ Trace memories back to their source conversations:
 
 ```typescript
 // Memory → Conversation link via conversationRef
-const memory = await cortex.vector.get("agent-1", "mem-abc123", {
+const memory = await memoir.vector.get("agent-1", "mem-abc123", {
   includeConversation: true, // ← Graph traversal!
 });
 
@@ -117,7 +117,7 @@ console.log("Source conversation:", memory.conversationRef?.conversationId);
 
 // Get full conversation from ACID layer
 if (memory.conversationRef) {
-  const conversation = await cortex.conversations.get(
+  const conversation = await memoir.conversations.get(
     memory.conversationRef.conversationId,
   );
   console.log(
@@ -151,7 +151,7 @@ A2A communication creates an agent relationship graph:
 
 ```typescript
 // Get all A2A messages between two agents
-const conversation = await cortex.a2a.getConversation(
+const conversation = await memoir.a2a.getConversation(
   "finance-agent",
   "hr-agent",
   {
@@ -184,7 +184,7 @@ Agent: finance-agent
 
 ```typescript
 // Find all memory spaces finance-agent has communicated with (1-hop)
-const directConnections = await cortex.vector.search("finance-agent", "*", {
+const directConnections = await memoir.vector.search("finance-agent", "*", {
   sourceType: "a2a",
   limit: 100,
 });
@@ -201,7 +201,7 @@ console.log("Direct collaborators:", Array.from(connectedSpaces));
 const secondDegree = new Set();
 
 for (const space of connectedSpaces) {
-  const theirConnections = await cortex.vector.search(space, "*", {
+  const theirConnections = await memoir.vector.search(space, "*", {
     sourceType: "a2a",
     limit: 100,
   });
@@ -227,18 +227,18 @@ Trace all data related to a user across the entire system:
 // User → Everything relationship
 async function getUserDataGraph(userId: string) {
   const graph = {
-    user: await cortex.users.get(userId),
-    conversations: await cortex.conversations.list({ userId }),
-    contexts: await cortex.contexts.list({ userId }),
+    user: await memoir.users.get(userId),
+    conversations: await memoir.conversations.list({ userId }),
+    contexts: await memoir.contexts.list({ userId }),
     memories: [] as any[],
     facts: [] as any[]
   };
 
   // Get memories from all memory spaces
-  const spaces = await cortex.memorySpaces.list();
+  const spaces = await memoir.memorySpaces.list();
 
   for (const space of spaces.spaces) {
-    const spaceMemories = await cortex.vector.search(space.memorySpaceId, '*', {
+    const spaceMemories = await memoir.vector.search(space.memorySpaceId, '*', {
       userId,
       limit: 100
     });
@@ -247,7 +247,7 @@ async function getUserDataGraph(userId: string) {
   }
 
   // Get facts about user
-  const userFacts = await cortex.facts.list({
+  const userFacts = await memoir.facts.list({
     memorySpaceId: "*", // Search all spaces
     userId
   });
@@ -290,11 +290,11 @@ async function traceAuditTrail(conversationId: string) {
   const trail = [];
 
   // Step 1: Get originating conversation
-  const conversation = await cortex.conversations.get(conversationId);
+  const conversation = await memoir.conversations.get(conversationId);
   trail.push({ type: "conversation", entity: conversation });
 
   // Step 2: Find contexts triggered by this conversation
-  const contexts = await cortex.contexts.search({
+  const contexts = await memoir.contexts.search({
     "conversationRef.conversationId": conversationId,
   });
 
@@ -302,14 +302,14 @@ async function traceAuditTrail(conversationId: string) {
     trail.push({ type: "context", entity: context });
 
     // Step 3: Find all child contexts (workflow tree)
-    const children = await cortex.contexts.getChildren(context.id, {
+    const children = await memoir.contexts.getChildren(context.id, {
       recursive: true,
     });
 
     trail.push(...children.map((c) => ({ type: "context", entity: c })));
 
     // Step 4: Find memories linked to this context
-    const contextMemories = await cortex.memory.search("*", "*", {
+    const contextMemories = await memoir.memory.search("*", "*", {
       metadata: { contextId: context.id },
     });
 
@@ -345,7 +345,7 @@ Find related facts via entities:
 ```typescript
 async function findRelatedFacts(factId: string) {
   // Get the source fact
-  const fact = await cortex.immutable.get("fact", factId);
+  const fact = await memoir.immutable.get("fact", factId);
 
   if (!fact.data.entities || fact.data.entities.length === 0) {
     return [];
@@ -355,7 +355,7 @@ async function findRelatedFacts(factId: string) {
   const relatedFacts = [];
 
   for (const entity of fact.data.entities) {
-    const facts = await cortex.immutable.search(entity, {
+    const facts = await memoir.immutable.search(entity, {
       type: "fact",
       limit: 10,
     });
@@ -405,7 +405,7 @@ async function getWorkflowDependencies(rootContextId: string) {
     if (visited.has(contextId)) return;
     visited.add(contextId);
 
-    const context = await cortex.contexts.get(contextId);
+    const context = await memoir.contexts.get(contextId);
     dependencies.push({ context, depth });
 
     // Traverse children
@@ -443,7 +443,7 @@ Build a graph of agent capabilities and collaborations:
 
 ```typescript
 async function buildMemorySpaceNetwork() {
-  const spaces = await cortex.memorySpaces.list();
+  const spaces = await memoir.memorySpaces.list();
   const network = {
     nodes: [] as any[],
     edges: [] as any[]
@@ -461,7 +461,7 @@ async function buildMemorySpaceNetwork() {
 
   // Find collaboration edges (via A2A)
   for (const space of spaces.spaces) {
-    const collaborations = await cortex.vector.search(space.memorySpaceId, '*', {
+    const collaborations = await memoir.vector.search(space.memorySpaceId, '*', {
       sourceType: 'a2a',
       limit: 1000
     });
@@ -540,15 +540,15 @@ finance-agent ══(45)══> hr-agent
 ```typescript
 // 3-hop query: User → Conversation → Context → Agent
 // Query 1: Get conversation (by userId)
-const convos = await cortex.conversations.list({ userId }); // 20ms
+const convos = await memoir.conversations.list({ userId }); // 20ms
 
 // Query 2: Get contexts triggered by conversation
-const contexts = await cortex.contexts.search({
+const contexts = await memoir.contexts.search({
   "conversationRef.conversationId": convos[0].conversationId,
 }); // 30ms
 
 // Query 3: Get agent handling context
-const memorySpace = await cortex.memorySpaces.get(contexts[0].memorySpaceId); // 15ms
+const memorySpace = await memoir.memorySpaces.get(contexts[0].memorySpaceId); // 15ms
 
 // Total: ~65ms (acceptable)
 ```
@@ -687,7 +687,7 @@ See: **[Graph Database Integration Guide](./graph-database-integration)** for co
 
 ```typescript
 // Run both Graph-Lite and native graph during migration
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
 
   graph: {
@@ -706,8 +706,8 @@ const cortex = new Cortex({
 
 ```typescript
 // Ensure graph and Convex give same results
-const graphResult = await cortex.graph.traverse(...);
-const convexResult = await cortexTraverse(...);
+const graphResult = await memoir.graph.traverse(...);
+const convexResult = await memoirTraverse(...);
 
 assert.deepEqual(graphResult, convexResult);
 ```
@@ -716,7 +716,7 @@ assert.deepEqual(graphResult, convexResult);
 
 ```typescript
 // Once confident, switch fully to graph for complex queries
-const cortex = new Cortex({
+const memoir = new Memoir({
   graph: {
     enabled: true,
     preferGraphFor: ["traverse", "findPath", "pattern"],
@@ -733,7 +733,7 @@ const cortex = new Cortex({
 // Find what was connected at a specific point in time
 async function getHistoricalGraph(timestamp: Date) {
   // Get contexts that existed at that time
-  const contexts = await cortex.contexts.list({
+  const contexts = await memoir.contexts.list({
     createdBefore: timestamp,
     $or: [
       { completedAfter: timestamp },
@@ -742,7 +742,7 @@ async function getHistoricalGraph(timestamp: Date) {
   });
 
   // Get A2A messages from that period
-  const a2aMessages = await cortex.memory.search("*", "*", {
+  const a2aMessages = await memoir.memory.search("*", "*", {
     source: { type: "a2a" },
     createdBefore: timestamp,
     createdAfter: new Date(timestamp.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days window
@@ -762,11 +762,11 @@ async function getHistoricalGraph(timestamp: Date) {
 ```typescript
 // Build graph with weighted edges (importance, frequency, recency)
 async function getWeightedCollaborationGraph() {
-  const spaces = await cortex.memorySpaces.list();
+  const spaces = await memoir.memorySpaces.list();
   const edges = [];
 
   for (const space of spaces.spaces) {
-    const a2a = await cortex.vector.search(space.memorySpaceId, "*", {
+    const a2a = await memoir.vector.search(space.memorySpaceId, "*", {
       sourceType: "a2a",
       limit: 1000,
     });
@@ -821,15 +821,15 @@ async function getWeightedCollaborationGraph() {
 
 ```typescript
 // Good: Use built-in traversal when available
-const chain = await cortex.contexts.get(contextId, { includeChain: true });
+const chain = await memoir.contexts.get(contextId, { includeChain: true });
 
 // Avoid: Manual traversal when built-in exists
-const context = await cortex.contexts.get(contextId);
+const context = await memoir.contexts.get(contextId);
 const parent = context.parentId
-  ? await cortex.contexts.get(context.parentId)
+  ? await memoir.contexts.get(context.parentId)
   : null;
 const grandparent = parent?.parentId
-  ? await cortex.contexts.get(parent.parentId)
+  ? await memoir.contexts.get(parent.parentId)
   : null;
 // etc. (slower and more code)
 ```
@@ -861,7 +861,7 @@ async function cachedContextChain(contextId: string) {
     return graphCache.get(contextId);
   }
 
-  const chain = await cortex.contexts.get(contextId, { includeChain: true });
+  const chain = await memoir.contexts.get(contextId, { includeChain: true });
 
   graphCache.set(contextId, chain);
   setTimeout(() => graphCache.delete(contextId), 60000); // 1 min TTL
@@ -874,14 +874,14 @@ async function cachedContextChain(contextId: string) {
 
 ```typescript
 // Good: Fetch all related entities in one query when possible
-const contexts = await cortex.contexts.list({
+const contexts = await memoir.contexts.list({
   rootId: rootContextId, // Gets entire workflow in one query
 });
 
 // Avoid: Querying one-by-one
-const root = await cortex.contexts.get(rootId);
+const root = await memoir.contexts.get(rootId);
 for (const childId of root.childIds) {
-  const child = await cortex.contexts.get(childId); // N queries!
+  const child = await memoir.contexts.get(childId); // N queries!
 }
 ```
 
@@ -910,7 +910,7 @@ for (const childId of root.childIds) {
 
 ```typescript
 // Current code works fine
-const chain = await cortex.contexts.get(contextId, { includeChain: true });
+const chain = await memoir.contexts.get(contextId, { includeChain: true });
 // 150ms, depth 3 - acceptable
 ```
 
@@ -918,7 +918,7 @@ const chain = await cortex.contexts.get(contextId, { includeChain: true });
 
 ```typescript
 // Performance degrading
-const chain = await cortex.contexts.get(complexContextId, {
+const chain = await memoir.contexts.get(complexContextId, {
   includeChain: true,
 });
 // 800ms, depth 8 - too slow
@@ -932,7 +932,7 @@ const chain = await cortex.contexts.get(complexContextId, {
 
 ```typescript
 // Enable graph integration
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   graph: {
     enabled: true,
@@ -942,7 +942,7 @@ const cortex = new Cortex({
 });
 
 // Now use graph for complex queries
-const agents = await cortex.graph.traverse({
+const agents = await memoir.graph.traverse({
   start: { type: 'user', id: 'user-123' },
   relationships: ['INVOLVES', 'HANDLED_BY'],
   maxDepth: 10
@@ -950,7 +950,7 @@ const agents = await cortex.graph.traverse({
 // 45ms - fast!
 
 // Keep using Graph-Lite for simple queries
-const chain = await cortex.contexts.get(contextId, { includeChain: true });
+const chain = await memoir.contexts.get(contextId, { includeChain: true });
 // Still works, automatically uses best method
 ```
 
@@ -963,4 +963,4 @@ const chain = await cortex.contexts.get(contextId, { includeChain: true });
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversation Snapshots API
+ * Memoir SDK - Conversation Snapshots API
  *
  * Shareable Chats Phase 3: Immutable Snapshots
  * Creates point-in-time copies of conversations with optional PII redaction

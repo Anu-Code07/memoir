@@ -16,7 +16,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -36,13 +36,13 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 /**
  * Create realistic interconnected data across all layers
  */
-async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
+async function createMultiLayerDataset(memoir: Memoir, memorySpaceId: string) {
   console.log("  📝 Creating interconnected data across all layers...\n");
 
   // ============================================================================
@@ -50,7 +50,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
   // ============================================================================
   console.log("  L1a: Creating conversations...");
 
-  const conv1 = await cortex.conversations.create({
+  const conv1 = await memoir.conversations.create({
     memorySpaceId,
     type: "user-agent",
     participants: {
@@ -60,7 +60,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const msg1 = await cortex.conversations.addMessage({
+  const msg1 = await memoir.conversations.addMessage({
     conversationId: conv1.conversationId,
     message: {
       role: "user",
@@ -69,7 +69,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  await cortex.conversations.addMessage({
+  await memoir.conversations.addMessage({
     conversationId: conv1.conversationId,
     message: {
       role: "agent",
@@ -78,7 +78,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const conv2 = await cortex.conversations.create({
+  const conv2 = await memoir.conversations.create({
     memorySpaceId,
     type: "user-agent",
     participants: {
@@ -88,7 +88,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const msg2 = await cortex.conversations.addMessage({
+  const msg2 = await memoir.conversations.addMessage({
     conversationId: conv2.conversationId,
     message: {
       role: "user",
@@ -104,7 +104,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
   // ============================================================================
   console.log("  L4: Creating context chains...");
 
-  const rootContext = await cortex.contexts.create({
+  const rootContext = await memoir.contexts.create({
     purpose: "Help with Acme Corp TypeScript API project",
     memorySpaceId,
     userId: "alice",
@@ -114,14 +114,14 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const childContext1 = await cortex.contexts.create({
+  const childContext1 = await memoir.contexts.create({
     purpose: "TypeScript API architecture review",
     memorySpaceId,
     parentId: rootContext.contextId,
     userId: "alice",
   });
 
-  const childContext2 = await cortex.contexts.create({
+  const childContext2 = await memoir.contexts.create({
     purpose: "Database integration strategy",
     memorySpaceId,
     parentId: rootContext.contextId,
@@ -139,7 +139,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
   // ============================================================================
   console.log("  L2: Creating vector memories...");
 
-  const memory1 = await cortex.vector.store(memorySpaceId, {
+  const memory1 = await memoir.vector.store(memorySpaceId, {
     content: "Alice is working on a TypeScript API project at Acme Corp",
     contentType: "summarized",
     userId: "alice",
@@ -158,7 +158,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const memory2 = await cortex.vector.store(memorySpaceId, {
+  const memory2 = await memoir.vector.store(memorySpaceId, {
     content:
       "Bob is collaborating with Alice on TypeScript API database integration",
     contentType: "summarized",
@@ -178,7 +178,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     },
   });
 
-  const memory3 = await cortex.vector.store(memorySpaceId, {
+  const memory3 = await memoir.vector.store(memorySpaceId, {
     content: "Acme Corp is building a customer portal with modern technology",
     contentType: "summarized",
     source: {
@@ -197,7 +197,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
   // ============================================================================
   console.log("  L3: Creating facts...");
 
-  const fact1 = await cortex.facts.store({
+  const fact1 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice works at Acme Corp",
     factType: "relationship",
@@ -213,7 +213,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     tags: ["employment"],
   });
 
-  const fact2 = await cortex.facts.store({
+  const fact2 = await memoir.facts.store({
     memorySpaceId,
     fact: "Bob works at Acme Corp",
     factType: "relationship",
@@ -229,7 +229,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     tags: ["employment"],
   });
 
-  const fact3 = await cortex.facts.store({
+  const fact3 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice uses TypeScript",
     factType: "preference",
@@ -245,7 +245,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     tags: ["technology"],
   });
 
-  const fact4 = await cortex.facts.store({
+  const fact4 = await memoir.facts.store({
     memorySpaceId,
     fact: "Bob uses TypeScript",
     factType: "preference",
@@ -261,7 +261,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     tags: ["technology"],
   });
 
-  const fact5 = await cortex.facts.store({
+  const fact5 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice knows Bob",
     factType: "relationship",
@@ -273,7 +273,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
     tags: ["relationship"],
   });
 
-  const fact6 = await cortex.facts.store({
+  const fact6 = await memoir.facts.store({
     memorySpaceId,
     fact: "Acme Corp builds customer portals",
     factType: "knowledge",
@@ -299,7 +299,7 @@ async function createMultiLayerDataset(cortex: Cortex, memorySpaceId: string) {
  * Query WITHOUT Graph (baseline - separate L2 and L3 queries)
  */
 async function queryWithoutGraph(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   query: string,
 ) {
@@ -307,7 +307,7 @@ async function queryWithoutGraph(
   const startTime = Date.now();
 
   // L2: Vector search (would use embeddings in real scenario)
-  const l2Memories = await cortex.vector.list({
+  const l2Memories = await memoir.vector.list({
     memorySpaceId,
     limit: 10,
   });
@@ -318,7 +318,7 @@ async function queryWithoutGraph(
   );
 
   // L3: Facts query by tag matching (simulating semantic search)
-  const l3Facts = await cortex.facts.list({
+  const l3Facts = await memoir.facts.list({
     memorySpaceId,
     limit: 10,
   });
@@ -344,7 +344,7 @@ async function queryWithoutGraph(
  * Query WITH Graph (enhanced - L2 + L3 + graph enrichment)
  */
 async function queryWithGraph(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   memorySpaceId: string,
   query: string,
@@ -353,7 +353,7 @@ async function queryWithGraph(
   const startTime = Date.now();
 
   // Step 1: Same L2 + L3 baseline queries
-  const l2Memories = await cortex.vector.list({
+  const l2Memories = await memoir.vector.list({
     memorySpaceId,
     limit: 10,
   });
@@ -362,7 +362,7 @@ async function queryWithGraph(
     m.tags.some((tag) => query.toLowerCase().includes(tag)),
   );
 
-  const l3Facts = await cortex.facts.list({
+  const l3Facts = await memoir.facts.list({
     memorySpaceId,
     limit: 10,
   });
@@ -515,7 +515,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
   console.log(`Multi-Layer Retrieval Enhancement - ${dbName}`);
   console.log(`${"=".repeat(70)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
   const timestamp = Date.now();
   const memorySpaceId = `space-multilayer-${timestamp}`;
 
@@ -528,7 +528,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
     console.log("  ✓ Schema ready\n");
 
     console.log("📦 Phase 2: Register Memory Space");
-    const memorySpace = await cortex.memorySpaces.register({
+    const memorySpace = await memoir.memorySpaces.register({
       memorySpaceId,
       name: "TypeScript Project Assistant",
       type: "personal",
@@ -539,7 +539,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
     // Phase 2: Create Multi-Layer Dataset
     // ============================================================================
     console.log("🏗️  Phase 3: Create Multi-Layer Dataset");
-    const dataset = await createMultiLayerDataset(cortex, memorySpaceId);
+    const dataset = await createMultiLayerDataset(memoir, memorySpaceId);
 
     console.log("  📊 Dataset Summary:");
     console.log(`    - Conversations: ${dataset.conversations.length}`);
@@ -603,7 +603,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
     console.log("═".repeat(70));
 
     const baselineResult = await queryWithoutGraph(
-      cortex,
+      memoir,
       memorySpaceId,
       "alice typescript",
     );
@@ -639,7 +639,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
     console.log("═".repeat(70));
 
     const enhancedResult = await queryWithGraph(
-      cortex,
+      memoir,
       adapter,
       memorySpaceId,
       "alice typescript",
@@ -749,7 +749,7 @@ async function runMultiLayerProof(adapter: GraphAdapter, dbName: string) {
     console.error(`❌ Multi-layer proof failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -761,7 +761,7 @@ async function main() {
     "\n╔═══════════════════════════════════════════════════════════════════╗",
   );
   console.log(
-    "║  Cortex Graph Integration - Multi-Layer Retrieval Enhancement    ║",
+    "║  Memoir Graph Integration - Multi-Layer Retrieval Enhancement    ║",
   );
   console.log(
     "║                                                                   ║",
@@ -810,7 +810,7 @@ async function main() {
   console.log("\n🎯 CONCLUSION:");
   console.log("   Graph integration transforms isolated L2+L3 results into a");
   console.log("   CONNECTED KNOWLEDGE NETWORK with provenance and discovery!");
-  console.log("\n🎉 This is WHY graph integration matters for Cortex!\n");
+  console.log("\n🎉 This is WHY graph integration matters for Memoir!\n");
 }
 
 // Run

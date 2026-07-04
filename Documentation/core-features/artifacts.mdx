@@ -76,19 +76,19 @@ Every change to an artifact creates a new version. Users can navigate through hi
 
 ```typescript
 // Make changes
-await cortex.artifacts.update(artifactId, "version 2 content");
-await cortex.artifacts.update(artifactId, "version 3 content");
+await memoir.artifacts.update(artifactId, "version 2 content");
+await memoir.artifacts.update(artifactId, "version 3 content");
 
 // Undo to previous version
-const undone = await cortex.artifacts.undo(artifactId);
+const undone = await memoir.artifacts.undo(artifactId);
 console.log(undone.currentVersion); // 2
 
 // Redo to restore
-const redone = await cortex.artifacts.redo(artifactId);
+const redone = await memoir.artifacts.redo(artifactId);
 console.log(redone.currentVersion); // 3
 
 // Get full history
-const history = await cortex.artifacts.getHistory(artifactId);
+const history = await memoir.artifacts.getHistory(artifactId);
 // [{ version: 1, content: "...", timestamp: ... }, ...]
 ```
 
@@ -132,13 +132,13 @@ Artifacts support real-time streaming for AI-generated content. This is essentia
 
 ```typescript
 // Start streaming session
-const { sessionId } = await cortex.artifacts.startStreaming({
+const { sessionId } = await memoir.artifacts.startStreaming({
   artifactId: artifact.artifactId,
 });
 
 // Append content chunks
 for await (const chunk of aiGeneratedContent) {
-  await cortex.artifacts.appendContent({
+  await memoir.artifacts.appendContent({
     artifactId: artifact.artifactId,
     sessionId,
     chunk,
@@ -146,7 +146,7 @@ for await (const chunk of aiGeneratedContent) {
 }
 
 // Finalize when done
-await cortex.artifacts.finalizeStreaming({
+await memoir.artifacts.finalizeStreaming({
   artifactId: artifact.artifactId,
   sessionId,
   changeSummary: "AI-generated code completion",
@@ -155,11 +155,11 @@ await cortex.artifacts.finalizeStreaming({
 
 ### Multi-Tenancy Support
 
-Like all Cortex APIs, artifacts support multi-tenant isolation out of the box:
+Like all Memoir APIs, artifacts support multi-tenant isolation out of the box:
 
 ```typescript
 // Artifacts are isolated by tenant
-const artifact = await cortex.artifacts.create({
+const artifact = await memoir.artifacts.create({
   memorySpaceId: "user-123-workspace",
   title: "Customer Report",
   content: "# Q4 Report\n...",
@@ -174,7 +174,7 @@ Artifacts can have binary files attached via Convex storage:
 
 ```typescript
 // Upload a file
-const result = await cortex.artifacts.uploadFile({
+const result = await memoir.artifacts.uploadFile({
   artifactId: artifact.artifactId,
   file: imageBlob,
   filename: "diagram.png",
@@ -182,7 +182,7 @@ const result = await cortex.artifacts.uploadFile({
 });
 
 // Get file URL for display
-const url = await cortex.artifacts.getFileUrl(artifact.artifactId);
+const url = await memoir.artifacts.getFileUrl(artifact.artifactId);
 ```
 
 ---
@@ -206,7 +206,7 @@ Each artifact has a `kind` that determines how it should be rendered and edited:
 
 ```typescript
 // Code artifact with language config
-const codeArtifact = await cortex.artifacts.create({
+const codeArtifact = await memoir.artifacts.create({
   memorySpaceId: "workspace",
   title: "API Handler",
   content: "export function handler(req, res) { ... }",
@@ -216,7 +216,7 @@ const codeArtifact = await cortex.artifacts.create({
 });
 
 // Sheet artifact
-const sheetArtifact = await cortex.artifacts.create({
+const sheetArtifact = await memoir.artifacts.create({
   memorySpaceId: "workspace",
   title: "User Data",
   content: JSON.stringify([
@@ -232,12 +232,12 @@ const sheetArtifact = await cortex.artifacts.create({
 ## TypeScript SDK
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
 
 // Create an artifact
-const artifact = await cortex.artifacts.create({
+const artifact = await memoir.artifacts.create({
   memorySpaceId: "user-workspace",
   title: "Meeting Notes",
   content: "# Team Standup\n\n- Discussed roadmap...",
@@ -246,12 +246,12 @@ const artifact = await cortex.artifacts.create({
 });
 
 // Update content (creates new version)
-await cortex.artifacts.update(artifact.artifactId, "# Updated Notes\n...", {
+await memoir.artifacts.update(artifact.artifactId, "# Updated Notes\n...", {
   changeSummary: "Added action items",
 });
 
 // List artifacts
-const artifacts = await cortex.artifacts.list({
+const artifacts = await memoir.artifacts.list({
   memorySpaceId: "user-workspace",
   kind: "text",
   sortBy: "updatedAt",
@@ -264,12 +264,12 @@ const artifacts = await cortex.artifacts.list({
 ## Python SDK
 
 ```python
-from cortex import Cortex, CreateArtifactOptions
+from memoir import Memoir, CreateArtifactOptions
 
-cortex = Cortex(convex_url=os.environ["CONVEX_URL"])
+memoir = Memoir(convex_url=os.environ["CONVEX_URL"])
 
 # Create an artifact
-artifact = await cortex.artifacts.create(
+artifact = await memoir.artifacts.create(
     CreateArtifactOptions(
         memory_space_id="user-workspace",
         title="Data Analysis",
@@ -280,12 +280,12 @@ artifact = await cortex.artifacts.create(
 )
 
 # Streaming example
-result = await cortex.artifacts.start_streaming(
+result = await memoir.artifacts.start_streaming(
     StartStreamingParams(artifact_id=artifact.artifact_id)
 )
 
 for chunk in ai_generated_content:
-    await cortex.artifacts.append_content(
+    await memoir.artifacts.append_content(
         AppendContentParams(
             artifact_id=artifact.artifact_id,
             session_id=result.session_id,
@@ -293,7 +293,7 @@ for chunk in ai_generated_content:
         )
     )
 
-await cortex.artifacts.finalize_streaming(
+await memoir.artifacts.finalize_streaming(
     FinalizeStreamingParams(
         artifact_id=artifact.artifact_id,
         session_id=result.session_id,
@@ -308,12 +308,12 @@ await cortex.artifacts.finalize_streaming(
 The Vercel AI Provider includes tools for AI-driven artifact management:
 
 ```typescript
-import { createArtifactTools } from "@cortexmemory/vercel-ai-provider";
+import { createArtifactTools } from "@memoir/vercel-ai-provider";
 import { streamText } from "ai";
 
 // Create tools for AI to use
 const artifactTools = createArtifactTools({
-  storage: cortex.artifacts,
+  storage: memoir.artifacts,
   writer: dataStreamWriter,
 });
 
@@ -330,7 +330,7 @@ const result = streamText({
 React hooks for artifact state management:
 
 ```tsx
-import { useArtifacts, useArtifact } from "@cortexmemory/vercel-ai-provider/react";
+import { useArtifacts, useArtifact } from "@memoir/vercel-ai-provider/react";
 
 function ArtifactPanel() {
   const { artifactList, activeArtifact, handleDataPart } = useArtifacts();
@@ -373,7 +373,7 @@ function ArtifactPanel() {
   />
   <QuickNavItem
     title="Streaming Support"
-    description="Learn about streaming patterns in Cortex"
+    description="Learn about streaming patterns in Memoir"
     href="/core-features/streaming-support"
   />
   <QuickNavItem

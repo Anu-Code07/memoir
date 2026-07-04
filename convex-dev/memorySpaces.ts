@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Memory Spaces Registry
+ * Memoir SDK - Memory Spaces Registry
  *
  * Hive/Collaboration Mode management
  * Memory space metadata and analytics

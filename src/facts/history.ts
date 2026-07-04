@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Fact History Service
+ * Memoir SDK - Fact History Service
  *
  * SDK wrapper for fact change history operations.
  * Provides audit trail for belief revision decisions.

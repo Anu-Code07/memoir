@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Attachments API
+ * Memoir SDK - Attachments API
  *
  * Multi-modal file storage for images, PDFs, audio, video, and generic files.
  * Memory space-scoped with multi-tenancy support.
@@ -91,14 +91,14 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const { uploadUrl } = await cortex.attachments.generateUploadUrl();
+   * const { uploadUrl } = await memoir.attachments.generateUploadUrl();
    *
    * // Client uploads file to uploadUrl via POST
    * const response = await fetch(uploadUrl, { method: 'POST', body: file });
    * const { storageId } = await response.json();
    *
    * // Then register the attachment
-   * await cortex.attachments.attach({
+   * await memoir.attachments.attach({
    *   storageId,
    *   memorySpaceId: 'my-space',
    *   userId: 'user-123',
@@ -127,7 +127,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const attachment = await cortex.attachments.attach({
+   * const attachment = await memoir.attachments.attach({
    *   storageId: 'kg2abc123...',
    *   memorySpaceId: 'my-space',
    *   userId: 'user-123',
@@ -182,7 +182,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const attachment = await cortex.attachments.get('attach-abc123');
+   * const attachment = await memoir.attachments.get('attach-abc123');
    * if (attachment) {
    *   console.log(attachment.filename, attachment.mimeType);
    * }
@@ -212,7 +212,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const url = await cortex.attachments.getUrl('attach-abc123');
+   * const url = await memoir.attachments.getUrl('attach-abc123');
    * if (url) {
    *   // Display image or download file
    *   window.open(url);
@@ -241,7 +241,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.attachments.list({
+   * const result = await memoir.attachments.list({
    *   memorySpaceId: 'my-space',
    *   type: 'image',
    *   limit: 20,
@@ -253,7 +253,7 @@ export class AttachmentsAPI {
    *
    * // Pagination
    * if (result.hasMore) {
-   *   const nextPage = await cortex.attachments.list({
+   *   const nextPage = await memoir.attachments.list({
    *     memorySpaceId: 'my-space',
    *     cursor: result.cursor,
    *   });
@@ -291,7 +291,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const attachments = await cortex.attachments.getByConversation('conv-123');
+   * const attachments = await memoir.attachments.getByConversation('conv-123');
    * console.log(`${attachments.length} attachments in this conversation`);
    * ```
    */
@@ -318,7 +318,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const attachments = await cortex.attachments.getByMessage('msg-123');
+   * const attachments = await memoir.attachments.getByMessage('msg-123');
    * for (const att of attachments) {
    *   console.log(att.filename);
    * }
@@ -342,7 +342,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.attachments.count({
+   * const count = await memoir.attachments.count({
    *   memorySpaceId: 'my-space',
    *   type: 'image',
    * });
@@ -387,7 +387,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const success = await cortex.attachments.delete('attach-abc123');
+   * const success = await memoir.attachments.delete('attach-abc123');
    * if (success) {
    *   console.log('Attachment deleted');
    * }
@@ -420,7 +420,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.attachments.deleteMany([
+   * const result = await memoir.attachments.deleteMany([
    *   'attach-123',
    *   'attach-456',
    *   'attach-789',
@@ -460,7 +460,7 @@ export class AttachmentsAPI {
    *
    * @example
    * ```typescript
-   * const attachment = await cortex.attachments.upload({
+   * const attachment = await memoir.attachments.upload({
    *   file: imageBlob,
    *   memorySpaceId: 'my-space',
    *   userId: 'user-123',

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Context Chains API
+ * Memoir SDK - Context Chains API
  *
  * Hierarchical workflow coordination
  * Multi-agent task delegation with shared context

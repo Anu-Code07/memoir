@@ -21,7 +21,7 @@ description: Hierarchical context sharing for multi-agent coordination
 
 ```typescript
 // Supervisor creates a context chain
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request #12345",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -29,7 +29,7 @@ const context = await cortex.contexts.create({
 });
 
 // Delegate to specialist
-const childContext = await cortex.contexts.create({
+const childContext = await memoir.contexts.create({
   purpose: "Approve $500 refund",
   memorySpaceId: "finance-space",
   parentId: context.id,
@@ -37,7 +37,7 @@ const childContext = await cortex.contexts.create({
 });
 
 // Specialist accesses full chain
-const fullContext = await cortex.contexts.get(childContext.id, {
+const fullContext = await memoir.contexts.get(childContext.id, {
   includeChain: true,
 });
 // Sees: parent purpose, data, and full hierarchy
@@ -93,7 +93,7 @@ const fullContext = await cortex.contexts.get(childContext.id, {
   <Step title="Create root context">
 
 ```typescript
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process customer refund request",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -111,7 +111,7 @@ const context = await cortex.contexts.create({
 
 ```typescript
 // Delegate to finance
-const financeCtx = await cortex.contexts.create({
+const financeCtx = await memoir.contexts.create({
   purpose: "Approve and process $500 refund",
   memorySpaceId: "finance-space",
   parentId: context.id,
@@ -119,7 +119,7 @@ const financeCtx = await cortex.contexts.create({
 });
 
 // Delegate to customer relations
-const customerCtx = await cortex.contexts.create({
+const customerCtx = await memoir.contexts.create({
   purpose: "Send apology email",
   memorySpaceId: "customer-space",
   parentId: context.id,
@@ -131,7 +131,7 @@ const customerCtx = await cortex.contexts.create({
   <Step title="Specialist accesses full chain">
 
 ```typescript
-const fullContext = await cortex.contexts.get(financeCtx.id, {
+const fullContext = await memoir.contexts.get(financeCtx.id, {
   includeChain: true,
 });
 
@@ -181,10 +181,10 @@ console.log(fullContext.siblings);        // [customerCtx]
 
 ```typescript
 // Get single context
-const ctx = await cortex.contexts.get(contextId);
+const ctx = await memoir.contexts.get(contextId);
 
 // Get with full chain
-const fullCtx = await cortex.contexts.get(contextId, {
+const fullCtx = await memoir.contexts.get(contextId, {
   includeChain: true,
 });
 // Returns: current, parent, root, siblings, children, depth
@@ -195,14 +195,14 @@ const fullCtx = await cortex.contexts.get(contextId, {
 
 ```typescript
 // Update status (auto-versioned)
-await cortex.contexts.update(contextId, {
+await memoir.contexts.update(contextId, {
   status: "completed",
   completedAt: Date.now(),
   data: { result: "approved", approvedBy: "finance-agent" },
 });
 
 // Check version history
-const ctx = await cortex.contexts.get(contextId);
+const ctx = await memoir.contexts.get(contextId);
 console.log(`v${ctx.version}: ${ctx.status}`);
 ```
 
@@ -211,19 +211,19 @@ console.log(`v${ctx.version}: ${ctx.status}`);
 
 ```typescript
 // Find active contexts for an agent
-const active = await cortex.contexts.search({
+const active = await memoir.contexts.search({
   memorySpaceId: "finance-space",
   status: "active",
 });
 
 // Find high-priority contexts
-const urgent = await cortex.contexts.search({
+const urgent = await memoir.contexts.search({
   data: { importance: { $gte: 80 } },
   status: "active",
 });
 
 // Find user's contexts
-const userCtx = await cortex.contexts.search({
+const userCtx = await memoir.contexts.search({
   userId: "user-123",
   sortBy: "createdAt",
   sortOrder: "desc",
@@ -235,10 +235,10 @@ const userCtx = await cortex.contexts.search({
 
 ```typescript
 // Delete single context
-await cortex.contexts.delete(contextId);
+await memoir.contexts.delete(contextId);
 
 // Bulk delete old cancelled contexts
-await cortex.contexts.deleteMany({
+await memoir.contexts.deleteMany({
   status: "cancelled",
   updatedBefore: Date.now() - 90 * 24 * 60 * 60 * 1000,
 });
@@ -255,24 +255,24 @@ await cortex.contexts.deleteMany({
 
 ```typescript
 // Break complex task into subtasks
-const root = await cortex.contexts.create({
+const root = await memoir.contexts.create({
   purpose: "Build Q4 financial report",
   memorySpaceId: "ceo-space",
   data: { quarter: "Q4", deadline: "2025-12-31" },
 });
 
 await Promise.all([
-  cortex.contexts.create({
+  memoir.contexts.create({
     purpose: "Gather revenue data",
     memorySpaceId: "finance-space",
     parentId: root.id,
   }),
-  cortex.contexts.create({
+  memoir.contexts.create({
     purpose: "Compile expense reports",
     memorySpaceId: "accounting-space",
     parentId: root.id,
   }),
-  cortex.contexts.create({
+  memoir.contexts.create({
     purpose: "Create visualizations",
     memorySpaceId: "analytics-space",
     parentId: root.id,
@@ -284,26 +284,26 @@ await Promise.all([
 
 ```typescript
 // Multi-step approval chain
-const request = await cortex.contexts.create({
+const request = await memoir.contexts.create({
   purpose: "Approve $10K budget increase",
   memorySpaceId: "requestor-space",
   data: { amount: 10000, department: "engineering" },
 });
 
-const managerReview = await cortex.contexts.create({
+const managerReview = await memoir.contexts.create({
   purpose: "Manager review",
   memorySpaceId: "manager-space",
   parentId: request.id,
 });
 
-const financeApproval = await cortex.contexts.create({
+const financeApproval = await memoir.contexts.create({
   purpose: "Finance approval",
   memorySpaceId: "finance-space",
   parentId: managerReview.id,
 });
 
 // Trace full approval chain
-const chain = await cortex.contexts.get(financeApproval.id, {
+const chain = await memoir.contexts.get(financeApproval.id, {
   includeChain: true,
 });
 ```
@@ -312,7 +312,7 @@ const chain = await cortex.contexts.get(financeApproval.id, {
 
 ```typescript
 // Context originated from user conversation
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -325,7 +325,7 @@ const context = await cortex.contexts.create({
 
 // Trace back to source
 if (context.conversationRef) {
-  const conv = await cortex.conversations.get(
+  const conv = await memoir.conversations.get(
     context.conversationRef.conversationId
   );
 }
@@ -339,10 +339,10 @@ if (context.conversationRef) {
 
 ```typescript
 // Vague - hard to trace
-await cortex.contexts.create({ purpose: "Process request" });
+await memoir.contexts.create({ purpose: "Process request" });
 
 // Clear - full audit trail
-await cortex.contexts.create({
+await memoir.contexts.create({
   purpose: "Process $500 refund for defective product (ticket #456)",
   data: { importance: 85, tags: ["refund", "urgent"] },
 });
@@ -354,9 +354,9 @@ await cortex.contexts.create({
 
 ```typescript
 // Update as work progresses
-await cortex.contexts.update(id, { status: "active" });
+await memoir.contexts.update(id, { status: "active" });
 // ... do work ...
-await cortex.contexts.update(id, { 
+await memoir.contexts.update(id, { 
   status: "completed",
   completedAt: Date.now(),
 });
@@ -368,7 +368,7 @@ await cortex.contexts.update(id, {
 
 ```typescript
 // Archive completed contexts after 90 days
-await cortex.contexts.deleteMany({
+await memoir.contexts.deleteMany({
   status: "completed",
   completedBefore: Date.now() - 90 * 24 * 60 * 60 * 1000,
 });

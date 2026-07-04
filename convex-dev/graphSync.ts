@@ -1,7 +1,7 @@
 /**
  * Graph Sync Queue
  *
- * Manages the queue for syncing Cortex entities to graph database.
+ * Manages the queue for syncing Memoir entities to graph database.
  * Uses Convex reactive queries for real-time synchronization.
  */
 
@@ -20,7 +20,7 @@ import { mutation, query } from "./_generated/server";
 export const queueForSync = mutation({
   args: {
     table: v.string(), // "memories", "facts", "contexts", etc.
-    entityId: v.string(), // Cortex entity ID
+    entityId: v.string(), // Memoir entity ID
     operation: v.union(
       v.literal("insert"),
       v.literal("update"),

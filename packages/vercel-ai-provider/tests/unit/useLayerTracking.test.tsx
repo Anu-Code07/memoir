@@ -11,7 +11,7 @@ import {
   generateSampleLayerData,
   type LayerState,
 } from "../../react/useLayerTracking";
-import type { MemoryLayer, LayerStatus } from "@cortexmemory/sdk";
+import type { MemoryLayer, LayerStatus } from "@memoir/sdk";
 
 describe("useLayerTracking", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -16,7 +16,7 @@ description: LLM-powered fact extraction for 60-90% token savings
 </Callout>
 
 <Callout type="tip" icon="sparkles">
-**v0.30.0**: Facts now support **semantic search** via embeddings. Configure `embedding` once at SDK init (or set `CORTEX_EMBEDDING=true`) and embeddings are auto-generated for all `remember()` and `recall()` calls - no manual embedding code needed!
+**v0.30.0**: Facts now support **semantic search** via embeddings. Configure `embedding` once at SDK init (or set `MEMOIR_EMBEDDING=true`) and embeddings are auto-generated for all `remember()` and `recall()` calls - no manual embedding code needed!
 </Callout>
 
 <Callout type="tip" icon="sparkles">
@@ -50,17 +50,17 @@ Storage: 89% reduction
 Configure an LLM once, facts extracted automatically:
 
 ```typescript
-import { Cortex } from '@cortex-platform/sdk';
+import { Memoir } from '@memoir-platform/sdk';
 import { openai } from '@ai-sdk/openai';
 
-// Configure Cortex with LLM client
-const cortex = new Cortex({
+// Configure Memoir with LLM client
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   llm: openai('gpt-4'),  // Enables automatic fact extraction
 });
 
 // Facts extracted automatically - no callback needed!
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   conversationId: 'conv-123',
   userMessage: 'My favorite color is blue',
@@ -81,7 +81,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Skip fact extraction for this conversation
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... params
   skipLayers: ['facts'],  // Don't extract facts this time
 });
@@ -93,7 +93,7 @@ await cortex.memory.remember({
 Override automatic extraction with your own logic:
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   conversationId: 'conv-123',
   userMessage: 'My favorite color is blue',
@@ -123,7 +123,7 @@ await cortex.memory.remember({
 Store facts directly without conversations:
 
 ```typescript
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: 'user-123-space',
   userId: 'user-123',
   fact: 'User prefers blue color',
@@ -142,17 +142,17 @@ await cortex.facts.store({
 **Batteries-Included**: Configure `embedding` once at SDK init and all `remember()` and `recall()` calls automatically get embeddings:
 
 ```typescript
-import { Cortex } from '@cortexmemory/sdk';
+import { Memoir } from '@memoir/sdk';
 
 // Configure embedding once - batteries included!
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   llm: { provider: 'openai', apiKey: process.env.OPENAI_API_KEY },
   embedding: { provider: 'openai', apiKey: process.env.OPENAI_API_KEY },
 });
 
 // Embeddings auto-generated for facts - no callback needed!
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   conversationId: 'conv-123',
   userMessage: 'My favorite color is blue',
@@ -163,7 +163,7 @@ await cortex.memory.remember({
 });
 
 // Embeddings auto-generated for queries too!
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-123-space',
   query: 'What colors does the user like?',
   // No manual embedding needed - auto-generated from query!
@@ -175,8 +175,8 @@ Or use environment variables for zero-config:
 
 ```bash
 export OPENAI_API_KEY=sk-...
-export CORTEX_EMBEDDING=true
-export CORTEX_FACT_EXTRACTION=true
+export MEMOIR_EMBEDDING=true
+export MEMOIR_FACT_EXTRACTION=true
 ```
 
 <Callout type="info">
@@ -206,7 +206,7 @@ export CORTEX_FACT_EXTRACTION=true
 ## Belief Revision
 
 <Callout type="info" title="Automatic Conflict Resolution (v0.24.0+)">
-  When you extract a fact that conflicts with an existing fact, Cortex handles it automatically:
+  When you extract a fact that conflicts with an existing fact, Memoir handles it automatically:
   
   - **ADD**: New fact (no conflict)
   - **SUPERSEDE**: Old fact marked as superseded, new fact is current
@@ -218,7 +218,7 @@ export CORTEX_FACT_EXTRACTION=true
 // Old fact: "User prefers blue"
 // New conversation: "Actually, I like purple now"
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   conversationId: 'conv-456',
   userMessage: 'Actually, I like purple now',
@@ -242,7 +242,7 @@ await cortex.memory.remember({
 ### Preview Conflicts
 
 ```typescript
-const conflicts = await cortex.facts.checkConflicts({
+const conflicts = await memoir.facts.checkConflicts({
   memorySpaceId: 'user-123-space',
   fact: 'User prefers purple',
   subject: 'user-123',
@@ -263,10 +263,10 @@ if (conflicts.hasConflicts) {
 
 ```typescript
 // Search facts directly
-const facts = await cortex.facts.search(spaceId, 'color preference');
+const facts = await memoir.facts.search(spaceId, 'color preference');
 
 // Or semantic search via memory API (embedding auto-generated!)
-const memories = await cortex.memory.search(spaceId, 'what colors?', {
+const memories = await memoir.memory.search(spaceId, 'what colors?', {
   // No manual embedding needed - auto-generated from query!
   contentType: 'fact',
   limit: 5,
@@ -278,7 +278,7 @@ const memories = await cortex.memory.search(spaceId, 'what colors?', {
 
 ```typescript
 // recall() automatically includes facts (embedding auto-generated!)
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: spaceId,
   query: 'What colors does the user like?',
   // No manual embedding needed - auto-generated from query!
@@ -295,14 +295,14 @@ result.items
 
 ```typescript
 // Get only preferences
-const prefs = await cortex.facts.list({
+const prefs = await memoir.facts.list({
   memorySpaceId: spaceId,
   factType: 'preference',
   isSuperseded: false,  // Current beliefs only
 });
 
 // Get only identity facts
-const identity = await cortex.facts.list({
+const identity = await memoir.facts.list({
   memorySpaceId: spaceId,
   factType: 'identity',
 });
@@ -330,13 +330,13 @@ const identity = await cortex.facts.list({
 
 ```typescript
 // Use structural deduplication (faster)
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... params
   factDeduplication: 'structural',
 });
 
 // Disable deduplication
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... params
   factDeduplication: false,
 });
@@ -348,7 +348,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Get change history for a specific fact
-const changes = await cortex.facts.history('fact-123');
+const changes = await memoir.facts.history('fact-123');
 
 changes.forEach(event => {
   console.log(`${event.action} at ${new Date(event.timestamp).toISOString()}`);
@@ -356,11 +356,11 @@ changes.forEach(event => {
 });
 
 // Get the supersession chain (evolution over time)
-const chain = await cortex.facts.getSupersessionChain('fact-123');
+const chain = await memoir.facts.getSupersessionChain('fact-123');
 // Returns: [oldest] -> [older] -> [current]
 
 // Get all versions of a fact
-const versions = await cortex.facts.getHistory(spaceId, 'fact-123');
+const versions = await memoir.facts.getHistory(spaceId, 'fact-123');
 versions.forEach(v => console.log(`v${v.version}: ${v.fact}`));
 ```
 
@@ -369,10 +369,10 @@ versions.forEach(v => console.log(`v${v.version}: ${v.fact}`));
 ## LLM Model Benchmarks
 
 <Callout type="info" title="Benchmark Methodology">
-  All models tested under identical conditions using Cortex's standard extraction prompt with structured JSON output. Metrics include extracted facts, enriched entities, relation triples, and end-to-end latency. Results may vary based on conversation complexity and model updates.
+  All models tested under identical conditions using Memoir's standard extraction prompt with structured JSON output. Metrics include extracted facts, enriched entities, relation triples, and end-to-end latency. Results may vary based on conversation complexity and model updates.
 </Callout>
 
-Cortex supports multiple OpenAI models for fact extraction. Here are the performance characteristics:
+Memoir supports multiple OpenAI models for fact extraction. Here are the performance characteristics:
 
 <DataTable
   headers={["Model", "Facts", "Entities", "Relations", "Avg Latency"]}
@@ -470,10 +470,10 @@ extractFacts: async (user, agent) => {
 
 ```typescript
 async function analyzeTokenSavings(conversationId: string) {
-  const conv = await cortex.conversations.get(conversationId);
+  const conv = await memoir.conversations.get(conversationId);
   const rawTokens = estimateTokens(conv.messages.map(m => m.text).join('\n'));
 
-  const facts = await cortex.facts.list({
+  const facts = await memoir.facts.list({
     'conversationRef.conversationId': conversationId,
   });
   const factTokens = estimateTokens(facts.map(f => f.fact).join('\n'));

@@ -2,14 +2,14 @@
 
 ## Supported Versions
 
-We release security updates for the following versions of Cortex:
+We release security updates for the following versions of Memoir:
 
 | Version | Supported          | Status      |
 | ------- | ------------------ | ----------- |
 | 0.1.x   | :white_check_mark: | Alpha       |
 | < 0.1   | :x:                | Unsupported |
 
-**Note**: Cortex is currently in alpha. Once we reach 1.0, we will support:
+**Note**: Memoir is currently in alpha. Once we reach 1.0, we will support:
 
 - Latest major version (security + features)
 - Previous major version (security only, for 6 months)
@@ -26,13 +26,13 @@ Report security vulnerabilities through one of these channels:
 
 #### 1. GitHub Security Advisories (Preferred)
 
-1. Go to our [Security Advisories page](https://github.com/yourusername/cortex/security/advisories)
+1. Go to our [Security Advisories page](https://github.com/Anu-Code07/memoir/security/advisories)
 2. Click "Report a vulnerability"
 3. Fill out the form with detailed information
 
 #### 2. Email
 
-Send an email to: **security@cortexmemory.dev**
+Send an email to: **security@github.com/Anu-Code07/memoir**
 
 Include:
 
@@ -78,19 +78,19 @@ We will:
 
 ## Security Best Practices
 
-### For Cortex Users
+### For Memoir Users
 
 #### 1. Secure Your Convex Deployment
 
 ```typescript
 // ❌ DON'T: Expose Convex credentials in client-side code
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: "https://your-deployment.convex.cloud",
   // Never put API keys in client-side code!
 });
 
 // ✅ DO: Use environment variables on the server
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
 });
 ```
@@ -99,7 +99,7 @@ const cortex = new Cortex({
 
 ```typescript
 // ❌ DON'T: Trust user input directly
-await cortex.memory.remember(userInput); // Could contain malicious data
+await memoir.memory.remember(userInput); // Could contain malicious data
 
 // ✅ DO: Validate and sanitize
 import { z } from "zod";
@@ -115,7 +115,7 @@ const RememberInputSchema = z.object({
 });
 
 const validated = RememberInputSchema.parse(userInput);
-await cortex.memory.remember(validated);
+await memoir.memory.remember(validated);
 ```
 
 #### 3. Implement Access Control
@@ -123,7 +123,7 @@ await cortex.memory.remember(validated);
 ```typescript
 // ❌ DON'T: Allow unrestricted access
 app.post("/api/memory", async (req, res) => {
-  await cortex.memory.remember(req.body); // No auth check!
+  await memoir.memory.remember(req.body); // No auth check!
 });
 
 // ✅ DO: Verify user permissions
@@ -134,7 +134,7 @@ app.post("/api/memory", requireAuth, async (req, res) => {
   }
 
   // Store with Layer 3 remember()
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId: req.body.agentId,
     conversationId: req.body.conversationId,
     userMessage: req.body.userMessage,
@@ -155,7 +155,7 @@ const embedding = await openai.embeddings.create({
 });
 
 // Store securely (Layer 2 for system-generated content)
-await cortex.vector.store(agentId, {
+await memoir.vector.store(agentId, {
   content: userContent,
   contentType: 'raw',
   embedding: embedding.data[0].embedding,
@@ -167,7 +167,7 @@ await cortex.vector.store(agentId, {
 });
 
 // Or use Layer 3 for conversations (handles ACID + Vector)
-await cortex.memory.remember({
+await memoir.memory.remember({
   agentId, conversationId, userMessage, agentResponse, userId, userName,
   generateEmbedding: async (content) => await openai.embeddings.create({...})
 });
@@ -192,7 +192,7 @@ app.use("/api/memory", memoryLimiter);
 
 ```typescript
 // Log security-relevant actions
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   agentId,
   conversationId,
   userMessage,
@@ -214,7 +214,7 @@ await auditLog.record({
 });
 ```
 
-### For Cortex Contributors
+### For Memoir Contributors
 
 #### 1. Secure Coding Practices
 
@@ -255,7 +255,7 @@ All code changes must:
 
 **Mitigation**:
 
-- Cortex enforces agent-level isolation at the database level
+- Memoir enforces agent-level isolation at the database level
 - All queries filter by `agentId`
 - Cross-agent queries are explicitly blocked
 
@@ -282,7 +282,7 @@ All code changes must:
 
 ### 4. Convex Security
 
-**Issue**: Cortex depends on Convex's security model.
+**Issue**: Memoir depends on Convex's security model.
 
 **Mitigation**:
 
@@ -328,7 +328,7 @@ Get notified of security updates:
 
 1. **GitHub**: Watch our repository and enable security alerts
 2. **Discord**: Join #security-announcements channel
-3. **Email**: Subscribe to security mailing list at security-announce@cortexmemory.dev
+3. **Email**: Subscribe to security mailing list at security-announce@github.com/Anu-Code07/memoir
 4. **RSS**: Subscribe to our security feed
 
 ### Severity Levels
@@ -346,19 +346,19 @@ Currently, we do not have a formal bug bounty program. However:
 
 - We greatly appreciate security reports
 - We will credit you in our security advisories
-- We may send Cortex swag as a thank you
+- We may send Memoir swag as a thank you
 - We're considering a formal program for v1.0+
 
 ## Compliance
 
-Cortex is designed to support compliance with:
+Memoir is designed to support compliance with:
 
 - **GDPR**: Data portability, deletion, and privacy by design
 - **CCPA**: User data rights and deletion
 - **SOC 2**: When deployed with appropriate controls
 - **HIPAA**: With proper Convex configuration (contact us for guidance)
 
-Note: Compliance ultimately depends on how you deploy and configure Cortex.
+Note: Compliance ultimately depends on how you deploy and configure Memoir.
 
 ## Security Resources
 
@@ -369,9 +369,9 @@ Note: Compliance ultimately depends on how you deploy and configure Cortex.
 
 ## Contact
 
-- **Security Team**: security@cortexmemory.dev
-- **General Inquiries**: hello@cortexmemory.dev
-- **Emergency**: security+urgent@cortexmemory.dev (include "URGENT" in subject)
+- **Security Team**: security@github.com/Anu-Code07/memoir
+- **General Inquiries**: hello@github.com/Anu-Code07/memoir
+- **Emergency**: security+urgent@github.com/Anu-Code07/memoir (include "URGENT" in subject)
 
 ## Hall of Fame
 
@@ -386,4 +386,4 @@ _No vulnerabilities reported yet._
 **Last Updated**: 2025-10-23  
 **Version**: 1.0
 
-Thank you for helping keep Cortex and our community safe! 🔒
+Thank you for helping keep Memoir and our community safe! 🔒

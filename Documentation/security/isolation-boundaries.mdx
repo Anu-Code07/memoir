@@ -2,16 +2,16 @@
 id: isolation-boundaries
 title: Isolation Boundaries
 sidebar_position: 2
-description: Understanding Cortex's multi-layered isolation model for security, privacy, and compliance
+description: Understanding Memoir's multi-layered isolation model for security, privacy, and compliance
 ---
 
 # Isolation Boundaries
 
-Understanding Cortex's multi-layered isolation model for security, privacy, and compliance.
+Understanding Memoir's multi-layered isolation model for security, privacy, and compliance.
 
 ## Overview
 
-Cortex provides **four layers of isolation** that work together to ensure data security, enable multi-tenancy, and maintain privacy boundaries:
+Memoir provides **four layers of isolation** that work together to ensure data security, enable multi-tenancy, and maintain privacy boundaries:
 
 <FlowDiagram 
   title="Isolation Hierarchy" 
@@ -58,7 +58,7 @@ Cortex provides **four layers of isolation** that work together to ensure data s
 Complete data separation for SaaS platforms serving multiple organizations.
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     tenantId: "customer-acme", // All operations scoped to this tenant
@@ -67,7 +67,7 @@ const cortex = new Cortex({
 });
 
 // All operations automatically include tenantId
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   // tenantId: "customer-acme" ← Auto-injected!
   userMessage: "Hello",
@@ -111,7 +111,7 @@ All AI tools share user's personal space:
 const memorySpaceId = "user-123-personal";
 
 // Cursor stores
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId,
   participantId: "cursor",
   userMessage: "I prefer TypeScript",
@@ -121,7 +121,7 @@ await cortex.memory.remember({
 });
 
 // Claude reads same space — sees Cursor's memories
-const memories = await cortex.memory.search(memorySpaceId, "preferences");
+const memories = await memoir.memory.search(memorySpaceId, "preferences");
 ```
 
   </TabItem>
@@ -131,7 +131,7 @@ Each agent has separate space:
 
 ```typescript
 // Finance agent stores in its own space
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "finance-agent-space",
   userMessage: "Approve budget",
   agentResponse: "Approved",
@@ -140,7 +140,7 @@ await cortex.memory.remember({
 });
 
 // Communication via A2A (dual-write to both spaces)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "finance-agent",
   to: "hr-agent",
   message: "Budget approved",
@@ -160,7 +160,7 @@ await cortex.a2a.send({
 
 ```typescript
 // Link data to user
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "support-bot-space",
   userId: "user-123", // ← GDPR link
   userMessage: "My account issue",
@@ -169,7 +169,7 @@ await cortex.memory.remember({
 });
 
 // One API call deletes from ALL layers
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true,
   verify: true,
 });
@@ -187,7 +187,7 @@ const result = await cortex.users.delete("user-123", {
 
 ```typescript
 // Track which tool stored what
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "shared-space",
   participantId: "cursor", // Attribution
   userMessage: "User message",
@@ -197,7 +197,7 @@ await cortex.memory.remember({
 });
 
 // Filter by participant for debugging
-const cursorMemories = await cortex.memory.list({
+const cursorMemories = await memoir.memory.list({
   memorySpaceId: "shared-space",
   participantId: "cursor",
 });
@@ -228,7 +228,7 @@ How each data type is scoped by isolation layer:
 <Callout type="tip" title="Always Use tenantId for SaaS">
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   auth: createAuthContext({
     tenantId: req.tenant.id, // REQUIRED for multi-tenant
     userId: req.user.id,
@@ -241,7 +241,7 @@ const cortex = new Cortex({
 <Callout type="tip" title="Always Set userId for GDPR">
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "bot-space",
   userId: "user-123", // Required for cascade deletion
   // ...
@@ -253,7 +253,7 @@ await cortex.memory.remember({
 <Callout type="tip" title="Use participantId in Hive Mode">
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "shared-space",
   participantId: "my-bot", // Track attribution
   // ...

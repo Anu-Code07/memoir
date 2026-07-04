@@ -2,11 +2,11 @@
  * Middleware for memory context injection and user resolution
  */
 
-import type { MemoryEntry } from "@cortexmemory/sdk";
+import type { MemoryEntry } from "@memoir/sdk";
 // Prompt types handled dynamically to support all AI SDK versions
 import type {
   ContextInjectionStrategy,
-  CortexMemoryConfig,
+  MemoirMemoryConfig,
   Logger,
 } from "./types";
 
@@ -14,7 +14,7 @@ import type {
  * Resolve user ID from config (handles both static string and function)
  */
 export async function resolveUserId(
-  config: CortexMemoryConfig,
+  config: MemoirMemoryConfig,
   logger: Logger,
 ): Promise<string> {
   try {
@@ -38,7 +38,7 @@ export async function resolveUserId(
  * Resolve conversation ID from config or generate a new one
  */
 export async function resolveConversationId(
-  config: CortexMemoryConfig,
+  config: MemoirMemoryConfig,
   logger: Logger,
 ): Promise<string> {
   try {
@@ -72,7 +72,7 @@ export async function resolveConversationId(
  */
 export function buildMemoryContext(
   memories: MemoryEntry[],
-  config: CortexMemoryConfig,
+  config: MemoirMemoryConfig,
   logger: Logger,
 ): string {
   if (memories.length === 0) {
@@ -114,7 +114,7 @@ export function buildMemoryContext(
 export function injectMemoryContext(
   messages: any,
   memories: MemoryEntry[],
-  config: CortexMemoryConfig,
+  config: MemoirMemoryConfig,
   logger: Logger,
 ): any {
   if (memories.length === 0) {
@@ -237,7 +237,7 @@ export function generateId(prefix: string = "id"): string {
  *
  * Agent ID is required for user-agent conversations (SDK v0.17.0+).
  */
-export function resolveAgentId(config: CortexMemoryConfig): string {
+export function resolveAgentId(config: MemoirMemoryConfig): string {
   if (!config.agentId) {
     throw new Error(
       "agentId is required. User-agent conversations require both a user and an agent participant. " +
@@ -250,14 +250,14 @@ export function resolveAgentId(config: CortexMemoryConfig): string {
 /**
  * Resolve agent name from config (defaults to agentId)
  */
-export function resolveAgentName(config: CortexMemoryConfig): string {
+export function resolveAgentName(config: MemoirMemoryConfig): string {
   return config.agentName || config.agentId;
 }
 
 /**
  * Validate configuration
  */
-export function validateConfig(config: CortexMemoryConfig): void {
+export function validateConfig(config: MemoirMemoryConfig): void {
   if (!config.convexUrl) {
     throw new Error("convexUrl is required");
   }
@@ -275,7 +275,7 @@ export function validateConfig(config: CortexMemoryConfig): void {
     throw new Error(
       "agentId is required. Since SDK v0.17.0, user-agent conversations require both " +
         "a user and an agent participant. Provide agentId in your configuration:\n\n" +
-        "  createCortexMemory({\n" +
+        "  createMemoirMemory({\n" +
         "    convexUrl: process.env.CONVEX_URL!,\n" +
         "    memorySpaceId: 'my-space',\n" +
         "    userId: 'user-123',\n" +

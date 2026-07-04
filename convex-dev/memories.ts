@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Vector Memory API (Layer 2)
+ * Memoir SDK - Vector Memory API (Layer 2)
  *
  * Searchable agent-private memories with embeddings
  * References Layer 1 stores for full context

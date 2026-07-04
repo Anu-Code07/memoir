@@ -1,7 +1,7 @@
 /**
  * Graph Database Integration Module
  *
- * Provides graph database integration for Cortex, supporting Neo4j, Memgraph,
+ * Provides graph database integration for Memoir, supporting Neo4j, Memgraph,
  * and other Cypher-compatible databases.
  *
  * @module graph

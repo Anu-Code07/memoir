@@ -1,5 +1,5 @@
 /**
- * Type definitions for Cortex Memory Provider for Vercel AI SDK
+ * Type definitions for Memoir Provider for Vercel AI SDK
  */
 
 // Dynamic types to support AI SDK v3, v4, and v5
@@ -7,7 +7,7 @@ import type {
   MemoryEntry,
   RememberOptions,
   RememberStreamResult,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 
 /**
  * Supported LLM providers
@@ -45,11 +45,11 @@ export interface MemorySearchOptions {
 }
 
 /**
- * Configuration for the Cortex Memory Provider
+ * Configuration for the Memoir Provider
  */
-export interface CortexMemoryConfig {
+export interface MemoirMemoryConfig {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Cortex Configuration
+  // Memoir Configuration
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   /** Convex deployment URL */
@@ -121,14 +121,14 @@ export interface CortexMemoryConfig {
   };
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Advanced Cortex Features
+  // Advanced Memoir Features
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   /**
    * Enable fact extraction (default: false)
    *
    * When enabled, facts are automatically extracted from conversations.
-   * Can also be auto-enabled via CORTEX_FACT_EXTRACTION=true env var.
+   * Can also be auto-enabled via MEMOIR_FACT_EXTRACTION=true env var.
    */
   enableFactExtraction?: boolean;
 
@@ -137,11 +137,11 @@ export interface CortexMemoryConfig {
    *
    * Provides fine-grained control over automatic fact extraction.
    * Uses environment variables by default:
-   * - CORTEX_FACT_EXTRACTION=true to enable
-   * - CORTEX_FACT_EXTRACTION_MODEL=gpt-4o to override model
+   * - MEMOIR_FACT_EXTRACTION=true to enable
+   * - MEMOIR_FACT_EXTRACTION_MODEL=gpt-4o to override model
    */
   factExtractionConfig?: {
-    /** Override the fact extraction model (default: uses CORTEX_FACT_EXTRACTION_MODEL or 'gpt-4o-mini') */
+    /** Override the fact extraction model (default: uses MEMOIR_FACT_EXTRACTION_MODEL or 'gpt-4o-mini') */
     model?: string;
     /** Provider to use ('openai' | 'anthropic', default: auto-detected from API key) */
     provider?: "openai" | "anthropic";
@@ -174,7 +174,7 @@ export interface CortexMemoryConfig {
    * Enable graph memory sync (default: false)
    *
    * When enabled, memories are synced to a graph database (Neo4j/Memgraph).
-   * Can also be auto-enabled via CORTEX_GRAPH_SYNC=true env var.
+   * Can also be auto-enabled via MEMOIR_GRAPH_SYNC=true env var.
    * Requires graph database connection configured via env vars:
    * - NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
    * - or MEMGRAPH_URI, MEMGRAPH_USERNAME, MEMGRAPH_PASSWORD
@@ -328,7 +328,7 @@ export interface CortexMemoryConfig {
   /**
    * Layer observation hooks for real-time visualization
    *
-   * These callbacks are invoked as data flows through the Cortex
+   * These callbacks are invoked as data flows through the Memoir
    * memory orchestration layers, enabling real-time UI updates.
    *
    * @deprecated Use recallObserver and rememberObserver for phase-aware events.
@@ -345,7 +345,7 @@ export interface CortexMemoryConfig {
    *
    * @example
    * ```typescript
-   * import { createRecallStreamObserver } from '@cortexmemory/vercel-ai-provider';
+   * import { createRecallStreamObserver } from '@memoir/vercel-ai-provider';
    * const { observer: recallObserver, emitTo } = createRecallStreamObserver();
    * emitTo(writer);
    * // Pass recallObserver to config.recallObserver
@@ -362,7 +362,7 @@ export interface CortexMemoryConfig {
    *
    * @example
    * ```typescript
-   * import { createRememberStreamObserver } from '@cortexmemory/vercel-ai-provider';
+   * import { createRememberStreamObserver } from '@memoir/vercel-ai-provider';
    * const { observer: rememberObserver, emitTo } = createRememberStreamObserver();
    * emitTo(writer);
    * // Pass rememberObserver to config.rememberObserver
@@ -438,11 +438,11 @@ export interface ManualClearOptions {
 }
 
 /**
- * Cortex Memory Model - Augmented language model with memory capabilities
+ * Memoir Model - Augmented language model with memory capabilities
  *
- * This is the main export from createCortexMemory()
+ * This is the main export from createMemoirMemory()
  */
-export interface CortexMemoryModel {
+export interface MemoirMemoryModel {
   /**
    * Wrap a language model with memory capabilities
    *
@@ -453,7 +453,7 @@ export interface CortexMemoryModel {
    * @example
    * ```typescript
    * import { openai } from '@ai-sdk/openai';
-   * const model = cortexMemory(openai('gpt-4.1-nano'));
+   * const model = memoirMemory(openai('gpt-4.1-nano'));
    *
    * const result = await streamText({
    *   model,
@@ -476,7 +476,7 @@ export interface CortexMemoryModel {
    *
    * @example
    * ```typescript
-   * const memories = await cortexMemory.search('favorite color', {
+   * const memories = await memoirMemory.search('favorite color', {
    *   limit: 10,
    *   minScore: 0.8,
    * });
@@ -497,7 +497,7 @@ export interface CortexMemoryModel {
    *
    * @example
    * ```typescript
-   * await cortexMemory.remember(
+   * await memoirMemory.remember(
    *   'My name is Alice',
    *   'Nice to meet you, Alice!',
    *   { conversationId: 'conv-123' }
@@ -518,7 +518,7 @@ export interface CortexMemoryModel {
    *
    * @example
    * ```typescript
-   * const all = await cortexMemory.getMemories({ limit: 100 });
+   * const all = await memoirMemory.getMemories({ limit: 100 });
    * ```
    */
   getMemories: (options?: { limit?: number }) => Promise<MemoryEntry[]>;
@@ -531,7 +531,7 @@ export interface CortexMemoryModel {
    *
    * @example
    * ```typescript
-   * await cortexMemory.clearMemories({ userId: 'user-123', confirm: true });
+   * await memoirMemory.clearMemories({ userId: 'user-123', confirm: true });
    * ```
    */
   clearMemories: (options?: ManualClearOptions) => Promise<number>;
@@ -541,7 +541,7 @@ export interface CortexMemoryModel {
    *
    * @returns Current configuration (read-only)
    */
-  getConfig: () => Readonly<CortexMemoryConfig>;
+  getConfig: () => Readonly<MemoirMemoryConfig>;
 }
 
 /**
@@ -609,7 +609,7 @@ function sanitizeLogArg(arg: unknown): string {
  * Create a default logger
  */
 export function createLogger(debug: boolean = false): Logger {
-  const prefix = "[Cortex Memory]";
+  const prefix = "[Memoir]";
 
   if (debug) {
     return {
@@ -667,7 +667,7 @@ export type {
   OrchestrationSummary,
   OrchestrationObserver,
   RecallSummary,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 
 /**
  * Observer for memory layer orchestration (Vercel provider alias)
@@ -675,6 +675,6 @@ export type {
  * This is an alias for OrchestrationObserver from the core SDK.
  * Maintained for backward compatibility with existing Vercel provider users.
  *
- * @deprecated Use OrchestrationObserver from @cortexmemory/sdk instead
+ * @deprecated Use OrchestrationObserver from @memoir/sdk instead
  */
-export type LayerObserver = import("@cortexmemory/sdk").OrchestrationObserver;
+export type LayerObserver = import("@memoir/sdk").OrchestrationObserver;

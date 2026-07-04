@@ -7,8 +7,8 @@
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { createCortexMemory, createCortexMemoryAsync } from "../../src/index";
-import { Cortex } from "@cortexmemory/sdk";
+import { createMemoirMemory, createMemoirMemoryAsync } from "../../src/index";
+import { Memoir } from "@memoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,
@@ -147,7 +147,7 @@ function createSimpleLLM() {
 describe("Belief Revision E2E", () => {
   let memorySpaceId: string;
   let userId: string;
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   beforeAll(() => {
     if (SKIP_E2E) {
@@ -168,13 +168,13 @@ describe("Belief Revision E2E", () => {
     memorySpaceId = createTestMemorySpaceId("e2e-belief");
     userId = createTestUserId();
 
-    // Initialize Cortex for direct verification
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    // Initialize Memoir for direct verification
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterEach(async () => {
-    if (cortex) {
-      cortex.close();
+    if (memoir) {
+      memoir.close();
     }
   });
 
@@ -188,7 +188,7 @@ describe("Belief Revision E2E", () => {
       it("should supersede old fact when user updates preference", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -229,7 +229,7 @@ describe("Belief Revision E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Verify initial fact was stored
-        const initialFacts = await cortex.facts.list({
+        const initialFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -268,12 +268,12 @@ describe("Belief Revision E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Step 3: Verify supersession
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -316,7 +316,7 @@ describe("Belief Revision E2E", () => {
       it("should preserve non-conflicting facts", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -360,7 +360,7 @@ describe("Belief Revision E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Verify both facts exist and are active
-        const facts = await cortex.facts.list({
+        const facts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -389,7 +389,7 @@ describe("Belief Revision E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -420,7 +420,7 @@ describe("Belief Revision E2E", () => {
 
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
-        const afterFirst = await cortex.facts.list({
+        const afterFirst = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -443,12 +443,12 @@ describe("Belief Revision E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Check final state
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -520,7 +520,7 @@ describe("Belief Revision E2E", () => {
       it("should handle multiple updates to the same fact type", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -562,12 +562,12 @@ describe("Belief Revision E2E", () => {
         }
 
         // Verify final state
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -619,7 +619,7 @@ describe("Belief Revision E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -669,7 +669,7 @@ describe("Belief Revision E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -733,8 +733,8 @@ describe("Belief Revision E2E", () => {
   (SKIP_E2E || !process.env.OPENAI_API_KEY ? describe.skip : describe)(
     "async factory",
     () => {
-      it("should work with createCortexMemoryAsync", async () => {
-        const factory = await createCortexMemoryAsync({
+      it("should work with createMemoirMemoryAsync", async () => {
+        const factory = await createMemoirMemoryAsync({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -766,7 +766,7 @@ describe("Belief Revision E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Verify stored
-        const memories = await cortex.memory.list({
+        const memories = await memoir.memory.list({
           memorySpaceId,
           limit: 10,
         });

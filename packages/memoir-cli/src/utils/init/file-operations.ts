@@ -1,0 +1,273 @@
+/**
+ * File operations for init wizard
+ *
+ * Handles copying templates and deploying Memoir backend functions.
+ */
+
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { getSDKPath } from "../shell.js";
+import pc from "picocolors";
+
+// ES module equivalents of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * Copy Memoir backend functions from SDK to user project
+ */
+export async function deployMemoirBackend(projectPath: string): Promise<void> {
+  // Look for SDK in the newly created project's node_modules
+  const sdkPath = getSDKPath(projectPath);
+
+  if (!sdkPath) {
+    // Debug: Check what's actually in node_modules
+    const nodeModulesPath = path.join(
+      projectPath,
+      "node_modules",
+      "@memoir",
+    );
+    const exists = fs.existsSync(nodeModulesPath);
+
+    throw new Error(
+      `Could not locate @memoir/sdk package. ` +
+        `Checked: ${path.join(projectPath, "node_modules", "@memoir", "sdk")} ` +
+        `(@memoir folder exists: ${exists})`,
+    );
+  }
+
+  const convexDevPath = path.join(sdkPath, "convex-dev");
+  const targetConvexPath = path.join(projectPath, "convex");
+
+  // Check if convex-dev exists in SDK
+  if (!fs.existsSync(convexDevPath)) {
+    throw new Error(
+      `Convex backend functions not found at ${convexDevPath}. ` +
+        "Please ensure you are using @memoir/sdk v0.8.1 or later.",
+    );
+  }
+
+  // Backup existing convex/ folder if it exists
+  try {
+    const backupPath = path.join(projectPath, `convex.backup.${Date.now()}`);
+    await fs.move(targetConvexPath, backupPath);
+    console.log(pc.yellow("   Existing convex/ folder backed up"));
+    console.log(pc.dim(`   Backed up to ${path.basename(backupPath)}`));
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  // Copy all files from convex-dev to convex
+  console.log(pc.dim("   Copying Memoir backend functions..."));
+  await fs.copy(convexDevPath, targetConvexPath, {
+    overwrite: true,
+    errorOnExist: false,
+  });
+
+  // List of critical files to verify
+  const criticalFiles = [
+    "schema.ts",
+    "conversations.ts",
+    "immutable.ts",
+    "mutable.ts",
+    "memories.ts",
+    "facts.ts",
+    "contexts.ts",
+    "memorySpaces.ts",
+    "users.ts",
+    "agents.ts",
+    "graphSync.ts",
+  ];
+
+  // Verify all critical files were copied
+  const missingFiles = criticalFiles.filter(
+    (file) => !fs.existsSync(path.join(targetConvexPath, file)),
+  );
+
+  if (missingFiles.length > 0) {
+    throw new Error(
+      `Failed to copy some backend functions: ${missingFiles.join(", ")}`,
+    );
+  }
+
+  console.log(pc.green(`   Copied ${criticalFiles.length} backend functions`));
+}
+
+/**
+ * Create or update convex.json configuration
+ */
+export async function createConvexJson(projectPath: string): Promise<void> {
+  const convexJsonPath = path.join(projectPath, "convex.json");
+
+  const convexConfig = {
+    functions: "convex/",
+  };
+
+  await fs.writeJson(convexJsonPath, convexConfig, { spaces: 2 });
+  console.log(pc.dim("   Created convex.json"));
+}
+
+/**
+ * Copy project template files
+ */
+export async function copyTemplate(
+  templateName: string,
+  targetPath: string,
+  projectName: string,
+  convexVersion?: string,
+): Promise<void> {
+  // When running from npm/npx, templates are relative to the package root
+  // Try multiple possible locations
+  const possiblePaths = [
+    path.join(__dirname, "../../../templates", templateName), // From dist/utils/init/
+    path.join(__dirname, "../../../../templates", templateName), // From dist/utils/init/subdir
+    path.join(
+      process.cwd(),
+      "node_modules",
+      "@memoir",
+      "cli",
+      "templates",
+      templateName,
+    ), // From installed package
+  ];
+
+  let templatePath: string | null = null;
+  for (const tryPath of possiblePaths) {
+    if (fs.existsSync(tryPath)) {
+      templatePath = tryPath;
+      break;
+    }
+  }
+
+  if (!templatePath) {
+    throw new Error(
+      `Template ${templateName} not found. Tried:\n` +
+        possiblePaths.map((p) => `  - ${p}`).join("\n"),
+    );
+  }
+
+  // Copy template files
+
+  try {
+    await fs.copy(templatePath, targetPath, {
+      overwrite: true,
+      errorOnExist: false,
+      filter: (src: string) => {
+        const relativeSrc = path.relative(templatePath!, src) || ".";
+        // Skip build artifacts that shouldn't be in templates
+        // Use path segment matching to avoid false positives like [...nextauth] matching ".next"
+        const segments = relativeSrc.split(path.sep);
+        const skip =
+          segments.some((seg) => seg === "node_modules") ||
+          segments.some((seg) => seg === ".next") ||
+          segments.some((seg) => seg === "dist") ||
+          relativeSrc === "package-lock.json" ||
+          relativeSrc === "pnpm-lock.yaml";
+        return !skip;
+      },
+    });
+  } catch (error) {
+    console.error(pc.red(`   fs.copy error: ${error}`));
+    throw new Error(`fs.copy failed: ${error}`);
+  }
+
+  // Verify key files were copied (template-specific validation)
+  const keyFilesByTemplate: Record<string, string[]> = {
+    basic: ["package.json", "src/index.ts", "tsconfig.json"],
+    "vercel-ai-quickstart": ["package.json", "tsconfig.json", "app/layout.tsx"],
+    "chat-sdk-quickstart": ["package.json", "tsconfig.json", "app/layout.tsx"],
+  };
+  const keyFiles = keyFilesByTemplate[templateName] || ["package.json"];
+  const missing = keyFiles.filter(
+    (f) => !fs.existsSync(path.join(targetPath, f)),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `Failed to copy template files: ${missing.join(", ")} not found`,
+    );
+  }
+
+  // Replace template variables in package.json
+  const packageJsonPath = path.join(targetPath, "package.json");
+  try {
+    const packageJsonContent = await fs.readFile(packageJsonPath, "utf-8");
+    const packageJson = JSON.parse(packageJsonContent);
+
+    // Replace project name
+    packageJson.name = projectName;
+
+    // Update Convex version if provided
+    if (convexVersion && packageJson.dependencies?.convex) {
+      packageJson.dependencies.convex = convexVersion;
+      console.log(
+        pc.dim(`   Using Convex ${convexVersion} (from SDK metadata)`),
+      );
+    }
+
+    // Write back with proper formatting
+    await fs.writeFile(
+      packageJsonPath,
+      JSON.stringify(packageJson, null, 2) + "\n",
+    );
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code !== "ENOENT") {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Create .gitignore if it doesn't exist
+ */
+export async function ensureGitignore(projectPath: string): Promise<void> {
+  const gitignorePath = path.join(projectPath, ".gitignore");
+
+  const gitignoreContent = `# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Convex
+.convex/
+`;
+
+  // Use atomic file operation to avoid race condition
+  try {
+    await fs.writeFile(gitignorePath, gitignoreContent, { flag: "wx" });
+    console.log(pc.dim("   Created .gitignore"));
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code !== "EEXIST") {
+      throw error;
+    }
+  }
+}

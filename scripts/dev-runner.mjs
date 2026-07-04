@@ -156,7 +156,7 @@ async function main() {
       console.error("   Add to .env.local:");
       console.error("   LOCAL_CONVEX_URL=http://127.0.0.1:3210");
       console.error(
-        "   LOCAL_CONVEX_DEPLOYMENT=anonymous:anonymous-cortex-sdk-local\n",
+        "   LOCAL_CONVEX_DEPLOYMENT=anonymous:anonymous-memoir-sdk-local\n",
       );
       process.exit(1);
     }
@@ -188,7 +188,7 @@ async function main() {
       console.error("\n  LOCAL (for development):");
       console.error("    LOCAL_CONVEX_URL=http://127.0.0.1:3210");
       console.error(
-        "    LOCAL_CONVEX_DEPLOYMENT=anonymous:anonymous-cortex-sdk-local",
+        "    LOCAL_CONVEX_DEPLOYMENT=anonymous:anonymous-memoir-sdk-local",
       );
       console.error("\n  CLOUD (for managed deployment):");
       console.error(

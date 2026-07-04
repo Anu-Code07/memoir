@@ -5,7 +5,7 @@
  * Split from memory.test.ts for parallel execution
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -14,7 +14,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Enrichment Operations", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -25,7 +25,7 @@ describe("Memory Enrichment Operations", () => {
   const TEST_USER_NAME = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -47,7 +47,7 @@ describe("Memory Enrichment Operations", () => {
     let testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -59,7 +59,7 @@ describe("Memory Enrichment Operations", () => {
 
       testConversationId = conv.conversationId;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Enrichment test message",
@@ -73,7 +73,7 @@ describe("Memory Enrichment Operations", () => {
     });
 
     it("returns vector only by default", async () => {
-      const result = await cortex.memory.get(TEST_MEMSPACE_ID, testMemoryId);
+      const result = await memoir.memory.get(TEST_MEMSPACE_ID, testMemoryId);
 
       expect(result).toBeDefined();
       expect(result).toHaveProperty("memoryId");
@@ -82,7 +82,7 @@ describe("Memory Enrichment Operations", () => {
     });
 
     it("enriches with ACID when includeConversation=true", async () => {
-      const result = (await cortex.memory.get(TEST_MEMSPACE_ID, testMemoryId, {
+      const result = (await memoir.memory.get(TEST_MEMSPACE_ID, testMemoryId, {
         includeConversation: true,
       })) as any;
 
@@ -100,14 +100,14 @@ describe("Memory Enrichment Operations", () => {
 
     it("handles missing conversation gracefully", async () => {
       // Create memory without conversation
-      const standaloneMemory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const standaloneMemory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Standalone memory",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
         metadata: { importance: 50, tags: [] },
       });
 
-      const result = await cortex.memory.get(
+      const result = await memoir.memory.get(
         TEST_MEMSPACE_ID,
         standaloneMemory.memoryId,
         {
@@ -122,7 +122,7 @@ describe("Memory Enrichment Operations", () => {
 
     it("returns null for non-existent memory", async () => {
       // Backend validation: existence check
-      const result = await cortex.memory.get(TEST_MEMSPACE_ID, "non-existent");
+      const result = await memoir.memory.get(TEST_MEMSPACE_ID, "non-existent");
 
       expect(result).toBeNull();
     });
@@ -136,7 +136,7 @@ describe("Memory Enrichment Operations", () => {
     let testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -149,7 +149,7 @@ describe("Memory Enrichment Operations", () => {
       testConversationId = conv.conversationId;
 
       // Create multiple memories
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "The password for admin is Secret123",
@@ -161,7 +161,7 @@ describe("Memory Enrichment Operations", () => {
         tags: ["password", "security"],
       });
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "User prefers dark mode",
@@ -175,7 +175,7 @@ describe("Memory Enrichment Operations", () => {
     });
 
     it("returns vector only by default", async () => {
-      const results = await cortex.memory.search(TEST_MEMSPACE_ID, "password");
+      const results = await memoir.memory.search(TEST_MEMSPACE_ID, "password");
 
       expect(results.length).toBeGreaterThan(0);
       expect(results[0]).toHaveProperty("memoryId");
@@ -183,7 +183,7 @@ describe("Memory Enrichment Operations", () => {
     });
 
     it("enriches all results when enrichConversation=true", async () => {
-      const results = await cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+      const results = await memoir.memory.search(TEST_MEMSPACE_ID, "password", {
         enrichConversation: true,
       });
 
@@ -198,14 +198,14 @@ describe("Memory Enrichment Operations", () => {
 
     it("handles mixed results (some with conv, some without)", async () => {
       // Add standalone memory
-      await cortex.vector.store(TEST_MEMSPACE_ID, {
+      await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Standalone password note",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
         metadata: { importance: 50, tags: ["password"] },
       });
 
-      const results = await cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+      const results = await memoir.memory.search(TEST_MEMSPACE_ID, "password", {
         enrichConversation: true,
       });
 
@@ -220,7 +220,7 @@ describe("Memory Enrichment Operations", () => {
     });
 
     it("preserves search relevance order after enrichment", async () => {
-      const results = await cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+      const results = await memoir.memory.search(TEST_MEMSPACE_ID, "password", {
         enrichConversation: true,
         limit: 10,
       });

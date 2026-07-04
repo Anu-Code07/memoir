@@ -27,10 +27,10 @@ description: Advanced patterns for using extracted facts
 When using the Vercel AI Provider, embeddings are **generated automatically** if you configure an `embeddingProvider`:
 
 ```typescript
-import { createCortexMemoryAsync } from '@cortex-platform/vercel-ai-provider';
+import { createMemoirMemoryAsync } from '@memoir-platform/vercel-ai-provider';
 import { openai } from '@ai-sdk/openai';
 
-const cortexMemory = await createCortexMemoryAsync({
+const memoirMemory = await createMemoirMemoryAsync({
   memorySpaceId: 'user-space',
   // Configure embedding provider - recall() gets embeddings automatically
   embeddingProvider: openai.embedding('text-embedding-3-small'),
@@ -48,9 +48,9 @@ const cortexMemory = await createCortexMemoryAsync({
 **v0.30.0+**: Configure `embedding` once at SDK initialization for batteries-included semantic search:
 
 ```typescript
-import { Cortex } from '@cortexmemory/sdk';
+import { Memoir } from '@memoir/sdk';
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   // Configure embedding provider - batteries included!
   embedding: {
@@ -64,14 +64,14 @@ const cortex = new Cortex({
 // 1. Generates an embedding for the query
 // 2. Uses semantic search for both memories AND facts
 // No manual embedding code needed!
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-space',
   query: "What are the user's preferences?",
   // Embedding is auto-generated from the query!
 });
 
 // remember() also auto-generates embeddings for facts
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-space',
   userMessage: "I prefer dark mode",
   agentResponse: "Got it!",
@@ -83,13 +83,13 @@ You can also use environment variables for zero-config setup:
 
 ```bash
 # Set these env vars
-export CORTEX_EMBEDDING=true
+export MEMOIR_EMBEDDING=true
 export OPENAI_API_KEY=sk-...
 ```
 
 ```typescript
 // SDK auto-configures embedding from env vars!
-const cortex = await Cortex.create({
+const memoir = await Memoir.create({
   convexUrl: process.env.CONVEX_URL!,
 });
 ```
@@ -100,7 +100,7 @@ const cortex = await Cortex.create({
 You can still pass embeddings manually for full control:
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-space',
   query: "What are the user's preferences?",
   // Override: provide your own embedding
@@ -117,7 +117,7 @@ Without embedding configuration, `recall()` still works but uses **keyword-based
 
 ```typescript
 // This works, but facts are searched by keywords only
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-space',
   query: "What colors does the user like?",
   // No embedding config - falls back to text search
@@ -141,7 +141,7 @@ const result = await cortex.memory.recall({
 
 ```typescript
 // With embedding - uses semantic search for facts (recommended)
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-space',
   query: "What are the user's preferences?",
   embedding: await embed("What are the user's preferences?"), // Enables semantic fact search
@@ -172,7 +172,7 @@ console.log(result.context);
 
 ```typescript
 // Get only high-confidence facts
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: 'user-space',
   query: 'user preferences',
   sources: {
@@ -193,7 +193,7 @@ const result = await cortex.memory.recall({
   <TabItem value="store" label="Store">
 
 ```typescript
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: 'user-space',
   userId: 'user-123',
   fact: 'User prefers TypeScript over JavaScript',
@@ -211,7 +211,7 @@ await cortex.facts.store({
   <TabItem value="search" label="Search">
 
 ```typescript
-const facts = await cortex.facts.search(
+const facts = await memoir.facts.search(
   'user-space',
   'language preferences',
   {
@@ -229,14 +229,14 @@ facts.forEach(f => console.log(`${f.fact} (${f.confidence}%)`));
 
 ```typescript
 // Get all preferences
-const prefs = await cortex.facts.list({
+const prefs = await memoir.facts.list({
   memorySpaceId: 'user-space',
   factType: 'preference',
   isSuperseded: false,  // Current only
 });
 
 // Get all identity facts
-const identity = await cortex.facts.list({
+const identity = await memoir.facts.list({
   memorySpaceId: 'user-space',
   factType: 'identity',
 });
@@ -247,7 +247,7 @@ const identity = await cortex.facts.list({
 
 ```typescript
 // Update confidence after validation
-await cortex.facts.update('user-space', factId, {
+await memoir.facts.update('user-space', factId, {
   confidence: 95,  // Increased confidence
   tags: [...existingTags, 'verified'],
 });
@@ -279,7 +279,7 @@ await cortex.facts.update('user-space', factId, {
 
 ```typescript
 // Get complete version history
-const history = await cortex.facts.getHistory('user-space', factId);
+const history = await memoir.facts.getHistory('user-space', factId);
 
 history.forEach(version => {
   console.log(`v${version.version}: ${version.fact}`);
@@ -288,7 +288,7 @@ history.forEach(version => {
 });
 
 // Get supersession chain (evolution of belief)
-const chain = await cortex.facts.getSupersessionChain(factId);
+const chain = await memoir.facts.getSupersessionChain(factId);
 // Returns: [oldest] -> [older] -> [current]
 
 chain.forEach((entry, i) => {

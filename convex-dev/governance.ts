@@ -1,7 +1,7 @@
 /**
- * Cortex - Governance Policies Backend
+ * Memoir - Governance Policies Backend
  *
- * Data retention, purging, and compliance rules across all Cortex layers.
+ * Data retention, purging, and compliance rules across all Memoir layers.
  */
 
 import { mutation, query } from "./_generated/server";

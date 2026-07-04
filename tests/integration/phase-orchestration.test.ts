@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "../helpers/isolation";
 import type {
@@ -23,7 +23,7 @@ const ctx = createTestRunContext();
 const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
 describe("Phase-Aware Orchestration Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _client: ConvexClient;
 
   // Use ctx-scoped IDs for parallel execution isolation
@@ -33,7 +33,7 @@ describe("Phase-Aware Orchestration Integration", () => {
   const TEST_USER_NAME = "Phase Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     _client = new ConvexClient(CONVEX_URL);
   });
 
@@ -50,7 +50,7 @@ describe("Phase-Aware Orchestration Integration", () => {
 
     beforeAll(async () => {
       // Create a conversation for testing
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -62,7 +62,7 @@ describe("Phase-Aware Orchestration Integration", () => {
       testConversationId = conv.conversationId;
 
       // Add some memories for recall to find
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "My favorite color is blue",
@@ -130,14 +130,14 @@ describe("Phase-Aware Orchestration Integration", () => {
       };
 
       // Step 1: Recall context
-      const recallResult = await cortex.memory.recall({
+      const recallResult = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "favorite color",
         observer: recallObserver,
       });
 
       // Step 2: Remember new conversation
-      const rememberResult = await cortex.memory.remember({
+      const rememberResult = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "What is my favorite color?",
@@ -196,7 +196,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "favorite color",
         observer,
@@ -242,7 +242,7 @@ describe("Phase-Aware Orchestration Integration", () => {
 
       const startTime = Date.now();
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "favorite color",
         observer,
@@ -283,7 +283,7 @@ describe("Phase-Aware Orchestration Integration", () => {
     let testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -297,7 +297,7 @@ describe("Phase-Aware Orchestration Integration", () => {
 
     it("RecallSummary contains accurate context counts", async () => {
       // First, add some memories to ensure we have data
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "I love programming in TypeScript",
@@ -315,7 +315,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "TypeScript programming",
         observer,
@@ -347,7 +347,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Remember this for created IDs test",
@@ -387,7 +387,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test data in events",
         observer,
@@ -415,7 +415,7 @@ describe("Phase-Aware Orchestration Integration", () => {
     let testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -436,7 +436,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test layer coverage",
         observer,
@@ -457,7 +457,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test layer coverage for remember",
@@ -485,7 +485,7 @@ describe("Phase-Aware Orchestration Integration", () => {
         },
       };
 
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test graph layer",
         observer,

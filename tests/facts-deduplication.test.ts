@@ -10,7 +10,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import { FactDeduplicationService } from "../src/facts/deduplication";
@@ -19,7 +19,7 @@ describe("Facts Deduplication", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("facts-dedup");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -30,7 +30,7 @@ describe("Facts Deduplication", () => {
   beforeAll(async () => {
     console.log(`\n🧪 Facts Deduplication Tests - Run ID: ${ctx.runId}\n`);
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -113,7 +113,7 @@ describe("Facts Deduplication", () => {
     const EXACT_MEMSPACE_ID = ctx.memorySpaceId("exact");
 
     it("stores first fact without finding duplicate", async () => {
-      const result = await cortex.facts.storeWithDedup(
+      const result = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: EXACT_MEMSPACE_ID,
           fact: "User prefers dark mode",
@@ -134,7 +134,7 @@ describe("Facts Deduplication", () => {
 
     it("detects exact duplicate and returns existing fact", async () => {
       // Store initial fact
-      const firstResult = await cortex.facts.storeWithDedup(
+      const firstResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: EXACT_MEMSPACE_ID,
           fact: "User's name is Alice",
@@ -149,7 +149,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Try to store duplicate with same text
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: EXACT_MEMSPACE_ID,
           fact: "User's name is Alice",
@@ -174,7 +174,7 @@ describe("Facts Deduplication", () => {
       const uniqueFact = `User works at TechCorp-${ctx.runId}`;
 
       // Store initial fact
-      const firstResult = await cortex.facts.storeWithDedup(
+      const firstResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: isolatedMemSpace,
           fact: uniqueFact,
@@ -191,7 +191,7 @@ describe("Facts Deduplication", () => {
       expect(firstResult.deduplication?.matchedExisting).toBe(false);
 
       // Store duplicate with higher confidence
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: isolatedMemSpace,
           fact: uniqueFact,
@@ -210,7 +210,7 @@ describe("Facts Deduplication", () => {
       expect(secondResult.wasUpdated).toBe(true);
 
       // After update, verify only 1 fact exists with the higher confidence
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: isolatedMemSpace,
         subject: "user-update-test",
       });
@@ -221,7 +221,7 @@ describe("Facts Deduplication", () => {
 
     it("does not match different facts with exact strategy", async () => {
       // Store initial fact
-      await cortex.facts.storeWithDedup(
+      await memoir.facts.storeWithDedup(
         {
           memorySpaceId: EXACT_MEMSPACE_ID,
           fact: "User likes pizza",
@@ -236,7 +236,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Store different fact
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: EXACT_MEMSPACE_ID,
           fact: "User loves pizza", // Different text
@@ -260,7 +260,7 @@ describe("Facts Deduplication", () => {
 
     it("detects structural duplicate by subject+predicate+object", async () => {
       // Store initial fact
-      const firstResult = await cortex.facts.storeWithDedup(
+      const firstResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: STRUCT_MEMSPACE_ID,
           fact: "Alice is friends with Bob",
@@ -277,7 +277,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Store fact with same structure but different text
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: STRUCT_MEMSPACE_ID,
           fact: "Alice and Bob are friends", // Different text
@@ -299,7 +299,7 @@ describe("Facts Deduplication", () => {
 
     it("does not match facts with different structure", async () => {
       // Store initial fact
-      await cortex.facts.storeWithDedup(
+      await memoir.facts.storeWithDedup(
         {
           memorySpaceId: STRUCT_MEMSPACE_ID,
           fact: "User prefers morning meetings",
@@ -316,7 +316,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Store fact with different structure
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: STRUCT_MEMSPACE_ID,
           fact: "User prefers evening meetings",
@@ -341,7 +341,7 @@ describe("Facts Deduplication", () => {
 
     it("stores duplicate facts when deduplication is disabled", async () => {
       // Store first fact
-      const firstResult = await cortex.facts.storeWithDedup(
+      const firstResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: NO_DEDUP_MEMSPACE_ID,
           fact: "Duplicate fact test",
@@ -356,7 +356,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Store duplicate with dedup disabled
-      const secondResult = await cortex.facts.storeWithDedup(
+      const secondResult = await memoir.facts.storeWithDedup(
         {
           memorySpaceId: NO_DEDUP_MEMSPACE_ID,
           fact: "Duplicate fact test",
@@ -383,7 +383,7 @@ describe("Facts Deduplication", () => {
       const factText = "User's favorite programming language is TypeScript";
 
       // Simulate session 1: Store fact
-      await cortex.facts.storeWithDedup(
+      await memoir.facts.storeWithDedup(
         {
           memorySpaceId: CROSS_SESSION_MEMSPACE_ID,
           fact: factText,
@@ -400,7 +400,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Simulate session 2: Try to store same fact
-      await cortex.facts.storeWithDedup(
+      await memoir.facts.storeWithDedup(
         {
           memorySpaceId: CROSS_SESSION_MEMSPACE_ID,
           fact: factText,
@@ -417,7 +417,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Simulate session 3: Try to store same fact again
-      await cortex.facts.storeWithDedup(
+      await memoir.facts.storeWithDedup(
         {
           memorySpaceId: CROSS_SESSION_MEMSPACE_ID,
           fact: factText,
@@ -434,7 +434,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Count facts - should only be 1
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: CROSS_SESSION_MEMSPACE_ID,
         subject: "user-lang",
       });
@@ -459,7 +459,7 @@ describe("Facts Deduplication", () => {
       };
 
       // Store in space A
-      const resultA = await cortex.facts.storeWithDedup(
+      const resultA = await memoir.facts.storeWithDedup(
         {
           ...sharedFact,
           memorySpaceId: SPACE_A,
@@ -470,7 +470,7 @@ describe("Facts Deduplication", () => {
       );
 
       // Store in space B
-      const resultB = await cortex.facts.storeWithDedup(
+      const resultB = await memoir.facts.storeWithDedup(
         {
           ...sharedFact,
           memorySpaceId: SPACE_B,
@@ -492,7 +492,7 @@ describe("Memory API Deduplication Integration", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("memory-dedup");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -504,21 +504,21 @@ describe("Memory API Deduplication Integration", () => {
   beforeAll(async () => {
     console.log(`\n🧪 Memory API Deduplication Tests - Run ID: ${ctx.runId}\n`);
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
     // Register memory space, user, and agent for tests
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
     });
 
-    await cortex.users.getOrCreate(TEST_USER_ID, {
+    await memoir.users.getOrCreate(TEST_USER_ID, {
       displayName: "Test User",
     });
 
-    await cortex.agents.register({
+    await memoir.agents.register({
       id: TEST_AGENT_ID,
       name: "Test Agent",
     });
@@ -539,7 +539,7 @@ describe("Memory API Deduplication Integration", () => {
       // we must explicitly disable it to test the deduplication fallback path.
 
       // First remember call - extracts facts
-      await cortex.memory.remember(
+      await memoir.memory.remember(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: ctx.conversationId("conv1"),
@@ -563,7 +563,7 @@ describe("Memory API Deduplication Integration", () => {
       ); // Disable to test deduplication path
 
       // Second remember call - same fact should be deduplicated
-      await cortex.memory.remember(
+      await memoir.memory.remember(
         {
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: ctx.conversationId("conv2"),
@@ -587,7 +587,7 @@ describe("Memory API Deduplication Integration", () => {
       ); // Disable to test deduplication path
 
       // Count facts for this user - should be 1 due to structural dedup
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: TEST_USER_ID,
       });
@@ -600,13 +600,13 @@ describe("Memory API Deduplication Integration", () => {
     it("allows disabling deduplication with factDeduplication: false", async () => {
       const noDedup = ctx.memorySpaceId("nodedup-mem");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: noDedup,
         type: "personal",
       });
 
       // First remember call
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: noDedup,
         conversationId: ctx.conversationId("conv-nodedup-1"),
         userMessage: "I love coffee",
@@ -628,7 +628,7 @@ describe("Memory API Deduplication Integration", () => {
       });
 
       // Second remember call - should create duplicate
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: noDedup,
         conversationId: ctx.conversationId("conv-nodedup-2"),
         userMessage: "I love coffee so much",
@@ -650,7 +650,7 @@ describe("Memory API Deduplication Integration", () => {
       });
 
       // Count facts - should be 2 since dedup is disabled
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: noDedup,
         predicate: "loves",
       });
@@ -663,7 +663,7 @@ describe("Memory API Deduplication Integration", () => {
     it("handles user stating name multiple times across conversations", async () => {
       const multiConv = ctx.memorySpaceId("multi-conv");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: multiConv,
         type: "personal",
       });
@@ -681,7 +681,7 @@ describe("Memory API Deduplication Integration", () => {
 
       // Simulate multiple conversations where user states name
       for (let i = 0; i < 5; i++) {
-        await cortex.memory.remember({
+        await memoir.memory.remember({
           memorySpaceId: multiConv,
           conversationId: ctx.conversationId(`bob-conv-${i}`),
           userMessage: `Hi, my name is Bob`,
@@ -694,7 +694,7 @@ describe("Memory API Deduplication Integration", () => {
       }
 
       // Should only have 1 fact
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: multiConv,
         subject: "user-bob",
       });

@@ -1,4 +1,4 @@
-# Code Owners for Project Cortex
+# Code Owners for Project Memoir
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Default owner for everything
@@ -14,11 +14,11 @@ SECURITY.md @SaintNick1214
 # Package publishing and versioning
 package.json @SaintNick1214
 packages/*/package.json @SaintNick1214
-cortex-sdk-python/pyproject.toml @SaintNick1214
+memoir-sdk-python/pyproject.toml @SaintNick1214
 
 # Core SDK modules
 src/ @SaintNick1214
-cortex-sdk-python/cortex/ @SaintNick1214
+memoir-sdk-python/memoir/ @SaintNick1214
 
 # Convex backend
 convex-dev/ @SaintNick1214

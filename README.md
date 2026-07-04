@@ -1,33 +1,33 @@
-# Cortex
+# Memoir
 
 > **Plug'n'play persistent memory for AI agents, powered by Convex**
 
 [License: FSL-1.1-Apache-2.0](https://fsl.software/)
 [TypeScript](https://www.typescriptlang.org/)
 [Convex](https://convex.dev)
-[Status](https://github.com/SaintNick1214/cortex/discussions)
+[Status](https://github.com/Anu-Code07/memoir/discussions)
 
 ### 🔒 Security Scanning
 
-[CodeQL](https://github.com/SaintNick1214/Project-Cortex/security/code-scanning)
-[Semgrep](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/security.yml)
-[Trivy](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/security.yml)
-[Gitleaks](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/security.yml)
-[Bandit](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/security.yml)
-[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/SaintNick1214/Project-Cortex)
+[CodeQL](https://github.com/Anu-Code07/memoir/security/code-scanning)
+[Semgrep](https://github.com/Anu-Code07/memoir/actions/workflows/security.yml)
+[Trivy](https://github.com/Anu-Code07/memoir/actions/workflows/security.yml)
+[Gitleaks](https://github.com/Anu-Code07/memoir/actions/workflows/security.yml)
+[Bandit](https://github.com/Anu-Code07/memoir/actions/workflows/security.yml)
+[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/Anu-Code07/memoir)
 
 ### ✅ Build & Tests
 
-[TypeScript SDK](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/pr-checks.yml)
-[Python SDK](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/pr-checks.yml)
-[Vercel AI Provider](https://github.com/SaintNick1214/Project-Cortex/actions/workflows/pr-checks.yml)
-[Socket.dev](https://socket.dev/npm/package/@cortexmemory/sdk)
+[TypeScript SDK](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
+[Python SDK](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
+[Vercel AI Provider](https://github.com/Anu-Code07/memoir/actions/workflows/pr-checks.yml)
+[Socket.dev](https://socket.dev/npm/package/@memoir/sdk)
 
-**🌐 [cortexmemory.dev](https://cortexmemory.dev) | 📚 [docs.cortexmemory.dev**](https://docs.cortexmemory.dev)
+**🌐 [github.com/Anu-Code07/memoir](https://github.com/Anu-Code07/memoir) | 📚 [github.com/Anu-Code07/memoir/tree/main/Documentation**](https://github.com/Anu-Code07/memoir/tree/main/Documentation)
 
 ## 🚀 Status: Production Ready
 
-**Cortex v0.27.x is production-ready** with comprehensive features and battle-tested stability.
+**Memoir v0.27.x is production-ready** with comprehensive features and battle-tested stability.
 
 **What you get:**
 
@@ -42,22 +42,22 @@
 
 **Want to follow along?**
 
-- 🌐 [cortexmemory.dev](https://cortexmemory.dev) - Official website and project information
-- 📚 [docs.cortexmemory.dev](https://docs.cortexmemory.dev) - Complete documentation and guides
-- 💬 [GitHub Discussions](https://github.com/SaintNick1214/cortex/discussions) - Share ideas, ask questions, propose features
-- 🐛 [GitHub Issues](https://github.com/SaintNick1214/cortex/issues) - Report bugs, request features, track progress
+- 🌐 [github.com/Anu-Code07/memoir](https://github.com/Anu-Code07/memoir) - Official website and project information
+- 📚 [github.com/Anu-Code07/memoir/tree/main/Documentation](https://github.com/Anu-Code07/memoir/tree/main/Documentation) - Complete documentation and guides
+- 💬 [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions) - Share ideas, ask questions, propose features
+- 🐛 [GitHub Issues](https://github.com/Anu-Code07/memoir/issues) - Report bugs, request features, track progress
 
 ---
 
 ## 🎯 The Vision
 
-Cortex brings enterprise-grade persistent memory to any AI agent system. Built on Convex, it provides flexible, scalable memory that works with any LLM or framework.
+Memoir brings enterprise-grade persistent memory to any AI agent system. Built on Convex, it provides flexible, scalable memory that works with any LLM or framework.
 
 **The Problem We're Solving:**
 
 Traditional memory solutions force you to choose between vector databases (Pinecone, Weaviate) or simple storage (Redis), manage complex infrastructure, write custom multi-agent coordination logic, and handle user profiles separately. It's fragmented, complex, and time-consuming.
 
-**The Cortex Solution:**
+**The Memoir Solution:**
 
 A unified memory system that gives you everything in one package - production-ready memory that scales automatically, works with any LLM framework, supports any embedding provider, and requires zero infrastructure management.
 
@@ -69,33 +69,33 @@ Get started in under 5 minutes:
 
 ```bash
 # Install CLI
-npm install -g @cortexmemory/cli
+npm install -g @memoir/cli
 
 # Create project
-cortex init my-agent
+memoir init my-agent
 
 # Start building
 cd my-agent
-cortex start
+memoir start
 ```
 
 **What gets set up:**
 
-- ✅ Cortex SDK with TypeScript support
+- ✅ Memoir SDK with TypeScript support
 - ✅ Convex backend functions (deployed automatically)
 - ✅ Environment configuration (.env.local)
 - ✅ Example code to get you started
 - ✅ Optional graph database integration
-- ✅ Deployment saved to `~/.cortexrc` for CLI management
+- ✅ Deployment saved to `~/.memoirrc` for CLI management
 
 ### 🎬 Try the Interactive Quickstart
 
-**The fastest way to see Cortex in action** - complete working demo:
+**The fastest way to see Memoir in action** - complete working demo:
 
 ```bash
 # Option 1: Via CLI
-cortex init demo --template vercel-ai-quickstart
-cd demo && cortex start
+memoir init demo --template vercel-ai-quickstart
+cd demo && memoir start
 # Open http://localhost:3000
 
 # Option 2: From monorepo
@@ -114,14 +114,14 @@ npm install && npm run dev
 ### Your First Memory
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // Store a memory
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   conversationId: "conv-1",
   userMessage: "I prefer dark mode",
@@ -131,7 +131,7 @@ await cortex.memory.remember({
 });
 
 // Search your memories
-const results = await cortex.memory.search(
+const results = await memoir.memory.search(
   "user-123-personal",
   "what are the user's preferences?",
 );
@@ -145,7 +145,7 @@ const results = await cortex.memory.search(
 
 ## ✨ Features
 
-Cortex provides a complete memory system for AI agents:
+Memoir provides a complete memory system for AI agents:
 
 - 🧠 **Flexible Memory** - Remember anything without hardcoded topics or schemas ✅
 - 🔒 **Memory Space Isolation** - Flexible boundaries (per user, team, or project) ✅
@@ -248,7 +248,7 @@ See [What's New](/whats-new) for complete release history.
 
 ## 🏗️ Architecture Overview
 
-Cortex is designed with two deployment modes:
+Memoir is designed with two deployment modes:
 
 ### Direct Mode (Open Source)
 
@@ -260,7 +260,7 @@ Cortex is designed with two deployment modes:
                      │
                      ▼
 ┌─────────────────────────────────────────────────────┐
-│            Cortex SDK (Open Source)                 │
+│            Memoir SDK (Open Source)                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐  │
 │  │    Memory    │  │   Context    │  │   User    │  │
 │  │  Operations  │  │    Chains    │  │ Profiles  │  │
@@ -286,12 +286,12 @@ Cortex is designed with two deployment modes:
                      │
                      ▼
 ┌─────────────────────────────────────────────────────┐
-│            Cortex SDK (same code!)                  │
+│            Memoir SDK (same code!)                  │
 └────────────────────┬────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────┐
-│               Cortex Cloud API                      │
+│               Memoir Cloud API                      │
 │  • Analytics & Insights  • Team Management          │
 │  • Cost Optimization     • Advanced Features        │
 │  • Migration Tools       • Priority Support         │
@@ -327,10 +327,10 @@ Cortex is designed with two deployment modes:
 - **Personal Assistants** - Long-term memory of user preferences and habits
 - **Knowledge Management** - Organizational memory across teams
 
-## 📊 How Cortex Compares
+## 📊 How Memoir Compares
 
 
-| Feature           | Cortex | Pinecone | Weaviate | Redis |
+| Feature           | Memoir | Pinecone | Weaviate | Redis |
 | ----------------- | ------ | -------- | -------- | ----- |
 | Vector Search     | ✅      | ✅        | ✅        | ❌     |
 | ACID Transactions | ✅      | ❌        | ❌        | ❌     |
@@ -350,34 +350,34 @@ Cortex is designed with two deployment modes:
 
 ## 📖 Documentation
 
-**📚 [docs.cortexmemory.dev**](https://docs.cortexmemory.dev) - Complete documentation, guides, and API reference
+**📚 [github.com/Anu-Code07/memoir/tree/main/Documentation**](https://github.com/Anu-Code07/memoir/tree/main/Documentation) - Complete documentation, guides, and API reference
 
 ### Getting Started
 
-- [Installation Guide](https://docs.cortexmemory.dev/getting-started/installation) - Multiple installation methods
-- [Five-Minute Quickstart](https://docs.cortexmemory.dev/getting-started/five-minute-quickstart) - Build your first agent
-- [Core Concepts](https://docs.cortexmemory.dev/getting-started/core-concepts) - Understand the fundamentals
-- [Configuration](https://docs.cortexmemory.dev/getting-started/configuration) - Customize Cortex
+- [Installation Guide](https://github.com/Anu-Code07/memoir/tree/main/Documentation/getting-started/installation) - Multiple installation methods
+- [Five-Minute Quickstart](https://github.com/Anu-Code07/memoir/tree/main/Documentation/getting-started/five-minute-quickstart) - Build your first agent
+- [Core Concepts](https://github.com/Anu-Code07/memoir/tree/main/Documentation/getting-started/core-concepts) - Understand the fundamentals
+- [Configuration](https://github.com/Anu-Code07/memoir/tree/main/Documentation/getting-started/configuration) - Customize Memoir
 
 ### Reference
 
-- [API Reference](https://docs.cortexmemory.dev/api-reference/overview) - Full API documentation
+- [API Reference](https://github.com/Anu-Code07/memoir/tree/main/Documentation/api-reference/overview) - Full API documentation
 - [CLI Reference](/tools/cli-reference) - Complete command documentation
-- [System Architecture](https://docs.cortexmemory.dev/architecture/system-overview) - How it works
-- [Local Documentation](https://github.com/SaintNick1214/Project-Cortex/tree/main/Documentation) - Repository documentation
+- [System Architecture](https://github.com/Anu-Code07/memoir/tree/main/Documentation/architecture/system-overview) - How it works
+- [Local Documentation](https://github.com/Anu-Code07/memoir/tree/main/Documentation) - Repository documentation
 
 ## 🤝 Get Involved
 
-We're building Cortex in public and would love your input!
+We're building Memoir in public and would love your input!
 
 ### 💬 Join the Conversation
 
-- **[GitHub Discussions](https://github.com/SaintNick1214/cortex/discussions)** - Best for:
+- **[GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)** - Best for:
   - 💡 Sharing feature ideas and use cases
   - 🤔 Asking questions about architecture decisions
   - 📣 Providing feedback on the API design
   - 🎯 Discussing roadmap priorities
-- **[GitHub Issues](https://github.com/SaintNick1214/cortex/issues)** - Best for:
+- **[GitHub Issues](https://github.com/Anu-Code07/memoir/issues)** - Best for:
   - 🐛 Reporting bugs
   - ✨ Requesting specific features
   - 📝 Tracking development progress
@@ -385,9 +385,9 @@ We're building Cortex in public and would love your input!
 
 ### 🛠️ Ways to Contribute
 
-1. **Share Your Use Case** - Tell us how you'd use Cortex in your AI agent system
+1. **Share Your Use Case** - Tell us how you'd use Memoir in your AI agent system
 2. **Review the Architecture** - Check our docs and provide feedback on the design
-3. **Propose Features** - What would make Cortex perfect for your needs?
+3. **Propose Features** - What would make Memoir perfect for your needs?
 4. **Test Builds** - Try out releases and report issues
 5. **Improve Documentation** - Help us make the docs clearer and more comprehensive
 6. **Spread the Word** - Star the repo, share with others building AI agents
@@ -418,14 +418,14 @@ See [CONTRIBUTING.md](/project/contributing) for detailed contribution guideline
 
 **Follow our progress:**
 
-- Check [Project Boards](https://github.com/SaintNick1214/cortex/projects) for current work
-- Read [Development Updates](https://github.com/SaintNick1214/cortex/discussions/categories/announcements) for milestone announcements
+- Check [Project Boards](https://github.com/Anu-Code07/memoir/projects) for current work
+- Read [Development Updates](https://github.com/Anu-Code07/memoir/discussions/categories/announcements) for milestone announcements
 
 ## 🔒 Security & Privacy
 
 - **Data Isolation**: Each agent's memories are completely isolated
 - **Your Infrastructure**: Deploy to your own Convex instance
-- **No External Calls**: Cortex never sends data outside your Convex deployment
+- **No External Calls**: Memoir never sends data outside your Convex deployment
 - **Flexible Access Control**: Implement your own auth layer on top
 - **Open Source Core**: Audit the code yourself - full transparency
 
@@ -446,51 +446,51 @@ Socket.dev may flag "network access" in this package. This is **expected and saf
 - The SDK requires network access to communicate with Convex (cloud database)
 - All network calls go to `*.convex.cloud` endpoints only
 - This is documented, audited, and necessary for core functionality
-- See `[.socket.dev.yml](https://github.com/SaintNick1214/Project-Cortex/blob/main/.socket.dev.yml)` for our security policy
+- See `[.socket.dev.yml](https://github.com/Anu-Code07/memoir/blob/main/.socket.dev.yml)` for our security policy
 
 **Report Security Issues:**
 
-- 🔒 Email: [security@cortexmemory.dev](mailto:security@cortexmemory.dev)
-- 🔐 See [SECURITY.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/SECURITY.md) for our security policy
+- 🔒 Email: [security@github.com/Anu-Code07/memoir](mailto:security@github.com/Anu-Code07/memoir)
+- 🔐 See [SECURITY.md](https://github.com/Anu-Code07/memoir/blob/main/SECURITY.md) for our security policy
 
 ## 📦 Publishing Releases
 
-Cortex SDK uses **dual release workflows**:
+Memoir SDK uses **dual release workflows**:
 
 **🤖 Automated** (Production - recommended):
 
 - Bump version in `package.json` → Push to `main` → GitHub Action publishes automatically
-- Full details: [RELEASE-GUIDE.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/RELEASE-GUIDE.md)
+- Full details: [RELEASE-GUIDE.md](https://github.com/Anu-Code07/memoir/blob/main/RELEASE-GUIDE.md)
 
 **💻 Manual** (Beta/hotfix - full control):
 
 - Run `npm run release` for interactive publishing
-- See: [scripts/release.ps1](https://github.com/SaintNick1214/Project-Cortex/blob/main/scripts/release.ps1)
+- See: [scripts/release.ps1](https://github.com/Anu-Code07/memoir/blob/main/scripts/release.ps1)
 
-**Setup**: [.github/SETUP-AUTOMATED-RELEASES.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/.github/SETUP-AUTOMATED-RELEASES.md)
+**Setup**: [.github/SETUP-AUTOMATED-RELEASES.md](https://github.com/Anu-Code07/memoir/blob/main/.github/SETUP-AUTOMATED-RELEASES.md)
 
 ## 📄 License
 
 **Functional Source License (FSL-1.1-Apache-2.0)**
 
-Cortex uses the same license as Convex - the Functional Source License with Apache 2.0 future license.
+Memoir uses the same license as Convex - the Functional Source License with Apache 2.0 future license.
 
 **Permitted Uses:**
 
 - Internal use and access within your organization
 - Non-commercial education and research
 - Professional services provided to licensees
-- Building applications that use Cortex as a dependency
+- Building applications that use Memoir as a dependency
 
 **Restrictions:**
-You may NOT use Cortex to create a competing commercial product or service that offers the same or substantially similar functionality.
+You may NOT use Memoir to create a competing commercial product or service that offers the same or substantially similar functionality.
 
 **Future Apache 2.0:**
 Each version automatically becomes Apache 2.0 licensed two years after release.
 
-See [LICENSE.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/LICENSE.md) for full details.
+See [LICENSE.md](https://github.com/Anu-Code07/memoir/blob/main/LICENSE.md) for full details.
 
-**Cortex Cloud**: Commercial service (future)
+**Memoir Cloud**: Commercial service (future)
 
 - Optional managed features and analytics
 - Free tier planned
@@ -498,17 +498,17 @@ See [LICENSE.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/LICEN
 
 ## 🙏 Acknowledgments
 
-Cortex is built on the shoulders of giants:
+Memoir is built on the shoulders of giants:
 
-- [Convex](https://convex.dev) - The reactive backend platform powering Cortex
+- [Convex](https://convex.dev) - The reactive backend platform powering Memoir
 - [Project Constellation](https://github.com/SaintNick1214/constellation) - The original inspiration for this system
 - The open source AI community - For pushing the boundaries of what's possible
 
 ## 🎯 Origin Story
 
-Cortex was born out of building [Project Constellation](https://github.com/SaintNick1214/constellation), an enterprise multi-agent AI system for Microsoft Teams. While building Constellation, we realized the memory system we needed didn't exist - so we're extracting and open-sourcing it as Cortex.
+Memoir was born out of building [Project Constellation](https://github.com/SaintNick1214/constellation), an enterprise multi-agent AI system for Microsoft Teams. While building Constellation, we realized the memory system we needed didn't exist - so we're extracting and open-sourcing it as Memoir.
 
-**What makes Cortex different:**
+**What makes Memoir different:**
 
 - Designed for real-world production use (not a prototype)
 - Battle-tested patterns from building multi-agent systems
@@ -517,17 +517,17 @@ Cortex was born out of building [Project Constellation](https://github.com/Saint
 
 ## 📮 Contact & Support
 
-- 🌐 Website: [cortexmemory.dev](https://cortexmemory.dev)
-- 📚 Documentation: [docs.cortexmemory.dev](https://docs.cortexmemory.dev)
-- 📧 Email: [support@cortexmemory.dev](mailto:support@cortexmemory.dev)
-- 💬 Discussions: [GitHub Discussions](https://github.com/SaintNick1214/cortex/discussions)
-- 🐛 Issues: [GitHub Issues](https://github.com/SaintNick1214/cortex/issues)
-- 🐦 Twitter: [@cortexmemory](https://twitter.com/cortexmemory) (coming soon)
+- 🌐 Website: [github.com/Anu-Code07/memoir](https://github.com/Anu-Code07/memoir)
+- 📚 Documentation: [github.com/Anu-Code07/memoir/tree/main/Documentation](https://github.com/Anu-Code07/memoir/tree/main/Documentation)
+- 📧 Email: [support@memoir.dev](mailto:support@memoir.dev)
+- 💬 Discussions: [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/Anu-Code07/memoir/issues)
+- 🐦 Twitter: [@memoir](https://twitter.com/memoirdev) (coming soon)
 
 ---
 
 **⭐ Star this repo if you're building AI agents with persistent memory ⭐**
 
-Built with ❤️ for the AI agent community by [Nicholas Geil](https://github.com/SaintNick1214) / [Saint Nick LLC](https://saintnick.ai)
+Built with ❤️ for the AI agent community by [Nicholas Geil](https://github.com/SaintNick1214) / [Anu-Code07](https://saintnick.ai)
 
-*Cortex is production-ready. Join [Discussions](https://github.com/SaintNick1214/cortex/discussions) to share your use case and help shape the future of AI agent memory.*
+*Memoir is production-ready. Join [Discussions](https://github.com/Anu-Code07/memoir/discussions) to share your use case and help shape the future of AI agent memory.*

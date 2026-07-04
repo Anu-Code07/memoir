@@ -8,7 +8,7 @@
  * - deleteMany with facts cascade
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api as _api } from "../convex-dev/_generated/api";
 import { createTestRunContext } from "./helpers/isolation";
@@ -17,7 +17,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Lifecycle Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   // Use ctx-scoped IDs for parallel execution isolation
@@ -26,7 +26,7 @@ describe("Memory Lifecycle Integration", () => {
   const TEST_AGENT_ID = ctx.agentId("lifecycle");
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
   });
 
@@ -41,7 +41,7 @@ describe("Memory Lifecycle Integration", () => {
   describe("remember → update → delete lifecycle", () => {
     it("completes full lifecycle with fact extraction", async () => {
       // Step 1: Create conversation for remember
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -61,7 +61,7 @@ describe("Memory Lifecycle Integration", () => {
         },
       ];
 
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "My favorite color is blue",
@@ -78,14 +78,14 @@ describe("Memory Lifecycle Integration", () => {
       const originalFactId = remembered.facts[0].factId;
 
       // Verify memory is accessible
-      const afterRemember = await cortex.memory.get(
+      const afterRemember = await memoir.memory.get(
         TEST_MEMSPACE_ID,
         userMemoryId,
       );
       expect(afterRemember).not.toBeNull();
 
       // Step 3: Update memory content
-      const updated = await cortex.memory.update(
+      const updated = await memoir.memory.update(
         TEST_MEMSPACE_ID,
         userMemoryId,
         { content: "My favorite color is now green" },
@@ -95,14 +95,14 @@ describe("Memory Lifecycle Integration", () => {
       expect(updated.memory.version).toBeGreaterThanOrEqual(2);
 
       // Verify version chain
-      const history = await cortex.memory.getHistory(
+      const history = await memoir.memory.getHistory(
         TEST_MEMSPACE_ID,
         userMemoryId,
       );
       expect(history.length).toBeGreaterThanOrEqual(2);
 
       // Step 4: Delete memory (should cascade to facts)
-      const deleted = await cortex.memory.delete(
+      const deleted = await memoir.memory.delete(
         TEST_MEMSPACE_ID,
         userMemoryId,
         {
@@ -114,14 +114,14 @@ describe("Memory Lifecycle Integration", () => {
       expect(deleted.memoryId).toBe(userMemoryId);
 
       // Verify memory is gone
-      const afterDelete = await cortex.memory.get(
+      const afterDelete = await memoir.memory.get(
         TEST_MEMSPACE_ID,
         userMemoryId,
       );
       expect(afterDelete).toBeNull();
 
       // Verify fact was cascade deleted (should be null or marked invalid)
-      const factAfterDelete = await cortex.facts.get(
+      const factAfterDelete = await memoir.facts.get(
         TEST_MEMSPACE_ID,
         originalFactId,
       );
@@ -138,7 +138,7 @@ describe("Memory Lifecycle Integration", () => {
   describe("remember → archive → restore lifecycle", () => {
     it("archives and restores memory preserving integrity", async () => {
       // Step 1: Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -149,7 +149,7 @@ describe("Memory Lifecycle Integration", () => {
       });
 
       // Step 2: Remember
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "Archive lifecycle test message",
@@ -160,7 +160,7 @@ describe("Memory Lifecycle Integration", () => {
       });
 
       const memoryId = remembered.memories[0].memoryId;
-      const originalMemory = (await cortex.memory.get(
+      const originalMemory = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memoryId,
       )) as any;
@@ -168,7 +168,7 @@ describe("Memory Lifecycle Integration", () => {
       const originalImportance = originalMemory!.importance;
 
       // Step 3: Archive memory
-      const archiveResult = await cortex.memory.archive(
+      const archiveResult = await memoir.memory.archive(
         TEST_MEMSPACE_ID,
         memoryId,
       );
@@ -176,7 +176,7 @@ describe("Memory Lifecycle Integration", () => {
       expect(archiveResult.restorable).toBe(true);
 
       // Verify archived state
-      const archivedMemory = (await cortex.memory.get(
+      const archivedMemory = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memoryId,
       )) as any;
@@ -185,14 +185,14 @@ describe("Memory Lifecycle Integration", () => {
       expect(archivedMemory!.importance).toBeLessThan(originalImportance);
 
       // Step 4: Restore from archive
-      const restoreResult = await cortex.memory.restoreFromArchive(
+      const restoreResult = await memoir.memory.restoreFromArchive(
         TEST_MEMSPACE_ID,
         memoryId,
       );
       expect(restoreResult.restored).toBe(true);
 
       // Verify restored state
-      const restoredMemory = (await cortex.memory.get(
+      const restoredMemory = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memoryId,
       )) as any;
@@ -202,12 +202,12 @@ describe("Memory Lifecycle Integration", () => {
       expect(restoredMemory!.importance).toBeGreaterThanOrEqual(50);
 
       // Cleanup
-      await cortex.memory.delete(TEST_MEMSPACE_ID, memoryId);
+      await memoir.memory.delete(TEST_MEMSPACE_ID, memoryId);
     });
 
     it("throws error when trying to restore non-archived memory", async () => {
       // Create a non-archived memory
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Non-archived memory",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -216,11 +216,11 @@ describe("Memory Lifecycle Integration", () => {
 
       // Try to restore - should fail
       await expect(
-        cortex.memory.restoreFromArchive(TEST_MEMSPACE_ID, memory.memoryId),
+        memoir.memory.restoreFromArchive(TEST_MEMSPACE_ID, memory.memoryId),
       ).rejects.toThrow(/MEMORY_NOT_ARCHIVED|not archived/i);
 
       // Cleanup
-      await cortex.memory.delete(TEST_MEMSPACE_ID, memory.memoryId);
+      await memoir.memory.delete(TEST_MEMSPACE_ID, memory.memoryId);
     });
   });
 
@@ -231,7 +231,7 @@ describe("Memory Lifecycle Integration", () => {
   describe("store → update (multiple) → getHistory lifecycle", () => {
     it("maintains version chain integrity across multiple updates", async () => {
       // Step 1: Store initial memory
-      const storeResult = await cortex.memory.store(TEST_MEMSPACE_ID, {
+      const storeResult = await memoir.memory.store(TEST_MEMSPACE_ID, {
         content: "Version 1: Initial content",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -250,7 +250,7 @@ describe("Memory Lifecycle Integration", () => {
       ];
 
       for (let i = 0; i < updateContents.length; i++) {
-        const updateResult = await cortex.memory.update(
+        const updateResult = await memoir.memory.update(
           TEST_MEMSPACE_ID,
           memoryId,
           { content: updateContents[i] },
@@ -260,7 +260,7 @@ describe("Memory Lifecycle Integration", () => {
       }
 
       // Step 3: Verify history
-      const history = await cortex.memory.getHistory(
+      const history = await memoir.memory.getHistory(
         TEST_MEMSPACE_ID,
         memoryId,
       );
@@ -277,7 +277,7 @@ describe("Memory Lifecycle Integration", () => {
 
       // Step 4: Verify getVersion retrieves correct versions
       for (let v = 1; v <= 5; v++) {
-        const versionResult = await cortex.memory.getVersion(
+        const versionResult = await memoir.memory.getVersion(
           TEST_MEMSPACE_ID,
           memoryId,
           v,
@@ -287,7 +287,7 @@ describe("Memory Lifecycle Integration", () => {
       }
 
       // Non-existent version should return null
-      const noVersion = await cortex.memory.getVersion(
+      const noVersion = await memoir.memory.getVersion(
         TEST_MEMSPACE_ID,
         memoryId,
         99,
@@ -295,11 +295,11 @@ describe("Memory Lifecycle Integration", () => {
       expect(noVersion).toBeNull();
 
       // Cleanup
-      await cortex.memory.delete(TEST_MEMSPACE_ID, memoryId);
+      await memoir.memory.delete(TEST_MEMSPACE_ID, memoryId);
     });
 
     it("preserves metadata through version chain", async () => {
-      const memory = await cortex.memory.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.memory.store(TEST_MEMSPACE_ID, {
         content: "Metadata preservation test V1",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -307,7 +307,7 @@ describe("Memory Lifecycle Integration", () => {
       });
 
       // Verify initial metadata
-      const initialMem = (await cortex.memory.get(
+      const initialMem = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memory.memory.memoryId,
       )) as any;
@@ -315,17 +315,17 @@ describe("Memory Lifecycle Integration", () => {
       expect(initialMem.tags).toContain("preserve-meta-test");
 
       // Update content but not metadata
-      await cortex.memory.update(TEST_MEMSPACE_ID, memory.memory.memoryId, {
+      await memoir.memory.update(TEST_MEMSPACE_ID, memory.memory.memoryId, {
         content: "Metadata preservation test V2",
       });
 
       // Update importance
-      await cortex.memory.update(TEST_MEMSPACE_ID, memory.memory.memoryId, {
+      await memoir.memory.update(TEST_MEMSPACE_ID, memory.memory.memoryId, {
         importance: 90,
       });
 
       // Verify history has correct version count
-      const history = await cortex.memory.getHistory(
+      const history = await memoir.memory.getHistory(
         TEST_MEMSPACE_ID,
         memory.memory.memoryId,
       );
@@ -336,7 +336,7 @@ describe("Memory Lifecycle Integration", () => {
       expect(history[2].content).toBe("Metadata preservation test V2");
 
       // Verify latest memory has updated importance via get()
-      const latestMem = (await cortex.memory.get(
+      const latestMem = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memory.memory.memoryId,
       )) as any;
@@ -344,7 +344,7 @@ describe("Memory Lifecycle Integration", () => {
       expect(latestMem.tags).toContain("preserve-meta-test"); // Tags preserved
 
       // Cleanup
-      await cortex.memory.delete(TEST_MEMSPACE_ID, memory.memory.memoryId);
+      await memoir.memory.delete(TEST_MEMSPACE_ID, memory.memory.memoryId);
     });
   });
 
@@ -368,7 +368,7 @@ describe("Memory Lifecycle Integration", () => {
       const factIds: string[] = [];
 
       for (let i = 0; i < 5; i++) {
-        const result = await cortex.memory.store(TEST_MEMSPACE_ID, {
+        const result = await memoir.memory.store(TEST_MEMSPACE_ID, {
           content: `Bulk delete test memory ${i}`,
           contentType: "raw",
           userId: `user-bulk-cascade-${ctx.runId}`,
@@ -386,7 +386,7 @@ describe("Memory Lifecycle Integration", () => {
       expect(factIds.length).toBe(5);
 
       // Delete all (cascade is automatic for deleteMany)
-      const deleteResult = await cortex.memory.deleteMany({
+      const deleteResult = await memoir.memory.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: `user-bulk-cascade-${ctx.runId}`,
       });
@@ -395,13 +395,13 @@ describe("Memory Lifecycle Integration", () => {
 
       // Verify memories are gone
       for (const memId of memoryIds) {
-        const mem = await cortex.memory.get(TEST_MEMSPACE_ID, memId);
+        const mem = await memoir.memory.get(TEST_MEMSPACE_ID, memId);
         expect(mem).toBeNull();
       }
 
       // Verify facts are deleted or invalidated
       for (const factId of factIds) {
-        const fact = await cortex.facts.get(TEST_MEMSPACE_ID, factId);
+        const fact = await memoir.facts.get(TEST_MEMSPACE_ID, factId);
         if (fact) {
           // If fact still exists, it should be marked as invalid
           expect(fact.validUntil).toBeDefined();
@@ -417,7 +417,7 @@ describe("Memory Lifecycle Integration", () => {
   describe("cross-layer integrity in lifecycle", () => {
     it("maintains conversation reference through update lifecycle", async () => {
       // Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -428,7 +428,7 @@ describe("Memory Lifecycle Integration", () => {
       });
 
       // Remember (creates conversation-linked memory)
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "Cross-layer integrity test",
@@ -442,20 +442,20 @@ describe("Memory Lifecycle Integration", () => {
 
       // Update multiple times
       for (let i = 0; i < 3; i++) {
-        await cortex.memory.update(TEST_MEMSPACE_ID, memoryId, {
+        await memoir.memory.update(TEST_MEMSPACE_ID, memoryId, {
           content: `Updated cross-layer ${i}`,
         });
       }
 
       // Verify history contains all versions
-      const history = await cortex.memory.getHistory(
+      const history = await memoir.memory.getHistory(
         TEST_MEMSPACE_ID,
         memoryId,
       );
       expect(history.length).toBeGreaterThanOrEqual(4); // Original + 3 updates
 
       // Verify conversation reference is maintained on current memory
-      const currentMem = (await cortex.memory.get(
+      const currentMem = (await memoir.memory.get(
         TEST_MEMSPACE_ID,
         memoryId,
       )) as any;
@@ -466,7 +466,7 @@ describe("Memory Lifecycle Integration", () => {
       );
 
       // Verify get with includeConversation works after updates
-      const enriched = await cortex.memory.get(TEST_MEMSPACE_ID, memoryId, {
+      const enriched = await memoir.memory.get(TEST_MEMSPACE_ID, memoryId, {
         includeConversation: true,
       });
       expect(enriched).not.toBeNull();
@@ -475,8 +475,8 @@ describe("Memory Lifecycle Integration", () => {
       expect((enriched as any).conversation).toBeDefined();
 
       // Cleanup
-      await cortex.memory.delete(TEST_MEMSPACE_ID, memoryId);
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.memory.delete(TEST_MEMSPACE_ID, memoryId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 });

@@ -21,11 +21,11 @@ Complete API reference for memory operations across memory spaces.
 
 ## Important: Timestamp Convention
 
-All timestamps in the Cortex SDK are **Unix timestamps in milliseconds** (not JavaScript `Date` objects):
+All timestamps in the Memoir SDK are **Unix timestamps in milliseconds** (not JavaScript `Date` objects):
 
 ```typescript
 // SDK returns timestamps as numbers (Unix ms)
-const memory = await cortex.vector.get(memorySpaceId, memoryId);
+const memory = await memoir.vector.get(memorySpaceId, memoryId);
 console.log(memory.createdAt); // 1735689600000 (number, not Date)
 console.log(memory.updatedAt); // 1735689600000 (number, not Date)
 console.log(memory.sourceTimestamp); // 1735689600000 (number, not Date)
@@ -34,14 +34,14 @@ console.log(memory.sourceTimestamp); // 1735689600000 (number, not Date)
 const createdDate = new Date(memory.createdAt);
 
 // When providing timestamps in filters/queries
-await cortex.vector.getAtTimestamp(
+await memoir.vector.getAtTimestamp(
   memorySpaceId,
   memoryId,
   Date.now() - 24 * 60 * 60 * 1000, // 24 hours ago (number)
 );
 
 // Date objects are also accepted and auto-converted
-await cortex.vector.getAtTimestamp(
+await memoir.vector.getAtTimestamp(
   memorySpaceId,
   memoryId,
   new Date("2025-08-01"), // Converted to Unix ms internally
@@ -54,45 +54,45 @@ await cortex.vector.getAtTimestamp(
 
 ## Overview
 
-The Memory Operations API is organized into **namespaces** corresponding to Cortex's complete architecture:
+The Memory Operations API is organized into **namespaces** corresponding to Memoir's complete architecture:
 
 ```typescript
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Layer 1: Three ACID Stores (Immutable Sources of Truth)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-cortex.conversations.*   // Layer 1a: Conversations (memorySpace-scoped)
-cortex.immutable.*       // Layer 1b: Shared immutable (NO memorySpace - TRULY shared)
-cortex.mutable.*         // Layer 1c: Shared mutable (NO memorySpace - TRULY shared)
+memoir.conversations.*   // Layer 1a: Conversations (memorySpace-scoped)
+memoir.immutable.*       // Layer 1b: Shared immutable (NO memorySpace - TRULY shared)
+memoir.mutable.*         // Layer 1c: Shared mutable (NO memorySpace - TRULY shared)
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Layer 2: Vector Index (memorySpace-scoped, Searchable)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-cortex.vector.*          // Vector memory operations (memorySpace-scoped)
+memoir.vector.*          // Vector memory operations (memorySpace-scoped)
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Layer 3: Facts Store (memorySpace-scoped, Versioned) - NEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-cortex.facts.*           // LLM-extracted facts (memorySpace-scoped)
+memoir.facts.*           // LLM-extracted facts (memorySpace-scoped)
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Layer 4: Convenience API (Wrapper over L1a + L2 + L3)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-cortex.memory.*          // Primary interface (recommended)
+memoir.memory.*          // Primary interface (recommended)
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Additional APIs
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-cortex.memorySpaces.*    // Memory space management (Hive/Collaboration)
-cortex.users.*           // User profiles (shared across all spaces)
-cortex.contexts.*        // Context chains (cross-space support)
-cortex.a2a.*             // Inter-space messaging (Collaboration Mode)
-cortex.governance.*      // Retention policies
-cortex.graph.*           // Graph database integration
+memoir.memorySpaces.*    // Memory space management (Hive/Collaboration)
+memoir.users.*           // User profiles (shared across all spaces)
+memoir.contexts.*        // Context chains (cross-space support)
+memoir.a2a.*             // Inter-space messaging (Collaboration Mode)
+memoir.governance.*      // Retention policies
+memoir.graph.*           // Graph database integration
 ```
 
 **Complete Architecture:**
 
-<ArchitectureDiagram title="Cortex Four-Layer Architecture" caption="Data flows from Layer 1 (source of truth) through Layer 4 (convenience API)">
+<ArchitectureDiagram title="Memoir Four-Layer Architecture" caption="Data flows from Layer 1 (source of truth) through Layer 4 (convenience API)">
 
 <ArchitectureLayer 
   title="Layer 1: ACID Stores" 
@@ -125,7 +125,7 @@ cortex.graph.*           // Graph database integration
   variant="tertiary"
 >
   <ArchitectureBox title="LLM-Extracted Facts">
-    60-90% token savings • cortex.facts.* • Enables infinite context
+    60-90% token savings • memoir.facts.* • Enables infinite context
   </ArchitectureBox>
 </ArchitectureLayer>
 
@@ -134,7 +134,7 @@ cortex.graph.*           // Graph database integration
   variant="quaternary"
   connectionLabels={["Sync"]}
 >
-  <ArchitectureBox title="cortex.memory.*">
+  <ArchitectureBox title="memoir.memory.*">
     remember() → L1a + L2 + L3 + graph • recall() → L2 + L3 + graph • search() → L2 + enrichment
   </ArchitectureBox>
 </ArchitectureLayer>
@@ -153,20 +153,20 @@ cortex.graph.*           // Graph database integration
 **Which layer/API to use:**
 
 <Callout type="tip" title="Start Here">
-**`cortex.memory.*` (Layer 4)** - Recommended for most use cases. Provides `remember()` / `recall()` for full orchestration, and `search()` / `get()` for quick retrieval.
+**`memoir.memory.*` (Layer 4)** - Recommended for most use cases. Provides `remember()` / `recall()` for full orchestration, and `search()` / `get()` for quick retrieval.
 </Callout>
 
 <DataTable
   headers={["Namespace", "Layer", "Description"]}
   rows={[
-    ["`cortex.memory.*`", "Layer 4", "**START HERE** - Full orchestration (recommended)"],
-    ["`cortex.conversations.*`", "Layer 1a", "Direct ACID conversation access"],
-    ["`cortex.vector.*`", "Layer 2", "Direct vector index control"],
-    ["`cortex.facts.*`", "Layer 3", "Direct fact operations"],
-    ["`cortex.immutable.*`", "Layer 1b", "Shared knowledge (NO memorySpace - TRULY shared)"],
-    ["`cortex.mutable.*`", "Layer 1c", "Live mutable data (NO memorySpace - TRULY shared)"],
-    ["`cortex.users.*`", "—", "User profiles (shared across ALL spaces + GDPR cascade)"],
-    ["`cortex.governance.*`", "—", "Retention policies for all layers"],
+    ["`memoir.memory.*`", "Layer 4", "**START HERE** - Full orchestration (recommended)"],
+    ["`memoir.conversations.*`", "Layer 1a", "Direct ACID conversation access"],
+    ["`memoir.vector.*`", "Layer 2", "Direct vector index control"],
+    ["`memoir.facts.*`", "Layer 3", "Direct fact operations"],
+    ["`memoir.immutable.*`", "Layer 1b", "Shared knowledge (NO memorySpace - TRULY shared)"],
+    ["`memoir.mutable.*`", "Layer 1c", "Live mutable data (NO memorySpace - TRULY shared)"],
+    ["`memoir.users.*`", "—", "User profiles (shared across ALL spaces + GDPR cascade)"],
+    ["`memoir.governance.*`", "—", "Retention policies for all layers"],
   ]}
 />
 
@@ -175,14 +175,14 @@ cortex.graph.*           // Graph database integration
 All stores support **optional `userId` field** to enable cascade deletion:
 
 ```typescript
-// Stores with userId can be deleted via cortex.users.delete(userId, { cascade: true })
-await cortex.conversations.addMessage(convId, { userId: 'user-123', ... });
-await cortex.immutable.store({ type: 'feedback', id: 'fb-1', userId: 'user-123', ... });
-await cortex.mutable.set('sessions', 'sess-1', data, 'user-123');
-await cortex.vector.store('user-123-personal', { userId: 'user-123', ... });
+// Stores with userId can be deleted via memoir.users.delete(userId, { cascade: true })
+await memoir.conversations.addMessage(convId, { userId: 'user-123', ... });
+await memoir.immutable.store({ type: 'feedback', id: 'fb-1', userId: 'user-123', ... });
+await memoir.mutable.set('sessions', 'sess-1', data, 'user-123');
+await memoir.vector.store('user-123-personal', { userId: 'user-123', ... });
 
 // One call deletes from ALL stores
-await cortex.users.delete('user-123', { cascade: true });
+await memoir.users.delete('user-123', { cascade: true });
 ```
 
 **Multi-Tenancy Support:**
@@ -190,8 +190,8 @@ await cortex.users.delete('user-123', { cascade: true });
 All stores support **optional `tenantId` field** for SaaS multi-tenancy isolation:
 
 ```typescript
-// When initializing Cortex with auth context, tenantId is auto-injected
-const cortex = new Cortex({
+// When initializing Memoir with auth context, tenantId is auto-injected
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   auth: {
     userId: 'user-123',
@@ -202,14 +202,14 @@ const cortex = new Cortex({
 });
 
 // TenantId automatically propagates to all operations:
-await cortex.memory.remember({...});           // tenantId: 'tenant-acme'
-await cortex.conversations.create({...});      // tenantId: 'tenant-acme'
-await cortex.facts.store({...});               // tenantId: 'tenant-acme'
-await cortex.immutable.store({...});           // tenantId: 'tenant-acme'
-await cortex.mutable.set(...);                 // tenantId: 'tenant-acme'
+await memoir.memory.remember({...});           // tenantId: 'tenant-acme'
+await memoir.conversations.create({...});      // tenantId: 'tenant-acme'
+await memoir.facts.store({...});               // tenantId: 'tenant-acme'
+await memoir.immutable.store({...});           // tenantId: 'tenant-acme'
+await memoir.mutable.set(...);                 // tenantId: 'tenant-acme'
 
 // Queries are automatically filtered by tenant
-const memories = await cortex.memory.search('user-space', 'query');
+const memories = await memoir.memory.search('user-space', 'query');
 // Only returns data from 'tenant-acme'
 ```
 
@@ -217,35 +217,35 @@ See [Auth Integration](/integrations/auth-providers) for complete multi-tenancy 
 
 ## Three-Namespace Architecture
 
-### Layer 1: cortex.conversations.\* (ACID)
+### Layer 1: memoir.conversations.\* (ACID)
 
 ```typescript
 // Managing immutable conversation threads
-await cortex.conversations.create({ type: 'user-agent', participants: {...} });
-await cortex.conversations.addMessage(conversationId, message);
-await cortex.conversations.get(conversationId);
-await cortex.conversations.getHistory(conversationId, options);
+await memoir.conversations.create({ type: 'user-agent', participants: {...} });
+await memoir.conversations.addMessage(conversationId, message);
+await memoir.conversations.get(conversationId);
+await memoir.conversations.getHistory(conversationId, options);
 // Returns raw messages, no Vector index involved
 ```
 
-### Layer 2: cortex.vector.\* (Vector Index)
+### Layer 2: memoir.vector.\* (Vector Index)
 
 ```typescript
 // Managing searchable knowledge index
-await cortex.vector.store(memorySpaceId, vectorInput); // Must provide conversationRef manually
-await cortex.vector.get(memorySpaceId, memoryId);
-await cortex.vector.search(memorySpaceId, query, options);
-await cortex.vector.update(memorySpaceId, memoryId, updates);
+await memoir.vector.store(memorySpaceId, vectorInput); // Must provide conversationRef manually
+await memoir.vector.get(memorySpaceId, memoryId);
+await memoir.vector.search(memorySpaceId, query, options);
+await memoir.vector.update(memorySpaceId, memoryId, updates);
 // Direct Vector operations, you manage conversationRef
 ```
 
-### Layer 4: cortex.memory.\* (Convenience API)
+### Layer 4: memoir.memory.\* (Convenience API)
 
 ```typescript
 // High-level operations that manage both layers
-await cortex.memory.remember(params); // Stores in ACID + creates Vector index
-await cortex.memory.get(memorySpaceId, memoryId, { includeConversation: true });
-await cortex.memory.search(memorySpaceId, query, { enrichConversation: true });
+await memoir.memory.remember(params); // Stores in ACID + creates Vector index
+await memoir.memory.get(memorySpaceId, memoryId, { includeConversation: true });
+await memoir.memory.search(memorySpaceId, query, { enrichConversation: true });
 // Handles both layers automatically
 ```
 
@@ -255,10 +255,10 @@ await cortex.memory.search(memorySpaceId, query, { enrichConversation: true });
   <TabItem value="manual" label="Manual (Layer 1 + Layer 2)">
 
 <FlowDiagram title="Manual Flow" caption="You manage the linking between layers">
-  <FlowNode title="Layer 1: cortex.conversations.addMessage()" icon="database" variant="primary">
+  <FlowNode title="Layer 1: memoir.conversations.addMessage()" icon="database" variant="primary">
     Returns: msg.id
   </FlowNode>
-  <FlowNode title="Layer 2: cortex.vector.store()" icon="search" variant="warning">
+  <FlowNode title="Layer 2: memoir.vector.store()" icon="search" variant="warning">
     Provide conversationRef manually (use msg.id from Step 1)
   </FlowNode>
 </FlowDiagram>
@@ -267,7 +267,7 @@ await cortex.memory.search(memorySpaceId, query, { enrichConversation: true });
   <TabItem value="automatic" label="Automatic (Layer 4) ✓ Recommended">
 
 <FlowDiagram title="Automatic Flow" caption="Single call handles everything">
-  <FlowNode title="Layer 4: cortex.memory.remember()" icon="layers" variant="success">
+  <FlowNode title="Layer 4: memoir.memory.remember()" icon="layers" variant="success">
     Handles L1a + L2 + L3 + graph linking automatically
   </FlowNode>
 </FlowDiagram>
@@ -281,7 +281,7 @@ await cortex.memory.search(memorySpaceId, query, { enrichConversation: true });
 
 ```typescript
 // Step 1: Store raw message in ACID (Layer 1)
-const msg = await cortex.conversations.addMessage("conv-456", {
+const msg = await memoir.conversations.addMessage("conv-456", {
   role: "user",
   text: "The password is Blue",
   userId: "user-123",
@@ -290,7 +290,7 @@ const msg = await cortex.conversations.addMessage("conv-456", {
 // Returns: { id: 'msg-789', ... }
 
 // Step 2: Index in Vector (Layer 2) - references Step 1
-const memory = await cortex.vector.store("user-123-personal", {
+const memory = await memoir.vector.store("user-123-personal", {
   content: "The password is Blue", // Raw or extracted
   contentType: "raw",
   embedding: await embed("The password is Blue"), // Optional
@@ -315,11 +315,11 @@ const memory = await cortex.vector.store("user-123-personal", {
 
 ### Convenience Flow (Layer 4 - recommended)
 
-**Use `cortex.memory.*` to handle both layers automatically:**
+**Use `memoir.memory.*` to handle both layers automatically:**
 
 ```typescript
 // Does both ACID + Vector in one call
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-456",
   userMessage: "The password is Blue",
@@ -329,8 +329,8 @@ const result = await cortex.memory.remember({
 });
 
 // Behind the scenes (Layer 4 does this):
-// 1. cortex.conversations.addMessage() × 2  (ACID Layer 1)
-// 2. cortex.vector.store() × 2              (Vector Layer 2)
+// 1. memoir.conversations.addMessage() × 2  (ACID Layer 1)
+// 2. memoir.vector.store() × 2              (Vector Layer 2)
 // 3. Links them via conversationRef
 ```
 
@@ -340,7 +340,7 @@ const result = await cortex.memory.remember({
 
 ```typescript
 // Option 1: Use Layer 2 directly
-const memory = await cortex.vector.store("user-123-personal", {
+const memory = await memoir.vector.store("user-123-personal", {
   content: "Agent initialized successfully",
   contentType: "raw",
   source: { type: "system", timestamp: new Date() },
@@ -349,7 +349,7 @@ const memory = await cortex.vector.store("user-123-personal", {
 });
 
 // Option 2: Use Layer 4 (also works for non-conversations)
-const memory = await cortex.memory.store("user-123-personal", {
+const memory = await memoir.memory.store("user-123-personal", {
   content: "Agent initialized successfully",
   source: { type: "system" },
   metadata: { importance: 30 },
@@ -387,7 +387,7 @@ const memory = await cortex.memory.store("user-123-personal", {
 
 ## Complete API Reference by Namespace
 
-### Layer 1: cortex.conversations.\* Operations
+### Layer 1: memoir.conversations.\* Operations
 
 <DataTable
   headers={["Operation", "Purpose", "Returns"]}
@@ -406,7 +406,7 @@ const memory = await cortex.memory.store("user-123-personal", {
 
 **See:** [Conversation Operations API](/api-reference/conversation-operations)
 
-### Layer 2: cortex.vector.\* Operations
+### Layer 2: memoir.vector.\* Operations
 
 <DataTable
   headers={["Operation", "Purpose", "Returns"]}
@@ -433,7 +433,7 @@ const memory = await cortex.memory.store("user-123-personal", {
 All methods use the resilience layer (if configured) for automatic retries and circuit breaking.
 </Callout>
 
-### Layer 4: cortex.memory.\* Operations (Convenience API)
+### Layer 4: memoir.memory.\* Operations (Convenience API)
 
 <DataTable
   headers={["Operation", "Purpose", "Returns", "Does"]}
@@ -453,7 +453,7 @@ All methods use the resilience layer (if configured) for automatic retries and c
 **Key Differences:**
 
 <ComparisonTable
-  headers={["Operation", "Layer 2 (cortex.vector.*)", "Layer 4 (cortex.memory.*)"]}
+  headers={["Operation", "Layer 2 (memoir.vector.*)", "Layer 4 (memoir.memory.*)"]}
   items={[
     { feature: "`remember()`", values: ["N/A", "**Unique** - stores in both layers"] },
     { feature: "`get()`", values: ["Vector only", "Can include ACID (`includeConversation`)"] },
@@ -482,16 +482,16 @@ All methods use the resilience layer (if configured) for automatic retries and c
 
 **Layer 4 Delegations:**
 
-- Most operations are thin wrappers around `cortex.vector.*`
+- Most operations are thin wrappers around `memoir.vector.*`
 - Convenience for not having to remember namespaces
-- Use `cortex.vector.*` directly if you prefer explicit control
+- Use `memoir.vector.*` directly if you prefer explicit control
 
 ---
 
-## Core Operations (Layer 4: cortex.memory.\*)
+## Core Operations (Layer 4: memoir.memory.\*)
 
 <Callout type="note">
-Layer 4 operations are convenience wrappers that orchestrate across all layers. For direct control, use Layer 1 (`cortex.conversations.*`), Layer 2 (`cortex.vector.*`), and Layer 3 (`cortex.facts.*`) separately.
+Layer 4 operations are convenience wrappers that orchestrate across all layers. For direct control, use Layer 1 (`memoir.conversations.*`), Layer 2 (`memoir.vector.*`), and Layer 3 (`memoir.facts.*`) separately.
 </Callout>
 
 ### remember()
@@ -505,7 +505,7 @@ Layer 4 operations are convenience wrappers that orchestrate across all layers. 
 **Signature:**
 
 ```typescript
-cortex.memory.remember(
+memoir.memory.remember(
   params: RememberParams,
   options?: RememberOptions
 ): Promise<RememberResult>
@@ -622,7 +622,7 @@ interface RememberOptions {
 }
 
 <Callout type="info">
-**v0.29.0+**: Graph sync is now automatic when `CORTEX_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been removed from all APIs.
+**v0.29.0+**: Graph sync is now automatic when `MEMOIR_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been removed from all APIs.
 </Callout>
 ```
 
@@ -662,8 +662,8 @@ Each extracted fact goes through the pipeline independently:
 **Example with belief revision:**
 
 ```typescript
-// Configure Cortex with belief revision
-const cortex = new Cortex({
+// Configure Memoir with belief revision
+const memoir = new Memoir({
   url: process.env.CONVEX_URL!,
   llm: openaiClient, // Required for LLM resolution
   beliefRevision: {
@@ -673,7 +673,7 @@ const cortex = new Cortex({
 });
 
 // Now remember() automatically uses belief revision for facts
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "user-123-space",
   userId: "user-123",
   userName: "Alex",
@@ -700,7 +700,7 @@ const result = await cortex.memory.remember({
 
 ```typescript
 // Disable for a single remember() call (use deduplication-only mode)
-await cortex.memory.remember(
+await memoir.memory.remember(
   {
     memorySpaceId: "user-123-space",
     // ...other params
@@ -711,14 +711,14 @@ await cortex.memory.remember(
 );
 
 // Python SDK equivalent:
-# await cortex.memory.remember(
+# await memoir.memory.remember(
 #     RememberParams(...),
 #     RememberOptions(belief_revision=False)
 # )
 ```
 
 <Callout type="note">
-Fine-grained control over individual pipeline stages (slot matching, LLM resolution) is available through the `cortex.facts.revise()` API directly. The `remember()` integration uses a batteries-included approach - full pipeline when enabled, deduplication-only when disabled.
+Fine-grained control over individual pipeline stages (slot matching, LLM resolution) is available through the `memoir.facts.revise()` API directly. The `remember()` integration uses a batteries-included approach - full pipeline when enabled, deduplication-only when disabled.
 </Callout>
 
 **Return value changes with belief revision:**
@@ -764,7 +764,7 @@ interface RememberResult {
 
 ```typescript
 // Full orchestration (default) - user-owned memory
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "user-123-space",
   userId: "user-123",
   userName: "Alex",
@@ -779,7 +779,7 @@ const result = await cortex.memory.remember({
 // → graph synced (if adapter configured)
 
 // Agent-owned memory (no user involved)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "system-space",
   agentId: "cleanup-agent",
   conversationId: "conv-789",
@@ -789,7 +789,7 @@ await cortex.memory.remember({
 });
 
 // Lightweight mode - skip facts and graph
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "quick-space",
   agentId: "quick-bot",
   conversationId: "conv-101",
@@ -799,7 +799,7 @@ await cortex.memory.remember({
 });
 
 // With custom fact extraction
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-space",
   userId: "user-123",
   userName: "Alex",
@@ -823,13 +823,13 @@ await cortex.memory.remember({
 
 ```typescript
 // Missing owner attribution
-CortexError(
+MemoirError(
   "OWNER_REQUIRED",
   "Either userId or agentId must be provided for memory ownership",
 );
 
 // Missing userName when userId is provided
-CortexError(
+MemoirError(
   "MISSING_REQUIRED_FIELD",
   "userName is required when userId is provided",
 );
@@ -871,7 +871,7 @@ CortexError(
 **Signature:**
 
 ```typescript
-cortex.memory.recall(
+memoir.memory.recall(
   params: RecallParams
 ): Promise<RecallResult>
 ```
@@ -967,7 +967,7 @@ interface RecallLimits {
 <Callout type="tip" title="Configurable Limits (v0.31.0+)">
 Limits follow a configuration hierarchy: **per-call overrides > environment variables > SDK defaults**.
 
-Set `CORTEX_RECALL_LIMIT_MEMORIES`, `CORTEX_RECALL_LIMIT_FACTS`, etc. in your environment for project-wide defaults. See [Configuration](/getting-started/configuration#recall-limits-configuration) for all environment variables.
+Set `MEMOIR_RECALL_LIMIT_MEMORIES`, `MEMOIR_RECALL_LIMIT_FACTS`, etc. in your environment for project-wide defaults. See [Configuration](/getting-started/configuration#recall-limits-configuration) for all environment variables.
 </Callout>
 
 **Returns:**
@@ -1014,7 +1014,7 @@ interface RecallItem {
 
 ```typescript
 // Just two parameters - full orchestration by default
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
 });
@@ -1035,7 +1035,7 @@ const response = await llm.chat({
 
 ```typescript
 // v0.30.0+: Embeddings auto-generated when embedding config is set at SDK init
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
   // No manual embedding needed! Auto-generated from query.
@@ -1048,21 +1048,21 @@ const result = await cortex.memory.recall({
 ```
 
 <Callout type="tip">
-**v0.30.0+**: When `embedding` is configured at SDK init (or `CORTEX_EMBEDDING=true`), embeddings are automatically generated from the `query`. Manual embedding is still supported for override.
+**v0.30.0+**: When `embedding` is configured at SDK init (or `MEMOIR_EMBEDDING=true`), embeddings are automatically generated from the `query`. Manual embedding is still supported for override.
 </Callout>
 
 **Example 3: Multi-Agent Context Sharing (A2A)**
 
 ```typescript
 // Agent retrieving shared context from Hive space
-const sharedContext = await cortex.memory.recall({
+const sharedContext = await memoir.memory.recall({
   memorySpaceId: "team-hive-space",
   query: "project requirements and deadlines",
   // Embedding auto-generated!
 });
 
 // Send context to collaborating agent
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "planning-agent",
   to: "execution-agent",
   message: `Here's the context: ${sharedContext.context}`,
@@ -1073,7 +1073,7 @@ await cortex.a2a.send({
 
 ```typescript
 // When you need to discover relational connections
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "knowledge-base",
   query: "who does Alice work with",
   // Embedding auto-generated!
@@ -1093,7 +1093,7 @@ console.log("Discovered entities:", result.sources.graph.expandedEntities);
 
 ```typescript
 // When you need speed over completeness
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-space",
   query: "quick lookup",
   sources: {
@@ -1228,7 +1228,7 @@ When `formatForLLM: true` (default), the context string is structured as:
 **Signature:**
 
 ```typescript
-cortex.memory.rememberStream(
+memoir.memory.rememberStream(
   params: RememberStreamParams,
   options?: StreamingOptions
 ): Promise<EnhancedRememberStreamResult>
@@ -1286,7 +1286,7 @@ interface RememberStreamParams {
 }
 
 interface StreamingOptions {
-  // Graph sync (v0.29.0+): Automatic when CORTEX_GRAPH_SYNC=true
+  // Graph sync (v0.29.0+): Automatic when MEMOIR_GRAPH_SYNC=true
   progressiveGraphSync?: boolean; // Sync during streaming
   graphSyncInterval?: number; // How often to sync (ms)
 
@@ -1379,7 +1379,7 @@ const response = await streamText({
   messages: [{ role: "user", content: "What is AI?" }],
 });
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: "ai-tutor",
   conversationId: "lesson-1",
   userMessage: "What is AI?",
@@ -1404,7 +1404,7 @@ console.log("Stream metrics:", result.streamMetrics);
 **Example 2: With Progressive Features**
 
 ```typescript
-const result = await cortex.memory.rememberStream(
+const result = await memoir.memory.rememberStream(
   {
     memorySpaceId: "ai-tutor",
     conversationId: "lesson-2",
@@ -1474,7 +1474,7 @@ const stream = await openai.chat.completions.create({
   stream: true,
 });
 
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: "chat-bot",
   conversationId: "conv-789",
   userMessage: "Hello!",
@@ -1487,15 +1487,15 @@ const result = await cortex.memory.rememberStream({
 **Example 4: With Embeddings and Facts (Batteries-Included)**
 
 ```typescript
-// Configure Cortex with embedding + LLM at init (v0.30.0+)
-const cortex = new Cortex({
+// Configure Memoir with embedding + LLM at init (v0.30.0+)
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   embedding: { provider: 'openai', apiKey: process.env.OPENAI_API_KEY },
   llm: { provider: 'openai', apiKey: process.env.OPENAI_API_KEY },
 });
 
 // Embeddings + facts are now automatic!
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: "smart-bot",
   conversationId: "conv-999",
   userMessage: "My favorite color is blue",
@@ -1518,7 +1518,7 @@ console.log("Facts:", result.facts); // Auto-extracted facts with embeddings
 
 ```typescript
 try {
-  const result = await cortex.memory.rememberStream(params, {
+  const result = await memoir.memory.rememberStream(params, {
     partialFailureHandling: "store-partial",
     generateResumeToken: true,
     streamTimeout: 30000, // 30 second timeout
@@ -1529,7 +1529,7 @@ try {
     console.log("Stream interrupted. Resume token:", error.resumeToken);
 
     // Later, resume the stream
-    const resumed = await cortex.memory.rememberStream({
+    const resumed = await memoir.memory.rememberStream({
       ...params,
       resumeFrom: await validateResumeToken(error.resumeToken),
     });
@@ -1552,7 +1552,7 @@ export async function POST(req: Request) {
   });
 
   // Store in background (works in edge runtime!)
-  cortex.memory
+  memoir.memory
     .rememberStream({
       memorySpaceId: "edge-chat",
       conversationId: "conv-" + Date.now(),
@@ -1629,7 +1629,7 @@ export async function POST(req: Request) {
 **Signature:**
 
 ```typescript
-cortex.memory.search(
+memoir.memory.search(
   memorySpaceId: string,
   query: string,
   options?: SearchOptions
@@ -1714,7 +1714,7 @@ interface SearchResult extends MemoryEntry {
 
 ```typescript
 // v0.30.0+: Embeddings auto-generated when embedding config is set
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   "user-123-personal",
   "user preferences",
   {
@@ -1735,7 +1735,7 @@ memories.forEach((m) => {
 **Example 2: With ACID enrichment**
 
 ```typescript
-const enriched = await cortex.memory.search(
+const enriched = await memoir.memory.search(
   "user-123-personal",
   "user preferences",
   {
@@ -1766,17 +1766,17 @@ enriched.forEach((m) => {
 
 ```typescript
 // Layer 2 directly (Vector only)
-const vectorResults = await cortex.vector.search(
+const vectorResults = await memoir.vector.search(
   "user-123-personal",
   query,
   options,
 );
 
 // Layer 4 default (same as Layer 2, but can enrich)
-const results = await cortex.memory.search("user-123-personal", query, options);
+const results = await memoir.memory.search("user-123-personal", query, options);
 
 // Layer 4 enriched (Vector + ACID)
-const enriched = await cortex.memory.search("user-123-personal", query, {
+const enriched = await memoir.memory.search("user-123-personal", query, {
   ...options,
   enrichConversation: true,
 });
@@ -1784,9 +1784,9 @@ const enriched = await cortex.memory.search("user-123-personal", query, {
 
 **Errors:**
 
-- `CortexError('INVALID_AGENT_ID')` - Agent ID is invalid
-- `CortexError('INVALID_EMBEDDING_DIMENSION')` - Embedding dimension mismatch
-- `CortexError('CONVEX_ERROR')` - Database error
+- `MemoirError('INVALID_AGENT_ID')` - Agent ID is invalid
+- `MemoirError('INVALID_EMBEDDING_DIMENSION')` - Embedding dimension mismatch
+- `MemoirError('CONVEX_ERROR')` - Database error
 
 **See Also:**
 
@@ -1802,7 +1802,7 @@ const enriched = await cortex.memory.search("user-123-personal", query, {
 **Signature:**
 
 ```typescript
-cortex.memory.get(
+memoir.memory.get(
   memorySpaceId: string,
   memoryId: string,
   options?: GetOptions
@@ -1839,7 +1839,7 @@ interface EnrichedMemory {
 **Example 1: Default (Vector only)**
 
 ```typescript
-const memory = await cortex.memory.get("user-123-personal", "mem_abc123");
+const memory = await memoir.memory.get("user-123-personal", "mem_abc123");
 
 if (memory) {
   console.log(memory.content); // Vector content
@@ -1851,7 +1851,7 @@ if (memory) {
 **Example 2: With ACID conversation**
 
 ```typescript
-const enriched = await cortex.memory.get("user-123-personal", "mem_abc123", {
+const enriched = await memoir.memory.get("user-123-personal", "mem_abc123", {
   includeConversation: true,
 });
 
@@ -1873,22 +1873,22 @@ if (enriched) {
 
 ```typescript
 // Layer 2 directly (fast, Vector only)
-const vectorMem = await cortex.vector.get("user-123-personal", "mem_abc123");
+const vectorMem = await memoir.vector.get("user-123-personal", "mem_abc123");
 
 // Layer 4 default (same as Layer 2)
-const mem = await cortex.memory.get("user-123-personal", "mem_abc123");
+const mem = await memoir.memory.get("user-123-personal", "mem_abc123");
 
 // Layer 4 enriched (Vector + ACID)
-const enriched = await cortex.memory.get("user-123-personal", "mem_abc123", {
+const enriched = await memoir.memory.get("user-123-personal", "mem_abc123", {
   includeConversation: true,
 });
 ```
 
 **Errors:**
 
-- `CortexError('INVALID_AGENT_ID')` - Agent ID is invalid
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('PERMISSION_DENIED')` - Agent doesn't own this memory
+- `MemoirError('INVALID_AGENT_ID')` - Agent ID is invalid
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('PERMISSION_DENIED')` - Agent doesn't own this memory
 
 **See Also:**
 
@@ -1905,7 +1905,7 @@ Store a new memory for an agent. Use this for non-conversation memories (system,
 **Signature:**
 
 ```typescript
-cortex.memory.store(
+memoir.memory.store(
   memorySpaceId: string,
   input: StoreMemoryInput
 ): Promise<StoreMemoryResult>
@@ -1976,7 +1976,7 @@ interface StoreMemoryResult {
 
 interface MemoryEntry {
   _id: string; // Convex internal ID
-  memoryId: string; // Cortex memory ID (use this for API calls)
+  memoryId: string; // Memoir memory ID (use this for API calls)
   memorySpaceId: string;
   tenantId?: string; // Multi-tenancy: SaaS platform isolation
   participantId?: string; // Hive Mode: who stored this memory
@@ -2017,14 +2017,14 @@ All timestamps (`createdAt`, `updatedAt`, `lastAccessed`, `sourceTimestamp`) are
 
 ```typescript
 // FIRST: Store in ACID (you must do this first for conversations)
-const msg = await cortex.conversations.addMessage("conv-456", {
+const msg = await memoir.conversations.addMessage("conv-456", {
   role: "user",
   text: "The password is Blue",
   userId: "user-123",
 });
 
 // THEN: Store in Vector (with conversationRef linking to ACID)
-const memory = await cortex.vector.store("user-123-personal", {
+const memory = await memoir.vector.store("user-123-personal", {
   content: "The password is Blue",
   contentType: "raw",
   embedding: await embed("The password is Blue"),
@@ -2061,7 +2061,7 @@ When storing, you provide `metadata.importance` and `metadata.tags` in the input
 
 ```typescript
 // No ACID storage needed - this isn't from a conversation
-const result = await cortex.memory.store("user-123-personal", {
+const result = await memoir.memory.store("user-123-personal", {
   content: "Agent started successfully at 10:00 AM",
   contentType: "raw",
   source: {
@@ -2085,7 +2085,7 @@ console.log(result.facts); // [] (no facts extracted for system memories)
 
 ```typescript
 // Helper does both steps automatically
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-456",
   userMessage: "The password is Blue",
@@ -2101,10 +2101,10 @@ const result = await cortex.memory.remember({
 
 **Errors:**
 
-- `CortexError('INVALID_AGENT_ID')` - Agent ID is invalid
-- `CortexError('INVALID_CONTENT')` - Content is empty or too large
-- `CortexError('INVALID_IMPORTANCE')` - Importance not in 0-100 range
-- `CortexError('CONVEX_ERROR')` - Database error
+- `MemoirError('INVALID_AGENT_ID')` - Agent ID is invalid
+- `MemoirError('INVALID_CONTENT')` - Content is empty or too large
+- `MemoirError('INVALID_IMPORTANCE')` - Importance not in 0-100 range
+- `MemoirError('CONVEX_ERROR')` - Database error
 
 **See Also:**
 
@@ -2120,7 +2120,7 @@ Update a single memory by ID. Automatically creates new version.
 **Signature:**
 
 ```typescript
-cortex.memory.update(
+memoir.memory.update(
   memorySpaceId: string,
   memoryId: string,
   updates: MemoryUpdate,
@@ -2139,7 +2139,7 @@ interface MemoryUpdate {
 }
 
 interface UpdateMemoryOptions {
-  // Note: syncToGraph option removed in v0.29.0+ - sync is automatic when CORTEX_GRAPH_SYNC=true
+  // Note: syncToGraph option removed in v0.29.0+ - sync is automatic when MEMOIR_GRAPH_SYNC=true
 }
 ```
 
@@ -2166,7 +2166,7 @@ interface UpdateMemoryResult {
 
 ```typescript
 // Update password memory (creates version 2)
-const result = await cortex.memory.update(
+const result = await memoir.memory.update(
   "user-123-personal",
   "mem-1735689600000-abc123",
   {
@@ -2195,9 +2195,9 @@ The `update()` method does NOT support updating `conversationRef`. To link to a 
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('PERMISSION_DENIED')` - Agent doesn't own this memory
-- `CortexError('INVALID_UPDATE')` - Update data is invalid
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('PERMISSION_DENIED')` - Agent doesn't own this memory
+- `MemoirError('INVALID_UPDATE')` - Update data is invalid
 
 **See Also:**
 
@@ -2213,7 +2213,7 @@ Bulk update memories matching filters.
 **Signature:**
 
 ```typescript
-cortex.memory.updateMany(
+memoir.memory.updateMany(
   memorySpaceId: string,
   filters: UniversalFilters,
   updates: MemoryUpdate
@@ -2240,7 +2240,7 @@ interface UpdateManyResult {
 
 ```typescript
 // Boost importance of frequently accessed memories
-const result = await cortex.memory.updateMany(
+const result = await memoir.memory.updateMany(
   "agent-1",
   {
     accessCount: { $gte: 10 },
@@ -2255,7 +2255,7 @@ const result = await cortex.memory.updateMany(
 console.log(`Updated ${result.updated} memories`);
 
 // Add tag to all old memories
-await cortex.memory.updateMany(
+await memoir.memory.updateMany(
   "agent-1",
   {
     createdBefore: new Date("2025-01-01"),
@@ -2270,8 +2270,8 @@ await cortex.memory.updateMany(
 
 **Errors:**
 
-- `CortexError('INVALID_FILTERS')` - Filters are malformed
-- `CortexError('NO_MEMORIES_MATCHED')` - No memories match filters
+- `MemoirError('INVALID_FILTERS')` - Filters are malformed
+- `MemoirError('NO_MEMORIES_MATCHED')` - No memories match filters
 
 **See Also:**
 
@@ -2286,7 +2286,7 @@ await cortex.memory.updateMany(
 **Signature:**
 
 ```typescript
-cortex.memory.delete(
+memoir.memory.delete(
   memorySpaceId: string,
   memoryId: string,
   options?: DeleteMemoryOptions
@@ -2300,7 +2300,7 @@ cortex.memory.delete(
 
 ```typescript
 interface DeleteMemoryOptions {
-  // Note: syncToGraph option removed in v0.29.0+ - graph cleanup is automatic when CORTEX_GRAPH_SYNC=true
+  // Note: syncToGraph option removed in v0.29.0+ - graph cleanup is automatic when MEMOIR_GRAPH_SYNC=true
 }
 ```
 
@@ -2325,7 +2325,7 @@ interface DeleteMemoryResult {
 **Example:**
 
 ```typescript
-const result = await cortex.memory.delete("user-123-personal", "mem_abc123");
+const result = await memoir.memory.delete("user-123-personal", "mem_abc123");
 
 console.log(`Deleted: ${result.deleted}`); // true
 console.log(`Memory ID: ${result.memoryId}`); // 'mem_abc123'
@@ -2333,21 +2333,21 @@ console.log(`Facts deleted: ${result.factsDeleted}`); // e.g., 3
 console.log(`Fact IDs: ${result.factIds}`); // e.g., ['fact-1', 'fact-2', 'fact-3']
 
 // ACID conversation still accessible if needed
-// Use cortex.conversations.get(conversationId) to retrieve original
+// Use memoir.conversations.get(conversationId) to retrieve original
 ```
 
 **Comparison:**
 
 ```typescript
 // Layer 2 directly (Vector only, explicit)
-await cortex.vector.delete("user-123-personal", "mem_abc123");
+await memoir.vector.delete("user-123-personal", "mem_abc123");
 
 // Layer 4 (same as Layer 2, but preserves ACID)
-await cortex.memory.delete("user-123-personal", "mem_abc123");
+await memoir.memory.delete("user-123-personal", "mem_abc123");
 // Vector deleted, ACID preserved
 
 // Layer 4 forget() (delete from both - see below)
-await cortex.memory.forget("user-123-personal", "mem_abc123", {
+await memoir.memory.forget("user-123-personal", "mem_abc123", {
   deleteConversation: true,
 });
 // Vector AND ACID deleted
@@ -2355,8 +2355,8 @@ await cortex.memory.forget("user-123-personal", "mem_abc123", {
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('PERMISSION_DENIED')` - Agent doesn't own this memory
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('PERMISSION_DENIED')` - Agent doesn't own this memory
 
 **See Also:**
 
@@ -2371,7 +2371,7 @@ await cortex.memory.forget("user-123-personal", "mem_abc123", {
 **Signature:**
 
 ```typescript
-cortex.memory.forget(
+memoir.memory.forget(
   memorySpaceId: string,
   memoryId: string,
   options?: ForgetOptions
@@ -2402,7 +2402,7 @@ interface ForgetResult {
 
 ```typescript
 // Delete memory + its source message from ACID
-const result = await cortex.memory.forget("user-123-personal", "mem_abc123", {
+const result = await memoir.memory.forget("user-123-personal", "mem_abc123", {
   deleteConversation: true,
 });
 
@@ -2434,7 +2434,7 @@ Bulk delete memories matching filters.
 **Signature:**
 
 ```typescript
-cortex.memory.deleteMany(
+memoir.memory.deleteMany(
   memorySpaceId: string,
   filters: UniversalFilters,
   options?: DeleteOptions
@@ -2476,7 +2476,7 @@ The Layer 4 `memory.deleteMany()` API includes additional return fields (`restor
 
 ```typescript
 // Preview deletion
-const preview = await cortex.memory.deleteMany(
+const preview = await memoir.memory.deleteMany(
   "agent-1",
   {
     importance: { $lte: 30 },
@@ -2490,7 +2490,7 @@ console.log(`Would delete ${preview.wouldDelete} memories`);
 
 // Review and confirm
 if (preview.wouldDelete < 100) {
-  const result = await cortex.memory.deleteMany("user-123-personal", {
+  const result = await memoir.memory.deleteMany("user-123-personal", {
     importance: { $lte: 30 },
     accessCount: { $lte: 1 },
     createdBefore: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
@@ -2503,8 +2503,8 @@ if (preview.wouldDelete < 100) {
 
 **Errors:**
 
-- `CortexError('INVALID_FILTERS')` - Filters are malformed
-- `CortexError('DELETION_CANCELLED')` - User cancelled confirmation
+- `MemoirError('INVALID_FILTERS')` - Filters are malformed
+- `MemoirError('DELETION_CANCELLED')` - User cancelled confirmation
 
 **See Also:**
 
@@ -2520,7 +2520,7 @@ Count memories matching filters without retrieving them.
 **Signature:**
 
 ```typescript
-cortex.vector.count(
+memoir.vector.count(
   filter: CountMemoriesFilter
 ): Promise<number>
 ```
@@ -2550,20 +2550,20 @@ interface CountMemoriesFilter {
 
 ```typescript
 // Total memories
-const total = await cortex.memory.count("user-123-personal");
+const total = await memoir.memory.count("user-123-personal");
 
 // Count critical memories
-const critical = await cortex.memory.count("user-123-personal", {
+const critical = await memoir.memory.count("user-123-personal", {
   importance: { $gte: 90 },
 });
 
 // Count for specific user
-const userCount = await cortex.memory.count("user-123-personal", {
+const userCount = await memoir.memory.count("user-123-personal", {
   userId: "user-123",
 });
 
 // Complex filter count
-const oldUnused = await cortex.memory.count("user-123-personal", {
+const oldUnused = await memoir.memory.count("user-123-personal", {
   createdBefore: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
   accessCount: { $lte: 1 },
   importance: { $lte: 30 },
@@ -2574,7 +2574,7 @@ console.log(`Found ${oldUnused} old, unused, low-importance memories`);
 
 **Errors:**
 
-- `CortexError('INVALID_FILTERS')` - Filters are malformed
+- `MemoirError('INVALID_FILTERS')` - Filters are malformed
 
 **See Also:**
 
@@ -2589,7 +2589,7 @@ List memories with filtering.
 **Signature:**
 
 ```typescript
-cortex.memory.list(
+memoir.memory.list(
   filter: ListMemoriesFilter
 ): Promise<MemoryEntry[] | EnrichedMemory[]>
 ```
@@ -2627,7 +2627,7 @@ Returns `EnrichedMemory[]` when `enrichFacts: true` is specified, otherwise retu
 
 ```typescript
 // Basic listing
-const memories = await cortex.memory.list({
+const memories = await memoir.memory.list({
   memorySpaceId: "user-123-personal",
   limit: 50,
 });
@@ -2635,21 +2635,21 @@ const memories = await cortex.memory.list({
 console.log(`Retrieved ${memories.length} memories`);
 
 // Filtered listing by user
-const userMemories = await cortex.memory.list({
+const userMemories = await memoir.memory.list({
   memorySpaceId: "user-123-personal",
   userId: "user-123",
   limit: 100,
 });
 
 // Filtered listing by source type
-const conversationMemories = await cortex.memory.list({
+const conversationMemories = await memoir.memory.list({
   memorySpaceId: "user-123-personal",
   sourceType: "conversation",
   limit: 50,
 });
 
 // With enriched facts
-const enrichedMemories = await cortex.memory.list({
+const enrichedMemories = await memoir.memory.list({
   memorySpaceId: "user-123-personal",
   enrichFacts: true,
   limit: 25,
@@ -2663,8 +2663,8 @@ enrichedMemories.forEach((m) => {
 
 **Errors:**
 
-- `CortexError('INVALID_FILTERS')` - Filters are malformed
-- `CortexError('INVALID_PAGINATION')` - Invalid limit/offset
+- `MemoirError('INVALID_FILTERS')` - Filters are malformed
+- `MemoirError('INVALID_PAGINATION')` - Invalid limit/offset
 
 **See Also:**
 
@@ -2679,7 +2679,7 @@ Export memories to JSON or CSV format.
 **Signature:**
 
 ```typescript
-cortex.memory.export(
+memoir.memory.export(
   memorySpaceId: string,
   options?: ExportOptions
 ): Promise<string | ExportData>
@@ -2719,7 +2719,7 @@ interface ExportResult {
 
 ```typescript
 // Export all memories for a user (GDPR)
-const userData = await cortex.memory.export("user-123-personal", {
+const userData = await memoir.memory.export("user-123-personal", {
   userId: "user-123",
   format: "json",
   includeVersionHistory: true,
@@ -2727,7 +2727,7 @@ const userData = await cortex.memory.export("user-123-personal", {
 });
 
 // Export critical memories only
-const criticalBackup = await cortex.memory.export("user-123-personal", {
+const criticalBackup = await memoir.memory.export("user-123-personal", {
   importance: { $gte: 90 },
   format: "json",
   outputPath: "backups/critical-memories.json",
@@ -2738,8 +2738,8 @@ console.log(`Exported to ${criticalBackup}`);
 
 **Errors:**
 
-- `CortexError('INVALID_FORMAT')` - Format not supported
-- `CortexError('EXPORT_FAILED')` - File write error
+- `MemoirError('INVALID_FORMAT')` - Format not supported
+- `MemoirError('EXPORT_FAILED')` - File write error
 
 **See Also:**
 
@@ -2754,7 +2754,7 @@ Soft delete a single memory (move to archive storage, recoverable).
 **Signature:**
 
 ```typescript
-cortex.memory.archive(
+memoir.memory.archive(
   memorySpaceId: string,
   memoryId: string
 ): Promise<ArchiveResult>
@@ -2790,14 +2790,14 @@ The `factsArchived` and `factIds` fields are only returned by the Layer 4 `memor
 
 ```typescript
 // Archive a specific memory
-const result = await cortex.memory.archive("user-123-personal", "mem_abc123");
+const result = await memoir.memory.archive("user-123-personal", "mem_abc123");
 
 console.log(`Archived: ${result.archived}`);
 console.log(`Memory ID: ${result.memoryId}`);
 console.log(`Restorable: ${result.restorable}`);
 
 // Restore from archive if needed
-const restored = await cortex.memory.restoreFromArchive(
+const restored = await memoir.memory.restoreFromArchive(
   "user-123-personal",
   "mem_abc123",
 );
@@ -2805,8 +2805,8 @@ const restored = await cortex.memory.restoreFromArchive(
 
 **Errors:**
 
-- `CortexError('INVALID_FILTERS')` - Filters are malformed
-- `CortexError('ARCHIVE_FAILED')` - Archive operation failed
+- `MemoirError('INVALID_FILTERS')` - Filters are malformed
+- `MemoirError('ARCHIVE_FAILED')` - Archive operation failed
 
 **See Also:**
 
@@ -2821,7 +2821,7 @@ Restore a previously archived memory back to active status.
 **Signature:**
 
 ```typescript
-cortex.memory.restoreFromArchive(
+memoir.memory.restoreFromArchive(
   memorySpaceId: string,
   memoryId: string
 ): Promise<RestoreResult>
@@ -2846,7 +2846,7 @@ interface RestoreResult {
 
 ```typescript
 // Restore a specific archived memory
-const result = await cortex.memory.restoreFromArchive(
+const result = await memoir.memory.restoreFromArchive(
   "user-123-personal",
   "mem_abc123",
 );
@@ -2859,9 +2859,9 @@ if (result.restored) {
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('MEMORY_NOT_ARCHIVED')` - Memory is not in archived state
-- `CortexError('PERMISSION_DENIED')` - Memory space doesn't own this memory
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('MEMORY_NOT_ARCHIVED')` - Memory is not in archived state
+- `MemoirError('PERMISSION_DENIED')` - Memory space doesn't own this memory
 
 **See Also:**
 
@@ -2879,7 +2879,7 @@ Retrieve a specific version of a memory.
 **Signature:**
 
 ```typescript
-cortex.memory.getVersion(
+memoir.memory.getVersion(
   memorySpaceId: string,
   memoryId: string,
   version: number
@@ -2901,7 +2901,7 @@ cortex.memory.getVersion(
 
 ```typescript
 // Get version 1
-const v1 = await cortex.memory.getVersion("user-123-personal", "mem_abc123", 1);
+const v1 = await memoir.memory.getVersion("user-123-personal", "mem_abc123", 1);
 
 if (v1) {
   console.log(`v1 content: ${v1.content}`);
@@ -2918,8 +2918,8 @@ if (v1) {
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('VERSION_NOT_FOUND')` - Version doesn't exist
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('VERSION_NOT_FOUND')` - Version doesn't exist
 
 **See Also:**
 
@@ -2934,7 +2934,7 @@ Get all versions of a memory.
 **Signature:**
 
 ```typescript
-cortex.memory.getHistory(
+memoir.memory.getHistory(
   memorySpaceId: string,
   memoryId: string
 ): Promise<MemoryVersion[]>
@@ -2952,7 +2952,7 @@ cortex.memory.getHistory(
 **Example:**
 
 ```typescript
-const history = await cortex.memory.getHistory(
+const history = await memoir.memory.getHistory(
   "user-123-personal",
   "mem_abc123",
 );
@@ -2971,7 +2971,7 @@ history.forEach((v) => {
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
 
 **See Also:**
 
@@ -2986,7 +2986,7 @@ Get memory state at a specific point in time (temporal query).
 **Signature:**
 
 ```typescript
-cortex.vector.getAtTimestamp(
+memoir.vector.getAtTimestamp(
   memorySpaceId: string,
   memoryId: string,
   timestamp: number | Date
@@ -3008,7 +3008,7 @@ cortex.vector.getAtTimestamp(
 
 ```typescript
 // What was the password on August 1st?
-const historicalMemory = await cortex.memory.getAtTimestamp(
+const historicalMemory = await memoir.memory.getAtTimestamp(
   "agent-1",
   "mem_password",
   new Date("2025-08-01T00:00:00Z"),
@@ -3019,7 +3019,7 @@ if (historicalMemory) {
 
   // Can still get ACID source even if version cleaned up
   if (historicalMemory.conversationRef) {
-    const conversation = await cortex.conversations.get(
+    const conversation = await memoir.conversations.get(
       historicalMemory.conversationRef.conversationId,
     );
     const sourceMsg = conversation.messages.find((m) =>
@@ -3034,8 +3034,8 @@ if (historicalMemory) {
 
 **Errors:**
 
-- `CortexError('MEMORY_NOT_FOUND')` - Memory doesn't exist
-- `CortexError('INVALID_TIMESTAMP')` - Timestamp is invalid
+- `MemoirError('MEMORY_NOT_FOUND')` - Memory doesn't exist
+- `MemoirError('INVALID_TIMESTAMP')` - Timestamp is invalid
 
 **See Also:**
 
@@ -3117,17 +3117,17 @@ Configure per-agent or globally:
 
 ```typescript
 // Global configuration
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   defaultVersionRetention: 10, // Keep last 10 versions (default)
 });
 
 // Per-agent configuration
-await cortex.agents.configure("audit-agent", {
+await memoir.agents.configure("audit-agent", {
   memoryVersionRetention: -1, // Unlimited (keep all versions)
 });
 
-await cortex.agents.configure("temp-agent", {
+await memoir.agents.configure("temp-agent", {
   memoryVersionRetention: 1, // Only current (no history)
 });
 ```
@@ -3140,7 +3140,7 @@ await cortex.agents.configure("temp-agent", {
 
 ## Graph-Lite Capabilities
 
-Memory entries participate in the Cortex graph through references:
+Memory entries participate in the Memoir graph through references:
 
 **Memory as Graph Node:**
 
@@ -3160,19 +3160,19 @@ Memory entries participate in the Cortex graph through references:
 
 ```typescript
 // Find all memories in a workflow (via contextId edge)
-const workflowMemories = await cortex.memory.search("user-123-personal", "*", {
+const workflowMemories = await memoir.memory.search("user-123-personal", "*", {
   metadata: { contextId: "ctx-001" },
 });
 
 // Trace memory to source conversation (via conversationRef edge)
-const enriched = await cortex.memory.get("user-123-personal", memoryId, {
+const enriched = await memoir.memory.get("user-123-personal", memoryId, {
   includeConversation: true, // ← Follow conversationRef edge
 });
 
 // Get all user's memories across agents (via userId edge)
-const agents = await cortex.agents.list();
+const agents = await memoir.agents.list();
 for (const agent of agents) {
-  const userMemories = await cortex.memory.search(agent.id, "*", {
+  const userMemories = await memoir.memory.search(agent.id, "*", {
     userId: "user-123",
   });
 }
@@ -3225,10 +3225,10 @@ All memory operation errors:
 The Vector API exports a custom error class for validation failures:
 
 ```typescript
-import { VectorValidationError } from "@cortex-ai/sdk/vector";
+import { VectorValidationError } from "@memoir-ai/sdk/vector";
 
 try {
-  await cortex.vector.store(memorySpaceId, input);
+  await memoir.vector.store(memorySpaceId, input);
 } catch (error) {
   if (error instanceof VectorValidationError) {
     console.log(`Validation failed: ${error.message}`);
@@ -3252,7 +3252,7 @@ try {
 
 ## Next Steps
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).
 
 <QuickNav>
 

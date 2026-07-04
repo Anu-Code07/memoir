@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conflict Resolution Prompts
+ * Memoir SDK - Conflict Resolution Prompts
  *
  * LLM prompt templates for nuanced conflict resolution when
  * slot or semantic matching finds potential duplicates.

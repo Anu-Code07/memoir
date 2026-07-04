@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Sharing Utilities
+ * Memoir SDK - Sharing Utilities
  *
  * Framework-agnostic utilities for working with shareable conversation links.
  */
@@ -31,7 +31,7 @@ export interface ShareUrlConfig {
  *
  * @example
  * ```typescript
- * import { buildShareUrl } from '@cortex/sdk';
+ * import { buildShareUrl } from '@memoir/sdk';
  *
  * // Path style (default): https://myapp.com/shared/share-abc123
  * const url1 = buildShareUrl('share-abc123', {
@@ -74,7 +74,7 @@ export function buildShareUrl(shareId: string, config: ShareUrlConfig): string {
  *
  * @example
  * ```typescript
- * import { extractShareId } from '@cortex/sdk';
+ * import { extractShareId } from '@memoir/sdk';
  *
  * // From path style
  * extractShareId('https://myapp.com/shared/share-abc123', { style: 'path' });

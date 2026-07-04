@@ -1,5 +1,5 @@
 /**
- * React hook for tracking Cortex memory layer orchestration
+ * React hook for tracking Memoir memory layer orchestration
  *
  * This hook provides state management for memory layer visualization,
  * automatically parsing layer events from the AI SDK stream.
@@ -10,7 +10,7 @@
  *
  * @example
  * ```typescript
- * import { useLayerTracking } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {
@@ -45,7 +45,7 @@ import type {
   MemoryLayer,
   LayerStatus,
   RevisionAction,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 
 // Re-export types from SDK for convenience
 export type { MemoryLayer, LayerStatus, RevisionAction };
@@ -329,7 +329,7 @@ export interface UseLayerTrackingResult {
 }
 
 /**
- * React hook for tracking Cortex memory layer orchestration
+ * React hook for tracking Memoir memory layer orchestration
  *
  * Provides state management and event handling for visualizing
  * memory layer status in real-time during AI conversations.
@@ -339,7 +339,7 @@ export interface UseLayerTrackingResult {
  *
  * @example
  * ```typescript
- * import { useLayerTracking } from '@cortexmemory/vercel-ai-provider/react';
+ * import { useLayerTracking } from '@memoir/vercel-ai-provider/react';
  * import { useChat } from '@ai-sdk/react';
  *
  * function ChatComponent() {
@@ -708,7 +708,7 @@ export function generateSampleLayerData(
     case "agent":
       return {
         id: "demo-assistant",
-        preview: "Cortex Demo Assistant",
+        preview: "Memoir Demo Assistant",
       };
     case "context":
       return {

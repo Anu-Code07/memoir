@@ -1,12 +1,12 @@
 /**
- * Streaming helpers for Cortex Memory layer visualization
+ * Streaming helpers for Memoir layer visualization
  *
  * These utilities reduce boilerplate when integrating memory layer events
  * into Vercel AI SDK's streaming responses for real-time UI updates.
  *
  * @example
  * ```typescript
- * import { createLayerStreamObserver } from '@cortexmemory/vercel-ai-provider';
+ * import { createLayerStreamObserver } from '@memoir/vercel-ai-provider';
  *
  * const { observer, emitTo } = createLayerStreamObserver();
  *
@@ -14,7 +14,7 @@
  *   stream: createUIMessageStream({
  *     execute: async ({ writer }) => {
  *       emitTo(writer);
- *       const cortexMemory = await createCortexMemoryAsync({
+ *       const memoirMemory = await createMemoirMemoryAsync({
  *         layerObserver: observer,
  *         // ...config
  *       });
@@ -54,7 +54,7 @@ export interface StreamWriter {
  */
 export interface LayerStreamObserverResult {
   /**
-   * OrchestrationObserver to pass to createCortexMemoryAsync's layerObserver config
+   * OrchestrationObserver to pass to createMemoirMemoryAsync's layerObserver config
    */
   observer: OrchestrationObserver;
 
@@ -114,7 +114,7 @@ export interface PhaseStreamObserverResult {
  * @example
  * ```typescript
  * // In your API route
- * import { createLayerStreamObserver, createCortexMemoryAsync } from '@cortexmemory/vercel-ai-provider';
+ * import { createLayerStreamObserver, createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
  * import { createUIMessageStream, createUIMessageStreamResponse } from 'ai';
  *
  * export async function POST(req: Request) {
@@ -127,7 +127,7 @@ export interface PhaseStreamObserverResult {
  *         emitTo(writer);
  *
  *         // Create memory-augmented model
- *         const cortexMemory = await createCortexMemoryAsync({
+ *         const memoirMemory = await createMemoirMemoryAsync({
  *           convexUrl: process.env.CONVEX_URL!,
  *           memorySpaceId: 'my-space',
  *           userId: 'user-123',
@@ -137,7 +137,7 @@ export interface PhaseStreamObserverResult {
  *
  *         // Stream response
  *         const result = streamText({
- *           model: cortexMemory(openai('gpt-4o-mini')),
+ *           model: memoirMemory(openai('gpt-4o-mini')),
  *           messages,
  *         });
  *
@@ -225,7 +225,7 @@ export function createLayerStreamObserver(): LayerStreamObserverResult {
  *
  * @example
  * ```typescript
- * import { createRecallStreamObserver, createRememberStreamObserver } from '@cortexmemory/vercel-ai-provider';
+ * import { createRecallStreamObserver, createRememberStreamObserver } from '@memoir/vercel-ai-provider';
  *
  * export async function POST(req: Request) {
  *   const recallObserver = createRecallStreamObserver();
@@ -316,7 +316,7 @@ export function createRecallStreamObserver(): PhaseStreamObserverResult {
  *
  * @example
  * ```typescript
- * import { createRecallStreamObserver, createRememberStreamObserver } from '@cortexmemory/vercel-ai-provider';
+ * import { createRecallStreamObserver, createRememberStreamObserver } from '@memoir/vercel-ai-provider';
  *
  * export async function POST(req: Request) {
  *   const recallObserver = createRecallStreamObserver();

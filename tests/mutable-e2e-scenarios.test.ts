@@ -12,10 +12,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 describe("Mutable Store E2E Scenarios", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const BASE_ID = `e2e-mutable-${Date.now()}`;
 
   beforeAll(async () => {
@@ -23,7 +23,7 @@ describe("Mutable Store E2E Scenarios", () => {
     if (!convexUrl) {
       throw new Error("CONVEX_URL not set");
     }
-    cortex = new Cortex({ convexUrl });
+    memoir = new Memoir({ convexUrl });
     console.log(`\n🛒 Mutable E2E Scenarios - Run ID: ${BASE_ID}\n`);
   });
 
@@ -40,7 +40,7 @@ describe("Mutable Store E2E Scenarios", () => {
 
     for (const ns of namespacesToClean) {
       try {
-        await cortex.mutable.purgeNamespace(ns);
+        await memoir.mutable.purgeNamespace(ns);
       } catch (_e) {
         // Ignore - namespace might not exist
       }
@@ -60,7 +60,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const cartKey = `cart:${userId}`;
 
       // Initialize empty cart
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         cartNs,
         cartKey,
         {
@@ -72,7 +72,7 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Add first item
-      const cart = (await cortex.mutable.get(cartNs, cartKey)) as {
+      const cart = (await memoir.mutable.get(cartNs, cartKey)) as {
         items: Array<{
           productId: string;
           name: string;
@@ -94,7 +94,7 @@ describe("Mutable Store E2E Scenarios", () => {
       cart.totalItems += newItem.quantity;
       cart.totalPrice += newItem.price * newItem.quantity;
 
-      const updated = await cortex.mutable.set(cartNs, cartKey, cart, userId);
+      const updated = await memoir.mutable.set(cartNs, cartKey, cart, userId);
 
       expect((updated.value as any).items).toHaveLength(1);
       expect((updated.value as any).totalItems).toBe(2);
@@ -106,7 +106,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const cartKey = `cart:${userId}`;
 
       // Get current cart
-      const cart = (await cortex.mutable.get(cartNs, cartKey)) as {
+      const cart = (await memoir.mutable.get(cartNs, cartKey)) as {
         items: Array<{
           productId: string;
           name: string;
@@ -127,10 +127,10 @@ describe("Mutable Store E2E Scenarios", () => {
       cart.totalPrice =
         cart.totalPrice - item!.price * oldQuantity + item!.price * newQuantity;
 
-      await cortex.mutable.set(cartNs, cartKey, cart, userId);
+      await memoir.mutable.set(cartNs, cartKey, cart, userId);
 
       // Verify
-      const updatedCart = await cortex.mutable.get(cartNs, cartKey);
+      const updatedCart = await memoir.mutable.get(cartNs, cartKey);
       expect((updatedCart as any).totalItems).toBe(5);
       expect((updatedCart as any).totalPrice).toBeCloseTo(149.95);
     });
@@ -140,7 +140,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const cartKey = `cart:${userId}`;
 
       // Get current cart
-      const cart = (await cortex.mutable.get(cartNs, cartKey)) as {
+      const cart = (await memoir.mutable.get(cartNs, cartKey)) as {
         items: Array<{
           productId: string;
           name: string;
@@ -158,10 +158,10 @@ describe("Mutable Store E2E Scenarios", () => {
       cart.totalItems -= removedItem.quantity;
       cart.totalPrice -= removedItem.price * removedItem.quantity;
 
-      await cortex.mutable.set(cartNs, cartKey, cart, userId);
+      await memoir.mutable.set(cartNs, cartKey, cart, userId);
 
       // Verify
-      const updatedCart = await cortex.mutable.get(cartNs, cartKey);
+      const updatedCart = await memoir.mutable.get(cartNs, cartKey);
       expect((updatedCart as any).items).toHaveLength(0);
       expect((updatedCart as any).totalItems).toBe(0);
       expect((updatedCart as any).totalPrice).toBe(0);
@@ -174,7 +174,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const salesKey = "sales:total";
 
       // Setup: Create cart with items
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         cartNs,
         cartKey,
         {
@@ -188,16 +188,16 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Setup: Inventory with 100 widgets
-      await cortex.mutable.set(cartNs, inventoryKey, 100);
+      await memoir.mutable.set(cartNs, inventoryKey, 100);
 
       // Setup: Sales counter
-      await cortex.mutable.set(cartNs, salesKey, 0);
+      await memoir.mutable.set(cartNs, salesKey, 0);
 
       // Checkout transaction:
       // 1. Decrement inventory by quantity ordered
       // 2. Increment sales counter
       // 3. Clear the cart
-      const result = await cortex.mutable.transaction([
+      const result = await memoir.mutable.transaction([
         { op: "decrement", namespace: cartNs, key: inventoryKey, amount: 3 },
         { op: "increment", namespace: cartNs, key: salesKey, amount: 30 },
         {
@@ -212,13 +212,13 @@ describe("Mutable Store E2E Scenarios", () => {
       expect(result.operationsExecuted).toBe(3);
 
       // Verify final state
-      const inventory = await cortex.mutable.get(cartNs, inventoryKey);
+      const inventory = await memoir.mutable.get(cartNs, inventoryKey);
       expect(inventory).toBe(97);
 
-      const sales = await cortex.mutable.get(cartNs, salesKey);
+      const sales = await memoir.mutable.get(cartNs, salesKey);
       expect(sales).toBe(30);
 
-      const cart = await cortex.mutable.get(cartNs, cartKey);
+      const cart = await memoir.mutable.get(cartNs, cartKey);
       expect((cart as any).items).toHaveLength(0);
       expect((cart as any).checkedOut).toBe(true);
     });
@@ -229,7 +229,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const oneHourAgo = now - 60 * 60 * 1000;
 
       for (let i = 1; i <= 5; i++) {
-        await cortex.mutable.set(
+        await memoir.mutable.set(
           cartNs,
           `abandoned:cart-${i}`,
           { items: [{ name: `Item ${i}` }], createdAt: oneHourAgo },
@@ -238,7 +238,7 @@ describe("Mutable Store E2E Scenarios", () => {
       }
 
       // Create a recent cart
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         cartNs,
         "recent:cart-1",
         { items: [{ name: "Recent Item" }], createdAt: now },
@@ -246,14 +246,14 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Count all carts before cleanup
-      const beforeCount = await cortex.mutable.count({
+      const beforeCount = await memoir.mutable.count({
         namespace: cartNs,
         keyPrefix: "abandoned:",
       });
       expect(beforeCount).toBe(5);
 
       // Purge abandoned carts
-      const purgeResult = await cortex.mutable.purgeMany({
+      const purgeResult = await memoir.mutable.purgeMany({
         namespace: cartNs,
         keyPrefix: "abandoned:",
       });
@@ -261,7 +261,7 @@ describe("Mutable Store E2E Scenarios", () => {
       expect(purgeResult.deleted).toBe(5);
 
       // Verify recent cart still exists
-      const recentCart = await cortex.mutable.get(cartNs, "recent:cart-1");
+      const recentCart = await memoir.mutable.get(cartNs, "recent:cart-1");
       expect(recentCart).not.toBeNull();
     });
   });
@@ -291,7 +291,7 @@ describe("Mutable Store E2E Scenarios", () => {
         },
       };
 
-      const result = await cortex.mutable.set(prefsNs, prefsKey, prefs, userId);
+      const result = await memoir.mutable.set(prefsNs, prefsKey, prefs, userId);
 
       expect(result.userId).toBe(userId);
       expect((result.value as any).theme).toBe("dark");
@@ -302,14 +302,14 @@ describe("Mutable Store E2E Scenarios", () => {
       const prefsKey = `prefs:${userId}`;
 
       // Get current prefs and update
-      const current = (await cortex.mutable.get(prefsNs, prefsKey)) as any;
+      const current = (await memoir.mutable.get(prefsNs, prefsKey)) as any;
       current.theme = "light";
       current.notifications.push = true;
 
-      await cortex.mutable.set(prefsNs, prefsKey, current, userId);
+      await memoir.mutable.set(prefsNs, prefsKey, current, userId);
 
       // Verify
-      const updated = await cortex.mutable.get(prefsNs, prefsKey);
+      const updated = await memoir.mutable.get(prefsNs, prefsKey);
       expect((updated as any).theme).toBe("light");
       expect((updated as any).notifications.push).toBe(true);
       expect((updated as any).language).toBe("en"); // Unchanged
@@ -333,9 +333,9 @@ describe("Mutable Store E2E Scenarios", () => {
         },
       };
 
-      await cortex.mutable.set(prefsNs, prefsKey, defaultPrefs, userId);
+      await memoir.mutable.set(prefsNs, prefsKey, defaultPrefs, userId);
 
-      const reset = await cortex.mutable.get(prefsNs, prefsKey);
+      const reset = await memoir.mutable.get(prefsNs, prefsKey);
       expect((reset as any).theme).toBe("system");
       expect((reset as any).privacy.shareAnalytics).toBe(true);
     });
@@ -345,14 +345,14 @@ describe("Mutable Store E2E Scenarios", () => {
       const prefsKey = `prefs:${userId}`;
 
       // Verify exists
-      const before = await cortex.mutable.exists(prefsNs, prefsKey);
+      const before = await memoir.mutable.exists(prefsNs, prefsKey);
       expect(before).toBe(true);
 
       // Delete
-      await cortex.mutable.delete(prefsNs, prefsKey);
+      await memoir.mutable.delete(prefsNs, prefsKey);
 
       // Verify deleted
-      const after = await cortex.mutable.exists(prefsNs, prefsKey);
+      const after = await memoir.mutable.exists(prefsNs, prefsKey);
       expect(after).toBe(false);
     });
   });
@@ -370,14 +370,14 @@ describe("Mutable Store E2E Scenarios", () => {
       const rateKey = `rate:${userId}:api`;
 
       // Initialize counter
-      await cortex.mutable.set(rateNs, rateKey, 0, userId);
+      await memoir.mutable.set(rateNs, rateKey, 0, userId);
 
       // Simulate API requests
       for (let i = 1; i <= 5; i++) {
-        await cortex.mutable.increment(rateNs, rateKey, 1);
+        await memoir.mutable.increment(rateNs, rateKey, 1);
       }
 
-      const count = await cortex.mutable.get(rateNs, rateKey);
+      const count = await memoir.mutable.get(rateNs, rateKey);
       expect(count).toBe(5);
     });
 
@@ -386,11 +386,11 @@ describe("Mutable Store E2E Scenarios", () => {
       const rateKey = `rate:${userId}:api`;
 
       // Initialize at 0
-      await cortex.mutable.set(rateNs, rateKey, 0, userId);
+      await memoir.mutable.set(rateNs, rateKey, 0, userId);
 
       // Simulate requests up to limit
       for (let i = 1; i <= RATE_LIMIT; i++) {
-        const result = await cortex.mutable.increment(rateNs, rateKey, 1);
+        const result = await memoir.mutable.increment(rateNs, rateKey, 1);
         const currentCount = result.value as number;
 
         if (currentCount > RATE_LIMIT) {
@@ -400,7 +400,7 @@ describe("Mutable Store E2E Scenarios", () => {
       }
 
       // One more request should exceed
-      const result = await cortex.mutable.increment(rateNs, rateKey, 1);
+      const result = await memoir.mutable.increment(rateNs, rateKey, 1);
       const finalCount = result.value as number;
 
       expect(finalCount).toBeGreaterThan(RATE_LIMIT);
@@ -415,9 +415,9 @@ describe("Mutable Store E2E Scenarios", () => {
       const rateKey = `rate:${userId}:api`;
 
       // Reset counter (simulating window expiry)
-      await cortex.mutable.set(rateNs, rateKey, 0, userId);
+      await memoir.mutable.set(rateNs, rateKey, 0, userId);
 
-      const afterReset = await cortex.mutable.get(rateNs, rateKey);
+      const afterReset = await memoir.mutable.get(rateNs, rateKey);
       expect(afterReset).toBe(0);
     });
 
@@ -425,22 +425,22 @@ describe("Mutable Store E2E Scenarios", () => {
       const userId = "api-user-003";
 
       // Different rate limits for different operations
-      await cortex.mutable.set(rateNs, `rate:${userId}:api`, 0, userId);
-      await cortex.mutable.set(rateNs, `rate:${userId}:login`, 0, userId);
-      await cortex.mutable.set(rateNs, `rate:${userId}:upload`, 0, userId);
+      await memoir.mutable.set(rateNs, `rate:${userId}:api`, 0, userId);
+      await memoir.mutable.set(rateNs, `rate:${userId}:login`, 0, userId);
+      await memoir.mutable.set(rateNs, `rate:${userId}:upload`, 0, userId);
 
       // Simulate different request types
-      await cortex.mutable.increment(rateNs, `rate:${userId}:api`, 5);
-      await cortex.mutable.increment(rateNs, `rate:${userId}:login`, 2);
-      await cortex.mutable.increment(rateNs, `rate:${userId}:upload`, 1);
+      await memoir.mutable.increment(rateNs, `rate:${userId}:api`, 5);
+      await memoir.mutable.increment(rateNs, `rate:${userId}:login`, 2);
+      await memoir.mutable.increment(rateNs, `rate:${userId}:upload`, 1);
 
       // Check all counters
-      const apiCount = await cortex.mutable.get(rateNs, `rate:${userId}:api`);
-      const loginCount = await cortex.mutable.get(
+      const apiCount = await memoir.mutable.get(rateNs, `rate:${userId}:api`);
+      const loginCount = await memoir.mutable.get(
         rateNs,
         `rate:${userId}:login`,
       );
-      const uploadCount = await cortex.mutable.get(
+      const uploadCount = await memoir.mutable.get(
         rateNs,
         `rate:${userId}:upload`,
       );
@@ -474,7 +474,7 @@ describe("Mutable Store E2E Scenarios", () => {
         },
       };
 
-      const result = await cortex.mutable.set(
+      const result = await memoir.mutable.set(
         sessionNs,
         sessionKey,
         session,
@@ -492,7 +492,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const sessionKey = `sess:${sessionId}`;
 
       // Create valid session
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         sessionNs,
         sessionKey,
         {
@@ -505,7 +505,7 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Validate session exists and not expired
-      const session = (await cortex.mutable.get(sessionNs, sessionKey)) as any;
+      const session = (await memoir.mutable.get(sessionNs, sessionKey)) as any;
       const isValid = session && session.expiresAt > Date.now();
 
       expect(isValid).toBe(true);
@@ -517,7 +517,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const sessionKey = `sess:${sessionId}`;
 
       // Create expired session (expiresAt in the past)
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         sessionNs,
         sessionKey,
         {
@@ -530,7 +530,7 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Check if expired
-      const session = (await cortex.mutable.get(sessionNs, sessionKey)) as any;
+      const session = (await memoir.mutable.get(sessionNs, sessionKey)) as any;
       const isExpired = session.expiresAt < Date.now();
 
       expect(isExpired).toBe(true);
@@ -542,7 +542,7 @@ describe("Mutable Store E2E Scenarios", () => {
       const sessionKey = `sess:${sessionId}`;
 
       // Create session
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         sessionNs,
         sessionKey,
         { userId, active: true },
@@ -550,10 +550,10 @@ describe("Mutable Store E2E Scenarios", () => {
       );
 
       // Logout - delete session
-      await cortex.mutable.delete(sessionNs, sessionKey);
+      await memoir.mutable.delete(sessionNs, sessionKey);
 
       // Verify session doesn't exist
-      const session = await cortex.mutable.get(sessionNs, sessionKey);
+      const session = await memoir.mutable.get(sessionNs, sessionKey);
       expect(session).toBeNull();
     });
 
@@ -562,7 +562,7 @@ describe("Mutable Store E2E Scenarios", () => {
 
       // Create multiple sessions
       for (let i = 1; i <= 3; i++) {
-        await cortex.mutable.set(
+        await memoir.mutable.set(
           sessionNs,
           `sess:${userId}:device-${i}`,
           { userId, device: `device-${i}`, active: true },
@@ -571,7 +571,7 @@ describe("Mutable Store E2E Scenarios", () => {
       }
 
       // List user's sessions
-      const sessions = await cortex.mutable.list({
+      const sessions = await memoir.mutable.list({
         namespace: sessionNs,
         userId,
       });
@@ -591,7 +591,7 @@ describe("Mutable Store E2E Scenarios", () => {
     const flagsNs = `${BASE_ID}-feature-flags`;
 
     it("create feature flag", async () => {
-      const result = await cortex.mutable.set(flagsNs, "flag:dark-mode", {
+      const result = await memoir.mutable.set(flagsNs, "flag:dark-mode", {
         enabled: true,
         rolloutPercentage: 100,
         allowedUsers: [],
@@ -603,20 +603,20 @@ describe("Mutable Store E2E Scenarios", () => {
 
     it("check feature flag state", async () => {
       // Check if feature is enabled
-      const flag = (await cortex.mutable.get(flagsNs, "flag:dark-mode")) as any;
+      const flag = (await memoir.mutable.get(flagsNs, "flag:dark-mode")) as any;
 
       expect(flag.enabled).toBe(true);
       expect(flag.rolloutPercentage).toBe(100);
     });
 
     it("partial rollout feature flag", async () => {
-      await cortex.mutable.set(flagsNs, "flag:new-checkout", {
+      await memoir.mutable.set(flagsNs, "flag:new-checkout", {
         enabled: true,
         rolloutPercentage: 25,
         allowedUsers: ["beta-tester-1", "beta-tester-2"],
       });
 
-      const flag = (await cortex.mutable.get(
+      const flag = (await memoir.mutable.get(
         flagsNs,
         "flag:new-checkout",
       )) as any;
@@ -638,17 +638,17 @@ describe("Mutable Store E2E Scenarios", () => {
 
     it("disable feature flag", async () => {
       // Get current flag
-      const current = (await cortex.mutable.get(
+      const current = (await memoir.mutable.get(
         flagsNs,
         "flag:dark-mode",
       )) as any;
 
       // Disable
       current.enabled = false;
-      await cortex.mutable.set(flagsNs, "flag:dark-mode", current);
+      await memoir.mutable.set(flagsNs, "flag:dark-mode", current);
 
       // Verify disabled
-      const updated = (await cortex.mutable.get(
+      const updated = (await memoir.mutable.get(
         flagsNs,
         "flag:dark-mode",
       )) as any;
@@ -657,13 +657,13 @@ describe("Mutable Store E2E Scenarios", () => {
 
     it("list all feature flags", async () => {
       // Create a few more flags
-      await cortex.mutable.set(flagsNs, "flag:beta-features", {
+      await memoir.mutable.set(flagsNs, "flag:beta-features", {
         enabled: false,
       });
-      await cortex.mutable.set(flagsNs, "flag:analytics", { enabled: true });
+      await memoir.mutable.set(flagsNs, "flag:analytics", { enabled: true });
 
       // List all flags
-      const flags = await cortex.mutable.list({
+      const flags = await memoir.mutable.list({
         namespace: flagsNs,
         keyPrefix: "flag:",
       });

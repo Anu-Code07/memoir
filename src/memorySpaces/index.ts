@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Memory Spaces API
+ * Memoir SDK - Memory Spaces API
  *
  * Hive/Collaboration Mode management
  */
@@ -84,7 +84,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * const space = await cortex.memorySpaces.register({
+   * const space = await memoir.memorySpaces.register({
    *   memorySpaceId: 'team-alpha',
    *   name: 'Team Alpha Workspace',
    *   type: 'team',
@@ -162,7 +162,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * const space = await cortex.memorySpaces.get('team-alpha');
+   * const space = await memoir.memorySpaces.get('team-alpha');
    * ```
    */
   async get(memorySpaceId: string): Promise<MemorySpace | null> {
@@ -186,13 +186,13 @@ export class MemorySpacesAPI {
    * @example
    * ```typescript
    * // Basic listing
-   * const teams = await cortex.memorySpaces.list({
+   * const teams = await memoir.memorySpaces.list({
    *   type: 'team',
    *   status: 'active',
    * });
    *
    * // With pagination and sorting
-   * const result = await cortex.memorySpaces.list({
+   * const result = await memoir.memorySpaces.list({
    *   type: 'personal',
    *   limit: 20,
    *   offset: 0,
@@ -202,7 +202,7 @@ export class MemorySpacesAPI {
    * console.log(`Found ${result.total} spaces, showing ${result.spaces.length}`);
    *
    * // Filter by participant (Hive Mode)
-   * const cursorSpaces = await cortex.memorySpaces.list({
+   * const cursorSpaces = await memoir.memorySpaces.list({
    *   participant: 'cursor',
    * });
    * ```
@@ -251,7 +251,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * const activeCount = await cortex.memorySpaces.count({ status: 'active' });
+   * const activeCount = await memoir.memorySpaces.count({ status: 'active' });
    * ```
    */
   async count(filter?: {
@@ -283,13 +283,13 @@ export class MemorySpacesAPI {
    * @example
    * ```typescript
    * // Update name and status
-   * await cortex.memorySpaces.update('team-alpha', {
+   * await memoir.memorySpaces.update('team-alpha', {
    *   name: 'Updated Name',
    *   status: 'archived',
    * });
    *
    * // Update with graph sync
-   * await cortex.memorySpaces.update('team-alpha', {
+   * await memoir.memorySpaces.update('team-alpha', {
    *   metadata: { lastReview: Date.now() },
    * }, { syncToGraph: true });
    * ```
@@ -346,7 +346,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memorySpaces.addParticipant('team-alpha', {
+   * await memoir.memorySpaces.addParticipant('team-alpha', {
    *   id: 'tool-analyzer',
    *   type: 'tool',
    *   joinedAt: Date.now(),
@@ -385,7 +385,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memorySpaces.removeParticipant('team-alpha', 'tool-analyzer');
+   * await memoir.memorySpaces.removeParticipant('team-alpha', 'tool-analyzer');
    * ```
    */
   async removeParticipant(
@@ -418,7 +418,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memorySpaces.archive('project-apollo', {
+   * await memoir.memorySpaces.archive('project-apollo', {
    *   reason: 'Project completed successfully'
    * });
    * ```
@@ -450,7 +450,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memorySpaces.reactivate('project-apollo');
+   * await memoir.memorySpaces.reactivate('project-apollo');
    * ```
    */
   async reactivate(memorySpaceId: string): Promise<MemorySpace> {
@@ -473,7 +473,7 @@ export class MemorySpacesAPI {
    * @example
    * ```typescript
    * // GDPR deletion request
-   * const result = await cortex.memorySpaces.delete('user-123-personal', {
+   * const result = await memoir.memorySpaces.delete('user-123-personal', {
    *   cascade: true,
    *   reason: 'GDPR deletion request from user-123',
    *   confirmId: 'user-123-personal', // Safety check
@@ -518,17 +518,17 @@ export class MemorySpacesAPI {
    * @example
    * ```typescript
    * // Basic stats
-   * const stats = await cortex.memorySpaces.getStats('team-alpha');
+   * const stats = await memoir.memorySpaces.getStats('team-alpha');
    * console.log(`${stats.totalConversations} conversations, ${stats.totalMemories} memories`);
    *
    * // With time window
-   * const weekStats = await cortex.memorySpaces.getStats('team-alpha', {
+   * const weekStats = await memoir.memorySpaces.getStats('team-alpha', {
    *   timeWindow: '7d',
    * });
    * console.log(`Activity this week: ${weekStats.memoriesThisWindow} memories`);
    *
    * // With participant breakdown (Hive Mode)
-   * const hiveStats = await cortex.memorySpaces.getStats('team-engineering-workspace', {
+   * const hiveStats = await memoir.memorySpaces.getStats('team-engineering-workspace', {
    *   timeWindow: '7d',
    *   includeParticipants: true,
    * });
@@ -569,7 +569,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * const userSpaces = await cortex.memorySpaces.findByParticipant('user-123');
+   * const userSpaces = await memoir.memorySpaces.findByParticipant('user-123');
    * ```
    */
   async findByParticipant(participantId: string): Promise<MemorySpace[]> {
@@ -597,7 +597,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.memorySpaces.search('engineering', {
+   * const results = await memoir.memorySpaces.search('engineering', {
    *   type: 'team',
    *   status: 'active',
    *   limit: 10
@@ -643,7 +643,7 @@ export class MemorySpacesAPI {
    *
    * @example
    * ```typescript
-   * await cortex.memorySpaces.updateParticipants('user-123-personal', {
+   * await memoir.memorySpaces.updateParticipants('user-123-personal', {
    *   add: [{ id: 'github-copilot', type: 'ai-tool', joinedAt: Date.now() }],
    *   remove: ['old-tool']
    * });

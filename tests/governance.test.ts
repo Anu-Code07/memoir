@@ -4,7 +4,7 @@
  * Comprehensive tests for data retention, purging, and compliance rules.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { TestCleanup } from "./helpers/cleanup";
 import type { GovernancePolicy, ComplianceTemplate } from "../src/types";
 import { createTestRunContext } from "./helpers/isolation";
@@ -13,7 +13,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const _ctx = createTestRunContext();
 
 describe("Governance API", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _cleanup: TestCleanup;
 
   beforeAll(() => {
@@ -21,8 +21,8 @@ describe("Governance API", () => {
       throw new Error("CONVEX_URL environment variable is required for tests");
     }
 
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL });
-    _cleanup = new TestCleanup(cortex.getClient());
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL });
+    _cleanup = new TestCleanup(memoir.getClient());
   });
 
   afterAll(async () => {
@@ -92,7 +92,7 @@ describe("Governance API", () => {
         },
       };
 
-      const result = await cortex.governance.setPolicy(policy);
+      const result = await memoir.governance.setPolicy(policy);
 
       expect(result.success).toBe(true);
       expect(result.policyId).toBeDefined();
@@ -101,7 +101,7 @@ describe("Governance API", () => {
     });
 
     it("should get organization-wide policy", async () => {
-      const policy = await cortex.governance.getPolicy({
+      const policy = await memoir.governance.getPolicy({
         organizationId: "test-org-001",
       });
 
@@ -127,12 +127,12 @@ describe("Governance API", () => {
         },
       };
 
-      await cortex.governance.setAgentOverride(
+      await memoir.governance.setAgentOverride(
         "audit-agent-space",
         overridePolicy,
       );
 
-      const spacePolicy = await cortex.governance.getPolicy({
+      const spacePolicy = await memoir.governance.getPolicy({
         memorySpaceId: "audit-agent-space",
       });
 
@@ -167,7 +167,7 @@ describe("Governance API", () => {
         },
       };
 
-      await cortex.governance.setPolicy(policy1);
+      await memoir.governance.setPolicy(policy1);
 
       const policy2: GovernancePolicy = {
         ...policy1,
@@ -177,9 +177,9 @@ describe("Governance API", () => {
         },
       };
 
-      await cortex.governance.setPolicy(policy2);
+      await memoir.governance.setPolicy(policy2);
 
-      const retrieved = await cortex.governance.getPolicy({
+      const retrieved = await memoir.governance.getPolicy({
         organizationId: "test-org-002",
       });
 
@@ -221,7 +221,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow(
           "Policy must specify either organizationId or memorySpaceId",
         );
@@ -257,7 +257,7 @@ describe("Governance API", () => {
           },
         };
 
-        await expect(cortex.governance.setPolicy(policy)).rejects.toThrow(
+        await expect(memoir.governance.setPolicy(policy)).rejects.toThrow(
           "Invalid period format",
         );
       });
@@ -295,7 +295,7 @@ describe("Governance API", () => {
           },
         };
 
-        await expect(cortex.governance.setPolicy(policy)).rejects.toThrow(
+        await expect(memoir.governance.setPolicy(policy)).rejects.toThrow(
           "overlaps with range",
         );
       });
@@ -330,7 +330,7 @@ describe("Governance API", () => {
           },
         };
 
-        await expect(cortex.governance.setPolicy(policy)).rejects.toThrow(
+        await expect(memoir.governance.setPolicy(policy)).rejects.toThrow(
           "must be >= -1",
         );
       });
@@ -367,7 +367,7 @@ describe("Governance API", () => {
           },
         };
 
-        await expect(cortex.governance.setPolicy(policy)).rejects.toThrow(
+        await expect(memoir.governance.setPolicy(policy)).rejects.toThrow(
           "must be between 0 and 100",
         );
       });
@@ -401,7 +401,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include conversations configuration");
       });
 
@@ -430,7 +430,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include immutable configuration");
       });
 
@@ -459,7 +459,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include mutable configuration");
       });
 
@@ -488,7 +488,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include vector configuration");
       });
 
@@ -515,7 +515,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include compliance configuration");
       });
 
@@ -547,7 +547,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include retention configuration");
       });
 
@@ -579,7 +579,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include purging configuration");
       });
 
@@ -611,7 +611,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include retention configuration");
       });
 
@@ -643,7 +643,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include purging configuration");
       });
 
@@ -675,7 +675,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include retention configuration");
       });
 
@@ -707,7 +707,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include purging configuration");
       });
 
@@ -739,7 +739,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include retention configuration");
       });
 
@@ -771,7 +771,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow("must include purging configuration");
       });
 
@@ -804,7 +804,7 @@ describe("Governance API", () => {
         };
 
         // Should not throw - both scopes provided is valid
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
       });
 
@@ -862,20 +862,20 @@ describe("Governance API", () => {
         };
 
         // Should succeed with all optional fields omitted
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
         expect(result.policyId).toBeDefined();
       });
 
       it("should throw when policy is null", async () => {
-        await expect(cortex.governance.setPolicy(null as any)).rejects.toThrow(
+        await expect(memoir.governance.setPolicy(null as any)).rejects.toThrow(
           /Policy is required|Cannot read/,
         );
       });
 
       it("should throw when policy is undefined", async () => {
         await expect(
-          cortex.governance.setPolicy(undefined as any),
+          memoir.governance.setPolicy(undefined as any),
         ).rejects.toThrow(/Policy is required|Cannot read/);
       });
     });
@@ -883,7 +883,7 @@ describe("Governance API", () => {
     describe("enforce validation", () => {
       it("should throw when scope is missing", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             layers: ["vector"],
             rules: ["retention"],
             // Missing scope
@@ -893,7 +893,7 @@ describe("Governance API", () => {
 
       it("should throw when scope is empty", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             scope: {}, // Empty scope
           }),
         ).rejects.toThrow(
@@ -903,7 +903,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid layer names", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             scope: { organizationId: "test-org" },
             layers: ["invalid-layer" as any],
           }),
@@ -912,7 +912,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid rule names", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             scope: { organizationId: "test-org" },
             rules: ["invalid-rule" as any],
           }),
@@ -921,7 +921,7 @@ describe("Governance API", () => {
 
       it("should throw on empty layers array", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             scope: { organizationId: "test-org" },
             layers: [],
           }),
@@ -930,7 +930,7 @@ describe("Governance API", () => {
 
       it("should throw on empty rules array", async () => {
         await expect(
-          cortex.governance.enforce({
+          memoir.governance.enforce({
             scope: { organizationId: "test-org" },
             rules: [],
           }),
@@ -944,7 +944,7 @@ describe("Governance API", () => {
         const yesterday = now - 24 * 60 * 60 * 1000;
 
         await expect(
-          cortex.governance.getComplianceReport({
+          memoir.governance.getComplianceReport({
             organizationId: "test-org",
             period: {
               start: new Date(now),
@@ -956,7 +956,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid start date", async () => {
         await expect(
-          cortex.governance.getComplianceReport({
+          memoir.governance.getComplianceReport({
             organizationId: "test-org",
             period: {
               start: "invalid" as any,
@@ -969,7 +969,7 @@ describe("Governance API", () => {
       it("should throw on invalid end date", async () => {
         const yesterday = Date.now() - 24 * 60 * 60 * 1000;
         await expect(
-          cortex.governance.getComplianceReport({
+          memoir.governance.getComplianceReport({
             organizationId: "test-org",
             period: {
               start: new Date(yesterday),
@@ -983,7 +983,7 @@ describe("Governance API", () => {
     describe("getEnforcementStats validation", () => {
       it("should throw on invalid period format", async () => {
         await expect(
-          cortex.governance.getEnforcementStats({
+          memoir.governance.getEnforcementStats({
             period: "60d", // Invalid: not in allowed list
             organizationId: "test-org",
           }),
@@ -995,7 +995,7 @@ describe("Governance API", () => {
 
         for (const period of validPeriods) {
           // Should not throw
-          const stats = await cortex.governance.getEnforcementStats({
+          const stats = await memoir.governance.getEnforcementStats({
             period,
             organizationId: "test-org-stats-valid",
           });
@@ -1007,7 +1007,7 @@ describe("Governance API", () => {
     describe("setAgentOverride validation", () => {
       it("should throw when memorySpaceId is empty", async () => {
         await expect(
-          cortex.governance.setAgentOverride("", {
+          memoir.governance.setAgentOverride("", {
             vector: {
               retention: { defaultVersions: 10, byImportance: [] },
               purging: { autoCleanupVersions: true, deleteOrphaned: true },
@@ -1018,7 +1018,7 @@ describe("Governance API", () => {
 
       it("should throw when memorySpaceId is only whitespace", async () => {
         await expect(
-          cortex.governance.setAgentOverride("   ", {
+          memoir.governance.setAgentOverride("   ", {
             vector: {
               retention: { defaultVersions: 10, byImportance: [] },
               purging: { autoCleanupVersions: true, deleteOrphaned: true },
@@ -1029,7 +1029,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid period in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space", {
+          memoir.governance.setAgentOverride("test-space", {
             conversations: {
               retention: {
                 deleteAfter: "invalid-period" as any,
@@ -1043,7 +1043,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid version count in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-invalid-version", {
+          memoir.governance.setAgentOverride("test-space-invalid-version", {
             vector: {
               retention: {
                 defaultVersions: -5, // Invalid: must be >= -1
@@ -1057,7 +1057,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid immutable version count in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-invalid-imm-version", {
+          memoir.governance.setAgentOverride("test-space-invalid-imm-version", {
             immutable: {
               retention: {
                 defaultVersions: -10, // Invalid: must be >= -1
@@ -1071,7 +1071,7 @@ describe("Governance API", () => {
 
       it("should throw on overlapping importance ranges in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-overlap", {
+          memoir.governance.setAgentOverride("test-space-overlap", {
             vector: {
               retention: {
                 defaultVersions: 10,
@@ -1088,7 +1088,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid importance range bounds in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-invalid-bounds", {
+          memoir.governance.setAgentOverride("test-space-invalid-bounds", {
             vector: {
               retention: {
                 defaultVersions: 10,
@@ -1104,7 +1104,7 @@ describe("Governance API", () => {
 
       it("should throw on negative importance range minimum in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-negative-min", {
+          memoir.governance.setAgentOverride("test-space-negative-min", {
             vector: {
               retention: {
                 defaultVersions: 10,
@@ -1120,7 +1120,7 @@ describe("Governance API", () => {
 
       it("should throw on range where min >= max in override", async () => {
         await expect(
-          cortex.governance.setAgentOverride("test-space-min-gte-max", {
+          memoir.governance.setAgentOverride("test-space-min-gte-max", {
             vector: {
               retention: {
                 defaultVersions: 10,
@@ -1138,7 +1138,7 @@ describe("Governance API", () => {
     describe("simulate validation", () => {
       it("should throw on invalid period format in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org",
             conversations: {
               retention: {
@@ -1153,7 +1153,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid version count in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org",
             vector: {
               retention: { defaultVersions: -10, byImportance: [] },
@@ -1165,7 +1165,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid immutable version count in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-imm-version",
             immutable: {
               retention: {
@@ -1180,7 +1180,7 @@ describe("Governance API", () => {
 
       it("should throw on overlapping importance ranges in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-overlap",
             vector: {
               retention: {
@@ -1198,7 +1198,7 @@ describe("Governance API", () => {
 
       it("should throw on invalid importance range bounds in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-bounds",
             vector: {
               retention: {
@@ -1215,7 +1215,7 @@ describe("Governance API", () => {
 
       it("should throw on negative importance range minimum in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-neg",
             vector: {
               retention: {
@@ -1232,7 +1232,7 @@ describe("Governance API", () => {
 
       it("should throw on range where min >= max in simulation", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-min-gte-max",
             vector: {
               retention: {
@@ -1249,7 +1249,7 @@ describe("Governance API", () => {
 
       it("should throw on non-number version count in importance range", async () => {
         await expect(
-          cortex.governance.simulate({
+          memoir.governance.simulate({
             organizationId: "test-org-sim-non-num",
             vector: {
               retention: {
@@ -1268,7 +1268,7 @@ describe("Governance API", () => {
     describe("getTemplate validation", () => {
       it("should throw on invalid template name", async () => {
         await expect(
-          cortex.governance.getTemplate("INVALID" as any),
+          memoir.governance.getTemplate("INVALID" as any),
         ).rejects.toThrow("Invalid compliance template");
       });
     });
@@ -1276,7 +1276,7 @@ describe("Governance API", () => {
     describe("getPolicy validation", () => {
       it("should throw on empty organizationId", async () => {
         await expect(
-          cortex.governance.getPolicy({
+          memoir.governance.getPolicy({
             organizationId: "",
           }),
         ).rejects.toThrow(
@@ -1286,7 +1286,7 @@ describe("Governance API", () => {
 
       it("should throw on empty memorySpaceId", async () => {
         await expect(
-          cortex.governance.getPolicy({
+          memoir.governance.getPolicy({
             memorySpaceId: "   ",
           }),
         ).rejects.toThrow(
@@ -1298,7 +1298,7 @@ describe("Governance API", () => {
     describe("getPolicy fallback behavior", () => {
       it("should return default GDPR template when no policy exists", async () => {
         // Query for a non-existent organization that definitely has no policy
-        const policy = await cortex.governance.getPolicy({
+        const policy = await memoir.governance.getPolicy({
           organizationId: "non-existent-org-for-fallback-test",
         });
 
@@ -1314,7 +1314,7 @@ describe("Governance API", () => {
 
       it("should return default GDPR when called with empty scope", async () => {
         // Empty scope should return default GDPR template
-        const policy = await cortex.governance.getPolicy();
+        const policy = await memoir.governance.getPolicy();
 
         expect(policy).toBeDefined();
         expect(policy.compliance.mode).toBe("GDPR");
@@ -1325,14 +1325,14 @@ describe("Governance API", () => {
         const spaceId = "test-space-priority-" + Date.now();
 
         // 1. Set org-level policy with SOC2 template
-        const soc2Policy = await cortex.governance.getTemplate("SOC2");
-        await cortex.governance.setPolicy({
+        const soc2Policy = await memoir.governance.getTemplate("SOC2");
+        await memoir.governance.setPolicy({
           ...soc2Policy,
           organizationId: orgId,
         });
 
         // 2. Set space-level override with different retention
-        await cortex.governance.setAgentOverride(spaceId, {
+        await memoir.governance.setAgentOverride(spaceId, {
           vector: {
             retention: {
               defaultVersions: 999, // Distinctive value
@@ -1346,14 +1346,14 @@ describe("Governance API", () => {
         });
 
         // 3. Query for space - should get space-level override
-        const spacePolicy = await cortex.governance.getPolicy({
+        const spacePolicy = await memoir.governance.getPolicy({
           memorySpaceId: spaceId,
         });
 
         expect(spacePolicy.vector.retention.defaultVersions).toBe(999);
 
         // 4. Query for org - should get org-level policy
-        const orgPolicy = await cortex.governance.getPolicy({
+        const orgPolicy = await memoir.governance.getPolicy({
           organizationId: orgId,
         });
 
@@ -1402,7 +1402,7 @@ describe("Governance API", () => {
         };
 
         // Should succeed - touching ranges are valid
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
       });
 
@@ -1437,7 +1437,7 @@ describe("Governance API", () => {
         };
 
         // Should succeed - empty array is valid boundary case
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
       });
 
@@ -1472,7 +1472,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow(/array/i);
       });
 
@@ -1509,7 +1509,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow(/tuple|min, max/i);
       });
 
@@ -1546,7 +1546,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow(/number/i);
       });
     });
@@ -1583,7 +1583,7 @@ describe("Governance API", () => {
         };
 
         await expect(
-          cortex.governance.setPolicy(policy as any),
+          memoir.governance.setPolicy(policy as any),
         ).rejects.toThrow(/must be a number/i);
       });
 
@@ -1621,7 +1621,7 @@ describe("Governance API", () => {
         };
 
         // Should succeed - -1 is valid (unlimited)
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
       });
 
@@ -1659,7 +1659,7 @@ describe("Governance API", () => {
         };
 
         // Should succeed - 0 is valid
-        const result = await cortex.governance.setPolicy(policy);
+        const result = await memoir.governance.setPolicy(policy);
         expect(result.success).toBe(true);
       });
     });
@@ -1670,7 +1670,7 @@ describe("Governance API", () => {
 
     templates.forEach((template) => {
       it(`should get ${template} template`, async () => {
-        const policy = await cortex.governance.getTemplate(template);
+        const policy = await memoir.governance.getTemplate(template);
 
         expect(policy).toBeDefined();
         expect(policy.conversations).toBeDefined();
@@ -1683,16 +1683,16 @@ describe("Governance API", () => {
     });
 
     it("should apply GDPR template to organization", async () => {
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
 
-      const result = await cortex.governance.setPolicy({
+      const result = await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: "test-org-gdpr",
       });
 
       expect(result.success).toBe(true);
 
-      const retrieved = await cortex.governance.getPolicy({
+      const retrieved = await memoir.governance.getPolicy({
         organizationId: "test-org-gdpr",
       });
 
@@ -1702,7 +1702,7 @@ describe("Governance API", () => {
     });
 
     it("should apply HIPAA template with enhanced retention", async () => {
-      const hipaaPolicy = await cortex.governance.getTemplate("HIPAA");
+      const hipaaPolicy = await memoir.governance.getTemplate("HIPAA");
 
       expect(hipaaPolicy.compliance.mode).toBe("HIPAA");
       expect(hipaaPolicy.conversations.retention.deleteAfter).toBe("6y");
@@ -1712,7 +1712,7 @@ describe("Governance API", () => {
     });
 
     it("should customize template before applying", async () => {
-      const soc2Policy = await cortex.governance.getTemplate("SOC2");
+      const soc2Policy = await memoir.governance.getTemplate("SOC2");
 
       // Customize vector retention
       const customPolicy: GovernancePolicy = {
@@ -1727,11 +1727,11 @@ describe("Governance API", () => {
         },
       };
 
-      const result = await cortex.governance.setPolicy(customPolicy);
+      const result = await memoir.governance.setPolicy(customPolicy);
 
       expect(result.success).toBe(true);
 
-      const retrieved = await cortex.governance.getPolicy({
+      const retrieved = await memoir.governance.getPolicy({
         organizationId: "test-org-custom-soc2",
       });
 
@@ -1743,14 +1743,14 @@ describe("Governance API", () => {
   describe("Policy Enforcement", () => {
     it("should manually enforce policy", async () => {
       // Set up a policy first
-      const policy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const policy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...policy,
         organizationId: "test-org-enforce",
       });
 
       // Enforce it
-      const result = await cortex.governance.enforce({
+      const result = await memoir.governance.enforce({
         layers: ["vector", "immutable"],
         rules: ["retention", "purging"],
         scope: { organizationId: "test-org-enforce" },
@@ -1765,13 +1765,13 @@ describe("Governance API", () => {
     });
 
     it("should enforce policy with all layers", async () => {
-      const policy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const policy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...policy,
         organizationId: "test-org-enforce-all",
       });
 
-      const result = await cortex.governance.enforce({
+      const result = await memoir.governance.enforce({
         layers: ["conversations", "immutable", "mutable", "vector"],
         rules: ["retention", "purging"],
         scope: { organizationId: "test-org-enforce-all" },
@@ -1781,13 +1781,13 @@ describe("Governance API", () => {
     });
 
     it("should enforce policy for memory space", async () => {
-      const policy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const policy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...policy,
         memorySpaceId: "test-space-enforce",
       });
 
-      const result = await cortex.governance.enforce({
+      const result = await memoir.governance.enforce({
         layers: ["vector"],
         rules: ["retention"],
         scope: { memorySpaceId: "test-space-enforce" },
@@ -1800,7 +1800,7 @@ describe("Governance API", () => {
       // Note: This tests BACKEND validation (policy existence check)
       // Client-side validation tests are in "Client-Side Validation" suite above
       await expect(
-        cortex.governance.enforce({
+        memoir.governance.enforce({
           scope: { organizationId: "non-existent-org" },
         }),
       ).rejects.toThrow("No active policy found for scope");
@@ -1809,7 +1809,7 @@ describe("Governance API", () => {
 
   describe("Policy Simulation", () => {
     it("should simulate policy impact", async () => {
-      const impact = await cortex.governance.simulate({
+      const impact = await memoir.governance.simulate({
         organizationId: "test-org-simulate",
         vector: {
           retention: {
@@ -1834,7 +1834,7 @@ describe("Governance API", () => {
     });
 
     it("should show detailed breakdown by layer", async () => {
-      const impact = await cortex.governance.simulate({
+      const impact = await memoir.governance.simulate({
         organizationId: "test-org-simulate-detailed",
         conversations: {
           retention: { deleteAfter: "1y", purgeOnUserRequest: true },
@@ -1852,7 +1852,7 @@ describe("Governance API", () => {
     });
 
     it("should calculate cost savings", async () => {
-      const impact = await cortex.governance.simulate({
+      const impact = await memoir.governance.simulate({
         vector: {
           retention: {
             defaultVersions: 3,
@@ -1875,7 +1875,7 @@ describe("Governance API", () => {
       const now = Date.now();
       const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: "test-org-report",
         period: {
           start: new Date(thirtyDaysAgo),
@@ -1924,7 +1924,7 @@ describe("Governance API", () => {
       const now = Date.now();
       const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         memorySpaceId: "test-space-report",
         period: {
           start: new Date(sevenDaysAgo),
@@ -1939,7 +1939,7 @@ describe("Governance API", () => {
 
   describe("Enforcement Statistics", () => {
     it("should get 30-day enforcement stats", async () => {
-      const stats = await cortex.governance.getEnforcementStats({
+      const stats = await memoir.governance.getEnforcementStats({
         period: "30d",
         organizationId: "test-org-stats",
       });
@@ -1968,7 +1968,7 @@ describe("Governance API", () => {
       const periods = ["7d", "30d", "90d", "1y"];
 
       for (const period of periods) {
-        const stats = await cortex.governance.getEnforcementStats({
+        const stats = await memoir.governance.getEnforcementStats({
           period,
           organizationId: "test-org-stats-periods",
         });
@@ -1979,7 +1979,7 @@ describe("Governance API", () => {
     });
 
     it("should calculate storage and cost savings", async () => {
-      const stats = await cortex.governance.getEnforcementStats({
+      const stats = await memoir.governance.getEnforcementStats({
         period: "90d",
         organizationId: "test-org-stats-savings",
       });
@@ -1991,7 +1991,7 @@ describe("Governance API", () => {
     });
 
     it("should get stats for memory space", async () => {
-      const stats = await cortex.governance.getEnforcementStats({
+      const stats = await memoir.governance.getEnforcementStats({
         period: "30d",
         memorySpaceId: "test-space-stats",
       });
@@ -2005,34 +2005,34 @@ describe("Governance API", () => {
       const orgId = "test-org-gdpr-workflow";
 
       // 1. Apply GDPR template
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: orgId,
       });
 
       // 2. Verify policy is applied
-      const policy = await cortex.governance.getPolicy({
+      const policy = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
       expect(policy.compliance.mode).toBe("GDPR");
 
       // 3. Simulate impact
-      const simulation = await cortex.governance.simulate({
+      const simulation = await memoir.governance.simulate({
         ...policy,
         organizationId: orgId,
       });
       expect(simulation.versionsAffected).toBeGreaterThanOrEqual(0);
 
       // 4. Enforce policy
-      const enforcement = await cortex.governance.enforce({
+      const enforcement = await memoir.governance.enforce({
         scope: { organizationId: orgId },
       });
       expect(enforcement.enforcedAt).toBeGreaterThan(0);
 
       // 5. Generate compliance report
       const now = Date.now();
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: orgId,
         period: {
           start: new Date(now - 30 * 24 * 60 * 60 * 1000),
@@ -2044,14 +2044,14 @@ describe("Governance API", () => {
 
     it("should support memory-space-specific overrides", async () => {
       // 1. Set org policy
-      const orgPolicy = await cortex.governance.getTemplate("SOC2");
-      await cortex.governance.setPolicy({
+      const orgPolicy = await memoir.governance.getTemplate("SOC2");
+      await memoir.governance.setPolicy({
         ...orgPolicy,
         organizationId: "test-org-override",
       });
 
       // 2. Override for audit agent (unlimited retention)
-      await cortex.governance.setAgentOverride("audit-agent", {
+      await memoir.governance.setAgentOverride("audit-agent", {
         vector: {
           retention: {
             defaultVersions: -1,
@@ -2065,7 +2065,7 @@ describe("Governance API", () => {
       });
 
       // 3. Override for temp agent (minimal retention)
-      await cortex.governance.setAgentOverride("temp-agent", {
+      await memoir.governance.setAgentOverride("temp-agent", {
         vector: {
           retention: {
             defaultVersions: 1,
@@ -2088,12 +2088,12 @@ describe("Governance API", () => {
       });
 
       // 4. Verify overrides
-      const auditPolicy = await cortex.governance.getPolicy({
+      const auditPolicy = await memoir.governance.getPolicy({
         memorySpaceId: "audit-agent",
       });
       expect(auditPolicy.vector.retention.defaultVersions).toBe(-1);
 
-      const tempPolicy = await cortex.governance.getPolicy({
+      const tempPolicy = await memoir.governance.getPolicy({
         memorySpaceId: "temp-agent",
       });
       expect(tempPolicy.vector.retention.defaultVersions).toBe(1);
@@ -2104,7 +2104,7 @@ describe("Governance API", () => {
       const orgId = "test-org-test-before-apply";
 
       // 1. Get current policy
-      const currentPolicy = await cortex.governance.getPolicy({
+      const currentPolicy = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
 
@@ -2125,7 +2125,7 @@ describe("Governance API", () => {
         },
       };
 
-      const simulation = await cortex.governance.simulate({
+      const simulation = await memoir.governance.simulate({
         ...currentPolicy,
         ...aggressivePolicy,
         organizationId: orgId,
@@ -2134,7 +2134,7 @@ describe("Governance API", () => {
       // 3. Decide based on impact
       if (simulation.costSavings > 10) {
         // Apply if savings are good
-        await cortex.governance.setPolicy({
+        await memoir.governance.setPolicy({
           ...currentPolicy,
           ...aggressivePolicy,
           organizationId: orgId,
@@ -2152,14 +2152,14 @@ describe("Governance API", () => {
       const agentSpaceId = `agent-special-${ts}`;
 
       // 1. Set organization-wide policy (base layer)
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: orgId,
       });
 
       // 2. Override for first space (moderate retention)
-      await cortex.governance.setAgentOverride(spaceId1, {
+      await memoir.governance.setAgentOverride(spaceId1, {
         vector: {
           retention: {
             defaultVersions: 25, // More than org default
@@ -2173,7 +2173,7 @@ describe("Governance API", () => {
       });
 
       // 3. Override for agent space (unlimited retention - audit agent)
-      await cortex.governance.setAgentOverride(agentSpaceId, {
+      await memoir.governance.setAgentOverride(agentSpaceId, {
         vector: {
           retention: {
             defaultVersions: -1, // Unlimited
@@ -2198,27 +2198,27 @@ describe("Governance API", () => {
       });
 
       // 4. Verify hierarchy - org level
-      const orgPolicy = await cortex.governance.getPolicy({
+      const orgPolicy = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
       expect(orgPolicy.compliance.mode).toBe("GDPR");
       expect(orgPolicy.vector.retention.defaultVersions).toBe(10); // GDPR default
 
       // 5. Verify hierarchy - space level (overridden)
-      const space1Policy = await cortex.governance.getPolicy({
+      const space1Policy = await memoir.governance.getPolicy({
         memorySpaceId: spaceId1,
       });
       expect(space1Policy.vector.retention.defaultVersions).toBe(25);
 
       // 6. Verify hierarchy - agent level (max override)
-      const agentPolicy = await cortex.governance.getPolicy({
+      const agentPolicy = await memoir.governance.getPolicy({
         memorySpaceId: agentSpaceId,
       });
       expect(agentPolicy.vector.retention.defaultVersions).toBe(-1);
       expect(agentPolicy.immutable.retention.defaultVersions).toBe(-1);
 
       // 7. Verify non-overridden space falls back to defaults
-      const space2Policy = await cortex.governance.getPolicy({
+      const space2Policy = await memoir.governance.getPolicy({
         memorySpaceId: spaceId2,
       });
       // Falls back to GDPR default since no specific override
@@ -2234,10 +2234,10 @@ describe("Governance API", () => {
       ];
 
       // Setup: Create policies for each org
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
 
       for (const orgId of orgIds) {
-        await cortex.governance.setPolicy({
+        await memoir.governance.setPolicy({
           ...gdprPolicy,
           organizationId: orgId,
         });
@@ -2245,7 +2245,7 @@ describe("Governance API", () => {
 
       // Execute: Run enforcement concurrently for all orgs
       const enforcePromises = orgIds.map((orgId) =>
-        cortex.governance.enforce({
+        memoir.governance.enforce({
           layers: ["vector", "immutable"],
           rules: ["retention"],
           scope: { organizationId: orgId },
@@ -2269,27 +2269,27 @@ describe("Governance API", () => {
       const orgId = `enforcement-history-${ts}`;
 
       // Setup: Create and apply policy
-      const policy = await cortex.governance.getTemplate("SOC2");
-      await cortex.governance.setPolicy({
+      const policy = await memoir.governance.getTemplate("SOC2");
+      await memoir.governance.setPolicy({
         ...policy,
         organizationId: orgId,
       });
 
       // Execute: Enforce multiple times
-      await cortex.governance.enforce({
+      await memoir.governance.enforce({
         layers: ["vector"],
         rules: ["retention"],
         scope: { organizationId: orgId },
       });
 
-      await cortex.governance.enforce({
+      await memoir.governance.enforce({
         layers: ["immutable"],
         rules: ["purging"],
         scope: { organizationId: orgId },
       });
 
       // Verify: Stats reflect enforcement history
-      const stats = await cortex.governance.getEnforcementStats({
+      const stats = await memoir.governance.getEnforcementStats({
         period: "7d",
         organizationId: orgId,
       });
@@ -2306,14 +2306,14 @@ describe("Governance API", () => {
       const orgId = `compliance-report-${ts}`;
 
       // Setup: Create HIPAA policy (strict compliance)
-      const hipaaPolicy = await cortex.governance.getTemplate("HIPAA");
-      await cortex.governance.setPolicy({
+      const hipaaPolicy = await memoir.governance.getTemplate("HIPAA");
+      await memoir.governance.setPolicy({
         ...hipaaPolicy,
         organizationId: orgId,
       });
 
       // Execute: Run full enforcement
-      await cortex.governance.enforce({
+      await memoir.governance.enforce({
         layers: ["conversations", "immutable", "mutable", "vector"],
         rules: ["retention", "purging"],
         scope: { organizationId: orgId },
@@ -2321,7 +2321,7 @@ describe("Governance API", () => {
 
       // Generate compliance report
       const now = Date.now();
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: orgId,
         period: {
           start: new Date(now - 7 * 24 * 60 * 60 * 1000), // 7 days ago
@@ -2355,7 +2355,7 @@ describe("Governance API", () => {
       const orgId = `finra-org-${ts}`;
 
       // FINRA has strictest retention requirements
-      const finraPolicy = await cortex.governance.getTemplate("FINRA");
+      const finraPolicy = await memoir.governance.getTemplate("FINRA");
 
       // Verify FINRA template characteristics
       expect(finraPolicy.compliance.mode).toBe("FINRA");
@@ -2365,7 +2365,7 @@ describe("Governance API", () => {
       expect(finraPolicy.immutable.retention.defaultVersions).toBe(-1); // Unlimited
 
       // Apply FINRA policy
-      const result = await cortex.governance.setPolicy({
+      const result = await memoir.governance.setPolicy({
         ...finraPolicy,
         organizationId: orgId,
       });
@@ -2373,7 +2373,7 @@ describe("Governance API", () => {
       expect(result.success).toBe(true);
 
       // Retrieve and verify
-      const retrieved = await cortex.governance.getPolicy({
+      const retrieved = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
 

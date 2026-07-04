@@ -1,5 +1,5 @@
 /**
- * Cortex SDK Resilience Types
+ * Memoir SDK Resilience Types
  *
  * Type definitions for the overload protection system including:
  * - Token Bucket Rate Limiter

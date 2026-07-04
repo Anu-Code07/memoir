@@ -8,7 +8,7 @@
  */
 
 import { randomBytes } from "crypto";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import type { AuthContext } from "../../src/auth/types";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -19,7 +19,7 @@ export interface TenantTestContext {
   tenantId: string;
   userId: string;
   memorySpaceId: string;
-  cortex: Cortex;
+  memoir: Memoir;
   authContext: AuthContext;
 }
 
@@ -115,7 +115,7 @@ export function createMultiTenantAuthContexts(
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
- * Create a full tenant test context with Cortex instance
+ * Create a full tenant test context with Memoir instance
  */
 export async function createTenantTestContext(
   convexUrl: string,
@@ -127,7 +127,7 @@ export async function createTenantTestContext(
 
   const authContext = createTenantAuthContext(effectiveTenantId, userId);
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl,
     auth: authContext,
   });
@@ -136,7 +136,7 @@ export async function createTenantTestContext(
     tenantId: effectiveTenantId,
     userId,
     memorySpaceId,
-    cortex,
+    memoir,
     authContext,
   };
 }
@@ -187,11 +187,11 @@ export async function verifyTenantIsolation(
 
     switch (dataType) {
       case "conversations":
-        result = await tenantB.cortex.conversations.get(recordId);
+        result = await tenantB.memoir.conversations.get(recordId);
         break;
 
       case "memories":
-        const memories = await tenantB.cortex.memory.list({
+        const memories = await tenantB.memoir.memory.list({
           memorySpaceId: tenantA.memorySpaceId,
           limit: 100,
         });
@@ -201,7 +201,7 @@ export async function verifyTenantIsolation(
         break;
 
       case "facts":
-        const facts = await tenantB.cortex.facts.list({
+        const facts = await tenantB.memoir.facts.list({
           memorySpaceId: tenantA.memorySpaceId,
           limit: 100,
         });
@@ -209,18 +209,18 @@ export async function verifyTenantIsolation(
         break;
 
       case "users":
-        result = await tenantB.cortex.users.get(recordId);
+        result = await tenantB.memoir.users.get(recordId);
         break;
 
       case "immutable":
-        result = await tenantB.cortex.immutable.get(
+        result = await tenantB.memoir.immutable.get(
           tenantA.memorySpaceId,
           recordId,
         );
         break;
 
       case "mutable":
-        result = await tenantB.cortex.mutable.get(
+        result = await tenantB.memoir.mutable.get(
           tenantA.memorySpaceId,
           recordId,
         );
@@ -303,7 +303,7 @@ export async function seedTenantTestData(
 
   // Create conversations
   if (conversations > 0) {
-    const conv = await context.cortex.conversations.create({
+    const conv = await context.memoir.conversations.create({
       memorySpaceId: context.memorySpaceId,
       type: "user-agent",
       participants: {
@@ -319,7 +319,7 @@ export async function seedTenantTestData(
     data.memoryIds = [];
     const agentId = `agent_${context.tenantId}`;
     for (let i = 0; i < memories; i++) {
-      const result = await context.cortex.memory.remember({
+      const result = await context.memoir.memory.remember({
         memorySpaceId: context.memorySpaceId,
         conversationId: data.conversationId || `conv_${i}`,
         userMessage: `Test memory ${i} for tenant ${context.tenantId}`,
@@ -338,7 +338,7 @@ export async function seedTenantTestData(
   if (facts > 0) {
     data.factIds = [];
     for (let i = 0; i < facts; i++) {
-      const fact = await context.cortex.facts.store({
+      const fact = await context.memoir.facts.store({
         memorySpaceId: context.memorySpaceId,
         fact: `Test fact ${i}: Tenant ${context.tenantId} has property ${i}`,
         factType: "knowledge",
@@ -354,7 +354,7 @@ export async function seedTenantTestData(
   if (immutableRecords > 0) {
     data.immutableIds = [];
     for (let i = 0; i < immutableRecords; i++) {
-      const result = await context.cortex.immutable.store({
+      const result = await context.memoir.immutable.store({
         type: "test",
         id: `test_key_${i}_${Date.now()}`,
         data: { data: `Test data ${i}`, tenant: context.tenantId },
@@ -369,7 +369,7 @@ export async function seedTenantTestData(
     data.mutableKeys = [];
     for (let i = 0; i < mutableRecords; i++) {
       const key = `mutable_${i}`;
-      await context.cortex.mutable.set(context.memorySpaceId, key, {
+      await context.memoir.mutable.set(context.memorySpaceId, key, {
         data: `Mutable data ${i}`,
         tenant: context.tenantId,
       });
@@ -397,7 +397,7 @@ export async function cleanupTenantTestData(
   if (data.mutableKeys) {
     for (const key of data.mutableKeys) {
       try {
-        await context.cortex.mutable.delete(context.memorySpaceId, key);
+        await context.memoir.mutable.delete(context.memorySpaceId, key);
       } catch {
         // Ignore cleanup errors
       }
@@ -411,7 +411,7 @@ export async function cleanupTenantTestData(
   if (data.factIds) {
     for (const factId of data.factIds) {
       try {
-        await context.cortex.facts.delete(context.memorySpaceId, factId);
+        await context.memoir.facts.delete(context.memorySpaceId, factId);
       } catch {
         // Ignore cleanup errors
       }
@@ -423,7 +423,7 @@ export async function cleanupTenantTestData(
     try {
       // deleteMany works with filters, not specific IDs
       // For test cleanup, we delete by userId which should clean up test memories
-      await context.cortex.memory.deleteMany({
+      await context.memoir.memory.deleteMany({
         memorySpaceId: context.memorySpaceId,
         userId: context.userId,
       });
@@ -435,7 +435,7 @@ export async function cleanupTenantTestData(
   // Delete conversation
   if (data.conversationId) {
     try {
-      await context.cortex.conversations.delete(data.conversationId);
+      await context.memoir.conversations.delete(data.conversationId);
     } catch {
       // Ignore cleanup errors
     }

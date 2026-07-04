@@ -13,7 +13,7 @@ description: Complete API reference for multi-modal file storage with images, PD
 
 </Callout>
 
-Complete API reference for the Attachments API (`cortex.attachments.*`), providing multi-modal file storage with memory space isolation and multi-tenancy support.
+Complete API reference for the Attachments API (`memoir.attachments.*`), providing multi-modal file storage with memory space isolation and multi-tenancy support.
 
 ## Overview
 
@@ -98,7 +98,7 @@ Uploading attachments is a two-step process:
 
 ```typescript
 // Step 1: Generate upload URL
-const { uploadUrl } = await cortex.attachments.generateUploadUrl();
+const { uploadUrl } = await memoir.attachments.generateUploadUrl();
 
 // Step 2: Upload file directly to Convex storage
 const response = await fetch(uploadUrl, {
@@ -109,7 +109,7 @@ const response = await fetch(uploadUrl, {
 const { storageId } = await response.json();
 
 // Step 3: Register the attachment
-const attachment = await cortex.attachments.attach({
+const attachment = await memoir.attachments.attach({
   storageId,
   memorySpaceId: 'user-123-space',
   userId: 'user-123',
@@ -130,7 +130,7 @@ const attachment = await cortex.attachments.attach({
 Generate a pre-signed upload URL for direct file upload to Convex storage.
 
 ```typescript
-const result = await cortex.attachments.generateUploadUrl(): Promise<UploadUrlResult>;
+const result = await memoir.attachments.generateUploadUrl(): Promise<UploadUrlResult>;
 ```
 
 **Returns:**
@@ -145,7 +145,7 @@ const result = await cortex.attachments.generateUploadUrl(): Promise<UploadUrlRe
 **Example:**
 
 ```typescript
-const { uploadUrl } = await cortex.attachments.generateUploadUrl();
+const { uploadUrl } = await memoir.attachments.generateUploadUrl();
 
 // Upload file
 const response = await fetch(uploadUrl, {
@@ -164,7 +164,7 @@ const { storageId } = await response.json();
 Register an uploaded file as an attachment with metadata.
 
 ```typescript
-const attachment = await cortex.attachments.attach(params: AttachParams): Promise<Attachment>;
+const attachment = await memoir.attachments.attach(params: AttachParams): Promise<Attachment>;
 ```
 
 **Parameters:**
@@ -192,7 +192,7 @@ const attachment = await cortex.attachments.attach(params: AttachParams): Promis
 **Example:**
 
 ```typescript
-const attachment = await cortex.attachments.attach({
+const attachment = await memoir.attachments.attach({
   storageId: 'kg2abc123xyz',
   memorySpaceId: 'user-123-space',
   userId: 'user-123',
@@ -213,7 +213,7 @@ const attachment = await cortex.attachments.attach({
 Retrieve an attachment by ID.
 
 ```typescript
-const attachment = await cortex.attachments.get(attachmentId: string): Promise<Attachment | null>;
+const attachment = await memoir.attachments.get(attachmentId: string): Promise<Attachment | null>;
 ```
 
 **Parameters:**
@@ -229,7 +229,7 @@ const attachment = await cortex.attachments.get(attachmentId: string): Promise<A
 **Example:**
 
 ```typescript
-const attachment = await cortex.attachments.get('attach-abc123');
+const attachment = await memoir.attachments.get('attach-abc123');
 if (attachment) {
   console.log(`File: ${attachment.filename} (${attachment.size} bytes)`);
 }
@@ -242,7 +242,7 @@ if (attachment) {
 Get a signed download URL for an attachment.
 
 ```typescript
-const url = await cortex.attachments.getUrl(attachmentId: string): Promise<string | null>;
+const url = await memoir.attachments.getUrl(attachmentId: string): Promise<string | null>;
 ```
 
 **Parameters:**
@@ -264,7 +264,7 @@ const url = await cortex.attachments.getUrl(attachmentId: string): Promise<strin
 **Example:**
 
 ```typescript
-const url = await cortex.attachments.getUrl('attach-abc123');
+const url = await memoir.attachments.getUrl('attach-abc123');
 if (url) {
   // Display image
   document.getElementById('preview').src = url;
@@ -282,7 +282,7 @@ if (url) {
 List attachments with filtering and pagination.
 
 ```typescript
-const result = await cortex.attachments.list(filter: ListAttachmentsFilter): Promise<ListAttachmentsResult>;
+const result = await memoir.attachments.list(filter: ListAttachmentsFilter): Promise<ListAttachmentsResult>;
 ```
 
 **Parameters:**
@@ -320,7 +320,7 @@ const result = await cortex.attachments.list(filter: ListAttachmentsFilter): Pro
 
 ```typescript
 // List all images in a conversation
-const result = await cortex.attachments.list({
+const result = await memoir.attachments.list({
   memorySpaceId: 'user-123-space',
   conversationId: 'conv-456',
   type: 'image',
@@ -335,7 +335,7 @@ for (const attachment of result.attachments) {
 
 // Pagination
 if (result.hasMore) {
-  const nextPage = await cortex.attachments.list({
+  const nextPage = await memoir.attachments.list({
     memorySpaceId: 'user-123-space',
     cursor: result.cursor,
   });
@@ -349,7 +349,7 @@ if (result.hasMore) {
 Get all attachments for a specific conversation.
 
 ```typescript
-const attachments = await cortex.attachments.getByConversation(
+const attachments = await memoir.attachments.getByConversation(
   conversationId: string,
   type?: AttachmentType,
   limit?: number
@@ -360,10 +360,10 @@ const attachments = await cortex.attachments.getByConversation(
 
 ```typescript
 // Get all attachments in a conversation
-const attachments = await cortex.attachments.getByConversation('conv-456');
+const attachments = await memoir.attachments.getByConversation('conv-456');
 
 // Get only images
-const images = await cortex.attachments.getByConversation('conv-456', 'image');
+const images = await memoir.attachments.getByConversation('conv-456', 'image');
 ```
 
 ---
@@ -373,13 +373,13 @@ const images = await cortex.attachments.getByConversation('conv-456', 'image');
 Get all attachments for a specific message.
 
 ```typescript
-const attachments = await cortex.attachments.getByMessage(messageId: string): Promise<Attachment[]>;
+const attachments = await memoir.attachments.getByMessage(messageId: string): Promise<Attachment[]>;
 ```
 
 **Example:**
 
 ```typescript
-const attachments = await cortex.attachments.getByMessage('msg-789');
+const attachments = await memoir.attachments.getByMessage('msg-789');
 for (const att of attachments) {
   console.log(`Message attachment: ${att.filename}`);
 }
@@ -392,7 +392,7 @@ for (const att of attachments) {
 Count attachments matching filters.
 
 ```typescript
-const count = await cortex.attachments.count(
+const count = await memoir.attachments.count(
   memorySpaceId: string,
   conversationId?: string,
   messageId?: string,
@@ -405,10 +405,10 @@ const count = await cortex.attachments.count(
 
 ```typescript
 // Count all attachments in a memory space
-const total = await cortex.attachments.count('user-123-space');
+const total = await memoir.attachments.count('user-123-space');
 
 // Count images in a conversation
-const imageCount = await cortex.attachments.count(
+const imageCount = await memoir.attachments.count(
   'user-123-space',
   'conv-456',
   undefined,
@@ -424,7 +424,7 @@ const imageCount = await cortex.attachments.count(
 Delete an attachment and its file from storage.
 
 ```typescript
-const success = await cortex.attachments.delete(attachmentId: string): Promise<boolean>;
+const success = await memoir.attachments.delete(attachmentId: string): Promise<boolean>;
 ```
 
 **Parameters:**
@@ -446,7 +446,7 @@ const success = await cortex.attachments.delete(attachmentId: string): Promise<b
 **Example:**
 
 ```typescript
-const deleted = await cortex.attachments.delete('attach-abc123');
+const deleted = await memoir.attachments.delete('attach-abc123');
 if (deleted) {
   console.log('Attachment deleted');
 }
@@ -459,7 +459,7 @@ if (deleted) {
 Bulk delete multiple attachments.
 
 ```typescript
-const result = await cortex.attachments.deleteMany(attachmentIds: string[]): Promise<DeleteManyAttachmentsResult>;
+const result = await memoir.attachments.deleteMany(attachmentIds: string[]): Promise<DeleteManyAttachmentsResult>;
 ```
 
 **Parameters:**
@@ -484,7 +484,7 @@ const result = await cortex.attachments.deleteMany(attachmentIds: string[]): Pro
 **Example:**
 
 ```typescript
-const result = await cortex.attachments.deleteMany([
+const result = await memoir.attachments.deleteMany([
   'attach-abc123',
   'attach-def456',
 ]);
@@ -499,16 +499,16 @@ console.log(`Deleted ${result.deleted} of ${result.total} attachments`);
 The Python SDK provides the same functionality with Pythonic naming conventions:
 
 ```python
-from cortex import Cortex, CortexConfig
-from cortex.types import AttachParams, ListAttachmentsFilter
+from memoir import Memoir, MemoirConfig
+from memoir.types import AttachParams, ListAttachmentsFilter
 
-cortex = Cortex(CortexConfig(convex_url=os.getenv("CONVEX_URL")))
+memoir = Memoir(MemoirConfig(convex_url=os.getenv("CONVEX_URL")))
 
 # Generate upload URL
-result = await cortex.attachments.generate_upload_url()
+result = await memoir.attachments.generate_upload_url()
 
 # Attach file
-attachment = await cortex.attachments.attach(AttachParams(
+attachment = await memoir.attachments.attach(AttachParams(
     storage_id="kg2abc123",
     memory_space_id="user-123-space",
     user_id="user-123",
@@ -519,20 +519,20 @@ attachment = await cortex.attachments.attach(AttachParams(
 ))
 
 # Get attachment
-attachment = await cortex.attachments.get("attach-abc123")
+attachment = await memoir.attachments.get("attach-abc123")
 
 # Get download URL
-url = await cortex.attachments.get_url("attach-abc123")
+url = await memoir.attachments.get_url("attach-abc123")
 
 # List attachments
-result = await cortex.attachments.list(ListAttachmentsFilter(
+result = await memoir.attachments.list(ListAttachmentsFilter(
     memory_space_id="user-123-space",
     type="image",
     limit=20,
 ))
 
 # Delete
-deleted = await cortex.attachments.delete("attach-abc123")
+deleted = await memoir.attachments.delete("attach-abc123")
 ```
 
 ---
@@ -542,10 +542,10 @@ deleted = await cortex.attachments.delete("attach-abc123")
 The Attachments API throws `AttachmentValidationError` for client-side validation failures:
 
 ```typescript
-import { AttachmentValidationError } from '@cortex-memory/core';
+import { AttachmentValidationError } from '@memoir/core';
 
 try {
-  await cortex.attachments.attach({
+  await memoir.attachments.attach({
     storageId: '',  // Invalid: empty
     // ...
   });
@@ -584,7 +584,7 @@ try {
 When configured with an auth context, tenant ID is automatically injected:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   auth: createAuthContext({
     userId: 'user-123',
@@ -593,7 +593,7 @@ const cortex = new Cortex({
 });
 
 // Tenant ID is automatically added
-const attachment = await cortex.attachments.attach({
+const attachment = await memoir.attachments.attach({
   storageId: 'kg2abc123',
   memorySpaceId: 'space-123',
   userId: 'user-123',
@@ -605,7 +605,7 @@ const attachment = await cortex.attachments.attach({
 });
 
 // Queries are automatically scoped to tenant
-const result = await cortex.attachments.list({
+const result = await memoir.attachments.list({
   memorySpaceId: 'space-123',
   // tenantId: 'tenant-abc' // Auto-injected
 });

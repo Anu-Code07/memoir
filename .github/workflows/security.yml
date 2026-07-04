@@ -230,20 +230,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           python -m pip install --upgrade pip
           pip install safety bandit[toml]
 
       - name: Run Safety check (vulnerabilities)
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           safety check --json || true
 
       - name: Run Bandit (security issues)
         run: |
-          cd cortex-sdk-python
-          bandit -r cortex -f json -o bandit-report.json || true
-          bandit -r cortex || true
+          cd memoir-sdk-python
+          bandit -r memoir -f json -o bandit-report.json || true
+          bandit -r memoir || true
 
   # API Security scanning
   api-security:
@@ -311,7 +311,7 @@ jobs:
         with:
           api-token: ${{ secrets.API_SECURITY_TOKEN }}
           platform-url: https://platform.42crunch.com
-          default-collection-name: Project-Cortex
+          default-collection-name: Project-Memoir
           # Upload results to code scanning
           upload-to-code-scanning: true
           github-token: ${{ github.token }}

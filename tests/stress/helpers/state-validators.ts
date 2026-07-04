@@ -5,7 +5,7 @@
  * supersession chains, and cross-user isolation.
  */
 
-import type { Cortex } from "../../../src";
+import type { Memoir } from "../../../src";
 import type { FactRecord } from "../../../src/types";
 import { generateRealEmbedding } from "./chaos-generators";
 
@@ -60,7 +60,7 @@ export interface IsolationResult {
  * Verify that the current fact state matches expectations
  */
 export async function verifyFactState(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   expectations: FactStateExpectation[],
@@ -69,7 +69,7 @@ export async function verifyFactState(
   const details: Record<string, unknown> = {};
 
   // Get all current (non-superseded) facts for the user
-  const allFacts = await cortex.facts.list({
+  const allFacts = await memoir.facts.list({
     memorySpaceId,
     subject: userId,
     includeSuperseded: false,
@@ -116,14 +116,14 @@ export async function verifyFactState(
  * Verify that expected facts exist and no unexpected facts are present
  */
 export async function verifyExactFactState(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   expectedFacts: Record<string, string>, // predicate -> object
 ): Promise<ValidationResult> {
   const errors: string[] = [];
 
-  const allFacts = await cortex.facts.list({
+  const allFacts = await memoir.facts.list({
     memorySpaceId,
     subject: userId,
     includeSuperseded: false,
@@ -171,7 +171,7 @@ export async function verifyExactFactState(
  * Verify recall accuracy for a given query
  */
 export async function verifyRecallAccuracy(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   query: string,
   expectedFactContents: string[],
@@ -194,7 +194,7 @@ export async function verifyRecallAccuracy(
   }
 
   // Perform recall
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query,
     embedding,
@@ -242,14 +242,14 @@ export async function verifyRecallAccuracy(
  * Verify that recall returns ONLY current facts, not superseded ones
  */
 export async function verifyRecallExcludesSuperseded(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   query: string,
   userId: string,
 ): Promise<ValidationResult> {
   const embedding = await generateRealEmbedding(query);
 
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query,
     embedding,
@@ -290,7 +290,7 @@ export async function verifyRecallExcludesSuperseded(
  * Validate the supersession chain for a given predicate
  */
 export async function validateSupersessionChain(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   predicate: string,
@@ -299,7 +299,7 @@ export async function validateSupersessionChain(
   const brokenLinks: string[] = [];
 
   // Get all facts for this predicate (including superseded)
-  const allFacts = await cortex.facts.list({
+  const allFacts = await memoir.facts.list({
     memorySpaceId,
     subject: userId,
     predicate,
@@ -375,7 +375,7 @@ export async function validateSupersessionChain(
  * Validate all supersession chains for a user
  */
 export async function validateAllSupersessionChains(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
 ): Promise<{
@@ -385,7 +385,7 @@ export async function validateAllSupersessionChains(
   results: Record<string, SupersessionChainResult>;
 }> {
   // Get all facts to discover predicates
-  const allFacts = await cortex.facts.list({
+  const allFacts = await memoir.facts.list({
     memorySpaceId,
     subject: userId,
     includeSuperseded: true,
@@ -399,7 +399,7 @@ export async function validateAllSupersessionChains(
   let invalidChains = 0;
 
   for (const predicate of predicates) {
-    const result = await validateSupersessionChain(cortex, memorySpaceId, userId, predicate);
+    const result = await validateSupersessionChain(memoir, memorySpaceId, userId, predicate);
     results[predicate] = result;
 
     if (result.isValid) {
@@ -425,7 +425,7 @@ export async function validateAllSupersessionChains(
  * Verify user isolation - ensure no cross-user fact contamination
  */
 export async function verifyUserIsolation(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userIds: string[],
 ): Promise<IsolationResult> {
@@ -433,7 +433,7 @@ export async function verifyUserIsolation(
 
   for (const userId of userIds) {
     // Get facts for this user
-    const facts = await cortex.facts.list({
+    const facts = await memoir.facts.list({
       memorySpaceId,
       userId,
       includeSuperseded: true,
@@ -465,7 +465,7 @@ export async function verifyUserIsolation(
  * Verify recall isolation - ensure recall only returns facts for the requesting user
  */
 export async function verifyRecallIsolation(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   query: string,
@@ -473,7 +473,7 @@ export async function verifyRecallIsolation(
 ): Promise<ValidationResult> {
   const embedding = await generateRealEmbedding(query);
 
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query,
     embedding,
@@ -518,11 +518,11 @@ export async function verifyRecallIsolation(
  * Verify no duplicate facts exist for the same subject-predicate-object
  */
 export async function verifyNoDuplicates(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
 ): Promise<ValidationResult> {
-  const facts = await cortex.facts.list({
+  const facts = await memoir.facts.list({
     memorySpaceId,
     subject: userId,
     includeSuperseded: false, // Only check current facts
@@ -569,7 +569,7 @@ export async function verifyNoDuplicates(
  * Run all validations for a single user after chaos testing
  */
 export async function runFullValidation(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   expectedFinalState: Record<string, string>,
@@ -582,16 +582,16 @@ export async function runFullValidation(
 }> {
   // Run all validations
   const factStateResult = await verifyExactFactState(
-    cortex,
+    memoir,
     memorySpaceId,
     userId,
     expectedFinalState,
   );
 
-  const duplicateResult = await verifyNoDuplicates(cortex, memorySpaceId, userId);
+  const duplicateResult = await verifyNoDuplicates(memoir, memorySpaceId, userId);
 
   const supersessionResult = await validateAllSupersessionChains(
-    cortex,
+    memoir,
     memorySpaceId,
     userId,
   );

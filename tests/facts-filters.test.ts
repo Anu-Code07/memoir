@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 // All valid factTypes as per schema
 const ALL_FACT_TYPES = [
@@ -24,17 +24,17 @@ const ALL_FACT_TYPES = [
 ] as const;
 
 describe("Facts API - Comprehensive Filter Coverage", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const TEST_MEMSPACE_ID = `filter-test-${Date.now()}`;
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup test facts (best-effort - ignore errors)
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -48,7 +48,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-list-${factType}`;
 
       // Store target fact
-      const targetFact = await cortex.facts.store({
+      const targetFact = await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `Test ${factType} fact for list`,
@@ -59,7 +59,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store different type as noise
       if (factType !== "preference") {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "preference",
           fact: "Noise fact",
@@ -70,7 +70,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: List with factType filter
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: factType as any,
       });
@@ -90,7 +90,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-count-${factType}`;
 
       // Store 2 facts of target type
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `Test ${factType} fact 1 for count`,
@@ -99,7 +99,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `Test ${factType} fact 2 for count`,
@@ -110,7 +110,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store different type as noise
       if (factType !== "custom") {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "custom",
           fact: "Noise fact",
@@ -121,7 +121,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Count with factType filter
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: spaceId,
         factType: factType as any,
       });
@@ -135,7 +135,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const searchTerm = "searchable";
 
       // Store target fact with searchable content
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `${searchTerm} ${factType} fact for search`,
@@ -146,7 +146,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store different type with same search term (should be filtered out)
       if (factType !== "knowledge") {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "knowledge",
           fact: `${searchTerm} noise fact`,
@@ -157,7 +157,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Search with factType filter
-      const results = await cortex.facts.search(spaceId, searchTerm, {
+      const results = await memoir.facts.search(spaceId, searchTerm, {
         factType: factType as any,
       });
 
@@ -174,7 +174,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const subject = `query-subject-${factType}`;
 
       // Store target fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `Test ${factType} fact for queryBySubject`,
@@ -185,7 +185,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store same subject but different type (should be filtered out)
       if (factType !== "relationship") {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "relationship",
           fact: "Noise fact with same subject",
@@ -196,7 +196,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Query by subject with factType filter
-      const results = await cortex.facts.queryBySubject({
+      const results = await memoir.facts.queryBySubject({
         memorySpaceId: spaceId,
         subject,
         factType: factType as any,
@@ -214,7 +214,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-export-${factType}`;
 
       // Store target fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: factType as any,
         fact: `Test ${factType} fact for export`,
@@ -225,7 +225,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store different type as noise
       if (factType !== "event") {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "event",
           fact: "Noise fact",
@@ -236,7 +236,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Export with factType filter (JSON format)
-      const exportData = await cortex.facts.export({
+      const exportData = await memoir.facts.export({
         memorySpaceId: spaceId,
         format: "json",
         factType: factType as any,
@@ -262,7 +262,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-empty`;
 
       // Store only preference facts
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: "Only preference fact",
@@ -272,7 +272,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Query for different type
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "observation",
       });
@@ -286,7 +286,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store 5 identity facts
       for (let i = 0; i < 5; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "identity",
           fact: `Identity fact ${i}`,
@@ -297,7 +297,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Store some noise
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: "Noise fact",
@@ -307,7 +307,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Query for identity
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "identity",
       });
@@ -323,7 +323,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-observation-regression`;
 
       // Store observation fact (this always worked)
-      const _obsFact = await cortex.facts.store({
+      const _obsFact = await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "observation",
         fact: "User observed clicking signup button",
@@ -336,7 +336,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       // (they would have failed before the bug fix)
 
       // Test list
-      const listResults = await cortex.facts.list({
+      const listResults = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "observation",
       });
@@ -346,20 +346,20 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       );
 
       // Test count
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: spaceId,
         factType: "observation",
       });
       expect(count).toBeGreaterThanOrEqual(1);
 
       // Test search
-      const searchResults = await cortex.facts.search(spaceId, "clicking", {
+      const searchResults = await memoir.facts.search(spaceId, "clicking", {
         factType: "observation",
       });
       expect(searchResults.length).toBeGreaterThanOrEqual(1);
 
       // Test queryBySubject
-      const subjectResults = await cortex.facts.queryBySubject({
+      const subjectResults = await memoir.facts.queryBySubject({
         memorySpaceId: spaceId,
         subject: "user-behavior",
         factType: "observation",
@@ -367,7 +367,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       expect(subjectResults.length).toBeGreaterThanOrEqual(1);
 
       // Test export
-      const exportData = await cortex.facts.export({
+      const exportData = await memoir.facts.export({
         memorySpaceId: spaceId,
         format: "json",
         factType: "observation",
@@ -382,7 +382,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const targetTags = ["important", "user-pref"];
 
       // Store target fact with all criteria
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: "User prefers dark mode",
@@ -393,7 +393,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Store preference with wrong subject
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: "Different subject preference",
@@ -404,7 +404,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Store different factType with correct subject/tags
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "identity",
         fact: "Identity with same subject",
@@ -415,7 +415,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Test: Combine factType + subject filters
-      const results = await cortex.facts.list({
+      const results = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "preference",
         subject: targetSubject,
@@ -429,7 +429,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Test: Combine factType + tags filters
-      const resultsWithTags = await cortex.facts.list({
+      const resultsWithTags = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "preference",
         tags: ["important"],
@@ -448,7 +448,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store 3 knowledge facts
       for (let i = 0; i < 3; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "knowledge",
           fact: `Knowledge fact ${i}`,
@@ -460,7 +460,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
 
       // Store 2 event facts
       for (let i = 0; i < 2; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           factType: "event",
           fact: `Event fact ${i}`,
@@ -471,14 +471,14 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       }
 
       // Count only knowledge facts
-      const knowledgeCount = await cortex.facts.count({
+      const knowledgeCount = await memoir.facts.count({
         memorySpaceId: spaceId,
         factType: "knowledge",
       });
       expect(knowledgeCount).toBe(3);
 
       // Count all facts (no filter)
-      const totalCount = await cortex.facts.count({
+      const totalCount = await memoir.facts.count({
         memorySpaceId: spaceId,
       });
       expect(totalCount).toBeGreaterThanOrEqual(5);
@@ -489,7 +489,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       const searchTerm = "combined";
 
       // Store high confidence preference
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: `${searchTerm} high confidence preference`,
@@ -499,7 +499,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Store low confidence preference
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "preference",
         fact: `${searchTerm} low confidence preference`,
@@ -509,7 +509,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Store high confidence identity (wrong type)
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         factType: "identity",
         fact: `${searchTerm} identity`,
@@ -519,7 +519,7 @@ describe("Facts API - Comprehensive Filter Coverage", () => {
       });
 
       // Search with both filters
-      const results = await cortex.facts.search(spaceId, searchTerm, {
+      const results = await memoir.facts.search(spaceId, searchTerm, {
         factType: "preference",
         minConfidence: 90,
       });

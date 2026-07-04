@@ -1,5 +1,5 @@
 /**
- * Artifact type definitions for Cortex Memory Provider
+ * Artifact type definitions for Memoir Provider
  *
  * These types define the structure of artifacts - persistent, structured content
  * generated during AI conversations (code files, documents, diagrams, etc.).
@@ -128,12 +128,12 @@ export const ArtifactStatsSchema = z
 export type ArtifactStats = z.infer<typeof ArtifactStatsSchema>;
 
 /**
- * Full Cortex Artifact schema
+ * Full Memoir Artifact schema
  *
- * This schema represents the complete artifact structure as stored in Cortex.
- * Use CortexArtifactSchema.parse() to validate incoming artifact data.
+ * This schema represents the complete artifact structure as stored in Memoir.
+ * Use MemoirArtifactSchema.parse() to validate incoming artifact data.
  */
-export const CortexArtifactSchema = z.object({
+export const MemoirArtifactSchema = z.object({
   // Identity
   id: z.string(),
   artifactId: z.string().optional(), // Public ID
@@ -192,7 +192,7 @@ export const CortexArtifactSchema = z.object({
   deletedAt: z.number().optional(),
   deletedBy: z.string().optional(),
 });
-export type CortexArtifact = z.infer<typeof CortexArtifactSchema>;
+export type MemoirArtifact = z.infer<typeof MemoirArtifactSchema>;
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Operation Input Schemas
@@ -273,7 +273,7 @@ export type ListArtifactsInput = z.infer<typeof ListArtifactsInputSchema>;
 export interface ArtifactStreamEvent {
   artifactId: string;
   type: "create" | "update" | "append" | "complete" | "error";
-  artifact: Partial<CortexArtifact>;
+  artifact: Partial<MemoirArtifact>;
   chunk?: string;
   progress?: number;
   error?: { message: string; code?: string };

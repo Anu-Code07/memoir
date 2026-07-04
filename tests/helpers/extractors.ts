@@ -261,7 +261,7 @@ export function buildEnrichedContent(fact: Partial<EnrichedFact>): string {
 }
 
 /**
- * Convert enriched facts to the format expected by cortex.facts.store()
+ * Convert enriched facts to the format expected by memoir.facts.store()
  *
  * @param enrichedFacts - Array of enriched facts
  * @param userId - User ID to associate facts with

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK Configuration
+ * Memoir SDK Configuration
  *
  * Centralized configuration with environment variable support.
  * Values can be overridden at runtime via API parameters.
@@ -36,7 +36,7 @@ export const MODEL_DEFAULTS = {
  *
  * Priority order:
  * 1. configModel (programmatic config)
- * 2. CORTEX_FACT_EXTRACTION_MODEL env var
+ * 2. MEMOIR_FACT_EXTRACTION_MODEL env var
  * 3. Provider-specific default
  *
  * @param configModel - Model from LLMConfig.model
@@ -49,7 +49,7 @@ export function resolveFactExtractionModel(
 ): string {
   return (
     configModel ||
-    process.env.CORTEX_FACT_EXTRACTION_MODEL ||
+    process.env.MEMOIR_FACT_EXTRACTION_MODEL ||
     MODEL_DEFAULTS.factExtraction[provider]
   );
 }
@@ -59,8 +59,8 @@ export function resolveFactExtractionModel(
  *
  * Priority order:
  * 1. configModel (per-call or programmatic config)
- * 2. CORTEX_CONFLICT_RESOLUTION_MODEL env var
- * 3. CORTEX_FACT_EXTRACTION_MODEL env var (fallback)
+ * 2. MEMOIR_CONFLICT_RESOLUTION_MODEL env var
+ * 3. MEMOIR_FACT_EXTRACTION_MODEL env var (fallback)
  * 4. Provider-specific default
  *
  * @param configModel - Model from BeliefRevisionConfig.llmResolution.model
@@ -73,8 +73,8 @@ export function resolveConflictResolutionModel(
 ): string {
   return (
     configModel ||
-    process.env.CORTEX_CONFLICT_RESOLUTION_MODEL ||
-    process.env.CORTEX_FACT_EXTRACTION_MODEL ||
+    process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL ||
+    process.env.MEMOIR_FACT_EXTRACTION_MODEL ||
     MODEL_DEFAULTS.conflictResolution[provider]
   );
 }
@@ -84,7 +84,7 @@ export function resolveConflictResolutionModel(
  *
  * Priority order:
  * 1. configModel (programmatic config)
- * 2. CORTEX_EMBEDDING_MODEL env var
+ * 2. MEMOIR_EMBEDDING_MODEL env var
  * 3. Default model
  *
  * @param configModel - Model from EmbeddingConfig.model
@@ -92,7 +92,7 @@ export function resolveConflictResolutionModel(
  */
 export function resolveEmbeddingModel(configModel?: string): string {
   return (
-    configModel || process.env.CORTEX_EMBEDDING_MODEL || MODEL_DEFAULTS.embedding
+    configModel || process.env.MEMOIR_EMBEDDING_MODEL || MODEL_DEFAULTS.embedding
   );
 }
 
@@ -115,30 +115,30 @@ function parseEnvInt(envVar: string | undefined, defaultValue: number): number {
  *
  * Configuration hierarchy (highest priority first):
  * 1. Per-call override via RecallParams.limits
- * 2. Environment variables (CORTEX_RECALL_*)
+ * 2. Environment variables (MEMOIR_RECALL_*)
  * 3. These SDK defaults
  *
  * Environment variables:
- * - CORTEX_RECALL_LIMIT_MEMORIES: Max memories from vector search (default: 20)
- * - CORTEX_RECALL_LIMIT_FACTS: Max facts from semantic search (default: 15)
- * - CORTEX_RECALL_GRAPH_HOPS: Graph traversal depth, 0=off (default: 2)
- * - CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP: Entities to expand per hop (default: 5)
- * - CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY: Results per entity (default: 3)
- * - CORTEX_RECALL_LIMIT_TOTAL: Final aggregate limit (default: 30)
+ * - MEMOIR_RECALL_LIMIT_MEMORIES: Max memories from vector search (default: 20)
+ * - MEMOIR_RECALL_LIMIT_FACTS: Max facts from semantic search (default: 15)
+ * - MEMOIR_RECALL_GRAPH_HOPS: Graph traversal depth, 0=off (default: 2)
+ * - MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP: Entities to expand per hop (default: 5)
+ * - MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY: Results per entity (default: 3)
+ * - MEMOIR_RECALL_LIMIT_TOTAL: Final aggregate limit (default: 30)
  */
 export const RECALL_DEFAULTS: Required<RecallLimits> = {
-  memories: parseEnvInt(process.env.CORTEX_RECALL_LIMIT_MEMORIES, 20),
-  facts: parseEnvInt(process.env.CORTEX_RECALL_LIMIT_FACTS, 15),
-  graphHops: parseEnvInt(process.env.CORTEX_RECALL_GRAPH_HOPS, 2),
+  memories: parseEnvInt(process.env.MEMOIR_RECALL_LIMIT_MEMORIES, 20),
+  facts: parseEnvInt(process.env.MEMOIR_RECALL_LIMIT_FACTS, 15),
+  graphHops: parseEnvInt(process.env.MEMOIR_RECALL_GRAPH_HOPS, 2),
   graphEntitiesPerHop: parseEnvInt(
-    process.env.CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP,
+    process.env.MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP,
     5,
   ),
   graphResultsPerEntity: parseEnvInt(
-    process.env.CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY,
+    process.env.MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY,
     3,
   ),
-  total: parseEnvInt(process.env.CORTEX_RECALL_LIMIT_TOTAL, 30),
+  total: parseEnvInt(process.env.MEMOIR_RECALL_LIMIT_TOTAL, 30),
 };
 
 /**

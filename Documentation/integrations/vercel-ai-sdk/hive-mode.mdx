@@ -11,7 +11,7 @@ Hive Mode enables multiple agents/tools to share a single memory space, creating
 ## Setup
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "shared-workspace", // Same across apps
   userId: currentUser.id,
@@ -33,7 +33,7 @@ const cortexMemory = createCortexMemory({
 
 ```typescript
 // Next.js App
-const webAppMemory = createCortexMemory({
+const webAppMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "shared-workspace", // Same across all three
   userId: currentUser.id,
@@ -42,7 +42,7 @@ const webAppMemory = createCortexMemory({
 });
 
 // Cursor (if using SDK)
-const cursorMemory = createCortexMemory({
+const cursorMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "shared-workspace", // Same space
   userId: currentUser.id,
@@ -51,7 +51,7 @@ const cursorMemory = createCortexMemory({
 });
 
 // Claude Desktop (if using SDK)
-const claudeMemory = createCortexMemory({
+const claudeMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "shared-workspace", // Same space
   userId: currentUser.id,
@@ -68,7 +68,7 @@ const sharedMemories = await webAppMemory.search('user preferences');
 
 ```typescript
 // Agent A
-const agentA = createCortexMemory({
+const agentA = createMemoirMemory({
   memorySpaceId: "team-workspace",
   userId: "user-123",
   agentId: "analyzer-agent",
@@ -76,7 +76,7 @@ const agentA = createCortexMemory({
 });
 
 // Agent B
-const agentB = createCortexMemory({
+const agentB = createMemoirMemory({
   memorySpaceId: "team-workspace",
   userId: "user-123",
   agentId: "writer-agent",
@@ -99,12 +99,12 @@ You can filter memories and facts by `participantId` to see data from specific t
 
 ```typescript
 // Filter memories by participant
-const calendarMemories = await cortexMemory.search('meetings', {
+const calendarMemories = await memoirMemory.search('meetings', {
   participantId: 'calendar-tool'
 });
 
 // Filter facts by participant
-const emailFacts = await cortex.facts.list({
+const emailFacts = await memoir.facts.list({
   memorySpaceId: 'shared-workspace',
   participantId: 'email-tool'
 });

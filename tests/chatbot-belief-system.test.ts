@@ -2,11 +2,11 @@
  * Chatbot Belief System E2E Integration Test
  *
  * Simulates a realistic chatbot scenario where the LLM receives ONLY
- * the last user message plus Cortex-supplied context (via recall()).
+ * the last user message plus Memoir-supplied context (via recall()).
  *
  * This is a TRUE E2E test using real LLM calls for:
- * - Fact extraction (Cortex built-in LLM extraction)
- * - LLM responses using Cortex context
+ * - Fact extraction (Memoir built-in LLM extraction)
+ * - LLM responses using Memoir context
  * - Belief revision decisions
  *
  * Test flow:
@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext } from "./helpers";
 import OpenAI from "openai";
@@ -24,7 +24,7 @@ import type { FactRecord, RecallResult } from "../src/types";
 
 describe("Chatbot Belief System E2E", () => {
   const ctx = createNamedTestRunContext("chatbot-e2e");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let openai: OpenAI;
   let client: ConvexClient;
 
@@ -49,8 +49,8 @@ describe("Chatbot Belief System E2E", () => {
 
     client = new ConvexClient(CONVEX_URL);
 
-    // Create Cortex with LLM configured - enables automatic fact extraction & belief revision
-    cortex = new Cortex({
+    // Create Memoir with LLM configured - enables automatic fact extraction & belief revision
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       llm: {
         provider: "openai",
@@ -64,7 +64,7 @@ describe("Chatbot Belief System E2E", () => {
     });
 
     // Create test memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
       name: "Chatbot E2E Test Space",
@@ -72,10 +72,10 @@ describe("Chatbot Belief System E2E", () => {
   }, 30000);
 
   afterAll(async () => {
-    if (skipIfNoLLM || !cortex) return;
+    if (skipIfNoLLM || !memoir) return;
 
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "chatbot-e2e test cleanup",
       });
@@ -89,7 +89,7 @@ describe("Chatbot Belief System E2E", () => {
 
   /**
    * Helper: Simulate a chatbot turn with real LLM
-   * - Gets context from Cortex via recall()
+   * - Gets context from Memoir via recall()
    * - Sends ONLY last message + context to LLM
    * - Returns LLM response
    */
@@ -97,14 +97,14 @@ describe("Chatbot Belief System E2E", () => {
     userMessage: string,
     systemInstructions?: string,
   ): Promise<{ response: string; context: RecallResult }> {
-    // Step 1: Get context from Cortex (this is what a real chatbot would do)
-    const recallResult = await cortex.memory.recall({
+    // Step 1: Get context from Memoir (this is what a real chatbot would do)
+    const recallResult = await memoir.memory.recall({
       memorySpaceId: TEST_MEMSPACE_ID,
       query: userMessage,
       userId: TEST_USER_ID,
     });
 
-    // Step 2: Build system prompt with Cortex context
+    // Step 2: Build system prompt with Memoir context
     const systemPrompt = `${systemInstructions || "You are a helpful assistant."}
 
 Here is relevant context about the user from previous conversations:
@@ -149,9 +149,9 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       console.log("[Turn 1] User:", userMessage);
       console.log("[Turn 1] Agent:", agentResponse);
 
-      // Store the conversation - Cortex will use built-in LLM fact extraction
+      // Store the conversation - Memoir will use built-in LLM fact extraction
       // No custom extractFacts = real LLM extraction
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage,
@@ -186,7 +186,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
     it("should have stored the facts in the memory space", async () => {
       if (skipIfNoLLM) return;
 
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -207,10 +207,10 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // TURN 2: User asks about their favorite color
-  // Real LLM answers using ONLY Cortex context (no conversation history)
+  // Real LLM answers using ONLY Memoir context (no conversation history)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("Turn 2: User asks question (LLM uses Cortex context only)", () => {
+  describe("Turn 2: User asks question (LLM uses Memoir context only)", () => {
     let turn2Response: string;
     let turn2Context: RecallResult;
 
@@ -219,8 +219,8 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
 
       const userMessage = "What is my favorite color?";
 
-      // Get context from Cortex
-      turn2Context = await cortex.memory.recall({
+      // Get context from Memoir
+      turn2Context = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: userMessage,
         userId: TEST_USER_ID,
@@ -243,7 +243,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       const userMessage = "What is my favorite color?";
 
       // This is the key test: LLM receives NO conversation history
-      // It must answer based solely on Cortex context
+      // It must answer based solely on Memoir context
       const { response, context } = await simulateChatbotResponse(userMessage);
 
       turn2Response = response;
@@ -262,7 +262,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       const conversationId = ctx.conversationId("turn2");
 
       // Store this Q&A turn - LLM shouldn't extract new facts from questions
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "What is my favorite color?",
@@ -275,7 +275,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       console.log("[Turn 2] Facts from Q&A:", result.facts.length);
 
       // Verify total facts unchanged (or only slightly increased if LLM extracted something)
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -302,7 +302,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       if (skipIfNoLLM) return;
 
       // Record facts before the update
-      factsBeforeTurn3 = await cortex.facts.list({
+      factsBeforeTurn3 = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -322,7 +322,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       console.log("[Turn 3] Agent:", agentResponse);
 
       // Store the conversation - LLM extracts fact, belief revision handles conflict
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage,
@@ -353,7 +353,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       if (skipIfNoLLM) return;
 
       // Get active facts after the update
-      factsAfterTurn3 = await cortex.facts.list({
+      factsAfterTurn3 = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -371,7 +371,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       expect(hasPurpleFact).toBe(true);
 
       // Check if blue was superseded or is no longer active
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: true,
@@ -401,7 +401,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
     it("should NOT have runaway fact duplication", async () => {
       if (skipIfNoLLM) return;
 
-      const activeFacts = await cortex.facts.list({
+      const activeFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -446,7 +446,7 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
       // Note: Without semantic embeddings, recall() uses keyword matching which may not
       // find "prefers purple" for query "favorite color". The LLM may get "blue" from
       // conversation history. The important thing is the BELIEF STATE is correct.
-      const activeFacts = await cortex.facts.list({
+      const activeFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
@@ -492,13 +492,13 @@ Use this context to personalize your response. Answer naturally and helpfully.`;
     it("should print final belief state summary", async () => {
       if (skipIfNoLLM) return;
 
-      const activeFacts = await cortex.facts.list({
+      const activeFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: false,
       });
 
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         includeSuperseded: true,

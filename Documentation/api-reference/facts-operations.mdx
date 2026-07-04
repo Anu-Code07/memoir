@@ -20,7 +20,7 @@ Complete API reference for the Facts layer (Layer 3) - structured knowledge extr
 
 ## Overview
 
-The Facts API (`cortex.facts.*`) provides structured knowledge storage with versioning, relationships, and temporal validity. Facts are memory-space scoped and can be automatically extracted from conversations or stored manually.
+The Facts API (`memoir.facts.*`) provides structured knowledge storage with versioning, relationships, and temporal validity. Facts are memory-space scoped and can be automatically extracted from conversations or stored manually.
 
 <FeatureGrid>
   <FeatureCard
@@ -43,7 +43,7 @@ The Facts API (`cortex.facts.*`) provides structured knowledge storage with vers
 - Confidence scoring (0-100)
 - Temporal validity (validFrom/validUntil)
 - Automatic versioning and supersession
-- **Automatic graph database sync (v0.29.0+)** - Facts and entities sync automatically when `CORTEX_GRAPH_SYNC=true`
+- **Automatic graph database sync (v0.29.0+)** - Facts and entities sync automatically when `MEMOIR_GRAPH_SYNC=true`
 - **Universal filters (v0.9.1+)** - Same filters as Memory API
 - sourceRef linking to memories and conversations
 
@@ -76,13 +76,13 @@ Store a new fact with metadata and relationships.
 **Signature:**
 
 ```typescript
-cortex.facts.store(
+memoir.facts.store(
   params: StoreFactParams,
   options?: StoreFactOptions
 ): Promise<FactRecord>
 ```
 
-**New in v0.29.0**: Graph sync is now automatic when `CORTEX_GRAPH_SYNC=true`. The `syncToGraph` option has been removed.
+**New in v0.29.0**: Graph sync is now automatic when `MEMOIR_GRAPH_SYNC=true`. The `syncToGraph` option has been removed.
 
 **Parameters:**
 
@@ -134,7 +134,7 @@ interface EnrichedRelation {
 }
 
 // StoreFactOptions is now empty (v0.29.0+)
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
 // interface StoreFactOptions {}
 ```
 
@@ -142,7 +142,7 @@ interface EnrichedRelation {
 
 ```typescript
 // Store fact with userId for GDPR compliance
-const fact = await cortex.facts.store({
+const fact = await memoir.facts.store({
   memorySpaceId: "agent-1",
   userId: "user-123", // GDPR compliance - enables cascade deletion
   fact: "User prefers dark mode",
@@ -163,7 +163,7 @@ const fact = await cortex.facts.store({
 console.log(fact.factId); // "fact-1730123456789-abc123"
 
 // Hive Mode - store with participantId
-const hiveFact = await cortex.facts.store({
+const hiveFact = await memoir.facts.store({
   memorySpaceId: "shared-space",
   participantId: "profile-agent", // Track which agent stored it
   userId: "user-456",
@@ -178,7 +178,7 @@ const hiveFact = await cortex.facts.store({
 });
 
 // Enriched fact (v0.15.0+) - bullet-proof retrieval
-const enrichedFact = await cortex.facts.store({
+const enrichedFact = await memoir.facts.store({
   memorySpaceId: "agent-1",
   userId: "user-123",
   fact: "User prefers to be called Alex",
@@ -234,7 +234,7 @@ Store a fact, automatically checking for and handling duplicates. If a duplicate
 **Signature:**
 
 ```typescript
-cortex.facts.storeWithDedup(
+memoir.facts.storeWithDedup(
   params: StoreFactParams,
   options?: StoreFactWithDedupOptions
 ): Promise<StoreWithDedupResult>
@@ -282,7 +282,7 @@ interface StoreWithDedupResult {
 
 ```typescript
 // Store with structural deduplication
-const result = await cortex.facts.storeWithDedup(
+const result = await memoir.facts.storeWithDedup(
   {
     memorySpaceId: "agent-1",
     fact: "User prefers dark mode",
@@ -306,7 +306,7 @@ if (result.deduplication?.matchedExisting) {
 }
 
 // Store with semantic deduplication
-const semanticResult = await cortex.facts.storeWithDedup(
+const semanticResult = await memoir.facts.storeWithDedup(
   {
     memorySpaceId: "agent-1",
     fact: "User likes dark themes", // Different wording
@@ -363,23 +363,23 @@ If no slot match, the system checks for semantic match. If no semantic match eit
 ### Configuration
 
 ```typescript
-// Configure belief revision when creating Cortex instance with LLM
-const cortex = new Cortex({
+// Configure belief revision when creating Memoir instance with LLM
+const memoir = new Memoir({
   url: process.env.CONVEX_URL!,
   llm: openaiClient, // LLM client required for belief revision
 });
 
 // Check if belief revision is available
-if (cortex.facts.hasBeliefRevision()) {
+if (memoir.facts.hasBeliefRevision()) {
   console.log("Belief revision is configured and ready");
 }
 
 // Python SDK equivalent:
-# cortex = Cortex(CortexConfig(
+# memoir = Memoir(MemoirConfig(
 #     convex_url=os.environ["CONVEX_URL"],
 #     llm=LLMConfig(provider="openai", api_key=os.environ["OPENAI_API_KEY"])
 # ))
-# if cortex.facts.has_belief_revision():
+# if memoir.facts.has_belief_revision():
 #     print("Belief revision is available")
 ```
 
@@ -394,12 +394,12 @@ if (cortex.facts.hasBeliefRevision()) {
 
 </Callout>
 
-Use this method to change the LLM client or belief revision configuration after the Cortex instance has been created.
+Use this method to change the LLM client or belief revision configuration after the Memoir instance has been created.
 
 **Signature:**
 
 ```typescript
-cortex.facts.configureBeliefRevision(
+memoir.facts.configureBeliefRevision(
   llmClient?: BeliefRevisionLLMClient,
   config?: BeliefRevisionConfig
 ): void
@@ -430,10 +430,10 @@ interface BeliefRevisionConfig {
 
 ```typescript
 // Reconfigure with a different LLM client
-cortex.facts.configureBeliefRevision(newLLMClient);
+memoir.facts.configureBeliefRevision(newLLMClient);
 
 // Update configuration only
-cortex.facts.configureBeliefRevision(undefined, {
+memoir.facts.configureBeliefRevision(undefined, {
   semanticThreshold: 0.9,
   slotMatching: {
     enabled: true,
@@ -445,7 +445,7 @@ cortex.facts.configureBeliefRevision(undefined, {
 });
 
 // Reconfigure both client and config
-cortex.facts.configureBeliefRevision(openaiClient, {
+memoir.facts.configureBeliefRevision(openaiClient, {
   llmResolution: true,
   semanticThreshold: 0.85,
 });
@@ -473,10 +473,10 @@ cortex.facts.configureBeliefRevision(openaiClient, {
 
 ```typescript
 // TypeScript
-cortex.facts.hasBeliefRevision(): boolean
+memoir.facts.hasBeliefRevision(): boolean
 
 // Python
-cortex.facts.has_belief_revision() -> bool
+memoir.facts.has_belief_revision() -> bool
 ```
 
 **Returns:**
@@ -488,21 +488,21 @@ cortex.facts.has_belief_revision() -> bool
 
 ```typescript
 // TypeScript
-if (cortex.facts.hasBeliefRevision()) {
+if (memoir.facts.hasBeliefRevision()) {
   // Use full belief revision pipeline
-  const result = await cortex.facts.revise(params);
+  const result = await memoir.facts.revise(params);
 } else {
   // Fall back to deduplication only
-  const result = await cortex.facts.storeWithDedup(params, {
+  const result = await memoir.facts.storeWithDedup(params, {
     deduplication: { strategy: "structural" }
   });
 }
 
 // Python
-if cortex.facts.has_belief_revision():
-    result = await cortex.facts.revise(params)
+if memoir.facts.has_belief_revision():
+    result = await memoir.facts.revise(params)
 else:
-    result = await cortex.facts.store_with_dedup(params, deduplication="structural")
+    result = await memoir.facts.store_with_dedup(params, deduplication="structural")
 ```
 
 **Use cases:**
@@ -525,7 +525,7 @@ else:
 **Signature:**
 
 ```typescript
-cortex.facts.revise(params: ReviseParams): Promise<ReviseResult>
+memoir.facts.revise(params: ReviseParams): Promise<ReviseResult>
 ```
 
 **Parameters:**
@@ -572,7 +572,7 @@ interface ReviseResult {
 
 ```typescript
 // Intelligent fact storage with automatic conflict resolution
-const result = await cortex.facts.revise({
+const result = await memoir.facts.revise({
   memorySpaceId: "agent-1",
   fact: {
     fact: "User prefers purple",
@@ -612,7 +612,7 @@ if (result.pipeline.llmResolution?.executed) {
 **Signature:**
 
 ```typescript
-cortex.facts.checkConflicts(params: ReviseParams): Promise<ConflictCheckResult>
+memoir.facts.checkConflicts(params: ReviseParams): Promise<ConflictCheckResult>
 ```
 
 **Return Type:**
@@ -631,7 +631,7 @@ interface ConflictCheckResult {
 
 ```typescript
 // Check for conflicts before storing
-const conflicts = await cortex.facts.checkConflicts({
+const conflicts = await memoir.facts.checkConflicts({
   memorySpaceId: "agent-1",
   fact: {
     fact: "User prefers purple",
@@ -654,7 +654,7 @@ if (conflicts.hasConflicts) {
 
   // Let user confirm before proceeding
   if (await userConfirms()) {
-    await cortex.facts.revise(params);
+    await memoir.facts.revise(params);
   }
 }
 ```
@@ -673,7 +673,7 @@ if (conflicts.hasConflicts) {
 **Signature:**
 
 ```typescript
-cortex.facts.supersede(params: {
+memoir.facts.supersede(params: {
   memorySpaceId: string;
   oldFactId: string;
   newFactId: string;
@@ -685,7 +685,7 @@ cortex.facts.supersede(params: {
 
 ```typescript
 // Manually supersede a fact
-await cortex.facts.supersede({
+await memoir.facts.supersede({
   memorySpaceId: "agent-1",
   oldFactId: "fact-old-color",
   newFactId: "fact-new-color",
@@ -693,7 +693,7 @@ await cortex.facts.supersede({
 });
 
 // Old fact is now marked with validUntil
-const oldFact = await cortex.facts.get("agent-1", "fact-old-color");
+const oldFact = await memoir.facts.get("agent-1", "fact-old-color");
 console.log(oldFact.validUntil); // Set to supersession time
 ```
 
@@ -711,7 +711,7 @@ console.log(oldFact.validUntil); // Set to supersession time
 **Signature:**
 
 ```typescript
-cortex.facts.history(factId: string, limit?: number): Promise<FactChangeEvent[]>
+memoir.facts.history(factId: string, limit?: number): Promise<FactChangeEvent[]>
 ```
 
 **Return Type:**
@@ -744,7 +744,7 @@ interface FactChangeEvent {
 
 ```typescript
 // Get history for a fact
-const history = await cortex.facts.history("fact-123");
+const history = await memoir.facts.history("fact-123");
 
 history.forEach((event) => {
   console.log(`${event.action} at ${new Date(event.timestamp).toISOString()}`);
@@ -774,7 +774,7 @@ Query the change history across a memory space, with optional filtering by actio
 **Signature:**
 
 ```typescript
-cortex.facts.getChanges(filter: ChangeFilter): Promise<FactChangeEvent[]>
+memoir.facts.getChanges(filter: ChangeFilter): Promise<FactChangeEvent[]>
 ```
 
 **Parameters:**
@@ -825,7 +825,7 @@ interface FactChangeEvent {
 
 ```typescript
 // Get all supersession events in last 24 hours
-const changes = await cortex.facts.getChanges({
+const changes = await memoir.facts.getChanges({
   memorySpaceId: "agent-1",
   action: "SUPERSEDE",
   after: new Date(Date.now() - 24 * 60 * 60 * 1000),
@@ -838,14 +838,14 @@ changes.forEach((event) => {
 });
 
 // Get all changes for a specific user (audit log)
-const userChanges = await cortex.facts.getChanges({
+const userChanges = await memoir.facts.getChanges({
   memorySpaceId: "agent-1",
   userId: "user-123",
   limit: 50,
 });
 
 // Get changes in a date range
-const rangeChanges = await cortex.facts.getChanges({
+const rangeChanges = await memoir.facts.getChanges({
   memorySpaceId: "agent-1",
   after: new Date("2025-01-01"),
   before: new Date("2025-01-31"),
@@ -873,14 +873,14 @@ const rangeChanges = await cortex.facts.getChanges({
 **Signature:**
 
 ```typescript
-cortex.facts.getSupersessionChain(factId: string): Promise<SupersessionChainEntry[]>
+memoir.facts.getSupersessionChain(factId: string): Promise<SupersessionChainEntry[]>
 ```
 
 **Example:**
 
 ```typescript
 // Trace the evolution of knowledge
-const chain = await cortex.facts.getSupersessionChain("fact-latest");
+const chain = await memoir.facts.getSupersessionChain("fact-latest");
 
 // Returns: [oldest] -> [older] -> [old] -> [current]
 chain.forEach((entry, i) => {
@@ -906,7 +906,7 @@ chain.forEach((entry, i) => {
 **Signature:**
 
 ```typescript
-cortex.facts.getActivitySummary(
+memoir.facts.getActivitySummary(
   memorySpaceId: string,
   hours?: number
 ): Promise<ActivitySummary>
@@ -937,7 +937,7 @@ interface ActivitySummary {
 
 ```typescript
 // Get activity summary for last 24 hours
-const summary = await cortex.facts.getActivitySummary("agent-1", 24);
+const summary = await memoir.facts.getActivitySummary("agent-1", 24);
 
 console.log(`Total events: ${summary.totalEvents}`);
 console.log(`Creates: ${summary.actionCounts.CREATE}`);
@@ -971,7 +971,7 @@ const PREDICATE_CLASSES = {
 
 ```typescript
 // Add custom predicate classes
-cortex.facts.configureBeliefRevision(llmClient, {
+memoir.facts.configureBeliefRevision(llmClient, {
   slotMatching: {
     enabled: true,
     predicateClasses: {
@@ -1013,7 +1013,7 @@ async get(
 **Example:**
 
 ```typescript
-const fact = await cortex.facts.get("agent-1", "fact-123");
+const fact = await memoir.facts.get("agent-1", "fact-123");
 
 if (fact) {
   console.log(fact.fact); // "User prefers dark mode"
@@ -1047,7 +1047,7 @@ interface ListFactsFilter {
   minConfidence?: number; // Minimum confidence threshold (0-100)
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string; // Filter by user
   participantId?: string; // Filter by participant (Hive Mode)
   tags?: string[]; // Filter by tags
@@ -1082,21 +1082,21 @@ interface ListFactsFilter {
 
 ```typescript
 // All user preferences
-const preferences = await cortex.facts.list({
+const preferences = await memoir.facts.list({
   memorySpaceId: "agent-1",
   factType: "preference",
   subject: "user-123",
 });
 
 // Facts with specific tags
-const uiFacts = await cortex.facts.list({
+const uiFacts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   tags: ["ui", "settings"],
   limit: 50,
 });
 
 // Universal filters - filter by userId (GDPR-friendly)
-const userFacts = await cortex.facts.list({
+const userFacts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   userId: "user-123", // All facts about this user
   minConfidence: 80,
@@ -1104,14 +1104,14 @@ const userFacts = await cortex.facts.list({
 });
 
 // Hive Mode - filter by participant
-const agentFacts = await cortex.facts.list({
+const agentFacts = await memoir.facts.list({
   memorySpaceId: "shared-space",
   participantId: "email-agent", // Facts stored by email agent
   factType: "preference",
 });
 
 // Complex universal filters
-const recentHighConfidence = await cortex.facts.list({
+const recentHighConfidence = await memoir.facts.list({
   memorySpaceId: "agent-1",
   userId: "user-123",
   minConfidence: 90, // Confidence >= 90
@@ -1151,7 +1151,7 @@ interface SearchFactsOptions {
   minConfidence?: number; // Filter by confidence threshold (0-100)
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string; // Hive Mode filtering
   tags?: string[];
@@ -1186,7 +1186,7 @@ interface SearchFactsOptions {
 
 ```typescript
 // Basic search with universal filters
-const foodFacts = await cortex.facts.search("agent-1", "food preferences", {
+const foodFacts = await memoir.facts.search("agent-1", "food preferences", {
   factType: "preference",
   minConfidence: 80,
   userId: "user-123", // Filter by user
@@ -1198,7 +1198,7 @@ foodFacts.forEach((fact) => {
 });
 
 // Search with date filters
-const recentFacts = await cortex.facts.search("agent-1", "user preferences", {
+const recentFacts = await memoir.facts.search("agent-1", "user preferences", {
   userId: "user-123",
   createdAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
   minConfidence: 70,
@@ -1206,7 +1206,7 @@ const recentFacts = await cortex.facts.search("agent-1", "user preferences", {
 });
 
 // Search by participant (Hive Mode)
-const participantFacts = await cortex.facts.search(
+const participantFacts = await memoir.facts.search(
   "shared-space",
   "user info",
   {
@@ -1217,7 +1217,7 @@ const participantFacts = await cortex.facts.search(
 );
 
 // Complex search with metadata
-const complexSearch = await cortex.facts.search("agent-1", "important facts", {
+const complexSearch = await memoir.facts.search("agent-1", "important facts", {
   userId: "user-123",
   minConfidence: 85,
   sourceType: "conversation",
@@ -1286,7 +1286,7 @@ interface SemanticSearchFactsOptions {
 const embedding = await generateEmbedding("What colors does the user like?");
 
 // Search facts by semantic similarity
-const facts = await cortex.facts.semanticSearch("agent-1", embedding, {
+const facts = await memoir.facts.semanticSearch("agent-1", embedding, {
   userId: "user-123",
   minConfidence: 80,
   minScore: 0.5,  // Only return facts with >50% similarity
@@ -1299,7 +1299,7 @@ facts.forEach((fact) => {
 
 // Example: Find all preference-related facts semantically
 const preferenceEmbedding = await generateEmbedding("user preferences and likes");
-const preferences = await cortex.facts.semanticSearch("agent-1", preferenceEmbedding, {
+const preferences = await memoir.facts.semanticSearch("agent-1", preferenceEmbedding, {
   minConfidence: 70,
   includeSuperseded: false,  // Only current facts
 });
@@ -1321,7 +1321,7 @@ const preferences = await cortex.facts.semanticSearch("agent-1", preferenceEmbed
 
 ```typescript
 // recall() with embedding - uses semantic fact search automatically
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "agent-1",
   query: "What colors does the user like?",
   embedding: await generateEmbedding("What colors does the user like?"),
@@ -1359,20 +1359,20 @@ interface UpdateFactInput {
 }
 
 // Note: UpdateFactOptions no longer includes syncToGraph (v0.29.0+)
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
 ```
 
 **Example:**
 
 ```typescript
 // Update confidence based on validation
-const updated = await cortex.facts.update("agent-1", "fact-123", {
+const updated = await memoir.facts.update("agent-1", "fact-123", {
   confidence: 99,
   tags: ["verified", "ui"],
 });
 
 // Mark fact as expiring
-const expiring = await cortex.facts.update("agent-1", "fact-456", {
+const expiring = await memoir.facts.update("agent-1", "fact-456", {
   validUntil: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
 });
 ```
@@ -1394,8 +1394,8 @@ async delete(
 **Example:**
 
 ```typescript
-// Graph cleanup is automatic when CORTEX_GRAPH_SYNC=true
-await cortex.facts.delete("agent-1", "fact-123");
+// Graph cleanup is automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.facts.delete("agent-1", "fact-123");
 ```
 
 ### `facts.deleteMany()`
@@ -1425,19 +1425,19 @@ interface DeleteManyFactsParams {
 
 ```typescript
 // Delete all facts in a memory space
-const result = await cortex.facts.deleteMany({
+const result = await memoir.facts.deleteMany({
   memorySpaceId: "agent-1",
 });
 console.log(`Deleted ${result.deleted} facts`);
 
 // Delete all facts for a specific user (GDPR compliance)
-const gdprResult = await cortex.facts.deleteMany({
+const gdprResult = await memoir.facts.deleteMany({
   memorySpaceId: "agent-1",
   userId: "user-to-delete",
 });
 
 // Delete all preference facts
-const prefResult = await cortex.facts.deleteMany({
+const prefResult = await memoir.facts.deleteMany({
   memorySpaceId: "agent-1",
   factType: "preference",
 });
@@ -1477,7 +1477,7 @@ interface CountFactsFilter {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string; // Hive Mode filtering
   tags?: string[];
@@ -1506,7 +1506,7 @@ interface CountFactsFilter {
 
 ```typescript
 // Count all preferences
-const totalPreferences = await cortex.facts.count({
+const totalPreferences = await memoir.facts.count({
   memorySpaceId: "agent-1",
   factType: "preference",
 });
@@ -1514,7 +1514,7 @@ const totalPreferences = await cortex.facts.count({
 console.log(`Found ${totalPreferences} user preferences`);
 
 // Count by userId (GDPR-friendly)
-const userFactCount = await cortex.facts.count({
+const userFactCount = await memoir.facts.count({
   memorySpaceId: "agent-1",
   userId: "user-123",
 });
@@ -1522,7 +1522,7 @@ const userFactCount = await cortex.facts.count({
 console.log(`User has ${userFactCount} facts stored`);
 
 // Count high-confidence recent facts
-const recentHighConfidence = await cortex.facts.count({
+const recentHighConfidence = await memoir.facts.count({
   memorySpaceId: "agent-1",
   userId: "user-123",
   minConfidence: 90,
@@ -1533,7 +1533,7 @@ const recentHighConfidence = await cortex.facts.count({
 console.log(`${recentHighConfidence} high-confidence facts from last 7 days`);
 
 // Count by participant (Hive Mode)
-const participantFactCount = await cortex.facts.count({
+const participantFactCount = await memoir.facts.count({
   memorySpaceId: "shared-space",
   participantId: "email-agent",
   factType: "preference",
@@ -1553,11 +1553,11 @@ console.log(`Email agent stored ${participantFactCount} preferences`);
 
 </Callout>
 
-The Facts API now supports **universal filters** across all query operations (`list()`, `search()`, `count()`, `queryBySubject()`, etc.), making it consistent with Cortex's core design philosophy.
+The Facts API now supports **universal filters** across all query operations (`list()`, `search()`, `count()`, `queryBySubject()`, etc.), making it consistent with Memoir's core design philosophy.
 
 ### Supported Universal Filters
 
-All fact query operations accept these standard Cortex filters:
+All fact query operations accept these standard Memoir filters:
 
 ```typescript
 interface UniversalFactFilters {
@@ -1609,7 +1609,7 @@ interface UniversalFactFilters {
 **1. Consistent API Experience**
 
 ```typescript
-// Same filter patterns work across Cortex
+// Same filter patterns work across Memoir
 const filters = {
   userId: "user-123",
   createdAfter: new Date("2025-01-01"),
@@ -1617,30 +1617,30 @@ const filters = {
 };
 
 // Use in Memory API
-await cortex.memory.list("agent-1", filters);
+await memoir.memory.list("agent-1", filters);
 
 // Use in Facts API
-await cortex.facts.list({ memorySpaceId: "agent-1", ...filters });
+await memoir.facts.list({ memorySpaceId: "agent-1", ...filters });
 ```
 
 **2. GDPR Compliance**
 
 ```typescript
 // Filter facts by userId for data export
-const userFacts = await cortex.facts.list({
+const userFacts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   userId: "user-123",
 });
 
 // Export for GDPR request
-const exportData = await cortex.facts.export({
+const exportData = await memoir.facts.export({
   memorySpaceId: "agent-1",
   userId: "user-123",
   format: "json",
 });
 
 // Delete for GDPR compliance (via users.delete cascade)
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 // Automatically deletes all facts with userId="user-123"
 ```
 
@@ -1648,13 +1648,13 @@ await cortex.users.delete("user-123", { cascade: true });
 
 ```typescript
 // Filter by participantId to see which agent stored what
-const emailAgentFacts = await cortex.facts.list({
+const emailAgentFacts = await memoir.facts.list({
   memorySpaceId: "shared-space",
   participantId: "email-agent",
   factType: "preference",
 });
 
-const profileAgentFacts = await cortex.facts.list({
+const profileAgentFacts = await memoir.facts.list({
   memorySpaceId: "shared-space",
   participantId: "profile-agent",
   factType: "identity",
@@ -1669,7 +1669,7 @@ console.log(`Profile agent stored ${profileAgentFacts.length} identity facts`);
 
 ```typescript
 // Combine multiple filters for precise queries
-const criticalRecentFacts = await cortex.facts.list({
+const criticalRecentFacts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   userId: "user-123",
   minConfidence: 90,
@@ -1690,13 +1690,13 @@ Facts API supports confidence filtering for quality thresholds:
 
 ```typescript
 // Minimum confidence (most common pattern)
-const highQuality = await cortex.facts.list({
+const highQuality = await memoir.facts.list({
   memorySpaceId: "agent-1",
   minConfidence: 85, // Confidence >= 85
 });
 
 // Exact match
-const exactFacts = await cortex.facts.list({
+const exactFacts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   confidence: 90, // Exactly 90
 });
@@ -1729,13 +1729,13 @@ All major query operations support universal filters:
 
 ```typescript
 // Old (still works, but limited)
-const facts = await cortex.facts.list({
+const facts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   factType: "preference",
 });
 
 // New (recommended - more powerful)
-const facts = await cortex.facts.list({
+const facts = await memoir.facts.list({
   memorySpaceId: "agent-1",
   factType: "preference",
   userId: "user-123", // Filter by user
@@ -1794,20 +1794,20 @@ interface QueryBySubjectFilter {
 
 ```typescript
 // All facts about a user
-const userFacts = await cortex.facts.queryBySubject({
+const userFacts = await memoir.facts.queryBySubject({
   memorySpaceId: "agent-1",
   subject: "user-123",
 });
 
 // Just preferences
-const preferences = await cortex.facts.queryBySubject({
+const preferences = await memoir.facts.queryBySubject({
   memorySpaceId: "agent-1",
   subject: "user-123",
   factType: "preference",
 });
 
 // With universal filters
-const recentHighConfidence = await cortex.facts.queryBySubject({
+const recentHighConfidence = await memoir.facts.queryBySubject({
   memorySpaceId: "agent-1",
   subject: "user-123",
   userId: "user-123", // GDPR-friendly
@@ -1821,7 +1821,7 @@ const recentHighConfidence = await cortex.facts.queryBySubject({
 });
 
 // Hive Mode - filter by participant
-const participantFacts = await cortex.facts.queryBySubject({
+const participantFacts = await memoir.facts.queryBySubject({
   memorySpaceId: "shared-space",
   subject: "user-123",
   participantId: "profile-agent", // Facts stored by profile agent
@@ -1875,21 +1875,21 @@ interface QueryByRelationshipFilter {
 
 ```typescript
 // Where does user work?
-const workPlaces = await cortex.facts.queryByRelationship({
+const workPlaces = await memoir.facts.queryByRelationship({
   memorySpaceId: "agent-1",
   subject: "user-123",
   predicate: "works_at",
 });
 
 // What does user prefer?
-const preferences = await cortex.facts.queryByRelationship({
+const preferences = await memoir.facts.queryByRelationship({
   memorySpaceId: "agent-1",
   subject: "user-123",
   predicate: "prefers",
 });
 
 // With universal filters
-const recentPreferences = await cortex.facts.queryByRelationship({
+const recentPreferences = await memoir.facts.queryByRelationship({
   memorySpaceId: "agent-1",
   subject: "user-123",
   predicate: "prefers",
@@ -1904,7 +1904,7 @@ const recentPreferences = await cortex.facts.queryByRelationship({
 });
 
 // Hive Mode - filter by participant
-const agentPreferences = await cortex.facts.queryByRelationship({
+const agentPreferences = await memoir.facts.queryByRelationship({
   memorySpaceId: "shared-space",
   subject: "user-123",
   predicate: "prefers",
@@ -1930,7 +1930,7 @@ async getHistory(
 **Example:**
 
 ```typescript
-const history = await cortex.facts.getHistory("agent-1", "fact-123");
+const history = await memoir.facts.getHistory("agent-1", "fact-123");
 
 history.forEach((version) => {
   console.log(`v${version.version}: ${version.fact} (${version.confidence}%)`);
@@ -1963,20 +1963,20 @@ async export(options: {
 
 ```typescript
 // Export all facts as JSON
-const jsonExport = await cortex.facts.export({
+const jsonExport = await memoir.facts.export({
   memorySpaceId: "agent-1",
   format: "json",
 });
 
 // Export preferences as JSON-LD (linked data)
-const linkedData = await cortex.facts.export({
+const linkedData = await memoir.facts.export({
   memorySpaceId: "agent-1",
   format: "jsonld",
   factType: "preference",
 });
 
 // Export as CSV
-const csvExport = await cortex.facts.export({
+const csvExport = await memoir.facts.export({
   memorySpaceId: "agent-1",
   format: "csv",
 });
@@ -2004,7 +2004,7 @@ async consolidate(params: {
 
 ```typescript
 // Found duplicate facts about same preference
-const result = await cortex.facts.consolidate({
+const result = await memoir.facts.consolidate({
   memorySpaceId: "agent-1",
   factIds: ["fact-1", "fact-2", "fact-3"],
   keepFactId: "fact-1", // Keep this one, merge others
@@ -2021,7 +2021,7 @@ Facts are automatically integrated into all Memory operations:
 
 ```typescript
 // Facts extracted during remember()
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-123",
   userMessage: "I'm a developer at Google",
@@ -2046,7 +2046,7 @@ When belief revision is enabled (LLM configured), extracted facts automatically 
 
 ```typescript
 // With belief revision enabled (default when LLM is configured)
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-123",
   userMessage: "Actually, my favorite color is purple now",
@@ -2076,7 +2076,7 @@ result.factRevisions?.forEach((rev) => {
 });
 
 // Disable belief revision for a specific call
-const result2 = await cortex.memory.remember(
+const result2 = await memoir.memory.remember(
   {
     /* ... */
   },
@@ -2088,7 +2088,7 @@ const result2 = await cortex.memory.remember(
 
 ```python
 # With belief revision enabled
-result = await cortex.memory.remember(RememberParams(...))
+result = await memoir.memory.remember(RememberParams(...))
 
 # Check revision actions
 if result.fact_revisions:
@@ -2096,7 +2096,7 @@ if result.fact_revisions:
         print(f"Action: {rev.action}, Reason: {rev.reason}")
 
 # Disable belief revision
-result = await cortex.memory.remember(
+result = await memoir.memory.remember(
     params,
     RememberOptions(belief_revision=False)
 )
@@ -2108,7 +2108,7 @@ result = await cortex.memory.remember(
 
 ```typescript
 // Facts included in search results
-const memories = await cortex.memory.search("agent-1", "user info", {
+const memories = await memoir.memory.search("agent-1", "user info", {
   enrichConversation: true, // Facts automatically included
 });
 
@@ -2124,7 +2124,7 @@ memories.forEach((m) => {
 
 ```typescript
 // Facts deleted when memory is forgotten
-const result = await cortex.memory.forget("agent-1", "mem-123");
+const result = await memoir.memory.forget("agent-1", "mem-123");
 
 console.log(`Deleted ${result.factsDeleted} facts`);
 console.log(`Fact IDs: ${result.factIds.join(", ")}`);
@@ -2199,7 +2199,7 @@ type FactType =
 
 </Callout>
 
-Cortex v0.15.0 introduces **enriched fact extraction** - a system for extracting facts with rich metadata that dramatically improves semantic search accuracy.
+Memoir v0.15.0 introduces **enriched fact extraction** - a system for extracting facts with rich metadata that dramatically improves semantic search accuracy.
 
 ### Why Enriched Facts?
 
@@ -2240,7 +2240,7 @@ Enriched facts solve this by storing:
 **1. Store with enrichment fields:**
 
 ```typescript
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "User prefers to be called Alex",
   factType: "identity",
@@ -2264,7 +2264,7 @@ await cortex.facts.store({
 
 ```typescript
 // Enriched facts with matching category get 30% score boost
-const results = await cortex.memory.search(memorySpaceId, query, {
+const results = await memoir.memory.search(memorySpaceId, query, {
   embedding: await generateEmbedding(query),
   queryCategory: "addressing_preference", // Boost matching facts
 });
@@ -2295,7 +2295,7 @@ Return ONLY a valid JSON array.
 
 ### Graph Integration (v0.29.0+)
 
-When `CORTEX_GRAPH_SYNC=true` is set in your environment, enriched facts automatically:
+When `MEMOIR_GRAPH_SYNC=true` is set in your environment, enriched facts automatically:
 
 1. Create **Fact nodes** in the graph with all fact properties
 2. Create **Entity nodes** for each item in `entities[]` with semantic types (person, organization, place, etc.)
@@ -2345,7 +2345,7 @@ This ensures properly enriched facts rank highest for relevant queries.
 
 ```typescript
 // Good: Correct type classification
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "User prefers email notifications",
   factType: "preference", // Correct
@@ -2353,7 +2353,7 @@ await cortex.facts.store({
 });
 
 // Avoid: Wrong type
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "User prefers email",
   factType: "identity", // Should be "preference"
@@ -2365,7 +2365,7 @@ await cortex.facts.store({
 
 ```typescript
 // Good: Complete sourceRef
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "User is from California",
   factType: "identity",
@@ -2389,12 +2389,12 @@ await cortex.facts.store({
 // 40-59: Weak signals, needs validation
 // 0-39: Speculative guesses
 
-await cortex.facts.store({
+await memoir.facts.store({
   fact: "User said their name is Alex",
   confidence: 99, // Direct quote
 });
 
-await cortex.facts.store({
+await memoir.facts.store({
   fact: "User might prefer dark themes",
   confidence: 55, // Inference from behavior
 });
@@ -2404,7 +2404,7 @@ await cortex.facts.store({
 
 ```typescript
 // Fact with expiration
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "User has premium subscription",
   factType: "relationship",
@@ -2451,7 +2451,7 @@ async function extractUserFacts(userMessage: string, agentResponse: string) {
 
 ```typescript
 async function getUserProfile(memorySpaceId: string, userId: string) {
-  const allFacts = await cortex.facts.queryBySubject({
+  const allFacts = await memoir.facts.queryBySubject({
     memorySpaceId,
     subject: userId,
   });
@@ -2474,7 +2474,7 @@ async function searchWithFactContext(
   userId: string,
 ) {
   // Search memories with fact enrichment
-  const memories = await cortex.memory.search(memorySpaceId, query, {
+  const memories = await memoir.memory.search(memorySpaceId, query, {
     userId,
     enrichConversation: true, // Includes facts
   });
@@ -2491,7 +2491,7 @@ async function searchWithFactContext(
 
 ```typescript
 async function getActiveFacts(memorySpaceId: string, userId: string) {
-  const allFacts = await cortex.facts.queryBySubject({
+  const allFacts = await memoir.facts.queryBySubject({
     memorySpaceId,
     subject: userId,
   });
@@ -2513,7 +2513,7 @@ async function getActiveFacts(memorySpaceId: string, userId: string) {
 
 ```typescript
 try {
-  const fact = await cortex.facts.store({
+  const fact = await memoir.facts.store({
     memorySpaceId: "agent-1",
     fact: "Test fact",
     factType: "knowledge",
@@ -2536,22 +2536,22 @@ try {
 ```typescript
 // Slow: Sequential storage
 for (const factData of facts) {
-  await cortex.facts.store(factData);
+  await memoir.facts.store(factData);
 }
 
 // Fast: Parallel storage
-await Promise.all(facts.map((factData) => cortex.facts.store(factData)));
+await Promise.all(facts.map((factData) => memoir.facts.store(factData)));
 ```
 
 ### 2. Use Filters Effectively
 
 ```typescript
 // Inefficient: Get all, filter in memory
-const all = await cortex.facts.list({ memorySpaceId: "agent-1", limit: 10000 });
+const all = await memoir.facts.list({ memorySpaceId: "agent-1", limit: 10000 });
 const preferences = all.filter((f) => f.factType === "preference");
 
 // Efficient: Filter in query
-const preferences = await cortex.facts.list({
+const preferences = await memoir.facts.list({
   memorySpaceId: "agent-1",
   factType: "preference",
 });
@@ -2561,13 +2561,13 @@ const preferences = await cortex.facts.list({
 
 ```typescript
 // Inefficient: Separate queries
-const memories = await cortex.memory.search("agent-1", query);
+const memories = await memoir.memory.search("agent-1", query);
 const facts = await Promise.all(
-  memories.map((m) => cortex.facts.queryBySubject({ subject: m.userId })),
+  memories.map((m) => memoir.facts.queryBySubject({ subject: m.userId })),
 );
 
 // Efficient: Single enriched query
-const enriched = await cortex.memory.search("agent-1", query, {
+const enriched = await memoir.memory.search("agent-1", query, {
   enrichConversation: true, // Facts included automatically
 });
 ```
@@ -2604,4 +2604,4 @@ const enriched = await cortex.memory.search("agent-1", query, {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

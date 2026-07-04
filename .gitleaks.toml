@@ -1,7 +1,7 @@
-# Gitleaks configuration for Project-Cortex
+# Gitleaks configuration for Project-Memoir
 # https://github.com/gitleaks/gitleaks
 
-title = "Project-Cortex Gitleaks Configuration"
+title = "Project-Memoir Gitleaks Configuration"
 
 [allowlist]
   description = "Allowlist for false positives in documentation examples"
@@ -23,7 +23,7 @@ title = "Project-Cortex Gitleaks Configuration"
     '''secret-key''',
     '''your[-_]api[-_]key''',
     '''YOUR[-_]API[-_]KEY''',
-    '''cortex_sk_abc123''',
+    '''memoir_sk_abc123''',
     '''example[-_]token''',
     '''<your[-_].*>''',
   ]

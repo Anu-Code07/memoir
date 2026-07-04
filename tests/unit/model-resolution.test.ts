@@ -14,9 +14,9 @@ describe("Model Resolution Configuration", () => {
   // Store original env vars to restore after tests
   const originalEnv: Record<string, string | undefined> = {};
   const envVars = [
-    "CORTEX_FACT_EXTRACTION_MODEL",
-    "CORTEX_CONFLICT_RESOLUTION_MODEL",
-    "CORTEX_EMBEDDING_MODEL",
+    "MEMOIR_FACT_EXTRACTION_MODEL",
+    "MEMOIR_CONFLICT_RESOLUTION_MODEL",
+    "MEMOIR_EMBEDDING_MODEL",
   ];
 
   beforeEach(() => {
@@ -87,7 +87,7 @@ describe("Model Resolution Configuration", () => {
     });
 
     it("returns env var when configModel not provided", async () => {
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o";
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o";
       const { resolveFactExtractionModel } = await import("../../src/config");
 
       const result = resolveFactExtractionModel(undefined, "openai");
@@ -120,7 +120,7 @@ describe("Model Resolution Configuration", () => {
     });
 
     it("configModel takes priority over env var", async () => {
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o";
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o";
       const { resolveFactExtractionModel } = await import("../../src/config");
 
       const result = resolveFactExtractionModel("gpt-4-turbo", "openai");
@@ -138,8 +138,8 @@ describe("Model Resolution Configuration", () => {
       expect(result).toBe("gpt-4-turbo");
     });
 
-    it("returns CORTEX_CONFLICT_RESOLUTION_MODEL env var when set", async () => {
-      process.env.CORTEX_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
+    it("returns MEMOIR_CONFLICT_RESOLUTION_MODEL env var when set", async () => {
+      process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
       const { resolveConflictResolutionModel } = await import("../../src/config");
 
       const result = resolveConflictResolutionModel(undefined, "openai");
@@ -147,8 +147,8 @@ describe("Model Resolution Configuration", () => {
       expect(result).toBe("gpt-4o");
     });
 
-    it("falls back to CORTEX_FACT_EXTRACTION_MODEL when CORTEX_CONFLICT_RESOLUTION_MODEL not set", async () => {
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
+    it("falls back to MEMOIR_FACT_EXTRACTION_MODEL when MEMOIR_CONFLICT_RESOLUTION_MODEL not set", async () => {
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
       const { resolveConflictResolutionModel } = await import("../../src/config");
 
       const result = resolveConflictResolutionModel(undefined, "openai");
@@ -172,9 +172,9 @@ describe("Model Resolution Configuration", () => {
       expect(result).toBe("claude-3-haiku-20240307");
     });
 
-    it("CORTEX_CONFLICT_RESOLUTION_MODEL takes priority over CORTEX_FACT_EXTRACTION_MODEL", async () => {
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
-      process.env.CORTEX_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
+    it("MEMOIR_CONFLICT_RESOLUTION_MODEL takes priority over MEMOIR_FACT_EXTRACTION_MODEL", async () => {
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
+      process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
       const { resolveConflictResolutionModel } = await import("../../src/config");
 
       const result = resolveConflictResolutionModel(undefined, "openai");
@@ -183,8 +183,8 @@ describe("Model Resolution Configuration", () => {
     });
 
     it("configModel takes priority over all env vars", async () => {
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
-      process.env.CORTEX_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
+      process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
       const { resolveConflictResolutionModel } = await import("../../src/config");
 
       const result = resolveConflictResolutionModel("gpt-4-turbo", "openai");
@@ -203,7 +203,7 @@ describe("Model Resolution Configuration", () => {
     });
 
     it("returns env var when configModel not provided", async () => {
-      process.env.CORTEX_EMBEDDING_MODEL = "text-embedding-ada-002";
+      process.env.MEMOIR_EMBEDDING_MODEL = "text-embedding-ada-002";
       const { resolveEmbeddingModel } = await import("../../src/config");
 
       const result = resolveEmbeddingModel();
@@ -220,7 +220,7 @@ describe("Model Resolution Configuration", () => {
     });
 
     it("configModel takes priority over env var", async () => {
-      process.env.CORTEX_EMBEDDING_MODEL = "text-embedding-ada-002";
+      process.env.MEMOIR_EMBEDDING_MODEL = "text-embedding-ada-002";
       const { resolveEmbeddingModel } = await import("../../src/config");
 
       const result = resolveEmbeddingModel("text-embedding-3-large");
@@ -232,7 +232,7 @@ describe("Model Resolution Configuration", () => {
   describe("Configuration Hierarchy", () => {
     it("follows hierarchy: configModel > env > defaults for fact extraction", async () => {
       // Set env var
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o";
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o";
 
       const { resolveFactExtractionModel } = await import("../../src/config");
 
@@ -247,8 +247,8 @@ describe("Model Resolution Configuration", () => {
 
     it("follows hierarchy: configModel > CONFLICT_RESOLUTION env > FACT_EXTRACTION env > defaults", async () => {
       // Set both env vars
-      process.env.CORTEX_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
-      process.env.CORTEX_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
+      process.env.MEMOIR_FACT_EXTRACTION_MODEL = "gpt-4o-mini";
+      process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL = "gpt-4o";
 
       const { resolveConflictResolutionModel } = await import("../../src/config");
 
@@ -261,7 +261,7 @@ describe("Model Resolution Configuration", () => {
       expect(resolveConflictResolutionModel(undefined, "openai")).toBe("gpt-4o");
 
       // Clear CONFLICT_RESOLUTION env var, should fall back to FACT_EXTRACTION
-      delete process.env.CORTEX_CONFLICT_RESOLUTION_MODEL;
+      delete process.env.MEMOIR_CONFLICT_RESOLUTION_MODEL;
       jest.resetModules();
       const { resolveConflictResolutionModel: resolve2 } = await import(
         "../../src/config"
@@ -271,7 +271,7 @@ describe("Model Resolution Configuration", () => {
 
     it("follows hierarchy: configModel > env > defaults for embedding", async () => {
       // Set env var
-      process.env.CORTEX_EMBEDDING_MODEL = "text-embedding-ada-002";
+      process.env.MEMOIR_EMBEDDING_MODEL = "text-embedding-ada-002";
 
       const { resolveEmbeddingModel } = await import("../../src/config");
 

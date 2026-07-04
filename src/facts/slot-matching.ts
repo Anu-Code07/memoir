@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Slot-Based Fact Matching
+ * Memoir SDK - Slot-Based Fact Matching
  *
  * Provides fast O(1) slot-based matching for facts that represent
  * the same semantic "slot" (e.g., favorite_color, location, employment).

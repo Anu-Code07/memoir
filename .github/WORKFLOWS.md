@@ -25,9 +25,9 @@ Validates code before merge:
 
 Automatically publishes SDKs when versions change:
 
-- TypeScript SDK → npm (`@cortexmemory/sdk`)
-- Python SDK → PyPI (`cortex-memory`)
-- Create Cortex Memories wizard → npm
+- TypeScript SDK → npm (`@memoir/sdk`)
+- Python SDK → PyPI (`memoir`)
+- Create Memoir Memories wizard → npm
 
 ### 3. Documentation (`jekyll-gh-pages.yml`)
 
@@ -51,8 +51,8 @@ git commit -m "chore: bump version to 0.9.2"
 **Python SDK:**
 
 ```bash
-# Edit cortex-sdk-python/pyproject.toml version
-git add cortex-sdk-python/pyproject.toml
+# Edit memoir-sdk-python/pyproject.toml version
+git add memoir-sdk-python/pyproject.toml
 git commit -m "chore: bump Python SDK to 0.9.2"
 # Create PR, merge to main = auto-publish
 ```
@@ -70,6 +70,6 @@ Configure in Settings → Secrets:
 Python SDK uses trusted publishing (no token needed). Configure in PyPI project settings:
 
 - Publisher: GitHub
-- Repository: `SaintNick1214/Project-Cortex`
+- Repository: `Anu-Code07/memoir`
 - Workflow: `publish.yml`
 - Environment: `pypi`

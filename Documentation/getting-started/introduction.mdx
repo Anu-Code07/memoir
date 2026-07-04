@@ -1,13 +1,13 @@
 ---
 id: introduction
-title: Introduction to Cortex
+title: Introduction to Memoir
 sidebar_position: 1
-description: Learn what Cortex is and how it provides persistent memory for AI agents
+description: Learn what Memoir is and how it provides persistent memory for AI agents
 ---
 
-## Welcome to Cortex
+## Welcome to Memoir
 
-Cortex is a plug'n'play persistent memory system for AI agents, powered by Convex. It brings enterprise-grade memory capabilities to any AI application, allowing your agents to remember, learn, and build context over time.
+Memoir is a plug'n'play persistent memory system for AI agents, powered by Convex. It brings enterprise-grade memory capabilities to any AI application, allowing your agents to remember, learn, and build context over time.
 
 ## The Problem
 
@@ -58,16 +58,16 @@ AI agents need memory that is:
 7. **Simple** - Plug in and start using in minutes, not weeks
 8. **Framework-agnostic** - Work with any LLM or AI framework
 
-## The Cortex Solution
+## The Memoir Solution
 
-Cortex solves all these problems with a single, unified system. Get started in 2 commands:
+Memoir solves all these problems with a single, unified system. Get started in 2 commands:
 
 <Steps>
   <Step title="Initialize your project">
-    <Terminal>cortex init my-agent</Terminal>
+    <Terminal>memoir init my-agent</Terminal>
   </Step>
   <Step title="Start development">
-    <Terminal>cortex dev</Terminal>
+    <Terminal>memoir dev</Terminal>
     The CLI uses persistent config with absolute paths, so you can run commands from any directory.
   </Step>
 </Steps>
@@ -83,10 +83,10 @@ The CLI handles everything:
 **For programmatic access, the SDK is just as simple:**
 
 ```typescript title="example.ts"
-import { Cortex, createAuthContext } from "@cortexmemory/sdk";
+import { Memoir, createAuthContext } from "@memoir/sdk";
 
 // Works with ANY auth system (Auth0, Clerk, Okta, WorkOS, custom JWT, etc.)
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   auth: createAuthContext({
     userId: yourUser.id, // From your existing auth
@@ -95,7 +95,7 @@ const cortex = new Cortex({
 });
 
 // Store a conversation
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-1-personal",
   conversationId: "conv-123",
   userMessage: "I prefer dark mode",
@@ -105,14 +105,14 @@ await cortex.memory.remember({
 });
 
 // Search works immediately
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   "user-1-personal",
   "what are the user preferences?",
 );
 ```
 
 <Callout type="tip" title="Auth Integration">
-  Cortex is **framework-agnostic** - it works with whatever auth system you already use. Just extract `userId` and optionally `tenantId`, no complex integration needed. See [Authentication](/security/authentication).
+  Memoir is **framework-agnostic** - it works with whatever auth system you already use. Just extract `userId` and optionally `tenantId`, no complex integration needed. See [Authentication](/security/authentication).
 </Callout>
 
 ### Key Capabilities
@@ -174,11 +174,11 @@ const memories = await cortex.memory.search(
   See also: [User Profiles](/core-features/user-profiles), [Fact Extraction](/core-features/fact-extraction), [Analytics](/roadmap/access-analytics), [Streaming](/core-features/streaming-support), and [Resilience Layer](/architecture/resilience-layer).
 </Callout>
 
-## Why Cortex?
+## Why Memoir?
 
 ### Built on Convex
 
-Cortex leverages [Convex](https://convex.dev), a reactive backend platform that provides:
+Memoir leverages [Convex](https://convex.dev), a reactive backend platform that provides:
 
 - **ACID Transactions** - Your data is always consistent
 - **Real-time Updates** - Changes propagate instantly
@@ -187,7 +187,7 @@ Cortex leverages [Convex](https://convex.dev), a reactive backend platform that 
 - **Type-safe** - Full TypeScript support
 - **Developer Experience** - Hot reload, time travel debugging
 
-**Flexible Deployment**: Cortex works with Convex however you run it:
+**Flexible Deployment**: Memoir works with Convex however you run it:
 
 - **Convex Cloud** (recommended) - Fully managed, no ops required
 - **Local Development** - `npx convex dev` for fast iteration
@@ -195,7 +195,7 @@ Cortex leverages [Convex](https://convex.dev), a reactive backend platform that 
 
 ### Embedding-Agnostic
 
-Unlike vector databases that lock you into their ecosystem, Cortex is **embedding-agnostic**:
+Unlike vector databases that lock you into their ecosystem, Memoir is **embedding-agnostic**:
 
 <Tabs groupId="embedding-provider">
   <TabItem value="openai" label="OpenAI">
@@ -230,8 +230,8 @@ const embedding = await localModel.encode(text);
 Store embeddings from any provider:
 
 ```typescript
-// Cortex doesn't care - just store it (Layer 2 for system memories)
-await cortex.vector.store(memorySpaceId, {
+// Memoir doesn't care - just store it (Layer 2 for system memories)
+await memoir.vector.store(memorySpaceId, {
   content: text,
   contentType: "raw",
   embedding: embedding.data[0].embedding,
@@ -252,9 +252,9 @@ Works with any AI framework:
 
 ### Open Source
 
-Cortex is licensed under FSL-1.1-Apache-2.0 (Functional Source License):
+Memoir is licensed under FSL-1.1-Apache-2.0 (Functional Source License):
 
-- Free for internal use and applications that use Cortex
+- Free for internal use and applications that use Memoir
 - Modify and distribute freely (non-competing uses)
 - Explicit patent grant protection
 - No vendor lock-in
@@ -263,11 +263,11 @@ Cortex is licensed under FSL-1.1-Apache-2.0 (Functional Source License):
 
 ## Design Principles
 
-Cortex is built on these core principles:
+Memoir is built on these core principles:
 
 - **Developer Experience First** - Intuitive APIs, full TypeScript support, clear docs, helpful errors
 - **Progressive Enhancement** - Start simple, add complexity when needed
-- **Embedding-Agnostic** - You choose your embedding model; Cortex just stores and retrieves
+- **Embedding-Agnostic** - You choose your embedding model; Memoir just stores and retrieves
 - **Data Ownership** - Your data stays in your Convex account, no external processing
 - **Production-Ready** - ACID transactions, automatic scaling, security best practices
 
@@ -277,17 +277,17 @@ Cortex is built on these core principles:
 
 <FlowDiagram 
   title="Direct Mode Architecture" 
-  caption="Your app connects directly to your Convex instance via the Cortex SDK"
+  caption="Your app connects directly to your Convex instance via the Memoir SDK"
 >
   <FlowNode 
     title="Your Application" 
     icon="app" 
     variant="primary"
   >
-    Your code integrates with the Cortex SDK
+    Your code integrates with the Memoir SDK
   </FlowNode>
   <FlowNode 
-    title="Cortex SDK (Open Source)" 
+    title="Memoir SDK (Open Source)" 
     icon="package" 
     variant="warning"
   >
@@ -306,24 +306,24 @@ Cortex is built on these core principles:
 
 <FlowDiagram 
   title="Cloud Mode Architecture" 
-  caption="Cortex Cloud adds management tools while your data stays in your Convex instance"
+  caption="Memoir Cloud adds management tools while your data stays in your Convex instance"
 >
   <FlowNode 
     title="Your Application" 
     icon="app" 
     variant="primary"
   >
-    Your code uses the same Cortex SDK API
+    Your code uses the same Memoir SDK API
   </FlowNode>
   <FlowNode 
-    title="Cortex SDK (Same API!)" 
+    title="Memoir SDK (Same API!)" 
     icon="package" 
     variant="warning"
   >
     Identical interface — switch modes with config only
   </FlowNode>
   <FlowNode 
-    title="Cortex Cloud Platform" 
+    title="Memoir Cloud Platform" 
     icon="cloud" 
     variant="default"
   >
@@ -339,12 +339,12 @@ Cortex is built on these core principles:
 </FlowDiagram>
 
 <Callout type="note">
-  In both modes, your data lives in your Convex instance. Cortex Cloud adds management tools without moving your data.
+  In both modes, your data lives in your Convex instance. Memoir Cloud adds management tools without moving your data.
 </Callout>
 
 ## Use Cases
 
-Cortex powers a wide range of AI applications:
+Memoir powers a wide range of AI applications:
 
 <FeatureGrid>
   <FeatureCard 
@@ -376,8 +376,8 @@ Cortex powers a wide range of AI applications:
   />
 </FeatureGrid>
 
-<Callout type="info" title="What Cortex Is Not">
-  Cortex is **not** an LLM, vector database, or Convex replacement. It's a complete memory system built on top of Convex that works with any AI framework. Your data stays in your Convex instance.
+<Callout type="info" title="What Memoir Is Not">
+  Memoir is **not** an LLM, vector database, or Convex replacement. It's a complete memory system built on top of Convex that works with any AI framework. Your data stays in your Convex instance.
 </Callout>
 
 ## Next Steps

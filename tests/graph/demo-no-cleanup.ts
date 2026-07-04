@@ -171,14 +171,14 @@ async function main() {
   await createDemoData("Neo4j", {
     uri: "bolt://localhost:7687",
     username: "neo4j",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   // Create in Memgraph
   await createDemoData("Memgraph", {
     uri: "bolt://localhost:7688",
     username: "memgraph",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
   console.log(
@@ -192,7 +192,7 @@ async function main() {
   );
 
   console.log("📊 View in Neo4j Browser (http://localhost:7474):");
-  console.log("   Login: neo4j / cortex-dev-password");
+  console.log("   Login: neo4j / memoir-dev-password");
   console.log("");
   console.log("   Query 1: View all nodes and relationships:");
   console.log("   MATCH (n)-[r]->(m) RETURN n, r, m;");

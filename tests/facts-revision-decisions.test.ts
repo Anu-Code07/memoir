@@ -22,13 +22,13 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 
 describe("Fact Revision Decisions - Comprehensive Coverage", () => {
   const ctx = createNamedTestRunContext("revision-decisions");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -38,7 +38,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
       `\n🧪 Fact Revision Decisions Tests - Run ID: ${ctx.runId}\n`,
     );
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -62,12 +62,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("add-empty");
         const userId = ctx.userId("add-empty");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User enjoys hiking",
@@ -92,13 +92,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const userAlice = ctx.userId("alice");
         const userBob = ctx.userId("bob");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create fact about Alice
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "Alice works at TechCorp as a software engineer",
@@ -111,7 +111,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Create fact about Bob with low similarity text
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "Bob enjoys playing tennis on weekends",
@@ -127,7 +127,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded).toHaveLength(0);
 
         // Verify both facts exist
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(2);
         console.log(`✅ ADD (different subject, low similarity): ${result.reason}`);
       });
@@ -138,13 +138,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("add-new-aspect");
         const userId = ctx.userId("add-new-aspect");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create fact about favorite color
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's favorite color is blue",
@@ -157,7 +157,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Create fact about favorite food (different predicate class)
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User loves Italian cuisine",
@@ -173,7 +173,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded).toHaveLength(0);
 
         // Both facts should exist
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(2);
         console.log(`✅ ADD (different predicate class): ${result.reason}`);
       });
@@ -190,13 +190,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("update-high-sim");
         const userId = ctx.userId("update-high-sim");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create initial fact with lower confidence
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes the color blue",
@@ -212,7 +212,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const initialFactId = initial.fact.factId;
 
         // Submit very similar text with higher confidence
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes the color blue very much",
@@ -230,7 +230,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded).toHaveLength(0);
 
         // Should still have only 1 fact
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(1);
         console.log(`✅ UPDATE (high similarity + higher confidence): ${result.reason}`);
       });
@@ -241,13 +241,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("update-same-obj");
         const userId = ctx.userId("update-same-obj");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create initial fact
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User prefers blue",
@@ -264,7 +264,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
 
         // Restate same preference with different wording but higher confidence
         // Same subject + same object should trigger UPDATE path
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "Blue is definitely the user's favorite color",
@@ -281,7 +281,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.fact.confidence).toBe(95);
         expect(result.superseded).toHaveLength(0);
 
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(1);
         console.log(`✅ UPDATE (same subject + same object + higher confidence): ${result.reason}`);
       });
@@ -292,13 +292,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("update-refine");
         const userId = ctx.userId("update-refine");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create general fact
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User has a pet dog",
@@ -311,7 +311,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Add more specific information with higher confidence
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User has a pet dog named Rex",
@@ -341,13 +341,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("supersede-color");
         const userId = ctx.userId("supersede-color");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create initial preference
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's favorite color is blue",
@@ -362,7 +362,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const blueFactId = initial.fact.factId;
 
         // Change preference to purple
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User now prefers purple",
@@ -380,12 +380,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded[0].factId).toBe(blueFactId);
 
         // Check active facts (should only be purple)
-        const activeFacts = await cortex.facts.list({ memorySpaceId });
+        const activeFacts = await memoir.facts.list({ memorySpaceId });
         expect(activeFacts.length).toBe(1);
         expect(activeFacts[0].object).toBe("purple");
 
         // Check all facts including superseded (should have both)
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -406,13 +406,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("supersede-location");
         const userId = ctx.userId("supersede-location");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // User lives in NYC
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User lives in New York City",
@@ -425,7 +425,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // User moves to SF
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User moved to San Francisco",
@@ -441,7 +441,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded).toHaveLength(1);
         expect(result.superseded[0].object).toBe("New York City");
 
-        const activeFacts = await cortex.facts.list({ memorySpaceId });
+        const activeFacts = await memoir.facts.list({ memorySpaceId });
         expect(activeFacts.length).toBe(1);
         expect(activeFacts[0].object).toBe("San Francisco");
 
@@ -454,13 +454,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("supersede-job");
         const userId = ctx.userId("supersede-job");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // User works at Company A
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User works at Acme Corp",
@@ -473,7 +473,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // User moves to Company B
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User now works at TechStart Inc",
@@ -488,7 +488,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("SUPERSEDE");
         expect(result.superseded).toHaveLength(1);
 
-        const activeFacts = await cortex.facts.list({ memorySpaceId });
+        const activeFacts = await memoir.facts.list({ memorySpaceId });
         expect(activeFacts.length).toBe(1);
         expect(activeFacts[0].object).toBe("TechStart Inc");
 
@@ -502,13 +502,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const userA = ctx.userId("user-a");
         const userB = ctx.userId("user-b");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Fact about user A
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "The project manager prefers morning meetings",
@@ -522,7 +522,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
 
         // Similar text about user B with medium word overlap
         // Words: "the", "project", "manager", "prefers", "meetings" overlap
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "The project manager prefers afternoon meetings instead",
@@ -552,13 +552,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("none-exact-dup");
         const userId = ctx.userId("none-exact-dup");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create initial fact
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's favorite color is blue",
@@ -573,7 +573,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const initialFactId = initial.fact.factId;
 
         // Submit exact same fact
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's favorite color is blue",
@@ -590,7 +590,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.superseded).toHaveLength(0);
 
         // Should still have only 1 fact
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(1);
 
         console.log(`✅ NONE (exact duplicate): ${result.reason}`);
@@ -602,13 +602,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("none-lower-conf");
         const userId = ctx.userId("none-lower-conf");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create high confidence fact
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User definitely prefers blue",
@@ -623,7 +623,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const initialFactId = initial.fact.factId;
 
         // Submit similar text with LOWER confidence
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User probably prefers blue",
@@ -648,13 +648,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("none-same-obj");
         const userId = ctx.userId("none-same-obj");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create fact about blue preference
-        const initial = await cortex.facts.revise({
+        const initial = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's favorite color is definitely blue",
@@ -669,7 +669,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const initialFactId = initial.fact.factId;
 
         // Restate same preference with different wording but same object, lower confidence
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "I think user might like blue",
@@ -684,7 +684,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("NONE");
         expect(result.fact.factId).toBe(initialFactId);
 
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(1);
 
         console.log(`✅ NONE (same object, lower confidence): ${result.reason}`);
@@ -696,7 +696,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("none-repeated");
         const userId = ctx.userId("none-repeated");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
@@ -705,7 +705,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         let factId: string | undefined;
 
         for (let i = 0; i < 5; i++) {
-          const result = await cortex.facts.revise({
+          const result = await memoir.facts.revise({
             memorySpaceId,
             fact: {
               fact: "User likes the color blue",
@@ -731,7 +731,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         console.log(`✅ Repeated statements: [${actions.join(", ")}]`);
 
         // Should still have exactly 1 fact
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(1);
       });
     });
@@ -747,7 +747,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("complex-chain");
         const userId = ctx.userId("complex-chain");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
@@ -756,7 +756,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const factIds: string[] = [];
 
         for (let i = 0; i < colors.length; i++) {
-          const result = await cortex.facts.revise({
+          const result = await memoir.facts.revise({
             memorySpaceId,
             fact: {
               fact: `User's favorite color is ${colors[i]}`,
@@ -779,12 +779,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         }
 
         // Should have 1 active fact (red)
-        const activeFacts = await cortex.facts.list({ memorySpaceId });
+        const activeFacts = await memoir.facts.list({ memorySpaceId });
         expect(activeFacts.length).toBe(1);
         expect(activeFacts[0].object).toBe("red");
 
         // Should have 4 total facts
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -803,7 +803,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("complex-mixed");
         const userId = ctx.userId("complex-mixed");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
@@ -811,7 +811,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const operations: Array<{ action: string; expected: string }> = [];
 
         // 1. ADD: Initial fact
-        let result = await cortex.facts.revise({
+        let result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes blue",
@@ -826,7 +826,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("ADD");
 
         // 2. NONE: Same fact, same confidence
-        result = await cortex.facts.revise({
+        result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes blue",
@@ -841,7 +841,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("NONE");
 
         // 3. UPDATE: Same fact, higher confidence
-        result = await cortex.facts.revise({
+        result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User really likes blue",
@@ -856,7 +856,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("UPDATE");
 
         // 4. NONE: Lower confidence than updated
-        result = await cortex.facts.revise({
+        result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User maybe likes blue",
@@ -871,7 +871,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("NONE");
 
         // 5. SUPERSEDE: Different color
-        result = await cortex.facts.revise({
+        result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User now prefers purple",
@@ -892,11 +892,11 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Final state: 1 active (purple), 1 superseded (blue)
-        const activeFacts = await cortex.facts.list({ memorySpaceId });
+        const activeFacts = await memoir.facts.list({ memorySpaceId });
         expect(activeFacts.length).toBe(1);
         expect(activeFacts[0].object).toBe("purple");
 
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -909,7 +909,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("complex-slots");
         const userId = ctx.userId("complex-slots");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
@@ -923,7 +923,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         ];
 
         for (const slot of slots) {
-          const result = await cortex.facts.revise({
+          const result = await memoir.facts.revise({
             memorySpaceId,
             fact: {
               fact: `User ${slot.predicate} ${slot.object}`,
@@ -938,11 +938,11 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         }
 
         // All 4 facts should exist independently
-        const allFacts = await cortex.facts.list({ memorySpaceId });
+        const allFacts = await memoir.facts.list({ memorySpaceId });
         expect(allFacts.length).toBe(4);
 
         // Change one slot - should only supersede that slot
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User favorite color purple",
@@ -957,11 +957,11 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("SUPERSEDE");
 
         // Should still have 4 active facts (3 original + 1 new purple, 1 blue superseded)
-        const finalActiveFacts = await cortex.facts.list({ memorySpaceId });
+        const finalActiveFacts = await memoir.facts.list({ memorySpaceId });
         expect(finalActiveFacts.length).toBe(4);
 
         // Total should be 5 (including superseded blue)
-        const finalAllFacts = await cortex.facts.list({
+        const finalAllFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
@@ -982,13 +982,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("edge-no-object");
         const userId = ctx.userId("edge-no-object");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create fact without object
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User is friendly",
@@ -1003,7 +1003,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         expect(result.action).toBe("ADD");
 
         // Verify fact was created
-        const facts = await cortex.facts.list({ memorySpaceId });
+        const facts = await memoir.facts.list({ memorySpaceId });
         expect(facts.length).toBe(1);
 
         console.log(`✅ Fact creation: ${result.action}`);
@@ -1013,13 +1013,13 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("edge-no-predicate");
         const userId = ctx.userId("edge-no-predicate");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
         // Create fact without predicate
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User mentioned they enjoy coding",
@@ -1041,12 +1041,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("edge-equal-conf");
         const userId = ctx.userId("edge-equal-conf");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes blue",
@@ -1059,7 +1059,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Same confidence should result in NONE
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes blue color",
@@ -1079,12 +1079,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("edge-max-conf");
         const userId = ctx.userId("edge-max-conf");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User's name is Alice",
@@ -1097,7 +1097,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Can't have higher confidence than 100
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User is named Alice",
@@ -1119,12 +1119,12 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         const memorySpaceId = ctx.memorySpaceId("edge-case");
         const userId = ctx.userId("edge-case");
 
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId,
           type: "personal",
         });
 
-        await cortex.facts.revise({
+        await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes Blue",
@@ -1137,7 +1137,7 @@ describe("Fact Revision Decisions - Comprehensive Coverage", () => {
         });
 
         // Same object but different case
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId,
           fact: {
             fact: "User likes blue",

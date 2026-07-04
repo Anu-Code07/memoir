@@ -1,11 +1,11 @@
-# Cortex Memory Provider for Vercel AI SDK
+# Memoir Provider for Vercel AI SDK
 
-> **Persistent memory for your AI applications powered by Cortex and Convex**
+> **Persistent memory for your AI applications powered by Memoir and Convex**
 
 [![License: FSL-1.1-Apache-2.0](https://img.shields.io/badge/License-FSL--1.1--Apache--2.0-blue.svg)](https://fsl.software/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
-Add long-term memory to any Vercel AI SDK application with a single import. Built on Cortex for TypeScript-native memory management with zero vendor lock-in.
+Add long-term memory to any Vercel AI SDK application with a single import. Built on Memoir for TypeScript-native memory management with zero vendor lock-in.
 
 ## ✨ Features
 
@@ -36,7 +36,7 @@ See [`quickstart/README.md`](./quickstart/README.md) for full setup instructions
 The quickstart demonstrates:
 
 - Real-time memory orchestration visualization
-- Data flowing through all Cortex layers (Memory Space → User → Agent → Conversation → Vector → Facts → Graph)
+- Data flowing through all Memoir layers (Memory Space → User → Agent → Conversation → Vector → Facts → Graph)
 - Multi-tenant memory space isolation
 - Streaming with progressive fact extraction
 
@@ -45,7 +45,7 @@ The quickstart demonstrates:
 ### Installation
 
 ```bash
-npm install @cortexmemory/vercel-ai-provider @cortexmemory/sdk ai convex
+npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
 ```
 
 ### AI SDK v6 Compatibility
@@ -53,18 +53,18 @@ npm install @cortexmemory/vercel-ai-provider @cortexmemory/sdk ai convex
 This provider fully supports AI SDK v6's new Agent architecture while remaining backward compatible with v5:
 
 ```typescript
-// AI SDK v6: Using ToolLoopAgent with Cortex
+// AI SDK v6: Using ToolLoopAgent with Memoir
 import { ToolLoopAgent } from "ai";
 import { openai } from "@ai-sdk/openai";
 import {
-  createCortexCallOptionsSchema,
+  createMemoirCallOptionsSchema,
   createMemoryPrepareCall,
-} from "@cortexmemory/vercel-ai-provider";
+} from "@memoir/vercel-ai-provider";
 
 const memoryAgent = new ToolLoopAgent({
   model: openai("gpt-4o-mini"), // Use actual provider, not gateway string
   instructions: "You are a helpful assistant with long-term memory.",
-  callOptionsSchema: createCortexCallOptionsSchema(),
+  callOptionsSchema: createMemoirCallOptionsSchema(),
   prepareCall: createMemoryPrepareCall({
     convexUrl: process.env.CONVEX_URL!,
     maxMemories: 10,
@@ -92,17 +92,17 @@ See [`lib/agents/memory-agent.ts`](./quickstart/lib/agents/memory-agent.ts) for 
 This provider now supports all SDK v0.21.0 capabilities:
 
 - **agentId Required** (v0.17.0+) - All user-agent conversations now require an `agentId`
-- **Automatic Graph Sync** (v0.19.0+) - Configure via `CORTEX_GRAPH_SYNC=true` env var
-- **Automatic Fact Extraction** (v0.18.0+) - Configure via `CORTEX_FACT_EXTRACTION=true` env var
+- **Automatic Graph Sync** (v0.19.0+) - Configure via `MEMOIR_GRAPH_SYNC=true` env var
+- **Automatic Fact Extraction** (v0.18.0+) - Configure via `MEMOIR_FACT_EXTRACTION=true` env var
 - **Enhanced Streaming** - Progressive storage, streaming hooks, and metrics
 - **Parameter Standardization** (v0.21.0) - Unified `memorySpaceId` across all methods
 
 ### Setup
 
-1. **Deploy Cortex Backend to Convex:**
+1. **Deploy Memoir Backend to Convex:**
 
 ```bash
-npx @cortexmemory/cli init
+npx @memoir/cli init
 # Follow the wizard to set up Convex backend
 ```
 
@@ -110,11 +110,11 @@ npx @cortexmemory/cli init
 
 ```typescript
 // app/api/chat/route.ts
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123", // Get from session/auth in production
@@ -125,17 +125,17 @@ const cortexMemory = createCortexMemory({
   agentName: "My AI Assistant",
 
   // Optional: Enable graph memory (auto-configured via env vars)
-  enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === "true",
+  enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === "true",
 
   // Optional: Enable fact extraction (auto-configured via env vars)
-  enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === "true",
+  enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === "true",
 });
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = await streamText({
-    model: cortexMemory(openai("gpt-4o-mini")),
+    model: memoirMemory(openai("gpt-4o-mini")),
     messages,
   });
 
@@ -173,14 +173,14 @@ Since SDK v0.17.0, all user-agent conversations require an `agentId`. If you're 
 
 ```typescript
 // ❌ Old way (will throw error)
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
 });
 
 // ✅ New way (v0.17.0+)
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
@@ -197,7 +197,7 @@ The provider includes powerful streaming enhancements powered by the `rememberSt
 Store partial responses during streaming for resumability:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -217,7 +217,7 @@ const cortexMemory = createCortexMemory({
 Monitor streaming progress in real-time:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -243,7 +243,7 @@ const cortexMemory = createCortexMemory({
 Observe memory orchestration for real-time UI visualization:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -267,7 +267,7 @@ const cortexMemory = createCortexMemory({
 
 Every time your AI generates a response:
 
-1. **🔍 Search** - Cortex searches past conversations for relevant context
+1. **🔍 Search** - Memoir searches past conversations for relevant context
 2. **💉 Inject** - Relevant memories are injected into the prompt
 3. **🤖 Generate** - LLM generates response with full context
 4. **💾 Store** - Conversation is automatically stored across multiple layers:
@@ -280,7 +280,7 @@ Every time your AI generates a response:
 User: "Hi, my name is Alice and I work at Acme Corp"
 Agent: "Nice to meet you, Alice!"
                 ↓
-        [Cortex Memory Orchestration]
+        [Memoir Orchestration]
                 ↓
     ┌──────────────────────────────┐
     │ Conversation: Messages saved │
@@ -293,7 +293,7 @@ Agent: "Nice to meet you, Alice!"
                 ↓
 User: "What's my name?"
                 ↓
-    [Cortex searches memories]
+    [Memoir searches memories]
                 ↓
     [Finds: "name is Alice"]
                 ↓
@@ -305,7 +305,7 @@ Agent: "Your name is Alice!"
 ### Basic Configuration
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   // Required
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
@@ -322,7 +322,7 @@ const cortexMemory = createCortexMemory({
 ### With Graph Memory
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "smart-agent",
   userId: "user-123",
@@ -344,7 +344,7 @@ const cortexMemory = createCortexMemory({
 ### With Fact Extraction
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "smart-agent",
   userId: "user-123",
@@ -363,7 +363,7 @@ const cortexMemory = createCortexMemory({
 
 ## API Reference
 
-### createCortexMemory(config)
+### createMemoirMemory(config)
 
 Creates a memory-augmented model factory.
 
@@ -386,15 +386,15 @@ Creates a memory-augmented model factory.
 | `layerObserver`        | object                 | ❌       | Layer orchestration observer            |
 | `debug`                | boolean                | ❌       | Enable debug logging (default: false)   |
 
-**Returns:** `CortexMemoryModel` - Function to wrap models + manual memory methods
+**Returns:** `MemoirMemoryModel` - Function to wrap models + manual memory methods
 
-### createCortexMemoryAsync(config)
+### createMemoirMemoryAsync(config)
 
 Async version for automatic graph configuration from environment variables.
 
 ```typescript
 // Reads graph config from NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
-const cortexMemory = await createCortexMemoryAsync({
+const memoirMemory = await createMemoirMemoryAsync({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "smart-agent",
   userId: "user-123",
@@ -406,26 +406,26 @@ const cortexMemory = await createCortexMemoryAsync({
 
 ```typescript
 // Search memories manually
-const memories = await cortexMemory.search("user preferences", {
+const memories = await memoirMemory.search("user preferences", {
   limit: 10,
   minScore: 0.8,
 });
 
 // Store memory manually
-await cortexMemory.remember(
+await memoirMemory.remember(
   "My favorite color is blue",
   "Noted, I will remember that!",
   { conversationId: "conv-123" },
 );
 
 // Get all memories
-const all = await cortexMemory.getMemories({ limit: 100 });
+const all = await memoirMemory.getMemories({ limit: 100 });
 
 // Clear memories (requires confirmation)
-await cortexMemory.clearMemories({ confirm: true });
+await memoirMemory.clearMemories({ confirm: true });
 
 // Get current configuration
-const config = cortexMemory.getConfig();
+const config = memoirMemory.getConfig();
 ```
 
 ## Documentation
@@ -447,12 +447,12 @@ A: Yes! Wrap any Vercel AI SDK provider:
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 
-const model1 = cortexMemory(anthropic("claude-3-opus"));
-const model2 = cortexMemory(google("gemini-pro"));
+const model1 = memoirMemory(anthropic("claude-3-opus"));
+const model2 = memoirMemory(google("gemini-pro"));
 ```
 
 **Q: Can I use this in Edge Functions?**
-A: Yes! Cortex is fully edge-compatible:
+A: Yes! Memoir is fully edge-compatible:
 
 ```typescript
 // app/api/chat/route.ts
@@ -460,7 +460,7 @@ export const runtime = "edge";
 
 export async function POST(req: Request) {
   const result = await streamText({
-    model: cortexMemory(openai("gpt-4o-mini")),
+    model: memoirMemory(openai("gpt-4o-mini")),
     messages,
   });
 
@@ -469,7 +469,7 @@ export async function POST(req: Request) {
 ```
 
 **Q: Why do I need agentId now?**
-A: Since SDK v0.17.0, Cortex properly tracks conversation participants. Every conversation needs both a user and an agent to enable features like agent-to-agent memory sharing and proper attribution.
+A: Since SDK v0.17.0, Memoir properly tracks conversation participants. Every conversation needs both a user and an agent to enable features like agent-to-agent memory sharing and proper attribution.
 
 ## Troubleshooting
 
@@ -478,7 +478,7 @@ A: Since SDK v0.17.0, Cortex properly tracks conversation participants. Every co
 Add `agentId` to your configuration:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-chatbot",
   userId: "user-123",
@@ -492,7 +492,7 @@ Make sure:
 
 1. Convex is running: `npx convex dev`
 2. `CONVEX_URL` is set correctly
-3. Cortex backend is deployed to Convex
+3. Memoir backend is deployed to Convex
 
 ### "Memory search returns no results"
 
@@ -514,11 +514,11 @@ FSL-1.1-Apache-2.0 - See [LICENSE.md](../../LICENSE.md)
 
 ## Links
 
-- [GitHub](https://github.com/SaintNick1214/Project-Cortex)
-- [Documentation](https://cortexmemory.dev/docs)
-- [Cortex SDK](https://www.npmjs.com/package/@cortexmemory/sdk)
+- [GitHub](https://github.com/Anu-Code07/memoir)
+- [Documentation](https://github.com/Anu-Code07/memoir/docs)
+- [Memoir SDK](https://www.npmjs.com/package/@memoir/sdk)
 - [Quickstart Demo](./quickstart)
 
 ---
 
-**Built with ❤️ by the Cortex team**
+**Built with ❤️ by the Memoir team**

@@ -24,7 +24,7 @@ Preview operations without executing them.
 **Memory Operations:**
 ```typescript
 // Preview deletion
-const result = await cortex.memory.deleteMany(spaceId, {
+const result = await memoir.memory.deleteMany(spaceId, {
   filters: { "metadata.importance": { $lt: 20 } },
   dryRun: true,
 });
@@ -33,7 +33,7 @@ console.log(`Would delete ${result.wouldDelete} memories`);
 // Decide whether to proceed
 
 if (result.wouldDelete < 100) {
-  await cortex.memory.deleteMany(spaceId, {
+  await memoir.memory.deleteMany(spaceId, {
     filters: { "metadata.importance": { $lt: 20 } },
   });
 }
@@ -42,7 +42,7 @@ if (result.wouldDelete < 100) {
 **Context Operations:**
 ```typescript
 // Preview updates
-const result = await cortex.contexts.updateMany(spaceId, {
+const result = await memoir.contexts.updateMany(spaceId, {
   filters: { status: "blocked" },
   updates: { status: "cancelled" },
   dryRun: true,
@@ -57,7 +57,7 @@ Require explicit confirmation for large bulk operations.
 
 ```typescript
 // Automatic confirmation if below threshold
-await cortex.memory.deleteMany(spaceId, {
+await memoir.memory.deleteMany(spaceId, {
   filters: { accessCount: 0 },
   confirmationThreshold: 10, // Auto-confirm if ≤ 10 records
   requireConfirmation: true,  // Prompt if > 10 records
@@ -67,7 +67,7 @@ await cortex.memory.deleteMany(spaceId, {
 // Error: Confirmation required (47 records would be deleted)
 // Use { confirmed: true } to proceed
 
-await cortex.memory.deleteMany(spaceId, {
+await memoir.memory.deleteMany(spaceId, {
   filters: { accessCount: 0 },
   confirmed: true, // Explicit confirmation
 });
@@ -78,7 +78,7 @@ await cortex.memory.deleteMany(spaceId, {
 Track descendants deleted in cascade operations.
 
 ```typescript
-const result = await cortex.contexts.deleteMany(spaceId, {
+const result = await memoir.contexts.deleteMany(spaceId, {
   filters: { status: "cancelled" },
 });
 
@@ -99,7 +99,7 @@ Search by text content in string fields.
 **Context Operations:**
 ```typescript
 // Search by purpose
-const contexts = await cortex.contexts.list(spaceId, {
+const contexts = await memoir.contexts.list(spaceId, {
   filters: {
     purposeContains: "user authentication", // Text search
   },
@@ -113,7 +113,7 @@ Filter by nested object fields in `data` or `metadata`.
 **Memory Operations:**
 ```typescript
 // Query nested metadata
-const memories = await cortex.memory.list({
+const memories = await memoir.memory.list({
   memorySpaceId: spaceId,
   filters: {
     "metadata.tags": "urgent",              // Array contains
@@ -126,7 +126,7 @@ const memories = await cortex.memory.list({
 **User Operations:**
 ```typescript
 // Query nested profile data
-const users = await cortex.users.list({
+const users = await memoir.users.list({
   filters: {
     "preferences.theme": "dark",            // Nested preference
     "metadata.tier": "enterprise",          // Metadata field
@@ -149,7 +149,7 @@ Use comparison operators for numeric and date fields.
 **Examples:**
 ```typescript
 // Numeric range
-const memories = await cortex.memory.list({
+const memories = await memoir.memory.list({
   memorySpaceId: spaceId,
   filters: {
     "metadata.importance": { $gte: 70, $lte: 90 },
@@ -158,7 +158,7 @@ const memories = await cortex.memory.list({
 });
 
 // Date range
-const contexts = await cortex.contexts.list(spaceId, {
+const contexts = await memoir.contexts.list(spaceId, {
   filters: {
     createdAfter: new Date("2026-01-01"),
     createdBefore: new Date("2026-12-31"),
@@ -172,7 +172,7 @@ const contexts = await cortex.contexts.list(spaceId, {
 Filter by linked ACID conversation properties.
 
 ```typescript
-const contexts = await cortex.contexts.list(spaceId, {
+const contexts = await memoir.contexts.list(spaceId, {
   filters: {
     "conversationRef.conversationId": "conv-123",
   },
@@ -184,7 +184,7 @@ const contexts = await cortex.contexts.list(spaceId, {
 Filter by version numbers (for versioned entities).
 
 ```typescript
-const contexts = await cortex.contexts.list(spaceId, {
+const contexts = await memoir.contexts.list(spaceId, {
   filters: {
     version: { $gte: 5 }, // Version 5 or higher
   },
@@ -197,13 +197,13 @@ Filter facts by confidence ranges.
 
 ```typescript
 // Current: Only lower bound
-const facts = await cortex.facts.list({
+const facts = await memoir.facts.list({
   memorySpaceId: spaceId,
   minConfidence: 0.8, // confidence >= 0.8
 });
 
 // Planned: Full range queries
-const facts = await cortex.facts.list({
+const facts = await memoir.facts.list({
   memorySpaceId: spaceId,
   filters: {
     confidence: { $gte: 0.7, $lte: 0.9 }, // 0.7 ≤ confidence ≤ 0.9
@@ -223,11 +223,11 @@ Write exports directly to file paths.
 
 ```typescript
 // Current: Returns data as string
-const data = await cortex.memory.export(spaceId);
+const data = await memoir.memory.export(spaceId);
 await fs.writeFile("memories.json", data);
 
 // Planned: Direct file writing
-await cortex.memory.export(spaceId, {
+await memoir.memory.export(spaceId, {
   outputPath: "./backups/memories-2026-01.json",
 });
 ```
@@ -237,7 +237,7 @@ await cortex.memory.export(spaceId, {
 Export with full version history.
 
 ```typescript
-await cortex.memory.export(spaceId, {
+await memoir.memory.export(spaceId, {
   outputPath: "./backups/memories-full.json",
   includeVersionHistory: true, // Include previousVersions array
 });
@@ -248,12 +248,12 @@ await cortex.memory.export(spaceId, {
 Export with linked ACID conversation data.
 
 ```typescript
-await cortex.contexts.export(spaceId, {
+await memoir.contexts.export(spaceId, {
   outputPath: "./backups/contexts.json",
   includeConversations: true, // Include linked conversation messages
 });
 
-await cortex.memory.export(spaceId, {
+await memoir.memory.export(spaceId, {
   outputPath: "./backups/memories.json",
   includeConversationContext: true, // Include ACID source conversations
 });
@@ -265,10 +265,10 @@ Filter messages in conversation exports.
 
 ```typescript
 // Current: Includes all messages
-const data = await cortex.conversations.export(spaceId, conversationId);
+const data = await memoir.conversations.export(spaceId, conversationId);
 
 // Planned: Filter messages
-await cortex.conversations.export(spaceId, conversationId, {
+await memoir.conversations.export(spaceId, conversationId, {
   outputPath: "./backups/conversation.json",
   includeFullMessages: false, // Only include message metadata
   messageFilters: {
@@ -285,13 +285,13 @@ Filter by tenant ID in multi-tenant deployments.
 
 ```typescript
 // Count memories by tenant
-const count = await cortex.memory.count({
+const count = await memoir.memory.count({
   memorySpaceId: spaceId,
   tenantId: "tenant-123", // Multi-tenancy filter
 });
 
 // List memories by tenant
-const memories = await cortex.memory.list({
+const memories = await memoir.memory.list({
   memorySpaceId: spaceId,
   tenantId: "tenant-123",
 });
@@ -310,7 +310,7 @@ Improved session management capabilities.
 Filter sessions by start date.
 
 ```typescript
-const sessions = await cortex.sessions.list(spaceId, {
+const sessions = await memoir.sessions.list(spaceId, {
   startedAfter: new Date("2026-01-01"),
   startedBefore: new Date("2026-01-31"),
 });
@@ -321,7 +321,7 @@ const sessions = await cortex.sessions.list(spaceId, {
 Preview idle session expiration.
 
 ```typescript
-const result = await cortex.sessions.expireIdle(spaceId, {
+const result = await memoir.sessions.expireIdle(spaceId, {
   idleTimeoutMs: 30 * 60 * 1000, // 30 minutes
   dryRun: true,
 });
@@ -335,13 +335,13 @@ Dedicated error codes for session operations.
 
 ```typescript
 try {
-  await cortex.sessions.get(spaceId, sessionId);
+  await memoir.sessions.get(spaceId, sessionId);
 } catch (error) {
-  if (error.code === CortexErrorCode.SESSION_NOT_FOUND) {
+  if (error.code === MemoirErrorCode.SESSION_NOT_FOUND) {
     // Session doesn't exist
-  } else if (error.code === CortexErrorCode.SESSION_EXPIRED) {
+  } else if (error.code === MemoirErrorCode.SESSION_EXPIRED) {
     // Session expired
-  } else if (error.code === CortexErrorCode.SESSION_ALREADY_ENDED) {
+  } else if (error.code === MemoirErrorCode.SESSION_ALREADY_ENDED) {
     // Session already ended
   }
 }
@@ -358,7 +358,7 @@ Advanced user profile management features.
 Configure profile validation rules.
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   userProfileValidation: {
     requiredFields: ["displayName", "email"],
@@ -369,7 +369,7 @@ const cortex = new Cortex({
 });
 
 // Validation enforced on create/update
-await cortex.users.create({
+await memoir.users.create({
   id: "user-123",
   displayName: "Alice",
   // Error: email is required
@@ -381,7 +381,7 @@ await cortex.users.create({
 Control how many profile versions to keep.
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   userProfileVersionRetention: 10, // Keep last 10 versions only
 });
@@ -393,7 +393,7 @@ Skip version creation for routine updates.
 
 ```typescript
 // Routine update (no version created)
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alice Smith",
   skipVersioning: true,
 });
@@ -409,10 +409,10 @@ Sort agent lists by various fields.
 
 ```typescript
 // Currently: Returns agents in database order
-const agents = await cortex.agents.list();
+const agents = await memoir.agents.list();
 
 // Planned: Sorting support
-const agents = await cortex.agents.list({
+const agents = await memoir.agents.list({
   sortBy: "totalMemories",  // Sort by memory count
   sortOrder: "desc",        // Descending order
 });
@@ -424,7 +424,7 @@ Get statistics for unregistered agents.
 
 ```typescript
 // Planned: Analytics for any agent ID
-const stats = await cortex.analytics.getAgentStats("unregistered-agent-456");
+const stats = await memoir.analytics.getAgentStats("unregistered-agent-456");
 
 console.log(stats.totalMemories);
 console.log(stats.totalConversations);
@@ -440,7 +440,7 @@ Until these features are available, use these patterns:
 
 ```typescript
 // Count before deleting
-const count = await cortex.memory.count({
+const count = await memoir.memory.count({
   memorySpaceId: spaceId,
   filters: { accessCount: 0 },
 });
@@ -448,7 +448,7 @@ const count = await cortex.memory.count({
 console.log(`Will delete ${count} memories`);
 
 if (count < 100) {
-  await cortex.memory.deleteMany(spaceId, {
+  await memoir.memory.deleteMany(spaceId, {
     filters: { accessCount: 0 },
   });
 }
@@ -458,14 +458,14 @@ if (count < 100) {
 
 ```typescript
 // Client-side filtering for nested fields
-const allMemories = await cortex.memory.list({ memorySpaceId: spaceId });
+const allMemories = await memoir.memory.list({ memorySpaceId: spaceId });
 const filtered = allMemories.filter(m => m.metadata.tags?.includes("urgent"));
 ```
 
 ### Manual Export to File
 
 ```typescript
-const data = await cortex.memory.export(spaceId);
+const data = await memoir.memory.export(spaceId);
 await fs.writeFile("./backups/memories.json", data, "utf-8");
 ```
 

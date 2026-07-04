@@ -2,11 +2,11 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Detailed Convex schema definitions, indexes, and data structures for all Cortex tables.
+Detailed Convex schema definitions, indexes, and data structures for all Memoir tables.
 
 ## Overview
 
-Cortex uses **12+ Convex tables** to implement the 4-layer architecture plus coordination and governance:
+Memoir uses **12+ Convex tables** to implement the 4-layer architecture plus coordination and governance:
 
 <DataTable
   headers={["Table", "Layer", "Purpose", "Scoped By", "Versioned", "Retention"]}
@@ -843,10 +843,10 @@ await ctx.db
 
 **Special Case: type='user' (ONLY Special Type)**
 
-The **ONLY special type** is `'user'` - it's accessed via `cortex.users.*` wrapper which provides GDPR cascade deletion:
+The **ONLY special type** is `'user'` - it's accessed via `memoir.users.*` wrapper which provides GDPR cascade deletion:
 
 ```typescript
-// User profile (SPECIAL - has cortex.users.* wrapper)
+// User profile (SPECIAL - has memoir.users.* wrapper)
 {
   type: "user",  // ← ONLY special type
   id: "user-123",
@@ -860,9 +860,9 @@ The **ONLY special type** is `'user'` - it's accessed via `cortex.users.*` wrapp
 }
 
 // Accessed via:
-await cortex.users.get('user-123');  // ← Wrapper API
+await memoir.users.get('user-123');  // ← Wrapper API
 // Equivalent to:
-await cortex.immutable.get('user', 'user-123');  // ← Direct API
+await memoir.immutable.get('user', 'user-123');  // ← Direct API
 ```
 
 **All Other Types (Developer-Defined Examples):**
@@ -896,7 +896,7 @@ Every other type is just an example - you define whatever types you need:
 }
 ```
 
-**Key Point:** Only `type='user'` gets special API treatment (`cortex.users.*` wrapper). All other types are accessed via `cortex.immutable.*` directly.
+**Key Point:** Only `type='user'` gets special API treatment (`memoir.users.*` wrapper). All other types are accessed via `memoir.immutable.*` directly.
 
 **Query Patterns:**
 
@@ -2360,4 +2360,4 @@ const vectorResults = await ctx.vectorSearch("memories", "by_embedding", {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Agents API
+ * Memoir SDK - Agents API
  *
  * Coordination Layer: Optional agent metadata registry with cascade deletion
  *
@@ -142,7 +142,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * const agent = await cortex.agents.register({
+   * const agent = await memoir.agents.register({
    *   id: 'support-agent',
    *   name: 'Customer Support Bot',
    *   description: 'Handles customer inquiries',
@@ -223,7 +223,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * const agent = await cortex.agents.get('support-agent');
+   * const agent = await memoir.agents.get('support-agent');
    * if (agent) {
    *   console.log(agent.name, agent.metadata.team);
    * }
@@ -284,13 +284,13 @@ export class AgentsAPI {
    * @example
    * ```typescript
    * // Safe: offset with backend filter only
-   * const agents = await cortex.agents.list({ status: 'active', offset: 10, limit: 20 });
+   * const agents = await memoir.agents.list({ status: 'active', offset: 10, limit: 20 });
    *
    * // Safe: client-side filter without offset
-   * const teamAgents = await cortex.agents.list({ metadata: { team: 'alpha' } });
+   * const teamAgents = await memoir.agents.list({ metadata: { team: 'alpha' } });
    *
    * // WARNING: offset + metadata may produce unexpected results
-   * const paginated = await cortex.agents.list({ metadata: { team: 'alpha' }, offset: 10 });
+   * const paginated = await memoir.agents.list({ metadata: { team: 'alpha' }, offset: 10 });
    * ```
    */
   async list(filters?: AgentFilters): Promise<RegisteredAgent[]> {
@@ -309,7 +309,7 @@ export class AgentsAPI {
 
     if (filters?.offset !== undefined && hasClientSideFilters) {
       console.warn(
-        "[Cortex SDK] Warning: Using 'offset' with client-side filters (metadata, name, " +
+        "[Memoir SDK] Warning: Using 'offset' with client-side filters (metadata, name, " +
           "capabilities, lastActiveAfter, lastActiveBefore) may produce unexpected results. " +
           "The offset is applied at the database level before client-side filtering. " +
           "See documentation for safe pagination patterns.",
@@ -393,7 +393,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * const supportAgents = await cortex.agents.search({
+   * const supportAgents = await memoir.agents.search({
    *   metadata: { team: 'support' }
    * });
    * ```
@@ -407,7 +407,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * const total = await cortex.agents.count();
+   * const total = await memoir.agents.count();
    * console.log(`Total agents: ${total}`);
    * ```
    */
@@ -431,7 +431,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.agents.update('support-agent', {
+   * await memoir.agents.update('support-agent', {
    *   metadata: { team: 'customer-success' }
    * });
    * ```
@@ -483,7 +483,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.agents.configure('audit-agent', {
+   * await memoir.agents.configure('audit-agent', {
    *   memoryVersionRetention: -1  // Unlimited
    * });
    * ```
@@ -518,7 +518,7 @@ export class AgentsAPI {
    *
    * @example
    * ```typescript
-   * if (await cortex.agents.exists('my-agent')) {
+   * if (await memoir.agents.exists('my-agent')) {
    *   console.log('Agent is registered');
    * }
    * ```
@@ -545,10 +545,10 @@ export class AgentsAPI {
    * @example
    * ```typescript
    * // Simple unregister (keep data)
-   * await cortex.agents.unregister('old-agent');
+   * await memoir.agents.unregister('old-agent');
    *
    * // Cascade delete all agent data
-   * const result = await cortex.agents.unregister('old-agent', {
+   * const result = await memoir.agents.unregister('old-agent', {
    *   cascade: true
    * });
    * console.log(`Deleted ${result.totalDeleted} records from ${result.memorySpacesAffected.length} spaces`);
@@ -654,14 +654,14 @@ export class AgentsAPI {
    * @example
    * ```typescript
    * // Unregister experimental agents (keep data)
-   * const result = await cortex.agents.unregisterMany(
+   * const result = await memoir.agents.unregisterMany(
    *   { metadata: { environment: 'experimental' } },
    *   { cascade: false }
    * );
    * console.log(`Unregistered ${result.deleted} agents`);
    *
    * // Unregister and cascade delete all data
-   * const result = await cortex.agents.unregisterMany(
+   * const result = await memoir.agents.unregisterMany(
    *   { status: 'archived' },
    *   { cascade: true }
    * );
@@ -748,14 +748,14 @@ export class AgentsAPI {
    * @example
    * ```typescript
    * // Update all agents in a team
-   * const result = await cortex.agents.updateMany(
+   * const result = await memoir.agents.updateMany(
    *   { metadata: { team: 'support' } },
    *   { metadata: { trainingCompleted: true } }
    * );
    * console.log(`Updated ${result.updated} agents`);
    *
    * // Upgrade all agents to new version
-   * await cortex.agents.updateMany(
+   * await memoir.agents.updateMany(
    *   { metadata: { version: '2.0.0' } },
    *   { metadata: { version: '2.1.0' } }
    * );
@@ -824,14 +824,14 @@ export class AgentsAPI {
    * @example
    * ```typescript
    * // Export all agents as JSON
-   * const result = await cortex.agents.export({
+   * const result = await memoir.agents.export({
    *   format: "json",
    *   includeStats: true,
    * });
    * fs.writeFileSync("agents.json", result.data);
    *
    * // Export support team as CSV
-   * const csv = await cortex.agents.export({
+   * const csv = await memoir.agents.export({
    *   filters: { metadata: { team: "support" } },
    *   format: "csv",
    * });

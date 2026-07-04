@@ -44,8 +44,8 @@ Memory spaces support:
 
 **Two Complementary Systems:**
 
-1. **Memory Spaces (`cortex.memorySpaces.*`)**: Define isolation boundaries and manage participants
-2. **Agent Registry (`cortex.agents.*`)**: Track agent metadata, analytics, and capabilities
+1. **Memory Spaces (`memoir.memorySpaces.*`)**: Define isolation boundaries and manage participants
+2. **Agent Registry (`memoir.agents.*`)**: Track agent metadata, analytics, and capabilities
 
 <FlowDiagram title="Three Registration Modes" caption="Simple Mode, Memory Space Registry, and Agent Registry serve different purposes">
   <FlowNode title="Simple Mode (String IDs)" icon="code" variant="default">
@@ -137,12 +137,12 @@ Memory spaces support:
 
 ```typescript
 // No registration needed
-await cortex.memory.store('chatbot-v1', {
+await memoir.memory.store('chatbot-v1', {
   content: 'User prefers dark mode',
   ...
 });
 
-await cortex.memory.store('support-agent', {
+await memoir.memory.store('support-agent', {
   content: 'Resolved ticket #456',
   ...
 });
@@ -170,7 +170,7 @@ await cortex.memory.store('support-agent', {
 
 ```typescript
 // Register agents
-await cortex.agents.register({
+await memoir.agents.register({
   id: "support-agent",
   name: "Support Agent",
   description: "Handles customer support tickets",
@@ -187,7 +187,7 @@ await cortex.agents.register({
 });
 
 // Now get analytics
-const agent = await cortex.agents.get("support-agent");
+const agent = await memoir.agents.get("support-agent");
 if (agent?.stats) {
   console.log(`${agent.name}: ${agent.stats.totalMemories} memories`);
   if (agent.stats.isApproximate) {
@@ -196,7 +196,7 @@ if (agent?.stats) {
 }
 
 // Discovery
-const supportAgents = await cortex.agents.search({
+const supportAgents = await memoir.agents.search({
   capabilities: ["support"],
 });
 ```
@@ -398,7 +398,7 @@ export const computeStats = query({
 - **Approximate Counts**: When datasets exceed 1000 records, counts are approximate
 - **`isApproximate` Flag**: Check this flag to know if counts are exact or sampled
 - **Performance**: Sampling prevents hitting Convex's 16MB read limit for large datasets
-- **On-Demand**: Stats are computed on-demand when calling `cortex.agents.get()` or `cortex.agents.computeStats()`
+- **On-Demand**: Stats are computed on-demand when calling `memoir.agents.get()` or `memoir.agents.computeStats()`
 
 ---
 
@@ -410,7 +410,7 @@ Capabilities filtering happens client-side in the SDK. Capabilities are stored i
 
 ```typescript
 // SDK usage (client-side filtering)
-const supportAgents = await cortex.agents.search({
+const supportAgents = await memoir.agents.search({
   capabilities: ["support", "billing"],
   capabilitiesMatch: "all", // "all" (default) or "any"
 });
@@ -450,18 +450,18 @@ export const list = query({
 ### Configuration Hierarchy
 
 ```typescript
-// Global defaults (Cortex config)
-const cortex = new Cortex({
+// Global defaults (Memoir config)
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   defaultVersionRetention: 10, // Global default
 });
 
 // Agent-specific override
-await cortex.agents.configure("audit-agent", {
+await memoir.agents.configure("audit-agent", {
   memoryVersionRetention: -1, // Unlimited for audit agent
 });
 
-await cortex.agents.configure("temp-agent", {
+await memoir.agents.configure("temp-agent", {
   memoryVersionRetention: 1, // Only current for temp agent
 });
 
@@ -490,7 +490,7 @@ export const storeMemory = mutation({
 
 ```typescript
 // Production agents: Register for analytics
-await cortex.agents.register({
+await memoir.agents.register({
   id: 'support-agent-prod',
   name: 'Production Support Agent',
   metadata: {
@@ -501,8 +501,8 @@ await cortex.agents.register({
 });
 
 // Development agents: Unregistered (simple strings work fine)
-await cortex.memory.store('test-agent-123', { ... });
-await cortex.memory.store('dev-agent-temp', { ... });
+await memoir.memory.store('test-agent-123', { ... });
+await memoir.memory.store('dev-agent-temp', { ... });
 
 // Both work! (Good)
 // Registered agents get analytics and discovery
@@ -524,7 +524,7 @@ await cortex.memory.store('dev-agent-temp', { ... });
 
 ```typescript
 // Get agent analytics
-const agent = await cortex.agents.get("support-agent");
+const agent = await memoir.agents.get("support-agent");
 
 if (agent?.stats) {
   console.log({
@@ -543,10 +543,10 @@ if (agent?.stats) {
 }
 
 // Aggregate analytics
-const allAgents = await cortex.agents.list();
+const allAgents = await memoir.agents.list();
 // Note: Stats are computed on-demand, so each agent needs get() call for stats
 const agentsWithStats = await Promise.all(
-  allAgents.map(agent => cortex.agents.get(agent.id))
+  allAgents.map(agent => memoir.agents.get(agent.id))
 );
 
 const totalMemories = agentsWithStats.reduce(
@@ -566,12 +566,12 @@ if (hasApproximate) {
 
 ```typescript
 // Find agents by capability
-const billingAgents = await cortex.agents.search({
+const billingAgents = await memoir.agents.search({
   capabilities: ["billing"], // Searches in metadata.capabilities
 });
 
 // Find by metadata
-const productionAgents = await cortex.agents.search({
+const productionAgents = await memoir.agents.search({
   metadata: { environment: "production" },
 });
 
@@ -585,7 +585,7 @@ const productionAgents = await cortex.agents.search({
 
 ```typescript
 // Set agent-specific retention
-await cortex.agents.configure("audit-agent", {
+await memoir.agents.configure("audit-agent", {
   memoryVersionRetention: -1, // Unlimited
   maxMemories: Infinity,
 });
@@ -658,7 +658,7 @@ await ctx.db.insert("memories", {
 // INSERT INTO memories (agent_id, content) VALUES ('unregistered-agent', 'Test');
 // FOREIGN KEY constraint failed
 
-// Cortex benefit: Flexibility!
+// Memoir benefit: Flexibility!
 // - Development: No registration needed
 // - Production: Register for features
 ```
@@ -671,23 +671,23 @@ await ctx.db.insert("memories", {
 
 ```typescript
 // Phase 1: Start simple (no registry)
-await cortex.memory.store('agent-1', { ... });
-await cortex.memory.store('agent-2', { ... });
+await memoir.memory.store('agent-1', { ... });
+await memoir.memory.store('agent-2', { ... });
 
 // Phase 2: Add registry when needed
-await cortex.agents.register({
+await memoir.agents.register({
   id: 'agent-1',  // Same ID as before
   name: 'Agent One',
 });
 
-await cortex.agents.register({
+await memoir.agents.register({
   id: 'agent-2',
   name: 'Agent Two',
 });
 
 // Phase 3: Backfill stats
 for (const agent of ['agent-1', 'agent-2']) {
-  await cortex.agents.computeStats(agent);
+  await memoir.agents.computeStats(agent);
 }
 
 // All existing memories still work! (Good)
@@ -796,14 +796,14 @@ async function getAgentCached(ctx: any, memorySpaceId: string) {
 
 ```typescript
 // Good: Register production agents
-await cortex.agents.register({
+await memoir.agents.register({
   id: 'support-agent-prod',
   name: 'Production Support Agent',
   metadata: { environment: 'production' },
 });
 
 // Avoid: Don't register temporary agents
-await cortex.memory.store('test-agent-' + Date.now(), { ... });
+await memoir.memory.store('test-agent-' + Date.now(), { ... });
 // Just use string ID
 ```
 
@@ -811,7 +811,7 @@ await cortex.memory.store('test-agent-' + Date.now(), { ... });
 
 ```typescript
 // Good
-await cortex.agents.register({
+await memoir.agents.register({
   id: "support-agent",
   name: "Customer Support Agent",
   description: "Handles tier-1 support tickets and billing inquiries",
@@ -821,7 +821,7 @@ await cortex.agents.register({
 });
 
 // Bad
-await cortex.agents.register({
+await memoir.agents.register({
   id: "agent1",
   name: "Agent",
 });
@@ -831,7 +831,7 @@ await cortex.agents.register({
 
 ```typescript
 // Enable discovery
-await cortex.agents.register({
+await memoir.agents.register({
   id: "multilingual-support",
   metadata: {
     capabilities: [
@@ -845,7 +845,7 @@ await cortex.agents.register({
 });
 
 // Find agents
-const spanishSupport = await cortex.agents.search({
+const spanishSupport = await memoir.agents.search({
   capabilities: ["support", "language:es"],
 });
 ```
@@ -854,12 +854,12 @@ const spanishSupport = await cortex.agents.search({
 
 ```typescript
 // Critical agent: Unlimited retention
-await cortex.agents.configure("audit-agent", {
+await memoir.agents.configure("audit-agent", {
   memoryVersionRetention: -1,
 });
 
 // Temporary agent: Minimal retention
-await cortex.agents.configure("demo-agent", {
+await memoir.agents.configure("demo-agent", {
   memoryVersionRetention: 1,
 });
 ```
@@ -874,4 +874,4 @@ await cortex.agents.configure("demo-agent", {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

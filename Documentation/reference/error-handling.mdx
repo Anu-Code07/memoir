@@ -6,7 +6,7 @@
 
 ## Overview
 
-Cortex uses structured errors with specific error codes for predictable error handling. Errors are categorized into:
+Memoir uses structured errors with specific error codes for predictable error handling. Errors are categorized into:
 
 1. **Validation Errors** - Client-side validation (instant feedback)
 2. **Resilience Errors** - Overload protection (rate limits, circuit breaker)
@@ -39,7 +39,7 @@ import {
   // Other errors
   A2ATimeoutError,
   CascadeDeletionError,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 ```
 
 ---
@@ -97,10 +97,10 @@ Error (native JavaScript)
 ### Basic Error Handling
 
 ```typescript
-import { MemoryValidationError, CircuitOpenError } from "@cortexmemory/sdk";
+import { MemoryValidationError, CircuitOpenError } from "@memoir/sdk";
 
 try {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId: "user-123-space",
     conversationId: "conv-123",
     userMessage: "My name is Alex",
@@ -129,10 +129,10 @@ try {
 ### Validation Error Handling
 
 ```typescript
-import { MemoryValidationError } from '@cortexmemory/sdk';
+import { MemoryValidationError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof MemoryValidationError) {
     // Instant client-side feedback
@@ -160,10 +160,10 @@ import {
   CircuitOpenError,
   QueueFullError,
   RateLimitExceededError
-} from '@cortexmemory/sdk';
+} from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof CircuitOpenError) {
     // Backend is unhealthy, retry later
@@ -190,11 +190,11 @@ import {
   GraphConnectionError,
   GraphAuthenticationError,
   GraphQueryError,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true (v0.29.0+)
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 try {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     // ... params
     // No syncToGraph option needed - sync is automatic
   });
@@ -267,10 +267,10 @@ class MemoryValidationError extends Error {
 **Example:**
 
 ```typescript
-import { MemoryValidationError } from "@cortexmemory/sdk";
+import { MemoryValidationError } from "@memoir/sdk";
 
 try {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     conversationId: "conv-123",
     userMessage: "Hello",
     agentResponse: "Hi!",
@@ -431,10 +431,10 @@ class CircuitOpenError extends Error {
 **Example:**
 
 ```typescript
-import { CircuitOpenError } from '@cortexmemory/sdk';
+import { CircuitOpenError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof CircuitOpenError) {
     const delay = error.retryAfterMs || 30000;
@@ -469,10 +469,10 @@ class RateLimitExceededError extends Error {
 **Example:**
 
 ```typescript
-import { RateLimitExceededError } from '@cortexmemory/sdk';
+import { RateLimitExceededError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof RateLimitExceededError) {
     console.log(`Rate limited, ${error.tokensAvailable} tokens available`);
@@ -507,10 +507,10 @@ class QueueFullError extends Error {
 **Example:**
 
 ```typescript
-import { QueueFullError } from '@cortexmemory/sdk';
+import { QueueFullError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof QueueFullError) {
     console.error(`Queue full for ${error.priority} priority`);
@@ -582,14 +582,14 @@ class GraphConnectionError extends GraphDatabaseError {
 **Example:**
 
 ```typescript
-import { GraphConnectionError } from "@cortexmemory/sdk";
+import { GraphConnectionError } from "@memoir/sdk";
 
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true (v0.29.0+)
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 // Graph failures are non-fatal - the app continues working
 try {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     // ... params
-    // Graph sync happens automatically if CORTEX_GRAPH_SYNC=true
+    // Graph sync happens automatically if MEMOIR_GRAPH_SYNC=true
   });
 } catch (error) {
   if (error instanceof GraphConnectionError) {
@@ -626,7 +626,7 @@ class GraphAuthenticationError extends GraphConnectionError {
 **Example:**
 
 ```typescript
-import { GraphAuthenticationError } from "@cortexmemory/sdk";
+import { GraphAuthenticationError } from "@memoir/sdk";
 
 try {
   await graphAdapter.connect(config);
@@ -636,7 +636,7 @@ try {
     console.error(`  URI: ${error.uri}`);
     console.error(`  Username: ${error.username}`);
     console.error("Check NEO4J_PASSWORD in .env");
-    // Disable graph sync by unsetting CORTEX_GRAPH_SYNC or setting to false
+    // Disable graph sync by unsetting MEMOIR_GRAPH_SYNC or setting to false
   }
 }
 ```
@@ -786,14 +786,14 @@ class ResumableStreamError extends Error {
 
 ```typescript
 // Wrong - no owner
-await cortex.memory.remember({
+await memoir.memory.remember({
   conversationId: "conv-123",
   userMessage: "Hello",
   agentResponse: "Hi",
 });
 
 // Correct - userId provided
-await cortex.memory.remember({
+await memoir.memory.remember({
   conversationId: "conv-123",
   userMessage: "Hello",
   agentResponse: "Hi",
@@ -813,7 +813,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Wrong - missing userName
-await cortex.memory.remember({
+await memoir.memory.remember({
   conversationId: "conv-123",
   userMessage: "Hello",
   agentResponse: "Hi",
@@ -822,7 +822,7 @@ await cortex.memory.remember({
 });
 
 // Correct
-await cortex.memory.remember({
+await memoir.memory.remember({
   conversationId: "conv-123",
   userMessage: "Hello",
   agentResponse: "Hi",
@@ -842,13 +842,13 @@ await cortex.memory.remember({
 
 ```typescript
 // Wrong
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... other params
   importance: 150, // Out of range!
 });
 
 // Correct
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... other params
   importance: 90, // 0-100
 });
@@ -863,12 +863,12 @@ await cortex.memory.remember({
 **Recovery Strategy:**
 
 ```typescript
-import { CircuitOpenError } from "@cortexmemory/sdk";
+import { CircuitOpenError } from "@memoir/sdk";
 
 async function rememberWithRetry(params, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      return await cortex.memory.remember(params);
+      return await memoir.memory.remember(params);
     } catch (error) {
       if (error instanceof CircuitOpenError) {
         const delay = error.retryAfterMs || 30000 * (i + 1);
@@ -903,7 +903,7 @@ await new Promise((resolve) => setTimeout(resolve, backoff));
 
 ```typescript
 // Configure resilience with priority
-const cortex = new CortexMemory({
+const memoir = new Memoir({
   // ... config
   resilience: {
     enabled: true,
@@ -915,10 +915,10 @@ const cortex = new CortexMemory({
 3. **Return 503 to clients:**
 
 ```typescript
-import { QueueFullError } from '@cortexmemory/sdk';
+import { QueueFullError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof QueueFullError) {
     return res.status(503).json({
@@ -943,23 +943,23 @@ try {
 NEO4J_URI=neo4j://localhost:7687
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your-password-here  # Check this!
-CORTEX_GRAPH_SYNC=true  # Enable graph sync
+MEMOIR_GRAPH_SYNC=true  # Enable graph sync
 ```
 
 2. Disable graph if credentials are unavailable:
 
 ```bash
 # In .env.local - disable graph sync
-CORTEX_GRAPH_SYNC=false
+MEMOIR_GRAPH_SYNC=false
 ```
 
 ```typescript
-import { GraphAuthenticationError } from "@cortexmemory/sdk";
+import { GraphAuthenticationError } from "@memoir/sdk";
 
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true (v0.29.0+)
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 // If graph auth fails, the operation still succeeds (graph is optional)
 try {
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     // ... params
     // Graph sync happens automatically, failures are logged but non-fatal
   });
@@ -981,13 +981,13 @@ try {
 
 ```typescript
 // Wrong
-await cortex.facts.store({
+await memoir.facts.store({
   // ... params
   factType: "unknown", // Invalid!
 });
 
 // Correct - use valid fact type
-await cortex.facts.store({
+await memoir.facts.store({
   // ... params
   factType: "preference", // Valid
 });
@@ -1032,7 +1032,7 @@ async function withRetry<T>(
 }
 
 // Usage
-await withRetry(() => cortex.memory.remember({...}));
+await withRetry(() => memoir.memory.remember({...}));
 ```
 
 ---
@@ -1040,7 +1040,7 @@ await withRetry(() => cortex.memory.remember({...}));
 ### Circuit Breaker Pattern
 
 ```typescript
-import { CircuitOpenError } from '@cortexmemory/sdk';
+import { CircuitOpenError } from '@memoir/sdk';
 
 class CircuitBreakerWrapper {
   private failures = 0;
@@ -1076,7 +1076,7 @@ class CircuitBreakerWrapper {
 
 // Usage
 const breaker = new CircuitBreakerWrapper();
-await breaker.execute(() => cortex.memory.remember({...}));
+await breaker.execute(() => memoir.memory.remember({...}));
 ```
 
 ---
@@ -1084,14 +1084,14 @@ await breaker.execute(() => cortex.memory.remember({...}));
 ### Graceful Degradation
 
 ```typescript
-import { GraphConnectionError, CircuitOpenError } from "@cortexmemory/sdk";
+import { GraphConnectionError, CircuitOpenError } from "@memoir/sdk";
 
-// v0.29.0+: Graph sync is automatic when CORTEX_GRAPH_SYNC=true
+// v0.29.0+: Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
 // Graph failures are non-fatal - data is still stored in Convex
 async function rememberWithFallback(params: RememberParams) {
   try {
-    // Graph sync happens automatically if CORTEX_GRAPH_SYNC=true
-    return await cortex.memory.remember({
+    // Graph sync happens automatically if MEMOIR_GRAPH_SYNC=true
+    return await memoir.memory.remember({
       ...params,
       extractFacts: true,
     });
@@ -1105,7 +1105,7 @@ async function rememberWithFallback(params: RememberParams) {
     if (error instanceof CircuitOpenError) {
       // Fallback: minimal storage
       console.warn("Backend stressed, using minimal storage");
-      return await cortex.memory.remember({
+      return await memoir.memory.remember({
         ...params,
         skipLayers: ["facts", "graph"],
       });

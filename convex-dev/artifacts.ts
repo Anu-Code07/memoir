@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Artifacts API
+ * Memoir SDK - Artifacts API
  *
  * Interactive, versioned documents with undo/redo capabilities.
  * Memory space-scoped with multi-tenancy support.

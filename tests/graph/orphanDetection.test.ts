@@ -21,7 +21,7 @@ const describeIfEnabled = GRAPH_TESTING_ENABLED ? describe : describe.skip;
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 // ============================================================================

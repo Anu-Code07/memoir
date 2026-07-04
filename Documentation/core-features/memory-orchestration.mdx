@@ -2,12 +2,12 @@
 id: memory-orchestration
 title: Memory Orchestration
 sidebar_position: 1
-description: Understand how Cortex orchestrates memory across four layers with two-phase recall/remember architecture
+description: Understand how Memoir orchestrates memory across four layers with two-phase recall/remember architecture
 ---
 
 # Memory Orchestration
 
-The heart of Cortex: automatic orchestration across all memory layers with batteries-included defaults.
+The heart of Memoir: automatic orchestration across all memory layers with batteries-included defaults.
 
 <Callout type="info" title="New in v0.35.1">
 Memory orchestration now operates in **two distinct phases**: **Recall** (context retrieval) and **Remember** (memory storage). This enables real-time UI progress indicators and better debugging. See [Two-Phase Architecture](#two-phase-architecture).
@@ -17,7 +17,7 @@ Memory orchestration now operates in **two distinct phases**: **Recall** (contex
 
 ## Overview
 
-Cortex is an **AI memory orchestration platform** that manages the complete lifecycle of agent memory. Instead of manually coordinating conversations, vector stores, facts, and graphs, you call a single method and Cortex handles everything.
+Memoir is an **AI memory orchestration platform** that manages the complete lifecycle of agent memory. Instead of manually coordinating conversations, vector stores, facts, and graphs, you call a single method and Memoir handles everything.
 
 <Tabs>
   <TabItem value="problem" label="The Problem">
@@ -25,13 +25,13 @@ Cortex is an **AI memory orchestration platform** that manages the complete life
 Building AI agents with persistent memory typically requires:
 
 ```typescript
-// Without Cortex: Manual coordination
+// Without Memoir: Manual coordination
 await storeConversation(conversationId, userMessage, agentResponse);
 await generateEmbedding(userMessage + agentResponse);
 await storeInVectorDB(embedding, content, metadata);
 await extractFacts(userMessage, agentResponse);
 await storeFacts(facts, conversationId);
-// Graph sync handled automatically when CORTEX_GRAPH_SYNC=true (v0.29.0+)
+// Graph sync handled automatically when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 await linkEverythingTogether(ids);
 // ...and handle failures, retries, consistency
 ```
@@ -40,8 +40,8 @@ await linkEverythingTogether(ids);
   <TabItem value="solution" label="The Solution">
 
 ```typescript
-// With Cortex: One call, full orchestration
-await cortex.memory.remember({
+// With Memoir: One call, full orchestration
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   conversationId: "conv-456",
   userMessage: "I prefer TypeScript for backend work",
@@ -59,7 +59,7 @@ await cortex.memory.remember({
 
 ## Core Concept: The 4-Layer Architecture
 
-Cortex organizes memory into four layers, each serving a specific purpose:
+Memoir organizes memory into four layers, each serving a specific purpose:
 
 <FlowDiagram 
   title="Memory Orchestration Layers" 
@@ -70,7 +70,7 @@ Cortex organizes memory into four layers, each serving a specific purpose:
     icon="layers" 
     variant="primary"
   >
-    cortex.memory.remember() • cortex.memory.recall() • Start here
+    memoir.memory.remember() • memoir.memory.recall() • Start here
   </FlowNode>
   <FlowNode 
     title="Layer 3: Facts Store" 
@@ -111,15 +111,15 @@ Cortex organizes memory into four layers, each serving a specific purpose:
 
 **Purpose**: Developer experience - orchestrates all layers
 
-- `cortex.memory.*` handles everything automatically
+- `memoir.memory.*` handles everything automatically
 - Recommended starting point for all use cases
 
 ```typescript
 // Does L1a + L2 + L3 + graph sync
-await cortex.memory.remember({...});
+await memoir.memory.remember({...});
 
 // Searches L2 + L3 + graph expansion
-await cortex.memory.recall({...});
+await memoir.memory.recall({...});
 ```
 
   </TabItem>
@@ -132,7 +132,7 @@ await cortex.memory.recall({...});
 - Belief revision for conflicting facts
 
 ```typescript
-await cortex.facts.store(memorySpaceId, {
+await memoir.facts.store(memorySpaceId, {
   fact: "User prefers dark mode",
   factType: "preference",
   confidence: 95,
@@ -149,13 +149,13 @@ await cortex.facts.store(memorySpaceId, {
 - Scoped per memory space
 
 ```typescript
-await cortex.vector.store(memorySpaceId, {
+await memoir.vector.store(memorySpaceId, {
   content: "...",
   embedding: [...],
   conversationRef: {...},  // Links to L1a
 });
 
-await cortex.vector.search(memorySpaceId, query);
+await memoir.vector.search(memorySpaceId, query);
 ```
 
   </TabItem>
@@ -170,20 +170,20 @@ Three sub-stores:
 
 ```typescript
 // Layer 1a
-await cortex.conversations.addMessage(conversationId, {...});
+await memoir.conversations.addMessage(conversationId, {...});
 
 // Layer 1b
-await cortex.immutable.store({...});
+await memoir.immutable.store({...});
 
 // Layer 1c
-await cortex.mutable.set(namespace, key, value);
+await memoir.mutable.set(namespace, key, value);
 ```
 
   </TabItem>
 </Tabs>
 
 <Callout type="tip" title="Which Layer Should I Use?">
-  **Start with Layer 4** (`cortex.memory.*`). It handles all orchestration for you.
+  **Start with Layer 4** (`memoir.memory.*`). It handles all orchestration for you.
   
   Use lower layers only when you need:
   - Direct vector control (Layer 2)
@@ -225,7 +225,7 @@ The **recall** phase runs *before* the LLM generates a response. It retrieves re
 
 ```typescript
 // The recall phase is triggered by recall() or automatically before remember()
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
   observer: {
@@ -257,7 +257,7 @@ The **remember** phase runs *after* the LLM generates a response. It stores the 
 
 ```typescript
 // The remember phase is triggered by remember()
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-space",
   conversationId: "conv-456",
   userMessage: "My favorite color is blue",
@@ -317,7 +317,7 @@ For Vercel AI SDK apps, use the `useLayerTracking` hook which provides built-in 
 `remember()` is the primary method for storing conversations. It orchestrates all layers automatically:
 
 ```typescript
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   // Required
   memorySpaceId: "user-123-personal",
   conversationId: "conv-456",
@@ -368,7 +368,7 @@ const result = await cortex.memory.remember({
 `recall()` searches across all layers, merges results, and returns ready-to-use context:
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-personal",
   query: "What are user's preferences?",
 
@@ -454,7 +454,7 @@ Both `remember()` and `recall()` work out-of-the-box with sensible defaults:
 Control how much data `recall()` fetches from each source to prevent Convex read limit errors:
 
 ```typescript
-await cortex.memory.recall({
+await memoir.memory.recall({
   memorySpaceId: "user-space",
   query: "preferences",
   limits: {
@@ -466,7 +466,7 @@ await cortex.memory.recall({
 });
 ```
 
-Configure defaults via environment variables (`CORTEX_RECALL_LIMIT_*`) or override per-call. See [Configuration](/getting-started/configuration#recall-limits-configuration).
+Configure defaults via environment variables (`MEMOIR_RECALL_LIMIT_*`) or override per-call. See [Configuration](/getting-started/configuration#recall-limits-configuration).
 </Callout>
 
 ---
@@ -476,14 +476,14 @@ Configure defaults via environment variables (`CORTEX_RECALL_LIMIT_*`) or overri
 ### Basic Usage
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // Store a conversation
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "Hello! I'm building a Next.js app",
@@ -493,7 +493,7 @@ await cortex.memory.remember({
 });
 
 // Retrieve relevant context
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "my-agent",
   query: "What is the user working on?",
 });
@@ -507,7 +507,7 @@ console.log(result.context);
 ```typescript
 import { embed } from "@ai-sdk/openai";
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "I prefer TypeScript over JavaScript",
@@ -540,7 +540,7 @@ const response = await streamText({
 });
 
 // Store streaming response automatically
-const result = await cortex.memory.rememberStream({
+const result = await memoir.memory.rememberStream({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "Tell me about AI",
@@ -561,7 +561,7 @@ console.log(result.fullResponse); // Complete response text
 When you call `remember()`, all layers are automatically linked:
 
 ```typescript
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "I like Python",
@@ -586,7 +586,7 @@ One call deletes from all layers:
 
 ```typescript
 // Delete user and all their data across ALL layers
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Automatically deletes from:
 // - User profile
@@ -601,7 +601,7 @@ await cortex.users.delete("user-123", { cascade: true });
 All operations are automatically scoped to the tenant:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: {
     userId: "user-123",
@@ -610,8 +610,8 @@ const cortex = new Cortex({
 });
 
 // Everything is automatically filtered by tenant
-await cortex.memory.remember({...});  // Stored in tenant-acme
-await cortex.memory.recall({...});    // Only searches tenant-acme
+await memoir.memory.remember({...});  // Stored in tenant-acme
+await memoir.memory.recall({...});    // Only searches tenant-acme
 ```
 
 ---
@@ -621,42 +621,42 @@ await cortex.memory.recall({...});    // Only searches tenant-acme
 <FeatureGrid>
   <FeatureCard
     icon="speed"
-    title="cortex.memory.*"
+    title="memoir.memory.*"
     description="Layer 4: Convenience API (start here)"
     href="/api-reference/memory-operations"
     size="medium"
   />
   <FeatureCard
     icon="search"
-    title="cortex.vector.*"
+    title="memoir.vector.*"
     description="Layer 2: Direct vector operations"
     href="/api-reference/memory-operations"
     size="medium"
   />
   <FeatureCard
     icon="brain"
-    title="cortex.facts.*"
+    title="memoir.facts.*"
     description="Layer 3: Fact operations"
     href="/api-reference/facts-operations"
     size="medium"
   />
   <FeatureCard
     icon="database"
-    title="cortex.conversations.*"
+    title="memoir.conversations.*"
     description="Layer 1a: ACID conversations"
     href="/api-reference/conversation-operations"
     size="medium"
   />
   <FeatureCard
     icon="storage"
-    title="cortex.immutable.*"
+    title="memoir.immutable.*"
     description="Layer 1b: Shared knowledge"
     href="/api-reference/immutable-store-api"
     size="medium"
   />
   <FeatureCard
     icon="settings"
-    title="cortex.mutable.*"
+    title="memoir.mutable.*"
     description="Layer 1c: Live state"
     href="/api-reference/mutable-store-api"
     size="medium"
@@ -670,7 +670,7 @@ await cortex.memory.recall({...});    // Only searches tenant-acme
 For specific use cases, you can skip certain layers:
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "Quick note",
@@ -699,7 +699,7 @@ await cortex.memory.remember({
 
 ## Summary
 
-**Memory Orchestration is the core value of Cortex:**
+**Memory Orchestration is the core value of Memoir:**
 
 - **One method to store** (`remember()`) - Handles all layers automatically
 - **One method to retrieve** (`recall()`) - Unified search across all sources

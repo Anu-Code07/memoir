@@ -8,7 +8,7 @@ For TypeScript/JavaScript files:
 ---------------------------------
 
 /**
- * Copyright 2025 Nicholas Geil / Saint Nick LLC
+ * Copyright 2025 Nicholas Geil / Anu-Code07
  *
  * Licensed under FSL-1.1-Apache-2.0 (Functional Source License).
  * See LICENSE.md for full license terms.
@@ -21,7 +21,7 @@ For Markdown files:
 -------------------
 
 <!--
-Copyright 2025 Nicholas Geil / Saint Nick LLC
+Copyright 2025 Nicholas Geil / Anu-Code07
 
 Licensed under FSL-1.1-Apache-2.0 (Functional Source License).
 See LICENSE.md for full license terms.
@@ -34,7 +34,7 @@ For Configuration files (JSON, YAML, etc.):
 --------------------------------------------
 
 #
-# Copyright 2025 Nicholas Geil / Saint Nick LLC
+# Copyright 2025 Nicholas Geil / Anu-Code07
 # Licensed under FSL-1.1-Apache-2.0
 # See LICENSE.md for full license text
 #

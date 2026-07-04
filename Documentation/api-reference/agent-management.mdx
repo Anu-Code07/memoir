@@ -22,7 +22,7 @@ Complete API reference for agent management operations.
 The Agent Management API provides **optional metadata registration** for agent discovery, analytics, and team organization, plus **convenient cascade deletion** by participantId across all memory spaces.
 
 <Callout type="info">
-**Architecture:** Cortex uses **Memory Spaces** as the fundamental isolation boundary. Multiple agents/tools can share one memory space (Hive Mode), or operate in separate spaces (Collaboration Mode). The Agent Registry is an optional metadata layer on top of this architecture for tracking agent information.
+**Architecture:** Memoir uses **Memory Spaces** as the fundamental isolation boundary. Multiple agents/tools can share one memory space (Hive Mode), or operate in separate spaces (Collaboration Mode). The Agent Registry is an optional metadata layer on top of this architecture for tracking agent information.
 </Callout>
 
 ### Agents vs Memory Spaces: Complementary Systems
@@ -85,7 +85,7 @@ The Agent Management API provides **optional metadata registration** for agent d
 ```typescript
 // Works immediately - no registration needed
 // Layer 3 - stores in ACID + Vector automatically
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "my-agent", // Just a string ID (was formerly agentId)
   conversationId: "conv-123",
   userMessage: "Hello!",
@@ -95,7 +95,7 @@ await cortex.memory.remember({
 });
 
 // Search works (searches Vector index)
-const memories = await cortex.memory.search({
+const memories = await memoir.memory.search({
   memorySpaceId: "my-agent",
   query: "hello",
 });
@@ -114,7 +114,7 @@ const memories = await cortex.memory.search({
 
 ```typescript
 // Optionally register for enhanced features
-await cortex.agents.register({
+await memoir.agents.register({
   id: "my-agent",
   name: "Customer Support Bot",
   description: "Handles customer inquiries and support tickets",
@@ -127,11 +127,11 @@ await cortex.agents.register({
 });
 
 // Now get agent with enhanced stats
-const agent = await cortex.agents.get("my-agent");
+const agent = await memoir.agents.get("my-agent");
 console.log(agent?.stats?.totalMemories); // Stats included in response
 
 // Agent discovery
-const supportAgents = await cortex.agents.search({
+const supportAgents = await memoir.agents.search({
   metadata: { team: "support" },
 });
 ```
@@ -154,7 +154,7 @@ Register an agent in the registry (optional, enables enhanced features).
 **Signature:**
 
 ```typescript
-cortex.agents.register(
+memoir.agents.register(
   agent: AgentRegistration
 ): Promise<RegisteredAgent>
 ```
@@ -206,7 +206,7 @@ interface AgentStats {
 **Example:**
 
 ```typescript
-const agent = await cortex.agents.register({
+const agent = await memoir.agents.register({
   id: "support-agent",
   name: "Customer Support Bot",
   description: "Handles customer inquiries, issues, and support tickets",
@@ -249,7 +249,7 @@ Get registered agent details.
 **Signature:**
 
 ```typescript
-cortex.agents.get(
+memoir.agents.get(
   agentId: string
 ): Promise<RegisteredAgent | null>
 ```
@@ -270,7 +270,7 @@ cortex.agents.get(
 **Example:**
 
 ```typescript
-const agent = await cortex.agents.get("support-agent");
+const agent = await memoir.agents.get("support-agent");
 
 if (agent) {
   console.log(`Name: ${agent.name}`);
@@ -300,7 +300,7 @@ Find registered agents by metadata. This is an alias for `list()` with filters.
 **Signature:**
 
 ```typescript
-cortex.agents.search(
+memoir.agents.search(
   filters: AgentFilters
 ): Promise<RegisteredAgent[]>
 ```
@@ -342,24 +342,24 @@ cortex.agents.search(
 
 ```typescript
 // Find all support team agents
-const supportAgents = await cortex.agents.search({
+const supportAgents = await memoir.agents.search({
   metadata: { team: "support" },
 });
 
 // Find agents with specific capability
-const troubleshooters = await cortex.agents.search({
+const troubleshooters = await memoir.agents.search({
   capabilities: ["troubleshooting"],
 });
 
 // Find recently registered agents (last 30 days)
-const newAgents = await cortex.agents.search({
+const newAgents = await memoir.agents.search({
   registeredAfter: Date.now() - 30 * 24 * 60 * 60 * 1000, // Unix timestamp (ms)
   sortBy: "registeredAt",
   sortOrder: "desc",
 });
 
 // Find by name
-const found = await cortex.agents.search({
+const found = await memoir.agents.search({
   name: "support", // Partial match: "Customer Support Bot"
 });
 ```
@@ -384,7 +384,7 @@ List all registered agents with optional filters.
 **Signature:**
 
 ```typescript
-cortex.agents.list(
+memoir.agents.list(
   filters?: AgentFilters
 ): Promise<RegisteredAgent[]>
 ```
@@ -435,7 +435,7 @@ This means combining `offset` with any of these filters may produce unexpected r
 
 ```typescript
 // List all registered agents (safe: status is backend-applied)
-const agents = await cortex.agents.list({
+const agents = await memoir.agents.list({
   limit: 50,
   status: "active",
 });
@@ -449,12 +449,12 @@ agents.forEach((agent) => {
 });
 
 // Safe: client-side filter without offset
-const teamAgents = await cortex.agents.list({
+const teamAgents = await memoir.agents.list({
   metadata: { team: "support" },
 });
 
 // WARNING: offset + metadata may produce unexpected results
-// const paginated = await cortex.agents.list({
+// const paginated = await memoir.agents.list({
 //   metadata: { team: "alpha" },
 //   offset: 10,  // Applied before metadata filter
 // });
@@ -474,7 +474,7 @@ Count registered agents.
 **Signature:**
 
 ```typescript
-cortex.agents.count(
+memoir.agents.count(
   filters?: { status?: 'active' | 'inactive' | 'archived' }
 ): Promise<number>
 ```
@@ -499,17 +499,17 @@ cortex.agents.count(
 
 ```typescript
 // Total registered agents
-const total = await cortex.agents.count();
+const total = await memoir.agents.count();
 
 // Count by status
-const activeCount = await cortex.agents.count({
+const activeCount = await memoir.agents.count({
   status: "active",
 });
 
 console.log(`${activeCount} active agents`);
 
 // For complex filters, use list() instead:
-const supportAgents = await cortex.agents.list({
+const supportAgents = await memoir.agents.list({
   metadata: { team: "support" },
 });
 console.log(`${supportAgents.length} agents on support team`);
@@ -524,7 +524,7 @@ Check if an agent is registered.
 **Signature:**
 
 ```typescript
-cortex.agents.exists(
+memoir.agents.exists(
   agentId: string
 ): Promise<boolean>
 ```
@@ -545,15 +545,15 @@ cortex.agents.exists(
 
 ```typescript
 // Check if agent is registered
-if (await cortex.agents.exists("my-agent")) {
+if (await memoir.agents.exists("my-agent")) {
   console.log("Agent is registered");
 } else {
   console.log("Agent not registered (but may still work with simple ID)");
 }
 
 // Conditional registration
-if (!(await cortex.agents.exists("support-agent"))) {
-  await cortex.agents.register({
+if (!(await memoir.agents.exists("support-agent"))) {
+  await memoir.agents.register({
     id: "support-agent",
     name: "Support Bot",
   });
@@ -578,7 +578,7 @@ Update registered agent details.
 **Signature:**
 
 ```typescript
-cortex.agents.update(
+memoir.agents.update(
   agentId: string,
   updates: Partial<AgentRegistration>
 ): Promise<RegisteredAgent>
@@ -601,7 +601,7 @@ cortex.agents.update(
 
 ```typescript
 // Update agent metadata
-const updated = await cortex.agents.update("support-agent", {
+const updated = await memoir.agents.update("support-agent", {
   metadata: {
     version: "2.2.0", // Update version
     capabilities: ["troubleshooting", "empathy", "escalation", "billing"], // Add capability
@@ -609,7 +609,7 @@ const updated = await cortex.agents.update("support-agent", {
 });
 
 // Update configuration
-await cortex.agents.update("audit-agent", {
+await memoir.agents.update("audit-agent", {
   config: {
     memoryVersionRetention: -1, // Unlimited retention
   },
@@ -634,7 +634,7 @@ Update agent-specific configuration.
 **Signature:**
 
 ```typescript
-cortex.agents.configure(
+memoir.agents.configure(
   agentId: string,
   config: AgentConfig
 ): Promise<void>
@@ -658,16 +658,16 @@ cortex.agents.configure(
 
 ```typescript
 // Configure version retention
-await cortex.agents.configure("audit-agent", {
+await memoir.agents.configure("audit-agent", {
   memoryVersionRetention: -1, // Keep all versions forever
 });
 
-await cortex.agents.configure("temp-agent", {
+await memoir.agents.configure("temp-agent", {
   memoryVersionRetention: 1, // Only keep current (no history)
 });
 
 // Custom configuration
-await cortex.agents.configure("support-agent", {
+await memoir.agents.configure("support-agent", {
   autoArchiveAfterDays: 90,
   maxMemoriesPerUser: 1000,
   enableAutoSummarization: true, // Cloud Mode feature
@@ -698,7 +698,7 @@ Remove agent from registry with optional cascade deletion by participantId.
 **Signature:**
 
 ```typescript
-cortex.agents.unregister(
+memoir.agents.unregister(
   agentId: string,
   options?: UnregisterAgentOptions
 ): Promise<UnregisterAgentResult>
@@ -757,7 +757,7 @@ If any deletion fails, automatically rolls back all changes.
 
 ```typescript
 // Remove from registry, keep all memories/conversations
-const result = await cortex.agents.unregister("old-agent");
+const result = await memoir.agents.unregister("old-agent");
 
 console.log(`Unregistered ${result.agentId}`);
 console.log(`Total deleted: ${result.totalDeleted}`); // 1 (just registration)
@@ -768,7 +768,7 @@ console.log(`Data preserved: memories still accessible with agentId string`);
 
 ```typescript
 // Delete registration + ALL data where participantId = agentId
-const result = await cortex.agents.unregister("old-agent", {
+const result = await memoir.agents.unregister("old-agent", {
   cascade: true,
   verify: true,
 });
@@ -802,7 +802,7 @@ if (result.verification.complete) {
 
 ```typescript
 // Preview what would be deleted
-const preview = await cortex.agents.unregister("agent-123", {
+const preview = await memoir.agents.unregister("agent-123", {
   cascade: true,
   dryRun: true,
 });
@@ -813,7 +813,7 @@ console.log(`Memories: ${preview.memoriesDeleted}`);
 console.log(`Conversations: ${preview.conversationsDeleted}`);
 
 // Agent still exists after dry run
-const agent = await cortex.agents.get("agent-123");
+const agent = await memoir.agents.get("agent-123");
 console.log(`Agent still registered: ${agent !== null}`); // true
 ```
 
@@ -824,7 +824,7 @@ console.log(`Agent still registered: ${agent !== null}`); // true
 // (This is the key difference from users API!)
 
 // Day 1: Create data (no registration)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "space-1",
   participantId: "agent-xyz", // Agent never registered
   conversationId: "conv-1",
@@ -835,7 +835,7 @@ await cortex.memory.remember({
 });
 
 // Day 30: Delete all agent data (works without registration when cascade=true!)
-const result = await cortex.agents.unregister("agent-xyz", {
+const result = await memoir.agents.unregister("agent-xyz", {
   cascade: true, // Required: cascade=true works even without registration
 });
 
@@ -853,7 +853,7 @@ console.log(
 **Cascade Deletion: Users vs Agents**
 
 <ComparisonTable
-  headers={["Feature", "cortex.users.delete()", "cortex.agents.unregister()"]}
+  headers={["Feature", "memoir.users.delete()", "memoir.agents.unregister()"]}
   items={[
     { feature: "Filter key", values: ["userId", "participantId"] },
     { feature: "Scope", values: ["Across all layers", "Across all memory spaces"] },
@@ -894,7 +894,7 @@ This doesn't prevent using the agent ID again. It just removes registry entry an
 Cascade deletion includes graph nodes if you provide a graph adapter:
 
 ```typescript
-import { CypherGraphAdapter } from "@cortex-platform/sdk/graph";
+import { CypherGraphAdapter } from "@memoir-platform/sdk/graph";
 
 // Configure graph adapter (DIY in free SDK)
 const graphAdapter = new CypherGraphAdapter();
@@ -904,8 +904,8 @@ await graphAdapter.connect({
   password: process.env.NEO4J_PASSWORD,
 });
 
-// Initialize Cortex with graph
-const cortex = new Cortex({
+// Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   graph: {
     adapter: graphAdapter,
@@ -914,7 +914,7 @@ const cortex = new Cortex({
 });
 
 // Now cascade includes graph with orphan detection!
-await cortex.agents.unregister("agent-123", { cascade: true });
+await memoir.agents.unregister("agent-123", { cascade: true });
 // Deletes from memories, conversations, facts, AND graph
 // Includes orphan island detection
 ```
@@ -927,12 +927,12 @@ await cortex.agents.unregister("agent-123", { cascade: true });
 
 ```typescript
 // Find agents with specific capabilities
-const agents = await cortex.agents.search({
+const agents = await memoir.agents.search({
   capabilities: ["troubleshooting", "billing"],
 });
 
 // Find agents with ALL capabilities
-const specialists = await cortex.agents.search({
+const specialists = await memoir.agents.search({
   capabilities: ["troubleshooting", "billing", "escalation"],
   capabilitiesMatch: "all", // Must have all three
 });
@@ -942,7 +942,7 @@ const specialists = await cortex.agents.search({
 
 ```typescript
 // Get all agents in a team
-const team = await cortex.agents.search({
+const team = await memoir.agents.search({
   metadata: { team: "customer-success" },
 });
 
@@ -955,7 +955,7 @@ team.forEach((agent) => {
 
 ```typescript
 // Find recently active agents
-const active = await cortex.agents.search({
+const active = await memoir.agents.search({
   sortBy: "lastActive",
   sortOrder: "desc",
   limit: 10,
@@ -977,7 +977,7 @@ Agent statistics are automatically included in the `RegisteredAgent.stats` prope
 
 ```typescript
 // Get agent with stats
-const agent = await cortex.agents.get("support-agent");
+const agent = await memoir.agents.get("support-agent");
 
 if (agent) {
   console.log({
@@ -996,7 +996,7 @@ if (agent) {
 ```
 
 <Callout type="note">
-**PLANNED FEATURE:** A dedicated `cortex.analytics.getAgentStats()` API for retrieving statistics for unregistered agents is planned for a future release. Currently, stats are only computed for registered agents via the agents API.
+**PLANNED FEATURE:** A dedicated `memoir.analytics.getAgentStats()` API for retrieving statistics for unregistered agents is planned for a future release. Currently, stats are only computed for registered agents via the agents API.
 </Callout>
 
 <Callout type="info">
@@ -1011,14 +1011,14 @@ Stats are computed on-demand and included in `RegisteredAgent` responses. For un
 
 ```typescript
 // Production agents - register them
-await cortex.agents.register({
+await memoir.agents.register({
   id: "production-support-agent",
   name: "Production Support Bot",
   metadata: { environment: "production", team: "support" },
 });
 
 // Experimental agents - simple IDs are fine (Layer 3)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "experiment-123", // Not registered, still works
   conversationId: "conv-456",
   userMessage: "Test message",
@@ -1047,7 +1047,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Start simple (Layer 3 - all layers work)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "my-agent",
   conversationId: "conv-123",
   userMessage: "Hello",
@@ -1057,14 +1057,14 @@ await cortex.memory.remember({
 });
 
 // Later, when you need insights, register
-await cortex.agents.register({
+await memoir.agents.register({
   id: "my-agent", // Same ID that already has memories
   name: "My Agent",
   metadata: { team: "experimental" },
 });
 
 // Now agent includes stats and metadata
-const agent = await cortex.agents.get("my-agent");
+const agent = await memoir.agents.get("my-agent");
 console.log(agent?.name); // "My Agent"
 console.log(agent?.stats?.totalMemories); // Stats computed on-demand
 ```
@@ -1073,7 +1073,7 @@ console.log(agent?.stats?.totalMemories); // Stats computed on-demand
 
 ```typescript
 // Update when capabilities change
-await cortex.agents.update("support-agent", {
+await memoir.agents.update("support-agent", {
   metadata: {
     capabilities: ["troubleshooting", "billing", "refunds"], // Added 'refunds'
     version: "2.2.0",
@@ -1089,7 +1089,7 @@ Agents can be used without registration, then registered later:
 
 ```typescript
 // Day 1: Simple usage (Layer 3 - ACID + Vector automatic)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-1",
   userMessage: "First message",
@@ -1098,7 +1098,7 @@ await cortex.memory.remember({
   userName: "User",
 });
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-1",
   userMessage: "Second message",
@@ -1109,14 +1109,14 @@ await cortex.memory.remember({
 // Works fine! ACID + Vector populated automatically
 
 // Day 30: Register for better organization
-await cortex.agents.register({
+await memoir.agents.register({
   id: "agent-1", // Same ID that already has ACID + Vector data
   name: "Sales Agent",
   metadata: { team: "sales" },
 });
 
 // All existing memories/conversations now associated with registered agent
-const agent = await cortex.agents.get("agent-1");
+const agent = await memoir.agents.get("agent-1");
 console.log(
   `${agent?.stats?.totalMemories} memories (created before registration)`,
 );
@@ -1141,22 +1141,22 @@ const filters = {
 };
 
 // Search
-await cortex.agents.search(filters);
+await memoir.agents.search(filters);
 
 // Count
-await cortex.agents.count(filters);
+await memoir.agents.count(filters);
 
 // List
-await cortex.agents.list({ ...filters, limit: 50 });
+await memoir.agents.list({ ...filters, limit: 50 });
 
 // Update many
-await cortex.agents.updateMany(filters, { metadata: { updated: true } });
+await memoir.agents.updateMany(filters, { metadata: { updated: true } });
 
 // Unregister many
-await cortex.agents.unregisterMany(filters);
+await memoir.agents.unregisterMany(filters);
 
 // Export
-await cortex.agents.export({ filters, format: "json" });
+await memoir.agents.export({ filters, format: "json" });
 ```
 
 **Supported Filters:**
@@ -1185,7 +1185,7 @@ Update multiple agents matching filters.
 **Signature:**
 
 ```typescript
-cortex.agents.updateMany(
+memoir.agents.updateMany(
   filters: AgentFilters,
   updates: Partial<AgentRegistration>
 ): Promise<{ updated: number; agentIds: string[] }>
@@ -1216,7 +1216,7 @@ cortex.agents.updateMany(
 
 ```typescript
 // Update all agents in a team
-const result = await cortex.agents.updateMany(
+const result = await memoir.agents.updateMany(
   {
     metadata: { team: "support" },
   },
@@ -1231,7 +1231,7 @@ const result = await cortex.agents.updateMany(
 console.log(`Updated ${result.updated} agents: ${result.agentIds.join(", ")}`);
 
 // Upgrade all agents to new version
-await cortex.agents.updateMany(
+await memoir.agents.updateMany(
   {
     metadata: { version: "2.0.0" },
   },
@@ -1254,7 +1254,7 @@ Unregister multiple agents matching filters.
 **Signature:**
 
 ```typescript
-cortex.agents.unregisterMany(
+memoir.agents.unregisterMany(
   filters: AgentFilters,
   options?: UnregisterAgentOptions
 ): Promise<{ deleted: number; agentIds: string[]; totalDataDeleted?: number }>
@@ -1285,7 +1285,7 @@ cortex.agents.unregisterMany(
 
 ```typescript
 // Unregister experimental agents (keep data)
-const result = await cortex.agents.unregisterMany(
+const result = await memoir.agents.unregisterMany(
   { metadata: { environment: "experimental" } },
   { cascade: false },
 );
@@ -1294,7 +1294,7 @@ console.log(`Unregistered ${result.deleted} experimental agents`);
 console.log(`Agent IDs: ${result.agentIds.join(", ")}`);
 
 // Unregister and cascade delete all agent data
-const cascaded = await cortex.agents.unregisterMany(
+const cascaded = await memoir.agents.unregisterMany(
   { status: "archived" },
   { cascade: true, verify: true },
 );
@@ -1302,7 +1302,7 @@ const cascaded = await cortex.agents.unregisterMany(
 console.log(`Deleted ${cascaded.totalDataDeleted} records across all layers`);
 
 // Preview what would be deleted (dry run)
-const preview = await cortex.agents.unregisterMany(
+const preview = await memoir.agents.unregisterMany(
   { metadata: { team: "deprecated" } },
   { cascade: true, dryRun: true },
 );
@@ -1317,7 +1317,7 @@ Export registered agents matching filters.
 **Signature:**
 
 ```typescript
-cortex.agents.export(
+memoir.agents.export(
   options: ExportAgentsOptions
 ): Promise<ExportAgentsResult>
 ```
@@ -1348,7 +1348,7 @@ interface ExportAgentsResult {
 
 ```typescript
 // Export all agents as JSON
-const result = await cortex.agents.export({
+const result = await memoir.agents.export({
   format: "json",
 });
 
@@ -1356,14 +1356,14 @@ console.log(`Exported ${result.count} agents`);
 fs.writeFileSync("all-agents.json", result.data);
 
 // Export support team agents with statistics
-const withStats = await cortex.agents.export({
+const withStats = await memoir.agents.export({
   filters: { metadata: { team: "support" } },
   format: "json",
   includeStats: true,
 });
 
 // Export as CSV for spreadsheet analysis
-const csv = await cortex.agents.export({
+const csv = await memoir.agents.export({
   filters: { status: "active" },
   format: "csv",
   includeMetadata: false, // Smaller CSV without metadata/config columns
@@ -1398,13 +1398,13 @@ When `format: "csv"` is specified, the output includes these columns:
     Just use memorySpaceId string — No registration needed
   </FlowNode>
   <FlowNode title="2. Registered (Optional)" icon="database" variant="secondary">
-    cortex.agents.register() — Enables analytics, team organization, agent discovery
+    memoir.agents.register() — Enables analytics, team organization, agent discovery
   </FlowNode>
   <FlowNode title="3. Configured" icon="settings" variant="warning">
-    cortex.agents.configure() — Custom retention rules, team-specific settings
+    memoir.agents.configure() — Custom retention rules, team-specific settings
   </FlowNode>
   <FlowNode title="4. Unregistered (Optional)" icon="user" variant="success">
-    cortex.agents.unregister() — Can still use with simple ID afterward
+    memoir.agents.unregister() — Can still use with simple ID afterward
   </FlowNode>
 </FlowDiagram>
 
@@ -1413,7 +1413,7 @@ When `format: "csv"` is specified, the output includes these columns:
 ## Cloud Mode Features (Planned)
 
 <Callout type="info">
-**Cloud Mode (Under Development)**: These enhanced agent management features will be available when the managed Cortex Cloud service launches. The SDK provides full technical capability today.
+**Cloud Mode (Under Development)**: These enhanced agent management features will be available when the managed Memoir Cloud service launches. The SDK provides full technical capability today.
 </Callout>
 
 ### Agent Analytics Dashboard
@@ -1435,7 +1435,7 @@ Visual insights per agent:
 
 ### Auto-Discovery
 
-Cortex Cloud can suggest:
+Memoir Cloud can suggest:
 
 - When to split an agent (too many capabilities)
 - When to merge agents (overlapping domains)
@@ -1477,11 +1477,11 @@ const agents = [
 ];
 
 for (const agent of agents) {
-  await cortex.agents.register(agent);
+  await memoir.agents.register(agent);
 }
 
 // Find agent for specific task
-const technicalAgents = await cortex.agents.search({
+const technicalAgents = await memoir.agents.search({
   capabilities: ["troubleshooting"],
 });
 
@@ -1493,7 +1493,7 @@ console.log(`Routing to: ${selectedAgent.name}`);
 
 ```typescript
 // Get overview of all agents (list() returns RegisteredAgent[])
-const allAgents = await cortex.agents.list({
+const allAgents = await memoir.agents.list({
   sortBy: "registeredAt", // Valid: "name" | "registeredAt" | "lastActive"
   sortOrder: "desc",
 });
@@ -1546,18 +1546,18 @@ Agents are graph nodes representing AI assistants or human operators:
 
 ```typescript
 // Agent → Memories (via memory space)
-const agentMemories = await cortex.memory.search({
+const agentMemories = await memoir.memory.search({
   memorySpaceId: "agent-1-space",
   query: "*",
 });
 
 // Agent → Contexts (via memory space)
-const agentContexts = await cortex.contexts.list({
+const agentContexts = await memoir.contexts.list({
   memorySpaceId: "agent-1-space",
 });
 
 // Agent → Agent (collaboration graph via A2A)
-const collaborations = await cortex.memory.search({
+const collaborations = await memoir.memory.search({
   memorySpaceId: "agent-1-space",
   query: "*",
   sourceType: "a2a",
@@ -1633,4 +1633,4 @@ const network = {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

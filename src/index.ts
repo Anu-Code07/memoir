@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Main Entry Point
+ * Memoir SDK - Main Entry Point
  *
  * Open-source SDK for AI agents with persistent memory
  * Built on Convex for reactive TypeScript queries
@@ -156,9 +156,9 @@ export interface EmbeddingConfig {
 }
 
 /**
- * Cortex SDK configuration
+ * Memoir SDK configuration
  */
-export interface CortexConfig {
+export interface MemoirConfig {
   /** Convex deployment URL */
   convexUrl: string;
 
@@ -251,7 +251,7 @@ export interface CortexConfig {
   resilience?: ResilienceConfig;
 }
 
-export class Cortex {
+export class Memoir {
   private readonly client: ConvexClient;
   private syncWorker?: GraphSyncWorker;
   private readonly resilienceLayer: ResilienceLayer;
@@ -264,14 +264,14 @@ export class Cortex {
    *
    * Uses a two-gate approach:
    * - Gate 1: An API key must be present (OPENAI_API_KEY)
-   * - Gate 2: CORTEX_EMBEDDING must be explicitly set to 'true'
+   * - Gate 2: MEMOIR_EMBEDDING must be explicitly set to 'true'
    *
    * This prevents accidental API costs - users must explicitly opt-in.
    *
    * @returns EmbeddingConfig if both gates pass, undefined otherwise
    */
   private static autoConfigureEmbedding(): EmbeddingConfig | undefined {
-    const embeddingEnabled = process.env.CORTEX_EMBEDDING === "true";
+    const embeddingEnabled = process.env.MEMOIR_EMBEDDING === "true";
 
     if (!embeddingEnabled) {
       return undefined;
@@ -286,9 +286,9 @@ export class Cortex {
       };
     }
 
-    // CORTEX_EMBEDDING=true but no API key found - warn user
+    // MEMOIR_EMBEDDING=true but no API key found - warn user
     console.warn(
-      "[Cortex] CORTEX_EMBEDDING=true but no API key found. " +
+      "[Memoir] MEMOIR_EMBEDDING=true but no API key found. " +
         "Set OPENAI_API_KEY to enable automatic embedding generation.",
     );
 
@@ -300,14 +300,14 @@ export class Cortex {
    *
    * Uses a two-gate approach:
    * - Gate 1: An API key must be present (OPENAI_API_KEY or ANTHROPIC_API_KEY)
-   * - Gate 2: CORTEX_FACT_EXTRACTION must be explicitly set to 'true'
+   * - Gate 2: MEMOIR_FACT_EXTRACTION must be explicitly set to 'true'
    *
    * This prevents accidental API costs - users must explicitly opt-in.
    *
    * @returns LLMConfig if both gates pass, undefined otherwise
    */
   private static autoConfigureLLM(): LLMConfig | undefined {
-    const factExtractionEnabled = process.env.CORTEX_FACT_EXTRACTION === "true";
+    const factExtractionEnabled = process.env.MEMOIR_FACT_EXTRACTION === "true";
 
     if (!factExtractionEnabled) {
       return undefined;
@@ -328,9 +328,9 @@ export class Cortex {
       };
     }
 
-    // CORTEX_FACT_EXTRACTION=true but no API key found - warn user
+    // MEMOIR_FACT_EXTRACTION=true but no API key found - warn user
     console.warn(
-      "[Cortex] CORTEX_FACT_EXTRACTION=true but no API key found. " +
+      "[Memoir] MEMOIR_FACT_EXTRACTION=true but no API key found. " +
         "Set OPENAI_API_KEY or ANTHROPIC_API_KEY to enable automatic fact extraction.",
     );
 
@@ -342,14 +342,14 @@ export class Cortex {
    *
    * Uses a two-gate approach:
    * - Gate 1: Connection credentials must be present (NEO4J_URI or MEMGRAPH_URI + auth)
-   * - Gate 2: CORTEX_GRAPH_SYNC must be explicitly set to 'true'
+   * - Gate 2: MEMOIR_GRAPH_SYNC must be explicitly set to 'true'
    *
    * This prevents accidental graph connections - users must explicitly opt-in.
    *
    * @returns GraphConfig if both gates pass, undefined otherwise
    */
   private static async autoConfigureGraph(): Promise<GraphConfig | undefined> {
-    const graphSyncEnabled = process.env.CORTEX_GRAPH_SYNC === "true";
+    const graphSyncEnabled = process.env.MEMOIR_GRAPH_SYNC === "true";
 
     if (!graphSyncEnabled) {
       return undefined;
@@ -361,7 +361,7 @@ export class Cortex {
 
     if (neo4jUri && memgraphUri) {
       console.warn(
-        "[Cortex] Both NEO4J_URI and MEMGRAPH_URI set. Using Neo4j.",
+        "[Memoir] Both NEO4J_URI and MEMGRAPH_URI set. Using Neo4j.",
       );
     }
 
@@ -376,7 +376,7 @@ export class Cortex {
         return { adapter, autoSync: true };
       } catch (error) {
         console.error(
-          "[Cortex] Failed to connect to Neo4j:",
+          "[Memoir] Failed to connect to Neo4j:",
           error instanceof Error ? error.message : error,
         );
         return undefined;
@@ -394,16 +394,16 @@ export class Cortex {
         return { adapter, autoSync: true };
       } catch (error) {
         console.error(
-          "[Cortex] Failed to connect to Memgraph:",
+          "[Memoir] Failed to connect to Memgraph:",
           error instanceof Error ? error.message : error,
         );
         return undefined;
       }
     }
 
-    // CORTEX_GRAPH_SYNC=true but no URI found - warn user
+    // MEMOIR_GRAPH_SYNC=true but no URI found - warn user
     console.warn(
-      "[Cortex] CORTEX_GRAPH_SYNC=true but no graph database URI found. " +
+      "[Memoir] MEMOIR_GRAPH_SYNC=true but no graph database URI found. " +
         "Set NEO4J_URI or MEMGRAPH_URI to enable graph sync.",
     );
 
@@ -411,30 +411,30 @@ export class Cortex {
   }
 
   /**
-   * Create a Cortex instance with automatic configuration.
+   * Create a Memoir instance with automatic configuration.
    *
    * This factory method enables async auto-configuration of:
-   * - Graph database (if CORTEX_GRAPH_SYNC=true and connection credentials set)
-   * - LLM for fact extraction (if CORTEX_FACT_EXTRACTION=true and API key set)
+   * - Graph database (if MEMOIR_GRAPH_SYNC=true and connection credentials set)
+   * - LLM for fact extraction (if MEMOIR_FACT_EXTRACTION=true and API key set)
    *
-   * Use this instead of `new Cortex()` when you want environment-based auto-config.
+   * Use this instead of `new Memoir()` when you want environment-based auto-config.
    *
    * @example
    * ```typescript
-   * // With env vars: CORTEX_GRAPH_SYNC=true, NEO4J_URI=bolt://localhost:7687
-   * const cortex = await Cortex.create({ convexUrl: process.env.CONVEX_URL! });
+   * // With env vars: MEMOIR_GRAPH_SYNC=true, NEO4J_URI=bolt://localhost:7687
+   * const memoir = await Memoir.create({ convexUrl: process.env.CONVEX_URL! });
    * // Graph is automatically connected and sync worker started
    * ```
    *
-   * @param config - Cortex configuration (explicit config takes priority over env vars)
-   * @returns Promise<Cortex> - Fully configured Cortex instance
+   * @param config - Memoir configuration (explicit config takes priority over env vars)
+   * @returns Promise<Memoir> - Fully configured Memoir instance
    */
-  static async create(config: CortexConfig): Promise<Cortex> {
+  static async create(config: MemoirConfig): Promise<Memoir> {
     // Auto-configure graph if not explicitly provided
-    const graphConfig = config.graph ?? (await Cortex.autoConfigureGraph());
+    const graphConfig = config.graph ?? (await Memoir.autoConfigureGraph());
 
     // Create instance with potentially auto-configured graph
-    return new Cortex({
+    return new Memoir({
       ...config,
       graph: graphConfig,
     });
@@ -485,17 +485,17 @@ export class Cortex {
   // Attachments - Multi-modal File Storage
   public attachments: AttachmentsAPI;
 
-  constructor(config: CortexConfig) {
+  constructor(config: MemoirConfig) {
     // Initialize Convex client
     this.client = new ConvexClient(config.convexUrl);
 
     // Store LLM config for fact extraction
     // Use explicit config if provided, otherwise auto-configure from environment
-    this.llmConfig = config.llm ?? Cortex.autoConfigureLLM();
+    this.llmConfig = config.llm ?? Memoir.autoConfigureLLM();
 
     // Store embedding config for automatic semantic search
     // Use explicit config if provided, otherwise auto-configure from environment
-    this.embeddingConfig = config.embedding ?? Cortex.autoConfigureEmbedding();
+    this.embeddingConfig = config.embedding ?? Memoir.autoConfigureEmbedding();
 
     // Store auth context for auto-injection
     this.authContext = config.auth;
@@ -623,13 +623,13 @@ export class Cortex {
    *
    * @example
    * ```typescript
-   * const cortex = new Cortex({
+   * const memoir = new Memoir({
    *   convexUrl: process.env.CONVEX_URL!,
    *   auth: createAuthContext({ userId: 'user-123', tenantId: 'tenant-456' })
    * });
    *
-   * console.log(cortex.auth?.userId); // 'user-123'
-   * console.log(cortex.auth?.tenantId); // 'tenant-456'
+   * console.log(memoir.auth?.userId); // 'user-123'
+   * console.log(memoir.auth?.tenantId); // 'tenant-456'
    * ```
    */
   get auth(): AuthContext | undefined {
@@ -656,15 +656,15 @@ export class Cortex {
    * @example
    * ```typescript
    * // Check system health
-   * const isHealthy = cortex.getResilience().isHealthy();
+   * const isHealthy = memoir.getResilience().isHealthy();
    *
    * // Get current metrics
-   * const metrics = cortex.getResilience().getMetrics();
+   * const metrics = memoir.getResilience().getMetrics();
    * console.log('Circuit state:', metrics.circuitBreaker.state);
    * console.log('Queue size:', metrics.queue.total);
    *
    * // Reset all resilience state (use with caution)
-   * cortex.getResilience().reset();
+   * memoir.getResilience().reset();
    * ```
    */
   getResilience(): ResilienceLayer {

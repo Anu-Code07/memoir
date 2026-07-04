@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, jest } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 import { createNamedTestRunContext, waitForCondition } from "./helpers";
 
 // Retry failed tests once - Convex backend can have transient errors under parallel load
@@ -51,7 +51,7 @@ const AGENT_TRANSITIONS = [
 describe("State Transition Testing", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("state-trans");
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   // Use ctx-generated IDs for proper isolation
   const getSpaceId = (suffix: string) => ctx.memorySpaceId(suffix);
@@ -65,7 +65,7 @@ describe("State Transition Testing", () => {
   ) => {
     const ready = await waitForCondition(
       async () => {
-        const result = await cortex.contexts.get(contextId);
+        const result = await memoir.contexts.get(contextId);
         return result !== null;
       },
       ctx,
@@ -79,7 +79,7 @@ describe("State Transition Testing", () => {
     if (spaceId && status) {
       const listReady = await waitForCondition(
         async () => {
-          const list = await cortex.contexts.list({
+          const list = await memoir.contexts.list({
             memorySpaceId: spaceId,
             status: status as "active" | "completed" | "cancelled" | "blocked",
           });
@@ -134,7 +134,7 @@ describe("State Transition Testing", () => {
 
   beforeAll(() => {
     console.log(`\n🧪 State Transition Tests - Run ID: ${ctx.runId}\n`);
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
@@ -156,7 +156,7 @@ describe("State Transition Testing", () => {
           const userId = ctx.userId(`${fromStatus}-${toStatus}`);
 
           // Create context in initial state
-          const testCtx = await cortex.contexts.create({
+          const testCtx = await memoir.contexts.create({
             memorySpaceId: spaceId,
             userId,
             purpose: `Testing ${fromStatus} → ${toStatus}`,
@@ -170,7 +170,7 @@ describe("State Transition Testing", () => {
           await waitForContextReady(testCtx.contextId, spaceId, fromStatus);
 
           // Verify in list with initial status
-          const beforeList = await cortex.contexts.list({
+          const beforeList = await memoir.contexts.list({
             memorySpaceId: spaceId,
             status: fromStatus,
           });
@@ -181,7 +181,7 @@ describe("State Transition Testing", () => {
           // Transition to new status - use retry for CI resilience
           const updated = await retryOperation(
             () =>
-              cortex.contexts.update(testCtx.contextId, {
+              memoir.contexts.update(testCtx.contextId, {
                 status: toStatus,
               }),
             `contexts.update(${fromStatus}→${toStatus})`,
@@ -191,7 +191,7 @@ describe("State Transition Testing", () => {
           expect(updated.contextId).toBe(testCtx.contextId);
 
           // Verify in list with new status
-          const afterList = await cortex.contexts.list({
+          const afterList = await memoir.contexts.list({
             memorySpaceId: spaceId,
             status: toStatus,
           });
@@ -200,7 +200,7 @@ describe("State Transition Testing", () => {
           ).toBe(true);
 
           // Verify NOT in list with old status
-          const oldStatusList = await cortex.contexts.list({
+          const oldStatusList = await memoir.contexts.list({
             memorySpaceId: spaceId,
             status: fromStatus,
           });
@@ -214,17 +214,17 @@ describe("State Transition Testing", () => {
           const userId = ctx.userId(`count-${fromStatus}-${toStatus}`);
 
           // Get initial counts
-          const beforeFromCount = await cortex.contexts.count({
+          const beforeFromCount = await memoir.contexts.count({
             memorySpaceId: spaceId,
             status: fromStatus,
           });
-          const beforeToCount = await cortex.contexts.count({
+          const beforeToCount = await memoir.contexts.count({
             memorySpaceId: spaceId,
             status: toStatus,
           });
 
           // Create and transition
-          const testCtx = await cortex.contexts.create({
+          const testCtx = await memoir.contexts.create({
             memorySpaceId: spaceId,
             userId,
             purpose: "Count test",
@@ -237,16 +237,16 @@ describe("State Transition Testing", () => {
           // Use retry for CI resilience against eventual consistency
           await retryOperation(
             () =>
-              cortex.contexts.update(testCtx.contextId, { status: toStatus }),
+              memoir.contexts.update(testCtx.contextId, { status: toStatus }),
             `contexts.update(count:${fromStatus}→${toStatus})`,
           );
 
           // Get final counts
-          const afterFromCount = await cortex.contexts.count({
+          const afterFromCount = await memoir.contexts.count({
             memorySpaceId: spaceId,
             status: fromStatus,
           });
-          const afterToCount = await cortex.contexts.count({
+          const afterToCount = await memoir.contexts.count({
             memorySpaceId: spaceId,
             status: toStatus,
           });
@@ -268,7 +268,7 @@ describe("State Transition Testing", () => {
       };
 
       // Create with data
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Data preservation test",
@@ -280,16 +280,16 @@ describe("State Transition Testing", () => {
       await waitForContextReady(testCtx.contextId);
 
       // Transition through multiple states
-      await cortex.contexts.update(testCtx.contextId, { status: "blocked" });
-      const blocked = await cortex.contexts.get(testCtx.contextId);
+      await memoir.contexts.update(testCtx.contextId, { status: "blocked" });
+      const blocked = await memoir.contexts.get(testCtx.contextId);
       expect((blocked as any).data).toEqual(originalData);
 
-      await cortex.contexts.update(testCtx.contextId, { status: "completed" });
-      const completed = await cortex.contexts.get(testCtx.contextId);
+      await memoir.contexts.update(testCtx.contextId, { status: "completed" });
+      const completed = await memoir.contexts.get(testCtx.contextId);
       expect((completed as any).data).toEqual(originalData);
 
-      await cortex.contexts.update(testCtx.contextId, { status: "active" });
-      const reactivated = await cortex.contexts.get(testCtx.contextId);
+      await memoir.contexts.update(testCtx.contextId, { status: "active" });
+      const reactivated = await memoir.contexts.get(testCtx.contextId);
       expect((reactivated as any).data).toEqual(originalData);
     });
 
@@ -297,7 +297,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("ctx-completed");
       const userId = ctx.userId("completed");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Completion test",
@@ -310,7 +310,7 @@ describe("State Transition Testing", () => {
       await waitForContextReady(testCtx.contextId);
 
       // Transition to completed
-      const completed = await cortex.contexts.update(testCtx.contextId, {
+      const completed = await memoir.contexts.update(testCtx.contextId, {
         status: "completed",
       });
 
@@ -322,7 +322,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("ctx-hierarchy");
       const userId = ctx.userId("hierarchy");
 
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Parent context",
@@ -332,7 +332,7 @@ describe("State Transition Testing", () => {
       // Wait for Convex consistency - poll until parent is queryable
       await waitForContextReady(parent.contextId);
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Child context",
@@ -344,10 +344,10 @@ describe("State Transition Testing", () => {
       await waitForContextReady(child.contextId);
 
       // Transition parent
-      await cortex.contexts.update(parent.contextId, { status: "completed" });
+      await memoir.contexts.update(parent.contextId, { status: "completed" });
 
       // Verify child still references parent
-      const childAfter = await cortex.contexts.get(child.contextId);
+      const childAfter = await memoir.contexts.get(child.contextId);
       expect((childAfter as any).parentId).toBe(parent.contextId);
     });
 
@@ -355,7 +355,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("ctx-rapid");
       const userId = ctx.userId("rapid");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Rapid transition test",
@@ -366,12 +366,12 @@ describe("State Transition Testing", () => {
       await waitForContextReady(testCtx.contextId);
 
       // Rapid transitions
-      await cortex.contexts.update(testCtx.contextId, { status: "blocked" });
-      await cortex.contexts.update(testCtx.contextId, { status: "active" });
-      await cortex.contexts.update(testCtx.contextId, { status: "completed" });
-      await cortex.contexts.update(testCtx.contextId, { status: "active" });
+      await memoir.contexts.update(testCtx.contextId, { status: "blocked" });
+      await memoir.contexts.update(testCtx.contextId, { status: "active" });
+      await memoir.contexts.update(testCtx.contextId, { status: "completed" });
+      await memoir.contexts.update(testCtx.contextId, { status: "active" });
 
-      const final = await cortex.contexts.get(testCtx.contextId);
+      const final = await memoir.contexts.get(testCtx.contextId);
       expect((final as any).status).toBe("active");
     });
 
@@ -384,7 +384,7 @@ describe("State Transition Testing", () => {
       const transitionableStatuses = ["active", "completed", "blocked"] as const;
       const contexts = await Promise.all(
         transitionableStatuses.map((status) =>
-          cortex.contexts.create({
+          memoir.contexts.create({
             memorySpaceId: spaceId,
             userId,
             purpose: `Context ${status}`,
@@ -406,7 +406,7 @@ describe("State Transition Testing", () => {
       // Verify each in correct status list
       for (let i = 0; i < transitionableStatuses.length; i++) {
         const status = transitionableStatuses[i];
-        const list = await cortex.contexts.list({
+        const list = await memoir.contexts.list({
           memorySpaceId: spaceId,
           status,
         });
@@ -416,18 +416,18 @@ describe("State Transition Testing", () => {
       }
 
       // Transition each to a valid different status
-      await cortex.contexts.update(contexts[0].contextId, {
+      await memoir.contexts.update(contexts[0].contextId, {
         status: "completed",
       }); // active → completed
-      await cortex.contexts.update(contexts[1].contextId, { status: "active" }); // completed → active
-      await cortex.contexts.update(contexts[2].contextId, {
+      await memoir.contexts.update(contexts[1].contextId, { status: "active" }); // completed → active
+      await memoir.contexts.update(contexts[2].contextId, {
         status: "cancelled",
       }); // blocked → cancelled
 
       // Verify new states
-      const ctx0 = await cortex.contexts.get(contexts[0].contextId);
-      const ctx1 = await cortex.contexts.get(contexts[1].contextId);
-      const ctx2 = await cortex.contexts.get(contexts[2].contextId);
+      const ctx0 = await memoir.contexts.get(contexts[0].contextId);
+      const ctx1 = await memoir.contexts.get(contexts[1].contextId);
+      const ctx2 = await memoir.contexts.get(contexts[2].contextId);
 
       expect((ctx0 as any).status).toBe("completed");
       expect((ctx1 as any).status).toBe("active");
@@ -444,7 +444,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("space-archive");
 
       // Register as active
-      const space = await cortex.memorySpaces.register({
+      const space = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Archive test",
@@ -453,18 +453,18 @@ describe("State Transition Testing", () => {
       expect(space.status).toBe("active");
 
       // Verify in active list
-      const activeList = await cortex.memorySpaces.list({ status: "active" });
+      const activeList = await memoir.memorySpaces.list({ status: "active" });
       const activeListSpaces3 = (activeList as any).spaces || activeList;
       expect(
         activeListSpaces3.some((s: any) => s.memorySpaceId === spaceId),
       ).toBe(true);
 
       // Archive
-      const archived = await cortex.memorySpaces.archive(spaceId);
+      const archived = await memoir.memorySpaces.archive(spaceId);
       expect(archived.status).toBe("archived");
 
       // Verify in archived list
-      const archivedList = await cortex.memorySpaces.list({
+      const archivedList = await memoir.memorySpaces.list({
         status: "archived",
       });
       const archivedSpaces = (archivedList as any).spaces || archivedList;
@@ -473,7 +473,7 @@ describe("State Transition Testing", () => {
       );
 
       // Verify NOT in active list
-      const activeListAfter = await cortex.memorySpaces.list({
+      const activeListAfter = await memoir.memorySpaces.list({
         status: "active",
       });
       const activeSpacesListAfter =
@@ -487,15 +487,15 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("space-reactivate");
 
       // Register and archive
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Reactivate test",
       });
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Verify archived
-      const archivedList = await cortex.memorySpaces.list({
+      const archivedList = await memoir.memorySpaces.list({
         status: "archived",
       });
       const archivedSpaces = (archivedList as any).spaces || archivedList;
@@ -504,18 +504,18 @@ describe("State Transition Testing", () => {
       );
 
       // Reactivate
-      const reactivated = await cortex.memorySpaces.reactivate(spaceId);
+      const reactivated = await memoir.memorySpaces.reactivate(spaceId);
       expect(reactivated.status).toBe("active");
 
       // Verify in active list
-      const activeList = await cortex.memorySpaces.list({ status: "active" });
+      const activeList = await memoir.memorySpaces.list({ status: "active" });
       const activeListSpaces4 = (activeList as any).spaces || activeList;
       expect(
         activeListSpaces4.some((s: any) => s.memorySpaceId === spaceId),
       ).toBe(true);
 
       // Verify NOT in archived list
-      const archivedListAfter = await cortex.memorySpaces.list({
+      const archivedListAfter = await memoir.memorySpaces.list({
         status: "archived",
       });
       const archivedListAfterSpaces2 =
@@ -529,25 +529,25 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("space-count");
 
       // Register active space
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Count test",
       });
 
       // Verify space is active
-      const beforeArchive = await cortex.memorySpaces.get(spaceId);
+      const beforeArchive = await memoir.memorySpaces.get(spaceId);
       expect(beforeArchive!.status).toBe("active");
 
       // Archive it
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Verify space is now archived (test-specific verification)
-      const afterArchive = await cortex.memorySpaces.get(spaceId);
+      const afterArchive = await memoir.memorySpaces.get(spaceId);
       expect(afterArchive!.status).toBe("archived");
 
       // Verify it appears in archived list
-      const archivedList = await cortex.memorySpaces.list({
+      const archivedList = await memoir.memorySpaces.list({
         status: "archived",
       });
       const archivedSpaces = (archivedList as any).spaces || archivedList;
@@ -556,7 +556,7 @@ describe("State Transition Testing", () => {
       );
 
       // Verify it does NOT appear in active list
-      const activeList = await cortex.memorySpaces.list({
+      const activeList = await memoir.memorySpaces.list({
         status: "active",
       });
       const activeSpaces = (activeList as any).spaces || activeList;
@@ -574,7 +574,7 @@ describe("State Transition Testing", () => {
       };
 
       // Register with metadata
-      const _space = await cortex.memorySpaces.register({
+      const _space = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Metadata test",
@@ -582,18 +582,18 @@ describe("State Transition Testing", () => {
       });
 
       // Archive
-      await cortex.memorySpaces.archive(spaceId, {
+      await memoir.memorySpaces.archive(spaceId, {
         reason: "Project completed",
       } as any);
 
-      const archived = await cortex.memorySpaces.get(spaceId);
+      const archived = await memoir.memorySpaces.get(spaceId);
       expect(archived!.metadata.projectName).toBe("Test Project");
       expect(archived!.metadata.owner).toBe("team-alpha");
 
       // Reactivate
-      await cortex.memorySpaces.reactivate(spaceId);
+      await memoir.memorySpaces.reactivate(spaceId);
 
-      const reactivated = await cortex.memorySpaces.get(spaceId);
+      const reactivated = await memoir.memorySpaces.get(spaceId);
       expect(reactivated!.metadata.projectName).toBe("Test Project");
       expect(reactivated!.metadata.owner).toBe("team-alpha");
     });
@@ -605,7 +605,7 @@ describe("State Transition Testing", () => {
         { id: "agent-1", type: "agent", joinedAt: Date.now() },
       ];
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "team",
         name: "Participant test",
@@ -613,10 +613,10 @@ describe("State Transition Testing", () => {
       });
 
       // Archive and reactivate
-      await cortex.memorySpaces.archive(spaceId);
-      await cortex.memorySpaces.reactivate(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.reactivate(spaceId);
 
-      const space = await cortex.memorySpaces.get(spaceId);
+      const space = await memoir.memorySpaces.get(spaceId);
       expect(space!.participants).toHaveLength(2);
       expect(space!.participants.some((p: any) => p.id === "user-1")).toBe(
         true,
@@ -629,46 +629,46 @@ describe("State Transition Testing", () => {
     it("archived space can still be queried but not modified", async () => {
       const spaceId = ctx.memorySpaceId("space-readonly");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Readonly test",
       });
 
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Can get
-      const space = await cortex.memorySpaces.get(spaceId);
+      const space = await memoir.memorySpaces.get(spaceId);
       expect(space).not.toBeNull();
       expect(space!.status).toBe("archived");
 
       // Can list
-      const list = await cortex.memorySpaces.list({ status: "archived" });
+      const list = await memoir.memorySpaces.list({ status: "archived" });
       const listSpaces = (list as any).spaces || list;
       expect(listSpaces.some((s: any) => s.memorySpaceId === spaceId)).toBe(
         true,
       );
 
       // Update should work (just metadata updates)
-      await cortex.memorySpaces.update(spaceId, {
+      await memoir.memorySpaces.update(spaceId, {
         metadata: { note: "Updated while archived" },
       });
 
-      const updated = await cortex.memorySpaces.get(spaceId);
+      const updated = await memoir.memorySpaces.get(spaceId);
       expect(updated!.metadata.note).toBe("Updated while archived");
     });
 
     it("archiving with reason stores metadata", async () => {
       const spaceId = ctx.memorySpaceId("space-reason");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Reason test",
       });
 
       const reason = "Project completed successfully";
-      const archived = await cortex.memorySpaces.archive(spaceId, {
+      const archived = await memoir.memorySpaces.archive(spaceId, {
         reason,
         metadata: { completedBy: "user-1" },
       } as any);
@@ -691,7 +691,7 @@ describe("State Transition Testing", () => {
           const agentId = `agent-${fromStatus}-${toStatus}-${Date.now()}`;
 
           // Register agent with initial status
-          const agent = await cortex.agents.register({
+          const agent = await memoir.agents.register({
             id: agentId,
             name: `Agent ${fromStatus} to ${toStatus}`,
             description: `Test agent transition ${fromStatus} to ${toStatus}`,
@@ -700,7 +700,7 @@ describe("State Transition Testing", () => {
           expect(agent.id).toBe(agentId);
 
           // Update status using update() method
-          const updated = await cortex.agents.update(agentId, {
+          const updated = await memoir.agents.update(agentId, {
             status: toStatus,
           } as any);
 
@@ -709,7 +709,7 @@ describe("State Transition Testing", () => {
           expect(finalStatus).toBeTruthy();
 
           // Verify in list (if list supports status filter)
-          const allAgents = await cortex.agents.list({});
+          const allAgents = await memoir.agents.list({});
           const agentFound = allAgents.find((a: any) => a.id === agentId);
           expect(agentFound).toBeDefined();
           if ((agentFound as any).status) {
@@ -722,7 +722,7 @@ describe("State Transition Testing", () => {
     it("inactive agent preserves metadata", async () => {
       const agentId = `agent-preserve-${Date.now()}`;
 
-      const _agent = await cortex.agents.register({
+      const _agent = await memoir.agents.register({
         id: agentId,
         name: "Capability test agent",
         description: "Test agent with capabilities",
@@ -732,11 +732,11 @@ describe("State Transition Testing", () => {
       });
 
       // Deactivate
-      await cortex.agents.update(agentId, {
+      await memoir.agents.update(agentId, {
         status: "inactive",
       } as any);
 
-      const inactive = await cortex.agents.get(agentId);
+      const inactive = await memoir.agents.get(agentId);
       expect(inactive).not.toBeNull();
 
       // Metadata should be preserved
@@ -747,11 +747,11 @@ describe("State Transition Testing", () => {
       ]);
 
       // Reactivate
-      await cortex.agents.update(agentId, {
+      await memoir.agents.update(agentId, {
         metadata: { capabilities: ["code", "analysis", "testing"] },
       });
 
-      const reactivated = await cortex.agents.get(agentId);
+      const reactivated = await memoir.agents.get(agentId);
       expect(reactivated!.metadata.capabilities).toEqual([
         "code",
         "analysis",
@@ -762,18 +762,18 @@ describe("State Transition Testing", () => {
     it("archived agent status tracked correctly", async () => {
       const agentId = `agent-archived-${Date.now()}`;
 
-      await cortex.agents.register({
+      await memoir.agents.register({
         id: agentId,
         name: "Archive test agent",
         description: "Test agent for archiving",
       });
 
       // Archive agent via update
-      await cortex.agents.update(agentId, {
+      await memoir.agents.update(agentId, {
         status: "archived",
       } as any);
 
-      const archived = await cortex.agents.get(agentId);
+      const archived = await memoir.agents.get(agentId);
       expect(archived).not.toBeNull();
       // Status tracking via update
       expect(archived).toBeDefined();
@@ -789,14 +789,14 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("cross-archive");
       const userId = ctx.userId("cross");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Cross-effect test",
       });
 
       // Create context
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Test context",
@@ -804,10 +804,10 @@ describe("State Transition Testing", () => {
       });
 
       // Archive space
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Context should still exist and be queryable
-      const contextAfter = await cortex.contexts.get(testCtx.contextId);
+      const contextAfter = await memoir.contexts.get(testCtx.contextId);
       expect(contextAfter).not.toBeNull();
       expect((contextAfter as any).status).toBe("active");
     });
@@ -816,14 +816,14 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("parent-complete");
       const userId = ctx.userId("parent");
 
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Parent",
         status: "active",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Child",
@@ -832,10 +832,10 @@ describe("State Transition Testing", () => {
       });
 
       // Complete parent
-      await cortex.contexts.update(parent.contextId, { status: "completed" });
+      await memoir.contexts.update(parent.contextId, { status: "completed" });
 
       // Child should still be active
-      const childAfter = await cortex.contexts.get(child.contextId);
+      const childAfter = await memoir.contexts.get(child.contextId);
       expect((childAfter as any).status).toBe("active");
     });
 
@@ -844,21 +844,21 @@ describe("State Transition Testing", () => {
       const userId = ctx.userId("mixed");
 
       // Create contexts with different statuses
-      const active = await cortex.contexts.create({
+      const active = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Active context",
         status: "active",
       });
 
-      const completed = await cortex.contexts.create({
+      const completed = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Completed context",
         status: "completed",
       });
 
-      const blocked = await cortex.contexts.create({
+      const blocked = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Blocked context",
@@ -871,15 +871,15 @@ describe("State Transition Testing", () => {
       await waitForContextReady(blocked.contextId, spaceId, "blocked");
 
       // Verify each in correct status list
-      const activeList = await cortex.contexts.list({
+      const activeList = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
       });
-      const completedList = await cortex.contexts.list({
+      const completedList = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "completed",
       });
-      const blockedList = await cortex.contexts.list({
+      const blockedList = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "blocked",
       });
@@ -905,7 +905,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("idempotent");
       const userId = ctx.userId("idempotent");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Idempotent test",
@@ -913,15 +913,15 @@ describe("State Transition Testing", () => {
       });
 
       // Transition to completed multiple times
-      await cortex.contexts.update(testCtx.contextId, { status: "completed" });
-      await cortex.contexts.update(testCtx.contextId, { status: "completed" });
-      await cortex.contexts.update(testCtx.contextId, { status: "completed" });
+      await memoir.contexts.update(testCtx.contextId, { status: "completed" });
+      await memoir.contexts.update(testCtx.contextId, { status: "completed" });
+      await memoir.contexts.update(testCtx.contextId, { status: "completed" });
 
-      const final = await cortex.contexts.get(testCtx.contextId);
+      const final = await memoir.contexts.get(testCtx.contextId);
       expect((final as any).status).toBe("completed");
 
       // Should only appear once in completed list
-      const listCompleted = await cortex.contexts.list({
+      const listCompleted = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "completed",
       });
@@ -935,7 +935,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("concurrent");
       const userId = ctx.userId("concurrent");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Concurrent test",
@@ -944,13 +944,13 @@ describe("State Transition Testing", () => {
 
       // Attempt concurrent transitions (last write wins)
       await Promise.allSettled([
-        cortex.contexts.update(testCtx.contextId, { status: "completed" }),
-        cortex.contexts.update(testCtx.contextId, { status: "blocked" }),
-        cortex.contexts.update(testCtx.contextId, { status: "cancelled" }),
+        memoir.contexts.update(testCtx.contextId, { status: "completed" }),
+        memoir.contexts.update(testCtx.contextId, { status: "blocked" }),
+        memoir.contexts.update(testCtx.contextId, { status: "cancelled" }),
       ]);
 
       // Should have one of the three statuses
-      const final = await cortex.contexts.get(testCtx.contextId);
+      const final = await memoir.contexts.get(testCtx.contextId);
       expect(["completed", "blocked", "cancelled"]).toContain(
         (final as any).status,
       );
@@ -960,7 +960,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("combined");
       const userId = ctx.userId("combined");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Combined update test",
@@ -974,7 +974,7 @@ describe("State Transition Testing", () => {
       // Update both status and data - use retry for CI resilience
       const updated = await retryOperation(
         () =>
-          cortex.contexts.update(testCtx.contextId, {
+          memoir.contexts.update(testCtx.contextId, {
             status: "completed",
             data: { progress: 100, completedBy: "agent-1" },
           }),
@@ -992,7 +992,7 @@ describe("State Transition Testing", () => {
 
       // Create one context for each possible status
       for (const status of CONTEXT_STATUSES) {
-        const testCtx = await cortex.contexts.create({
+        const testCtx = await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: `Test ${status}`,
@@ -1009,7 +1009,7 @@ describe("State Transition Testing", () => {
         // Increased retries (5) and initial delay (500ms) for CI resilience under parallel load
         const retrieved = await retryOperation(
           async () => {
-            const result = await cortex.contexts.get(testCtx.contextId);
+            const result = await memoir.contexts.get(testCtx.contextId);
             if (result === null) {
               throw new Error("CONTEXT_NOT_FOUND");
             }
@@ -1022,7 +1022,7 @@ describe("State Transition Testing", () => {
         expect((retrieved as any).status).toBe(status);
 
         // Verify in correct status list
-        const list = await cortex.contexts.list({
+        const list = await memoir.contexts.list({
           memorySpaceId: spaceId,
           status,
         });
@@ -1034,19 +1034,19 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("data-cycle");
 
       // Create space with conversations and memories
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Data cycle test",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: "test-user", agentId: "test-agent" },
       });
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Test memory",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1054,23 +1054,23 @@ describe("State Transition Testing", () => {
       });
 
       // Archive
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
       // Verify data still accessible
-      const convArchived = await cortex.conversations.get(conv.conversationId);
-      const memArchived = await cortex.vector.get(spaceId, mem.memoryId);
+      const convArchived = await memoir.conversations.get(conv.conversationId);
+      const memArchived = await memoir.vector.get(spaceId, mem.memoryId);
 
       expect(convArchived).not.toBeNull();
       expect(memArchived).not.toBeNull();
 
       // Reactivate
-      await cortex.memorySpaces.reactivate(spaceId);
+      await memoir.memorySpaces.reactivate(spaceId);
 
       // Verify data still intact
-      const convReactivated = await cortex.conversations.get(
+      const convReactivated = await memoir.conversations.get(
         conv.conversationId,
       );
-      const memReactivated = await cortex.vector.get(spaceId, mem.memoryId);
+      const memReactivated = await memoir.vector.get(spaceId, mem.memoryId);
 
       expect(convReactivated).not.toBeNull();
       expect(memReactivated).not.toBeNull();
@@ -1087,7 +1087,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("invalid");
       const userId = ctx.userId("invalid");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Invalid test",
@@ -1096,7 +1096,7 @@ describe("State Transition Testing", () => {
 
       // Attempt invalid status
       await expect(
-        cortex.contexts.update(testCtx.contextId, {
+        memoir.contexts.update(testCtx.contextId, {
           status: "invalid-status" as any,
         }),
       ).rejects.toThrow();
@@ -1106,7 +1106,7 @@ describe("State Transition Testing", () => {
       const spaceId = ctx.memorySpaceId("conflict");
       const userId = ctx.userId("conflict");
 
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Conflict test",
@@ -1115,7 +1115,7 @@ describe("State Transition Testing", () => {
 
       // Attempt to set completedAt without completing
       // (Implementation dependent - may be allowed)
-      const updated = await cortex.contexts.update(testCtx.contextId, {
+      const updated = await memoir.contexts.update(testCtx.contextId, {
         status: "active",
         completedAt: Date.now(),
       });
@@ -1137,7 +1137,7 @@ describe("State Transition Testing", () => {
       // Create 5 active contexts
       const contexts = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          cortex.contexts.create({
+          memoir.contexts.create({
             memorySpaceId: spaceId,
             userId,
             purpose: `Batch context ${i}`,
@@ -1149,18 +1149,18 @@ describe("State Transition Testing", () => {
       // Transition all to completed
       await Promise.all(
         contexts.map((context) =>
-          cortex.contexts.update(context.contextId, { status: "completed" }),
+          memoir.contexts.update(context.contextId, { status: "completed" }),
         ),
       );
 
       // Verify all completed
       for (const context of contexts) {
-        const updated = await cortex.contexts.get(context.contextId);
+        const updated = await memoir.contexts.get(context.contextId);
         expect((updated as any).status).toBe("completed");
       }
 
       // Verify count
-      const count = await cortex.contexts.count({
+      const count = await memoir.contexts.count({
         memorySpaceId: spaceId,
         status: "completed",
       });
@@ -1170,7 +1170,7 @@ describe("State Transition Testing", () => {
     it("transitioning multiple spaces independently", async () => {
       const spaces = await Promise.all(
         Array.from({ length: 3 }, (_, i) =>
-          cortex.memorySpaces.register({
+          memoir.memorySpaces.register({
             memorySpaceId: ctx.memorySpaceId(`multi-${i}`),
             type: "project",
             name: `Multi space ${i}`,
@@ -1179,13 +1179,13 @@ describe("State Transition Testing", () => {
       );
 
       // Archive first two, keep third active
-      await cortex.memorySpaces.archive(spaces[0].memorySpaceId);
-      await cortex.memorySpaces.archive(spaces[1].memorySpaceId);
+      await memoir.memorySpaces.archive(spaces[0].memorySpaceId);
+      await memoir.memorySpaces.archive(spaces[1].memorySpaceId);
 
       // Verify states
-      const space0 = await cortex.memorySpaces.get(spaces[0].memorySpaceId);
-      const space1 = await cortex.memorySpaces.get(spaces[1].memorySpaceId);
-      const space2 = await cortex.memorySpaces.get(spaces[2].memorySpaceId);
+      const space0 = await memoir.memorySpaces.get(spaces[0].memorySpaceId);
+      const space1 = await memoir.memorySpaces.get(spaces[1].memorySpaceId);
+      const space2 = await memoir.memorySpaces.get(spaces[2].memorySpaceId);
 
       expect(space0!.status).toBe("archived");
       expect(space1!.status).toBe("archived");

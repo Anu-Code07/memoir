@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversation Shares Tests
+ * Memoir SDK - Conversation Shares Tests
  *
  * Tests the Shareable Chats Phase 2 implementation:
  * - share() method
@@ -12,7 +12,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { buildShareUrl, extractShareId } from "../src/sharing";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import { generateTenantId, createTenantAuthContext } from "./helpers/tenancy";
@@ -21,7 +21,7 @@ import { ConvexClient } from "convex/browser";
 describe("Conversation Shares (Shareable Chats Phase 2)", () => {
   const ctx = createNamedTestRunContext("shares");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -32,7 +32,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
     console.log(`\n🧪 Shares Tests - Run ID: ${ctx.runId}\n`);
 
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -42,7 +42,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
   afterAll(async () => {
     console.log(`\n🧹 Cleaning up test run ${ctx.runId}...`);
     await scopedCleanup.cleanupAll();
-    cortex.close();
+    memoir.close();
     await client.close();
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -54,14 +54,14 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const agent = ctx.agentId("share-agent-1");
 
       // Create a conversation first
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Create a link share
-      const result = await cortex.conversations.share({
+      const result = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
@@ -80,13 +80,13 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const recipient = ctx.userId("share-recipient-2");
       const agent = ctx.agentId("share-agent-2");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: owner, agentId: agent },
       });
 
-      const result = await cortex.conversations.share({
+      const result = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "user",
         grantedTo: recipient,
@@ -113,7 +113,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("share-user-3");
       const agent = ctx.agentId("share-agent-3");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
@@ -121,7 +121,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
 
       const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
 
-      const result = await cortex.conversations.share({
+      const result = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
         expiresAt,
@@ -136,13 +136,13 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("share-user-4");
       const agent = ctx.agentId("share-agent-4");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const result = await cortex.conversations.share({
+      const result = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
         maxViews: 10,
@@ -157,14 +157,14 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("share-user-5");
       const agent = ctx.agentId("share-agent-5");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       await expect(
-        cortex.conversations.share({
+        memoir.conversations.share({
           conversationId: conv.conversationId,
           grantType: "user",
           // Missing grantedTo
@@ -179,18 +179,18 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("revoke-user-1");
       const agent = ctx.agentId("revoke-agent-1");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const shareResult = await cortex.conversations.share({
+      const shareResult = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
 
-      const revokeResult = await cortex.conversations.revokeShare(
+      const revokeResult = await memoir.conversations.revokeShare(
         shareResult.shareId,
       );
 
@@ -206,23 +206,23 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("list-user-1");
       const agent = ctx.agentId("list-agent-1");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Create multiple shares
-      await cortex.conversations.share({
+      await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
-      await cortex.conversations.share({
+      await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
 
-      const shares = await cortex.conversations.listShares(conv.conversationId);
+      const shares = await memoir.conversations.listShares(conv.conversationId);
 
       expect(shares.length).toBeGreaterThanOrEqual(2);
       expect(shares.every((s) => s.conversationId === conv.conversationId)).toBe(
@@ -235,27 +235,27 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("list-user-2");
       const agent = ctx.agentId("list-agent-2");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Create and revoke a share
-      const share1 = await cortex.conversations.share({
+      const share1 = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
-      await cortex.conversations.revokeShare(share1.shareId);
+      await memoir.conversations.revokeShare(share1.shareId);
 
       // Create an active share
-      await cortex.conversations.share({
+      await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
 
       // List only active shares
-      const activeShares = await cortex.conversations.listShares(
+      const activeShares = await memoir.conversations.listShares(
         conv.conversationId,
         { status: "active" },
       );
@@ -270,18 +270,18 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("get-user-1");
       const agent = ctx.agentId("get-agent-1");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const shareResult = await cortex.conversations.share({
+      const shareResult = await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
       });
 
-      const retrieved = await cortex.conversations.getShare(shareResult.shareId);
+      const retrieved = await memoir.conversations.getShare(shareResult.shareId);
 
       expect(retrieved).not.toBeNull();
       expect(retrieved?.shareId).toBe(shareResult.shareId);
@@ -289,7 +289,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
     });
 
     it("returns null for non-existent share", async () => {
-      const result = await cortex.conversations.getShare("share-nonexistent");
+      const result = await memoir.conversations.getShare("share-nonexistent");
       expect(result).toBeNull();
     });
   });
@@ -300,20 +300,20 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("check-user-1");
       const agent = ctx.agentId("check-agent-1");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      await cortex.conversations.share({
+      await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "link",
         permissions: { canView: true, canFork: true },
       });
 
       // Anyone should have access via link share
-      const access = await cortex.conversations.checkShareAccess({
+      const access = await memoir.conversations.checkShareAccess({
         conversationId: conv.conversationId,
         userId: "random-user",
       });
@@ -330,28 +330,28 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const other = ctx.userId("check-other-2");
       const agent = ctx.agentId("check-agent-2");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: owner, agentId: agent },
         visibility: "private",
       });
 
-      await cortex.conversations.share({
+      await memoir.conversations.share({
         conversationId: conv.conversationId,
         grantType: "user",
         grantedTo: recipient,
       });
 
       // Recipient should have access
-      const recipientAccess = await cortex.conversations.checkShareAccess({
+      const recipientAccess = await memoir.conversations.checkShareAccess({
         conversationId: conv.conversationId,
         userId: recipient,
       });
       expect(recipientAccess.hasAccess).toBe(true);
 
       // Other user should not have access (no link shares exist)
-      const otherAccess = await cortex.conversations.checkShareAccess({
+      const otherAccess = await memoir.conversations.checkShareAccess({
         conversationId: conv.conversationId,
         userId: other,
       });
@@ -363,7 +363,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
       const user = ctx.userId("check-user-3");
       const agent = ctx.agentId("check-agent-3");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
@@ -372,7 +372,7 @@ describe("Conversation Shares (Shareable Chats Phase 2)", () => {
 
       // Don't create any shares
 
-      const access = await cortex.conversations.checkShareAccess({
+      const access = await memoir.conversations.checkShareAccess({
         conversationId: conv.conversationId,
         userId: "random-user",
       });

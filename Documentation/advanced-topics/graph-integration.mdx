@@ -8,7 +8,7 @@ Optional graph database integration for advanced knowledge discovery, multi-hop 
 
 ## Overview
 
-Cortex's graph integration extends your memory system with relationship-aware capabilities. Connect Neo4j or Memgraph to enable multi-hop queries, knowledge graphs, and cross-layer context enrichment.
+Memoir's graph integration extends your memory system with relationship-aware capabilities. Connect Neo4j or Memgraph to enable multi-hop queries, knowledge graphs, and cross-layer context enrichment.
 
 **Why Use Graph?**
 
@@ -47,11 +47,11 @@ Cortex's graph integration extends your memory system with relationship-aware ca
 ## Quick Start
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // 1. Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
@@ -64,8 +64,8 @@ await graphAdapter.connect({
 // 2. Initialize schema (one-time)
 await initializeGraphSchema(graphAdapter);
 
-// 3. Initialize Cortex with graph
-const cortex = new Cortex({
+// 3. Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -73,8 +73,8 @@ const cortex = new Cortex({
   },
 });
 
-// 4. Use Cortex normally - graph syncs automatically!
-await cortex.memory.remember({
+// 4. Use Memoir normally - graph syncs automatically!
+await memoir.memory.remember({
   memorySpaceId: "agent-1",
   conversationId: "conv-123",
   userMessage: "Alice works at Acme Corp with Bob",
@@ -196,7 +196,7 @@ console.log("  User:", provenance.records[0].user);
 Enable automatic synchronization from Convex to graph:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: "...",
   graph: {
     adapter: graphAdapter,
@@ -209,16 +209,16 @@ const cortex = new Cortex({
   },
 });
 
-// All Cortex operations now sync automatically!
-await cortex.memory.remember(params); // → Graph updated
-await cortex.facts.store(params); // → Graph updated
-await cortex.contexts.create(params); // → Graph updated
+// All Memoir operations now sync automatically!
+await memoir.memory.remember(params); // → Graph updated
+await memoir.facts.store(params); // → Graph updated
+await memoir.contexts.create(params); // → Graph updated
 ```
 
 ### Monitor Sync Health
 
 ```typescript
-const worker = cortex.getGraphSyncWorker();
+const worker = memoir.getGraphSyncWorker();
 if (worker) {
   const metrics = worker.getMetrics();
   console.log("Worker metrics:", metrics);
@@ -236,22 +236,22 @@ if (worker) {
 
 ### Automatic Sync (v0.29.0+)
 
-Graph synchronization is now automatic when `CORTEX_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been deprecated and removed.
+Graph synchronization is now automatic when `MEMOIR_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been deprecated and removed.
 
 ```typescript
-// Graph sync happens automatically for all operations when CORTEX_GRAPH_SYNC=true
-await cortex.vector.store(data);  // → Auto-syncs to graph
-await cortex.facts.store(params); // → Auto-syncs to graph (including entities)
+// Graph sync happens automatically for all operations when MEMOIR_GRAPH_SYNC=true
+await memoir.vector.store(data);  // → Auto-syncs to graph
+await memoir.facts.store(params); // → Auto-syncs to graph (including entities)
 
 // To skip graph sync for specific operations, use skipLayers
-await cortex.memory.remember({
+await memoir.memory.remember({
   // ... params
   skipLayers: ['graph'],  // Explicitly skip graph sync
 });
 ```
 
 <Callout type="info">
-**v0.29.0 Breaking Change**: The `syncToGraph` option has been removed from all API methods. Graph sync is now controlled exclusively via the `CORTEX_GRAPH_SYNC` environment variable.
+**v0.29.0 Breaking Change**: The `syncToGraph` option has been removed from all API methods. Graph sync is now controlled exclusively via the `MEMOIR_GRAPH_SYNC` environment variable.
 </Callout>
 
 ## Context Enrichment Patterns
@@ -260,7 +260,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Get memory and find all related facts via graph
-const memory = await cortex.vector.get(memorySpaceId, memoryId);
+const memory = await memoir.vector.get(memorySpaceId, memoryId);
 
 const relatedFacts = await graphAdapter.query(
   `
@@ -284,7 +284,7 @@ console.log(
 ```typescript
 async function buildEnrichedContext(memorySpaceId: string, query: string) {
   // 1. Vector search for relevant memories
-  const memories = await cortex.memory.search(memorySpaceId, query, {
+  const memories = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     limit: 5,
   });
@@ -325,7 +325,7 @@ async function buildEnrichedContext(memorySpaceId: string, query: string) {
 import {
   syncFactSupersession,
   getFactSupersessionChainFromGraph,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // When a fact is superseded, sync to graph
 await syncFactSupersession(
@@ -351,8 +351,8 @@ for (const item of chain) {
 Graph automatically handles orphaned nodes during deletion when graph sync is enabled:
 
 ```typescript
-// Delete memory - orphans are cleaned up automatically (when CORTEX_GRAPH_SYNC=true)
-await cortex.memory.forget("agent-1", "mem-123", {
+// Delete memory - orphans are cleaned up automatically (when MEMOIR_GRAPH_SYNC=true)
+await memoir.memory.forget("agent-1", "mem-123", {
   deleteConversation: true,
 });
 
@@ -463,8 +463,8 @@ const result = await graphAdapter.query(
 
 ```typescript
 // Recommended: Always write to Convex first (graph sync is automatic)
-await cortex.memory.remember(params);
-// Convex write succeeds → then auto-syncs to graph when CORTEX_GRAPH_SYNC=true
+await memoir.memory.remember(params);
+// Convex write succeeds → then auto-syncs to graph when MEMOIR_GRAPH_SYNC=true
 
 // Avoid: Writing to graph directly for data storage
 await adapter.createNode({ ... }); // Graph could succeed but Convex fail
@@ -480,14 +480,14 @@ const related = await graphAdapter.query(`
 `);
 
 // Good: Fetch full data from Convex
-const fullConversation = await cortex.conversations.get(conversationId);
+const fullConversation = await memoir.conversations.get(conversationId);
 ```
 
 ### 3. Monitor Sync Health
 
 ```typescript
 setInterval(() => {
-  const worker = cortex.getGraphSyncWorker();
+  const worker = memoir.getGraphSyncWorker();
   if (worker) {
     const metrics = worker.getMetrics();
     if (metrics.queueSize > 1000) {
@@ -507,7 +507,7 @@ import {
   GraphConnectionError,
   GraphAuthenticationError,
   GraphQueryError,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 try {
   await graphAdapter.connect(config);
@@ -516,7 +516,7 @@ try {
     console.error(`Auth failed: ${error.username} at ${error.uri}`);
   } else if (error instanceof GraphConnectionError) {
     console.error("Graph unavailable - continuing without graph");
-    // Cortex works fine without graph!
+    // Memoir works fine without graph!
   }
 }
 ```

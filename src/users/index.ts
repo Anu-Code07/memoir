@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Users API
+ * Memoir SDK - Users API
  *
  * Coordination Layer: User profile management with GDPR cascade deletion
  */
@@ -83,7 +83,7 @@ import type { AuthContext } from "../auth/types";
  *
  * Key Principle: Same code for free SDK and Cloud Mode
  * - Free SDK: User provides graph adapter (DIY), cascade works if configured
- * - Cloud Mode: Cortex provides managed graph adapter, cascade always works + legal guarantees
+ * - Cloud Mode: Memoir provides managed graph adapter, cascade always works + legal guarantees
  */
 export class UsersAPI {
   constructor(
@@ -115,7 +115,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * const user = await cortex.users.get('user-123');
+   * const user = await memoir.users.get('user-123');
    * if (user) {
    *   console.log(user.data.displayName);
    * }
@@ -170,14 +170,14 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Basic update (merges with existing, creates new version)
-   * const updated = await cortex.users.update('user-123', {
+   * const updated = await memoir.users.update('user-123', {
    *   displayName: 'Alex Johnson',
    *   email: 'alex@example.com',
    *   preferences: { theme: 'dark' }
    * });
    *
    * // Skip versioning for routine updates
-   * await cortex.users.update('user-123', {
+   * await memoir.users.update('user-123', {
    *   lastSeen: new Date().toISOString()
    * ```
    */
@@ -234,10 +234,10 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Simple deletion (user profile only)
-   * await cortex.users.delete('user-123');
+   * await memoir.users.delete('user-123');
    *
    * // GDPR cascade deletion (all layers)
-   * const result = await cortex.users.delete('user-123', {
+   * const result = await memoir.users.delete('user-123', {
    *   cascade: true
    * });
    * console.log(`Deleted ${result.totalDeleted} records across ${result.deletedLayers.length} layers`);
@@ -347,11 +347,11 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Basic listing with limit
-   * const result = await cortex.users.list({ limit: 50 });
+   * const result = await memoir.users.list({ limit: 50 });
    * console.log(`Found ${result.total} users, showing ${result.users.length}`);
    *
    * // With date filters and sorting
-   * const recent = await cortex.users.list({
+   * const recent = await memoir.users.list({
    *   createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000,
    *   sortBy: 'createdAt',
    *   sortOrder: 'desc',
@@ -359,7 +359,7 @@ export class UsersAPI {
    * });
    *
    * // Pagination
-   * const page2 = await cortex.users.list({ limit: 10, offset: 10 });
+   * const page2 = await memoir.users.list({ limit: 10, offset: 10 });
    * ```
    */
   async list(filters?: ListUsersFilter): Promise<ListUsersResult> {
@@ -435,19 +435,19 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Search with date filter
-   * const recentUsers = await cortex.users.search({
+   * const recentUsers = await memoir.users.search({
    *   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000,
    *   limit: 100
    * });
    *
    * // Search by displayName (client-side filter)
-   * const alexUsers = await cortex.users.search({
+   * const alexUsers = await memoir.users.search({
    *   displayName: 'alex',
    *   limit: 50
    * });
    *
    * // Search with sorting
-   * const sorted = await cortex.users.search({
+   * const sorted = await memoir.users.search({
    *   sortBy: 'updatedAt',
    *   sortOrder: 'desc'
    * });
@@ -515,16 +515,16 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Total users
-   * const total = await cortex.users.count();
+   * const total = await memoir.users.count();
    * console.log(`Total users: ${total}`);
    *
    * // Count recent users (last 30 days)
-   * const recentCount = await cortex.users.count({
+   * const recentCount = await memoir.users.count({
    *   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000
    * });
    *
    * // Count users updated this week
-   * const activeCount = await cortex.users.count({
+   * const activeCount = await memoir.users.count({
    *   updatedAfter: Date.now() - 7 * 24 * 60 * 60 * 1000
    * });
    * ```
@@ -556,7 +556,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * const v1 = await cortex.users.getVersion('user-123', 1);
+   * const v1 = await memoir.users.getVersion('user-123', 1);
    * ```
    */
   async getVersion(
@@ -594,7 +594,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.users.getHistory('user-123');
+   * const history = await memoir.users.getHistory('user-123');
    * console.log(`User has ${history.length} versions`);
    * ```
    */
@@ -625,7 +625,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * const snapshot = await cortex.users.getAtTimestamp(
+   * const snapshot = await memoir.users.getAtTimestamp(
    *   'user-123',
    *   new Date('2025-10-01')
    * );
@@ -669,7 +669,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * if (await cortex.users.exists('user-123')) {
+   * if (await memoir.users.exists('user-123')) {
    *   console.log('User exists');
    * }
    * ```
@@ -691,7 +691,7 @@ export class UsersAPI {
    *
    * @example
    * ```typescript
-   * const user = await cortex.users.getOrCreate('user-123', {
+   * const user = await memoir.users.getOrCreate('user-123', {
    *   displayName: 'Guest User',
    *   preferences: { theme: 'light' },
    *   metadata: { tier: 'free' }
@@ -731,7 +731,7 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Existing: { displayName: 'Alex', preferences: { theme: 'dark', language: 'en' } }
-   * await cortex.users.merge('user-123', {
+   * await memoir.users.merge('user-123', {
    *   preferences: { notifications: true }  // Adds notifications, keeps theme and language
    * });
    * // Result: { displayName: 'Alex', preferences: { theme: 'dark', language: 'en', notifications: true } }
@@ -804,16 +804,16 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Basic JSON export
-   * const json = await cortex.users.export({ format: 'json' });
+   * const json = await memoir.users.export({ format: 'json' });
    *
    * // Export with version history
-   * const withHistory = await cortex.users.export({
+   * const withHistory = await memoir.users.export({
    *   format: 'json',
    *   includeVersionHistory: true
    * });
    *
    * // Full GDPR export with conversations and memories
-   * const gdprExport = await cortex.users.export({
+   * const gdprExport = await memoir.users.export({
    *   format: 'json',
    *   filters: { displayName: 'alex' },
    *   includeVersionHistory: true,
@@ -969,19 +969,19 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Update by explicit IDs
-   * const result = await cortex.users.updateMany(
+   * const result = await memoir.users.updateMany(
    *   ['user-1', 'user-2', 'user-3'],
    *   { data: { status: 'active' } }
    * );
    *
    * // Update by filters (all users created in last 7 days)
-   * const filtered = await cortex.users.updateMany(
+   * const filtered = await memoir.users.updateMany(
    *   { createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000 },
    *   { data: { welcomeEmailSent: true } }
    * );
    *
    * // Dry run to preview
-   * const preview = await cortex.users.updateMany(
+   * const preview = await memoir.users.updateMany(
    *   { displayName: 'alex' },
    *   { data: { verified: true } },
    *   { dryRun: true }
@@ -1067,19 +1067,19 @@ export class UsersAPI {
    * @example
    * ```typescript
    * // Delete by explicit IDs
-   * const result = await cortex.users.deleteMany(
+   * const result = await memoir.users.deleteMany(
    *   ['user-1', 'user-2', 'user-3'],
    *   { cascade: true }
    * );
    *
    * // Delete by filters (inactive users older than 1 year)
-   * const oldUsers = await cortex.users.deleteMany(
+   * const oldUsers = await memoir.users.deleteMany(
    *   { createdBefore: Date.now() - 365 * 24 * 60 * 60 * 1000 },
    *   { cascade: true }
    * );
    *
    * // Dry run to preview what would be deleted
-   * const preview = await cortex.users.deleteMany(
+   * const preview = await memoir.users.deleteMany(
    *   { updatedBefore: Date.now() - 90 * 24 * 60 * 60 * 1000 },
    *   { dryRun: true }
    * );

@@ -10,16 +10,16 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
-// api is available via setupCortex if needed
+// api is available via setupMemoir if needed
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 
 describe("Context Chains API", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("contexts");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -27,7 +27,7 @@ describe("Context Chains API", () => {
   beforeAll(async () => {
     console.log(`\n🧪 Context Chains API Tests - Run ID: ${ctx.runId}\n`);
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -44,7 +44,7 @@ describe("Context Chains API", () => {
 
   describe("create()", () => {
     it("creates root context", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Process customer refund",
         memorySpaceId: "supervisor-space",
         userId: "user-123",
@@ -63,12 +63,12 @@ describe("Context Chains API", () => {
     });
 
     it("creates child context", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Approval workflow",
         memorySpaceId: "manager-space",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Finance approval",
         memorySpaceId: "finance-space",
         parentId: root.contextId,
@@ -80,7 +80,7 @@ describe("Context Chains API", () => {
     });
 
     it("links context to conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: "test-space",
         type: "user-agent",
         participants: {
@@ -90,12 +90,12 @@ describe("Context Chains API", () => {
         },
       });
 
-      const msg = await cortex.conversations.addMessage({
+      const msg = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "I need a refund" },
       });
 
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Handle refund request",
         memorySpaceId: "supervisor-space",
         userId: "user-test",
@@ -113,7 +113,7 @@ describe("Context Chains API", () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       // Using a properly formatted contextId that doesn't exist in the database
       await expect(
-        cortex.contexts.create({
+        memoir.contexts.create({
           purpose: "Orphan context",
           memorySpaceId: "test-space",
           parentId: "ctx-9999999999-nonexistent",
@@ -126,7 +126,7 @@ describe("Context Chains API", () => {
     let testContextId: string;
 
     beforeAll(async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Test context for retrieval",
         memorySpaceId: "test-space",
         data: { test: true },
@@ -136,7 +136,7 @@ describe("Context Chains API", () => {
     });
 
     it("retrieves existing context", async () => {
-      const context = await cortex.contexts.get(testContextId);
+      const context = await memoir.contexts.get(testContextId);
 
       expect(context).not.toBeNull();
       expect((context as any).contextId).toBe(testContextId);
@@ -144,30 +144,30 @@ describe("Context Chains API", () => {
 
     it("returns null for non-existent context", async () => {
       // Using a properly formatted contextId that doesn't exist in the database
-      const context = await cortex.contexts.get("ctx-9999999999-nonexistent");
+      const context = await memoir.contexts.get("ctx-9999999999-nonexistent");
 
       expect(context).toBeNull();
     });
 
     it("includes full chain when requested", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Root for chain test",
         memorySpaceId: "supervisor-space",
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Child 1",
         memorySpaceId: "worker-1-space",
         parentId: root.contextId,
       });
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         purpose: "Child 2",
         memorySpaceId: "worker-2-space",
         parentId: root.contextId,
       });
 
-      const chain = await cortex.contexts.get(child1.contextId, {
+      const chain = await memoir.contexts.get(child1.contextId, {
         includeChain: true,
       });
 
@@ -182,12 +182,12 @@ describe("Context Chains API", () => {
 
   describe("update()", () => {
     it("updates context status", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Update test",
         memorySpaceId: "test-space",
       });
 
-      const updated = await cortex.contexts.update(context.contextId, {
+      const updated = await memoir.contexts.update(context.contextId, {
         status: "completed",
       });
 
@@ -196,13 +196,13 @@ describe("Context Chains API", () => {
     });
 
     it("updates context data", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Data update test",
         memorySpaceId: "test-space",
         data: { step: 1 },
       });
 
-      const updated = await cortex.contexts.update(context.contextId, {
+      const updated = await memoir.contexts.update(context.contextId, {
         data: { step: 2, progress: "50%" },
       });
 
@@ -214,7 +214,7 @@ describe("Context Chains API", () => {
     it("throws error when updating non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.update("ctx-9999999999-nonexistent", {
+        memoir.contexts.update("ctx-9999999999-nonexistent", {
           status: "completed",
         }),
       ).rejects.toThrow("CONTEXT_NOT_FOUND");
@@ -223,65 +223,65 @@ describe("Context Chains API", () => {
 
   describe("delete()", () => {
     it("deletes context without children", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Delete test",
         memorySpaceId: "test-space",
       });
 
-      const result = await cortex.contexts.delete(context.contextId);
+      const result = await memoir.contexts.delete(context.contextId);
 
       expect(result.deleted).toBe(true);
 
       // Verify deleted
-      const deleted = await cortex.contexts.get(context.contextId);
+      const deleted = await memoir.contexts.get(context.contextId);
 
       expect(deleted).toBeNull();
     });
 
     it("throws error when deleting parent with children", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Parent with children",
         memorySpaceId: "supervisor-space",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Child",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
-      await expect(cortex.contexts.delete(root.contextId)).rejects.toThrow(
+      await expect(memoir.contexts.delete(root.contextId)).rejects.toThrow(
         "HAS_CHILDREN",
       );
     });
 
     it("deletes with cascade", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Cascade test root",
         memorySpaceId: "supervisor-space",
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Cascade child 1",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Cascade child 2",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
       // Grandchild
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Grandchild",
         memorySpaceId: "worker-space",
         parentId: child1.contextId,
       });
 
-      const result = await cortex.contexts.delete(root.contextId, {
+      const result = await memoir.contexts.delete(root.contextId, {
         cascadeChildren: true,
       });
 
@@ -290,24 +290,24 @@ describe("Context Chains API", () => {
     });
 
     it("promotes children to roots with orphanChildren option", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent for orphan test",
         memorySpaceId: "orphan-test-space",
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Child 1 for orphan test",
         memorySpaceId: "orphan-test-space",
         parentId: parent.contextId,
       });
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         purpose: "Child 2 for orphan test",
         memorySpaceId: "orphan-test-space",
         parentId: parent.contextId,
       });
 
-      const result = await cortex.contexts.delete(parent.contextId, {
+      const result = await memoir.contexts.delete(parent.contextId, {
         orphanChildren: true,
       });
 
@@ -317,7 +317,7 @@ describe("Context Chains API", () => {
       expect(result.orphanedChildren).toContain(child2.contextId);
 
       // Verify children are promoted to roots
-      const orphanedChild1 = (await cortex.contexts.get(
+      const orphanedChild1 = (await memoir.contexts.get(
         child1.contextId,
       )) as any;
       expect(orphanedChild1).not.toBeNull();
@@ -325,7 +325,7 @@ describe("Context Chains API", () => {
       expect(orphanedChild1.parentId).toBeUndefined();
       expect(orphanedChild1.rootId).toBe(child1.contextId);
 
-      const orphanedChild2 = (await cortex.contexts.get(
+      const orphanedChild2 = (await memoir.contexts.get(
         child2.contextId,
       )) as any;
       expect(orphanedChild2).not.toBeNull();
@@ -333,24 +333,24 @@ describe("Context Chains API", () => {
     });
 
     it("orphanChildren promotes to grandparent when parent has parent", async () => {
-      const grandparent = await cortex.contexts.create({
+      const grandparent = await memoir.contexts.create({
         purpose: "Grandparent for orphan test",
         memorySpaceId: "orphan-test-space-2",
       });
 
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent for orphan test",
         memorySpaceId: "orphan-test-space-2",
         parentId: grandparent.contextId,
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child for orphan test",
         memorySpaceId: "orphan-test-space-2",
         parentId: parent.contextId,
       });
 
-      const result = await cortex.contexts.delete(parent.contextId, {
+      const result = await memoir.contexts.delete(parent.contextId, {
         orphanChildren: true,
       });
 
@@ -358,7 +358,7 @@ describe("Context Chains API", () => {
       expect(result.orphanedChildren).toContain(child.contextId);
 
       // Verify child is promoted to grandparent
-      const orphanedChild = (await cortex.contexts.get(child.contextId)) as any;
+      const orphanedChild = (await memoir.contexts.get(child.contextId)) as any;
       expect(orphanedChild).not.toBeNull();
       expect(orphanedChild.parentId).toBe(grandparent.contextId);
       expect(orphanedChild.depth).toBe(1); // Same depth as former parent
@@ -367,26 +367,26 @@ describe("Context Chains API", () => {
     it("throws error when deleting non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.delete("ctx-9999999999-nonexistent"),
+        memoir.contexts.delete("ctx-9999999999-nonexistent"),
       ).rejects.toThrow("CONTEXT_NOT_FOUND");
     });
   });
 
   describe("list()", () => {
     beforeAll(async () => {
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "List test 1",
         memorySpaceId: "space-a",
         status: "active",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "List test 2",
         memorySpaceId: "space-a",
         status: "completed",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "List test 3",
         memorySpaceId: "space-b",
         status: "active",
@@ -394,13 +394,13 @@ describe("Context Chains API", () => {
     });
 
     it("lists all contexts", async () => {
-      const contexts = await cortex.contexts.list();
+      const contexts = await memoir.contexts.list();
 
       expect(contexts.length).toBeGreaterThanOrEqual(3);
     });
 
     it("filters by memorySpaceId", async () => {
-      const contexts = await cortex.contexts.list({
+      const contexts = await memoir.contexts.list({
         memorySpaceId: "space-a",
       });
 
@@ -411,7 +411,7 @@ describe("Context Chains API", () => {
     });
 
     it("filters by status", async () => {
-      const active = await cortex.contexts.list({ status: "active" });
+      const active = await memoir.contexts.list({ status: "active" });
 
       active.forEach((c) => {
         expect(c.status).toBe("active");
@@ -419,7 +419,7 @@ describe("Context Chains API", () => {
     });
 
     it("filters by depth", async () => {
-      const roots = await cortex.contexts.list({ depth: 0 });
+      const roots = await memoir.contexts.list({ depth: 0 });
 
       roots.forEach((c) => {
         expect(c.depth).toBe(0);
@@ -429,13 +429,13 @@ describe("Context Chains API", () => {
 
   describe("count()", () => {
     it("counts all contexts", async () => {
-      const count = await cortex.contexts.count();
+      const count = await memoir.contexts.count();
 
       expect(count).toBeGreaterThanOrEqual(1);
     });
 
     it("counts by memorySpaceId", async () => {
-      const count = await cortex.contexts.count({
+      const count = await memoir.contexts.count({
         memorySpaceId: "space-a",
       });
 
@@ -443,7 +443,7 @@ describe("Context Chains API", () => {
     });
 
     it("counts by status", async () => {
-      const activeCount = await cortex.contexts.count({ status: "active" });
+      const activeCount = await memoir.contexts.count({ status: "active" });
 
       expect(activeCount).toBeGreaterThanOrEqual(1);
     });
@@ -452,15 +452,15 @@ describe("Context Chains API", () => {
   describe("search()", () => {
     it("works as alias for list()", async () => {
       const searchSpace = `search-test-space-${Date.now()}`;
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Search test context",
         memorySpaceId: searchSpace,
       });
 
-      const searchResults = await cortex.contexts.search({
+      const searchResults = await memoir.contexts.search({
         memorySpaceId: searchSpace,
       });
-      const listResults = await cortex.contexts.list({
+      const listResults = await memoir.contexts.list({
         memorySpaceId: searchSpace,
       });
 
@@ -472,21 +472,21 @@ describe("Context Chains API", () => {
       const searchSpace = `search-filter-space-${Date.now()}`;
       const userId = "search-filter-user";
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Active search context",
         memorySpaceId: searchSpace,
         userId,
         status: "active",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Completed search context",
         memorySpaceId: searchSpace,
         userId,
         status: "completed",
       });
 
-      const results = await cortex.contexts.search({
+      const results = await memoir.contexts.search({
         memorySpaceId: searchSpace,
         userId,
         status: "active",
@@ -500,7 +500,7 @@ describe("Context Chains API", () => {
     });
 
     it("returns empty array when no matches", async () => {
-      const results = await cortex.contexts.search({
+      const results = await memoir.contexts.search({
         memorySpaceId: `nonexistent-space-${Date.now()}`,
       });
 
@@ -515,27 +515,27 @@ describe("Context Chains API", () => {
     let grandchildId: string;
 
     beforeAll(async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Chain test root",
         memorySpaceId: "supervisor-space",
       });
       rootId = root.contextId;
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Chain child 1",
         memorySpaceId: "worker-1-space",
         parentId: rootId,
       });
       child1Id = child1.contextId;
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         purpose: "Chain child 2",
         memorySpaceId: "worker-2-space",
         parentId: rootId,
       });
       child2Id = child2.contextId;
 
-      const grandchild = await cortex.contexts.create({
+      const grandchild = await memoir.contexts.create({
         purpose: "Chain grandchild",
         memorySpaceId: "worker-1-space",
         parentId: child1Id,
@@ -544,7 +544,7 @@ describe("Context Chains API", () => {
     });
 
     it("returns complete chain", async () => {
-      const chain = await cortex.contexts.getChain(child1Id);
+      const chain = await memoir.contexts.getChain(child1Id);
 
       expect(chain.current.contextId).toBe(child1Id);
       expect(chain.root.contextId).toBe(rootId);
@@ -557,7 +557,7 @@ describe("Context Chains API", () => {
     });
 
     it("returns chain from root", async () => {
-      const chain = await cortex.contexts.getChain(rootId);
+      const chain = await memoir.contexts.getChain(rootId);
 
       expect(chain.depth).toBe(0);
       expect(chain.parent).toBeFalsy(); // null or undefined for root
@@ -565,7 +565,7 @@ describe("Context Chains API", () => {
     });
 
     it("returns chain from leaf", async () => {
-      const chain = await cortex.contexts.getChain(grandchildId);
+      const chain = await memoir.contexts.getChain(grandchildId);
 
       expect(chain.depth).toBe(2);
       expect(chain.ancestors).toHaveLength(2); // root + child1
@@ -575,31 +575,31 @@ describe("Context Chains API", () => {
     it("throws error when getting chain for non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.getChain("ctx-9999999999-nonexistent"),
+        memoir.contexts.getChain("ctx-9999999999-nonexistent"),
       ).rejects.toThrow("CONTEXT_NOT_FOUND");
     });
   });
 
   describe("getRoot()", () => {
     it("returns root from any depth", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Root for getRoot test",
         memorySpaceId: "supervisor-space",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
-      const grandchild = await cortex.contexts.create({
+      const grandchild = await memoir.contexts.create({
         purpose: "Grandchild",
         memorySpaceId: "worker-space",
         parentId: child.contextId,
       });
 
-      const foundRoot = await cortex.contexts.getRoot(grandchild.contextId);
+      const foundRoot = await memoir.contexts.getRoot(grandchild.contextId);
 
       expect(foundRoot.contextId).toBe(root.contextId);
       expect(foundRoot.depth).toBe(0);
@@ -608,7 +608,7 @@ describe("Context Chains API", () => {
     it("throws error when getting root for non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.getRoot("ctx-9999999999-nonexistent"),
+        memoir.contexts.getRoot("ctx-9999999999-nonexistent"),
       ).rejects.toThrow("CONTEXT_NOT_FOUND");
     });
   });
@@ -617,20 +617,20 @@ describe("Context Chains API", () => {
     let parentId: string;
 
     beforeAll(async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent for children test",
         memorySpaceId: "supervisor-space",
       });
       parentId = parent.contextId;
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Active child",
         memorySpaceId: "worker-space",
         parentId,
         status: "active",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Completed child",
         memorySpaceId: "worker-space",
         parentId,
@@ -639,13 +639,13 @@ describe("Context Chains API", () => {
     });
 
     it("returns all direct children", async () => {
-      const children = await cortex.contexts.getChildren(parentId);
+      const children = await memoir.contexts.getChildren(parentId);
 
       expect(children).toHaveLength(2);
     });
 
     it("filters children by status", async () => {
-      const activeChildren = await cortex.contexts.getChildren(parentId, {
+      const activeChildren = await memoir.contexts.getChildren(parentId, {
         status: "active",
       });
 
@@ -656,24 +656,24 @@ describe("Context Chains API", () => {
     });
 
     it("returns descendants recursively", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Recursive test root",
         memorySpaceId: "supervisor-space",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         purpose: "Grandchild",
         memorySpaceId: "worker-space",
         parentId: child.contextId,
       });
 
-      const descendants = await cortex.contexts.getChildren(root.contextId, {
+      const descendants = await memoir.contexts.getChildren(root.contextId, {
         recursive: true,
       });
 
@@ -683,12 +683,12 @@ describe("Context Chains API", () => {
 
   describe("addParticipant()", () => {
     it("adds participant to context", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Participant test",
         memorySpaceId: "supervisor-space",
       });
 
-      const updated = await cortex.contexts.addParticipant(
+      const updated = await memoir.contexts.addParticipant(
         context.contextId,
         "legal-agent-space",
       );
@@ -700,24 +700,24 @@ describe("Context Chains API", () => {
     it("throws error when adding participant to non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.addParticipant("ctx-9999999999-nonexistent", "agent-1"),
+        memoir.contexts.addParticipant("ctx-9999999999-nonexistent", "agent-1"),
       ).rejects.toThrow("CONTEXT_NOT_FOUND");
     });
 
     it("returns unchanged context when adding duplicate participant", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Duplicate participant test",
         memorySpaceId: "supervisor-space",
       });
 
       // Add participant first time
-      await cortex.contexts.addParticipant(
+      await memoir.contexts.addParticipant(
         context.contextId,
         "agent-participant",
       );
 
       // Add same participant again - should be idempotent
-      const updated = await cortex.contexts.addParticipant(
+      const updated = await memoir.contexts.addParticipant(
         context.contextId,
         "agent-participant",
       );
@@ -729,13 +729,13 @@ describe("Context Chains API", () => {
 
   describe("grantAccess() - Collaboration Mode", () => {
     it("grants cross-space access", async () => {
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Collaboration test",
         memorySpaceId: "company-a-space",
         data: { confidential: false },
       });
 
-      const updated = await cortex.contexts.grantAccess(
+      const updated = await memoir.contexts.grantAccess(
         context.contextId,
         "company-b-space",
         "read-only",
@@ -753,7 +753,7 @@ describe("Context Chains API", () => {
     it("throws error when granting access to non-existent context", async () => {
       // Note: This tests BACKEND validation (requires DB lookup)
       await expect(
-        cortex.contexts.grantAccess(
+        memoir.contexts.grantAccess(
           "ctx-9999999999-nonexistent",
           "space-1",
           "read-only",
@@ -764,36 +764,36 @@ describe("Context Chains API", () => {
 
   describe("Hierarchy Management", () => {
     it("maintains parent-child relationships", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Hierarchy root",
         memorySpaceId: "supervisor-space",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Hierarchy child",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
       // Get root - should show child in childIds
-      const rootRefreshed = await cortex.contexts.get(root.contextId);
+      const rootRefreshed = await memoir.contexts.get(root.contextId);
 
       expect((rootRefreshed as any).childIds).toContain(child.contextId);
     });
 
     it("computes depth correctly", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Depth test root",
         memorySpaceId: "supervisor-space",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Depth child",
         memorySpaceId: "worker-space",
         parentId: root.contextId,
       });
 
-      const grandchild = await cortex.contexts.create({
+      const grandchild = await memoir.contexts.create({
         purpose: "Depth grandchild",
         memorySpaceId: "worker-space",
         parentId: child.contextId,
@@ -807,26 +807,26 @@ describe("Context Chains API", () => {
 
   describe("Cross-Operation Integration", () => {
     it("create → update → list → delete consistency", async () => {
-      const created = await cortex.contexts.create({
+      const created = await memoir.contexts.create({
         purpose: "Integration test context",
         memorySpaceId: "integration-space",
         data: { tag: "INTEGRATION_MARKER" },
       });
 
       // Update
-      await cortex.contexts.update(created.contextId, {
+      await memoir.contexts.update(created.contextId, {
         status: "completed",
       });
 
       // List
-      const listed = await cortex.contexts.list({
+      const listed = await memoir.contexts.list({
         memorySpaceId: "integration-space",
       });
 
       expect(listed.some((c) => c.contextId === created.contextId)).toBe(true);
 
       // Count
-      const count = await cortex.contexts.count({
+      const count = await memoir.contexts.count({
         memorySpaceId: "integration-space",
         status: "completed",
       });
@@ -834,10 +834,10 @@ describe("Context Chains API", () => {
       expect(count).toBeGreaterThanOrEqual(1);
 
       // Delete
-      await cortex.contexts.delete(created.contextId);
+      await memoir.contexts.delete(created.contextId);
 
       // Verify deleted
-      const deleted = await cortex.contexts.get(created.contextId);
+      const deleted = await memoir.contexts.get(created.contextId);
 
       expect(deleted).toBeNull();
     });
@@ -851,7 +851,7 @@ describe("Context Chains API", () => {
     describe("create() validation", () => {
       it("should throw on missing purpose", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "",
             memorySpaceId: "test-space",
           }),
@@ -860,7 +860,7 @@ describe("Context Chains API", () => {
 
       it("should throw on whitespace-only purpose", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "   ",
             memorySpaceId: "test-space",
           }),
@@ -869,7 +869,7 @@ describe("Context Chains API", () => {
 
       it("should throw on missing memorySpaceId", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Test",
             memorySpaceId: "",
           }),
@@ -878,7 +878,7 @@ describe("Context Chains API", () => {
 
       it("should throw on invalid parentId format", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Test",
             memorySpaceId: "test-space",
             parentId: "invalid-format",
@@ -888,7 +888,7 @@ describe("Context Chains API", () => {
 
       it("should throw on invalid status", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Test",
             memorySpaceId: "test-space",
             status: "pending" as any,
@@ -898,7 +898,7 @@ describe("Context Chains API", () => {
 
       it("should throw on invalid conversationRef", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Test",
             memorySpaceId: "test-space",
             conversationRef: {} as any,
@@ -908,7 +908,7 @@ describe("Context Chains API", () => {
 
       it("should throw on invalid data type", async () => {
         await expect(
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Test",
             memorySpaceId: "test-space",
             data: "not an object" as any,
@@ -919,11 +919,11 @@ describe("Context Chains API", () => {
 
     describe("get() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.get("")).rejects.toThrow("contextId");
+        await expect(memoir.contexts.get("")).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.get("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.get("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
@@ -932,36 +932,36 @@ describe("Context Chains API", () => {
     describe("update() validation", () => {
       it("should throw on missing contextId", async () => {
         await expect(
-          cortex.contexts.update("", { status: "completed" }),
+          memoir.contexts.update("", { status: "completed" }),
         ).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
         await expect(
-          cortex.contexts.update("invalid-id", { status: "completed" }),
+          memoir.contexts.update("invalid-id", { status: "completed" }),
         ).rejects.toThrow("Invalid contextId format");
       });
 
       it("should throw on invalid status", async () => {
         await expect(
-          cortex.contexts.update("ctx-123-abc", { status: "done" as any }),
+          memoir.contexts.update("ctx-123-abc", { status: "done" as any }),
         ).rejects.toThrow("Invalid status");
       });
 
       it("should throw on invalid completedAt timestamp", async () => {
         await expect(
-          cortex.contexts.update("ctx-123-abc", { completedAt: -1 }),
+          memoir.contexts.update("ctx-123-abc", { completedAt: -1 }),
         ).rejects.toThrow("must be > 0");
       });
     });
 
     describe("delete() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.delete("")).rejects.toThrow("contextId");
+        await expect(memoir.contexts.delete("")).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.delete("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.delete("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
@@ -969,38 +969,38 @@ describe("Context Chains API", () => {
 
     describe("list() validation", () => {
       it("should throw on invalid depth", async () => {
-        await expect(cortex.contexts.list({ depth: -1 })).rejects.toThrow(
+        await expect(memoir.contexts.list({ depth: -1 })).rejects.toThrow(
           "depth must be >= 0",
         );
       });
 
       it("should throw on invalid limit", async () => {
-        await expect(cortex.contexts.list({ limit: 0 })).rejects.toThrow(
+        await expect(memoir.contexts.list({ limit: 0 })).rejects.toThrow(
           "limit must be > 0",
         );
       });
 
       it("should throw on limit exceeding max", async () => {
-        await expect(cortex.contexts.list({ limit: 1001 })).rejects.toThrow(
+        await expect(memoir.contexts.list({ limit: 1001 })).rejects.toThrow(
           "limit must be <= 1000",
         );
       });
 
       it("should throw on invalid status", async () => {
         await expect(
-          cortex.contexts.list({ status: "pending" as any }),
+          memoir.contexts.list({ status: "pending" as any }),
         ).rejects.toThrow("Invalid status");
       });
 
       it("should throw on invalid parentId format", async () => {
         await expect(
-          cortex.contexts.list({ parentId: "invalid-format" }),
+          memoir.contexts.list({ parentId: "invalid-format" }),
         ).rejects.toThrow("Invalid contextId format");
       });
 
       it("should throw on invalid rootId format", async () => {
         await expect(
-          cortex.contexts.list({ rootId: "invalid-format" }),
+          memoir.contexts.list({ rootId: "invalid-format" }),
         ).rejects.toThrow("Invalid contextId format");
       });
     });
@@ -1008,18 +1008,18 @@ describe("Context Chains API", () => {
     describe("count() validation", () => {
       it("should throw on invalid status", async () => {
         await expect(
-          cortex.contexts.count({ status: "pending" as any }),
+          memoir.contexts.count({ status: "pending" as any }),
         ).rejects.toThrow("Invalid status");
       });
     });
 
     describe("getChain() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.getChain("")).rejects.toThrow("contextId");
+        await expect(memoir.contexts.getChain("")).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.getChain("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.getChain("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
@@ -1027,11 +1027,11 @@ describe("Context Chains API", () => {
 
     describe("getRoot() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.getRoot("")).rejects.toThrow("contextId");
+        await expect(memoir.contexts.getRoot("")).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.getRoot("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.getRoot("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
@@ -1039,20 +1039,20 @@ describe("Context Chains API", () => {
 
     describe("getChildren() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.getChildren("")).rejects.toThrow(
+        await expect(memoir.contexts.getChildren("")).rejects.toThrow(
           "contextId",
         );
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.getChildren("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.getChildren("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
 
       it("should throw on invalid status option", async () => {
         await expect(
-          cortex.contexts.getChildren("ctx-123-abc", {
+          memoir.contexts.getChildren("ctx-123-abc", {
             status: "pending" as any,
           }),
         ).rejects.toThrow("Invalid status");
@@ -1062,19 +1062,19 @@ describe("Context Chains API", () => {
     describe("addParticipant() validation", () => {
       it("should throw on missing contextId", async () => {
         await expect(
-          cortex.contexts.addParticipant("", "participant-123"),
+          memoir.contexts.addParticipant("", "participant-123"),
         ).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
         await expect(
-          cortex.contexts.addParticipant("invalid-id", "participant-123"),
+          memoir.contexts.addParticipant("invalid-id", "participant-123"),
         ).rejects.toThrow("Invalid contextId format");
       });
 
       it("should throw on empty participantId", async () => {
         await expect(
-          cortex.contexts.addParticipant("ctx-123-abc", ""),
+          memoir.contexts.addParticipant("ctx-123-abc", ""),
         ).rejects.toThrow("participantId");
       });
     });
@@ -1082,13 +1082,13 @@ describe("Context Chains API", () => {
     describe("removeParticipant() validation", () => {
       it("should throw on missing contextId", async () => {
         await expect(
-          cortex.contexts.removeParticipant("", "participant-123"),
+          memoir.contexts.removeParticipant("", "participant-123"),
         ).rejects.toThrow("contextId");
       });
 
       it("should throw on empty participantId", async () => {
         await expect(
-          cortex.contexts.removeParticipant("ctx-123-abc", ""),
+          memoir.contexts.removeParticipant("ctx-123-abc", ""),
         ).rejects.toThrow("participantId");
       });
     });
@@ -1096,19 +1096,19 @@ describe("Context Chains API", () => {
     describe("grantAccess() validation", () => {
       it("should throw on missing contextId", async () => {
         await expect(
-          cortex.contexts.grantAccess("", "space-123", "read-only"),
+          memoir.contexts.grantAccess("", "space-123", "read-only"),
         ).rejects.toThrow("contextId");
       });
 
       it("should throw on empty targetMemorySpaceId", async () => {
         await expect(
-          cortex.contexts.grantAccess("ctx-123-abc", "", "read-only"),
+          memoir.contexts.grantAccess("ctx-123-abc", "", "read-only"),
         ).rejects.toThrow("targetMemorySpaceId");
       });
 
       it("should throw on empty scope", async () => {
         await expect(
-          cortex.contexts.grantAccess("ctx-123-abc", "space-123", ""),
+          memoir.contexts.grantAccess("ctx-123-abc", "space-123", ""),
         ).rejects.toThrow("scope");
       });
     });
@@ -1116,19 +1116,19 @@ describe("Context Chains API", () => {
     describe("updateMany() validation", () => {
       it("should throw on empty filters", async () => {
         await expect(
-          cortex.contexts.updateMany({}, { status: "completed" }),
+          memoir.contexts.updateMany({}, { status: "completed" }),
         ).rejects.toThrow("filters must include at least one");
       });
 
       it("should throw on empty updates", async () => {
         await expect(
-          cortex.contexts.updateMany({ memorySpaceId: "test" }, {}),
+          memoir.contexts.updateMany({ memorySpaceId: "test" }, {}),
         ).rejects.toThrow("updates must include at least one");
       });
 
       it("should throw on invalid filter status", async () => {
         await expect(
-          cortex.contexts.updateMany(
+          memoir.contexts.updateMany(
             { status: "pending" as any },
             { data: {} },
           ),
@@ -1137,7 +1137,7 @@ describe("Context Chains API", () => {
 
       it("should throw on invalid update status", async () => {
         await expect(
-          cortex.contexts.updateMany(
+          memoir.contexts.updateMany(
             { memorySpaceId: "test" },
             { status: "done" as any },
           ),
@@ -1147,20 +1147,20 @@ describe("Context Chains API", () => {
 
     describe("deleteMany() validation", () => {
       it("should throw on empty filters", async () => {
-        await expect(cortex.contexts.deleteMany({})).rejects.toThrow(
+        await expect(memoir.contexts.deleteMany({})).rejects.toThrow(
           "filters must include at least one",
         );
       });
 
       it("should throw on invalid completedBefore", async () => {
         await expect(
-          cortex.contexts.deleteMany({ completedBefore: -1 }),
+          memoir.contexts.deleteMany({ completedBefore: -1 }),
         ).rejects.toThrow("must be > 0");
       });
 
       it("should throw on invalid status", async () => {
         await expect(
-          cortex.contexts.deleteMany({ status: "pending" as any }),
+          memoir.contexts.deleteMany({ status: "pending" as any }),
         ).rejects.toThrow("Invalid status");
       });
     });
@@ -1168,13 +1168,13 @@ describe("Context Chains API", () => {
     describe("export() validation", () => {
       it("should throw on invalid format", async () => {
         await expect(
-          cortex.contexts.export({}, { format: "xml" as any }),
+          memoir.contexts.export({}, { format: "xml" as any }),
         ).rejects.toThrow("Invalid format");
       });
 
       it("should throw on invalid filter status", async () => {
         await expect(
-          cortex.contexts.export(
+          memoir.contexts.export(
             { status: "pending" as any },
             { format: "json" },
           ),
@@ -1184,59 +1184,59 @@ describe("Context Chains API", () => {
 
     describe("getByConversation() validation", () => {
       it("should throw on missing conversationId", async () => {
-        await expect(cortex.contexts.getByConversation("")).rejects.toThrow(
+        await expect(memoir.contexts.getByConversation("")).rejects.toThrow(
           "conversationId",
         );
       });
 
       it("should throw on invalid conversationId format", async () => {
         await expect(
-          cortex.contexts.getByConversation("invalid-id"),
+          memoir.contexts.getByConversation("invalid-id"),
         ).rejects.toThrow("Invalid conversationId format");
       });
     });
 
     describe("getVersion() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.getVersion("", 1)).rejects.toThrow(
+        await expect(memoir.contexts.getVersion("", 1)).rejects.toThrow(
           "contextId",
         );
       });
 
       it("should throw on invalid contextId format", async () => {
         await expect(
-          cortex.contexts.getVersion("invalid-id", 1),
+          memoir.contexts.getVersion("invalid-id", 1),
         ).rejects.toThrow("Invalid contextId format");
       });
 
       it("should throw on invalid version number", async () => {
         await expect(
-          cortex.contexts.getVersion("ctx-123-abc", 0),
+          memoir.contexts.getVersion("ctx-123-abc", 0),
         ).rejects.toThrow("version must be >= 1");
       });
 
       it("should throw on negative version", async () => {
         await expect(
-          cortex.contexts.getVersion("ctx-123-abc", -1),
+          memoir.contexts.getVersion("ctx-123-abc", -1),
         ).rejects.toThrow("version must be >= 1");
       });
 
       it("should throw on non-integer version", async () => {
         await expect(
-          cortex.contexts.getVersion("ctx-123-abc", 1.5),
+          memoir.contexts.getVersion("ctx-123-abc", 1.5),
         ).rejects.toThrow("version must be an integer");
       });
     });
 
     describe("getHistory() validation", () => {
       it("should throw on missing contextId", async () => {
-        await expect(cortex.contexts.getHistory("")).rejects.toThrow(
+        await expect(memoir.contexts.getHistory("")).rejects.toThrow(
           "contextId",
         );
       });
 
       it("should throw on invalid contextId format", async () => {
-        await expect(cortex.contexts.getHistory("invalid-id")).rejects.toThrow(
+        await expect(memoir.contexts.getHistory("invalid-id")).rejects.toThrow(
           "Invalid contextId format",
         );
       });
@@ -1245,25 +1245,25 @@ describe("Context Chains API", () => {
     describe("getAtTimestamp() validation", () => {
       it("should throw on missing contextId", async () => {
         await expect(
-          cortex.contexts.getAtTimestamp("", new Date()),
+          memoir.contexts.getAtTimestamp("", new Date()),
         ).rejects.toThrow("contextId");
       });
 
       it("should throw on invalid contextId format", async () => {
         await expect(
-          cortex.contexts.getAtTimestamp("invalid-id", new Date()),
+          memoir.contexts.getAtTimestamp("invalid-id", new Date()),
         ).rejects.toThrow("Invalid contextId format");
       });
 
       it("should throw on invalid date", async () => {
         await expect(
-          cortex.contexts.getAtTimestamp("ctx-123-abc", new Date("invalid")),
+          memoir.contexts.getAtTimestamp("ctx-123-abc", new Date("invalid")),
         ).rejects.toThrow("must be a valid Date");
       });
 
       it("should throw on non-Date object", async () => {
         await expect(
-          cortex.contexts.getAtTimestamp("ctx-123-abc", 1234567890 as any),
+          memoir.contexts.getAtTimestamp("ctx-123-abc", 1234567890 as any),
         ).rejects.toThrow("must be a Date object");
       });
     });

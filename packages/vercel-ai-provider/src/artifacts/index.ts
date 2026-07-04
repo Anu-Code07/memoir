@@ -1,5 +1,5 @@
 /**
- * Artifacts module for Cortex Memory Provider
+ * Artifacts module for Memoir Provider
  *
  * This module provides support for creating, managing, and streaming artifacts
  * (code files, documents, diagrams, etc.) during AI conversations.
@@ -9,9 +9,9 @@
  * import {
  *   createArtifactTools,
  *   ArtifactStreamer,
- *   CortexArtifact,
+ *   MemoirArtifact,
  *   ArtifactKind,
- * } from '@cortexmemory/vercel-ai-provider';
+ * } from '@memoir/vercel-ai-provider';
  *
  * // Create tools for AI to use
  * const tools = createArtifactTools({
@@ -44,7 +44,7 @@ export {
   VersionEntrySchema,
   StreamingMetadataSchema,
   ArtifactStatsSchema,
-  CortexArtifactSchema,
+  MemoirArtifactSchema,
   CreateArtifactInputSchema,
   UpdateArtifactInputSchema,
   AppendToArtifactInputSchema,
@@ -64,7 +64,7 @@ export type {
   VersionEntry,
   StreamingMetadata,
   ArtifactStats,
-  CortexArtifact,
+  MemoirArtifact,
   // Input types
   CreateArtifactInput,
   UpdateArtifactInput,

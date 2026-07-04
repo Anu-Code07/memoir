@@ -6,7 +6,7 @@
  */
 
 import { jest } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "./helpers/isolation";
 
@@ -17,7 +17,7 @@ const ctx = createTestRunContext();
 jest.setTimeout(120000);
 
 describe("Recall Limits Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
@@ -28,7 +28,7 @@ describe("Recall Limits Integration", () => {
   const TEST_USER_NAME = "Recall Limits Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
 
     // Seed the memory space with test data
@@ -60,7 +60,7 @@ describe("Recall Limits Integration", () => {
     for (const { topic, content } of topics) {
       const conversationId = ctx.conversationId(`limits-${topic}`);
       try {
-        await cortex.memory.remember({
+        await memoir.memory.remember({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId,
           userMessage: content,
@@ -85,7 +85,7 @@ describe("Recall Limits Integration", () => {
 
   describe("limits.total enforcement", () => {
     it("returns at most limits.total results", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences hobbies interests",
         limits: {
@@ -97,7 +97,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("returns at most limits.total=1 result", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -109,7 +109,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("backward compatible: legacy limit param works", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limit: 2,
@@ -119,7 +119,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("limits.total takes precedence over legacy limit", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limit: 100, // Legacy - should be ignored
@@ -138,7 +138,7 @@ describe("Recall Limits Integration", () => {
 
   describe("per-source limits", () => {
     it("limits.memories caps vector search results", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -156,7 +156,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("limits.facts caps facts search results", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -174,7 +174,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("different per-source limits work together", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -201,7 +201,7 @@ describe("Recall Limits Integration", () => {
 
   describe("graph limits", () => {
     it("graphHops: 0 disables graph expansion", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -214,7 +214,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("graphHops: 1 limits traversal depth", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -228,7 +228,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("graphEntitiesPerHop limits entity expansion", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -242,7 +242,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("graphResultsPerEntity limits results per entity", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -262,7 +262,7 @@ describe("Recall Limits Integration", () => {
 
   describe("combined limits", () => {
     it("all limits work together", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -281,7 +281,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("restrictive limits produce small results", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -297,7 +297,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("permissive limits still bounded by available data", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -324,7 +324,7 @@ describe("Recall Limits Integration", () => {
     it("small limits execute quickly", async () => {
       const start = Date.now();
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -343,7 +343,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("queryTimeMs is reported correctly", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -362,7 +362,7 @@ describe("Recall Limits Integration", () => {
 
   describe("edge cases", () => {
     it("handles limits of 0 gracefully", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -381,7 +381,7 @@ describe("Recall Limits Integration", () => {
     it("handles empty memory space with limits", async () => {
       const emptySpaceId = ctx.memorySpaceId("empty-limits");
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: emptySpaceId,
         query: "anything",
         limits: {
@@ -394,7 +394,7 @@ describe("Recall Limits Integration", () => {
     });
 
     it("limits do not cause errors on no-match queries", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "xyzzynonexistentquery12345",
         limits: {

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Context Chains API
+ * Memoir SDK - Context Chains API
  *
  * Hierarchical workflow coordination for multi-agent tasks
  */
@@ -192,7 +192,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const context = await cortex.contexts.create({
+   * const context = await memoir.contexts.create({
    *   purpose: 'Process customer refund',
    *   memorySpaceId: 'supervisor-space',
    *   userId: 'user-123',
@@ -277,13 +277,13 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const context = await cortex.contexts.get('ctx-123');
+   * const context = await memoir.contexts.get('ctx-123');
    *
    * // Get with full chain
-   * const chain = await cortex.contexts.get('ctx-123', { includeChain: true });
+   * const chain = await memoir.contexts.get('ctx-123', { includeChain: true });
    *
    * // Get with conversation context
-   * const enriched = await cortex.contexts.get('ctx-123', {
+   * const enriched = await memoir.contexts.get('ctx-123', {
    *   includeChain: true,
    *   includeConversation: true
    * });
@@ -316,7 +316,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.update('ctx-123', {
+   * await memoir.contexts.update('ctx-123', {
    *   status: 'completed',
    *   data: { result: 'success' },
    * });
@@ -384,13 +384,13 @@ export class ContextsAPI {
    * @example
    * ```typescript
    * // Delete single context (must have no children)
-   * await cortex.contexts.delete('ctx-123');
+   * await memoir.contexts.delete('ctx-123');
    *
    * // Delete context and all descendants
-   * await cortex.contexts.delete('ctx-123', { cascadeChildren: true });
+   * await memoir.contexts.delete('ctx-123', { cascadeChildren: true });
    *
    * // Allow orphaning (remove parent, keep children as new roots)
-   * await cortex.contexts.delete('ctx-123', { orphanChildren: true });
+   * await memoir.contexts.delete('ctx-123', { orphanChildren: true });
    * ```
    */
   async delete(
@@ -447,7 +447,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const contexts = await cortex.contexts.list({
+   * const contexts = await memoir.contexts.list({
    *   memorySpaceId: 'finance-space',
    *   status: 'active',
    * });
@@ -502,7 +502,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.contexts.count({
+   * const count = await memoir.contexts.count({
    *   memorySpaceId: 'supervisor-space',
    *   status: 'active',
    * });
@@ -540,7 +540,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const contexts = await cortex.contexts.search({
+   * const contexts = await memoir.contexts.search({
    *   userId: 'user-123',
    *   status: 'active',
    * });
@@ -555,7 +555,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const chain = await cortex.contexts.getChain('ctx-child');
+   * const chain = await memoir.contexts.getChain('ctx-child');
    * console.log(chain.root.purpose);
    * console.log(chain.children.length);
    * ```
@@ -581,7 +581,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const root = await cortex.contexts.getRoot('ctx-deeply-nested');
+   * const root = await memoir.contexts.getRoot('ctx-deeply-nested');
    * ```
    */
   async getRoot(contextId: string): Promise<Context> {
@@ -605,10 +605,10 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const children = await cortex.contexts.getChildren('ctx-root');
+   * const children = await memoir.contexts.getChildren('ctx-root');
    *
    * // Get all descendants recursively
-   * const all = await cortex.contexts.getChildren('ctx-root', { recursive: true });
+   * const all = await memoir.contexts.getChildren('ctx-root', { recursive: true });
    * ```
    */
   async getChildren(
@@ -644,7 +644,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.addParticipant('ctx-123', 'legal-agent-space');
+   * await memoir.contexts.addParticipant('ctx-123', 'legal-agent-space');
    * ```
    */
   async addParticipant(
@@ -673,7 +673,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.grantAccess('ctx-123', 'partner-space', 'read-only');
+   * await memoir.contexts.grantAccess('ctx-123', 'partner-space', 'read-only');
    * ```
    */
   async grantAccess(
@@ -705,7 +705,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.updateMany(
+   * await memoir.contexts.updateMany(
    *   { status: 'completed', completedBefore: Date.now() - 30*24*60*60*1000 },
    *   { data: { archived: true } }
    * );
@@ -777,7 +777,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.deleteMany({
+   * await memoir.contexts.deleteMany({
    *   status: 'cancelled',
    *   completedBefore: Date.now() - 90*24*60*60*1000
    * }, { cascadeChildren: true });
@@ -831,7 +831,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const exported = await cortex.contexts.export(
+   * const exported = await memoir.contexts.export(
    *   { userId: 'user-123' },
    *   { format: 'json', includeChain: true, includeVersionHistory: true }
    * );
@@ -899,7 +899,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.contexts.removeParticipant('ctx-123', 'old-agent-space');
+   * await memoir.contexts.removeParticipant('ctx-123', 'old-agent-space');
    * ```
    */
   async removeParticipant(
@@ -928,7 +928,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const contexts = await cortex.contexts.getByConversation('conv-456');
+   * const contexts = await memoir.contexts.getByConversation('conv-456');
    * ```
    */
   async getByConversation(conversationId: string): Promise<Context[]> {
@@ -952,7 +952,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const orphaned = await cortex.contexts.findOrphaned();
+   * const orphaned = await memoir.contexts.findOrphaned();
    * console.log(`Found ${orphaned.length} orphaned contexts`);
    * ```
    */
@@ -970,7 +970,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const v1 = await cortex.contexts.getVersion('ctx-123', 1);
+   * const v1 = await memoir.contexts.getVersion('ctx-123', 1);
    * ```
    */
   async getVersion(
@@ -1009,7 +1009,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.contexts.getHistory('ctx-123');
+   * const history = await memoir.contexts.getHistory('ctx-123');
    * console.log(`Context has ${history.length} versions`);
    * ```
    */
@@ -1048,7 +1048,7 @@ export class ContextsAPI {
    *
    * @example
    * ```typescript
-   * const historical = await cortex.contexts.getAtTimestamp(
+   * const historical = await memoir.contexts.getAtTimestamp(
    *   'ctx-123',
    *   new Date('2025-10-20')
    * );

@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, jest } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 import { createNamedTestRunContext, waitForCondition } from "./helpers";
 
 // Retry failed tests once - Convex backend can have transient errors under parallel load
@@ -18,12 +18,12 @@ jest.retryTimes(1, { logErrorsBeforeRetry: true });
 describe("Operation Sequence Validation", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("opseq");
-  let cortex: Cortex;
+  let memoir: Memoir;
   const TEST_AGENT_ID = ctx.agentId("test");
 
   beforeAll(() => {
     console.log(`\n🧪 Operation Sequence Tests - Run ID: ${ctx.runId}\n`);
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
@@ -35,7 +35,7 @@ describe("Operation Sequence Validation", () => {
   const waitForContextReady = async (contextId: string) => {
     const ready = await waitForCondition(
       async () => {
-        const result = await cortex.contexts.get(contextId);
+        const result = await memoir.contexts.get(contextId);
         return result !== null;
       },
       ctx,
@@ -90,7 +90,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-vector-crud`;
 
       // STEP 1: Create
-      const created = await cortex.vector.store(spaceId, {
+      const created = await memoir.vector.store(spaceId, {
         content: "Original content",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -102,14 +102,14 @@ describe("Operation Sequence Validation", () => {
       expect(created.importance).toBe(50);
 
       // STEP 2: Get (validate create)
-      const afterCreate = await cortex.vector.get(spaceId, created.memoryId);
+      const afterCreate = await memoir.vector.get(spaceId, created.memoryId);
       expect(afterCreate).not.toBeNull();
       expect(afterCreate!.memoryId).toBe(created.memoryId);
       expect(afterCreate!.content).toBe("Original content");
       expect(afterCreate!.importance).toBe(50);
 
       // STEP 3: Update
-      const updated = await cortex.vector.update(spaceId, created.memoryId, {
+      const updated = await memoir.vector.update(spaceId, created.memoryId, {
         content: "Updated content",
         importance: 80,
       });
@@ -119,16 +119,16 @@ describe("Operation Sequence Validation", () => {
       expect(updated.memoryId).toBe(created.memoryId); // Same ID
 
       // STEP 4: Get (validate update)
-      const afterUpdate = await cortex.vector.get(spaceId, created.memoryId);
+      const afterUpdate = await memoir.vector.get(spaceId, created.memoryId);
       expect(afterUpdate!.content).toBe("Updated content");
       expect(afterUpdate!.importance).toBe(80);
       expect(afterUpdate!.version).toBe(2); // Version incremented
 
       // STEP 5: Delete
-      await cortex.vector.delete(spaceId, created.memoryId);
+      await memoir.vector.delete(spaceId, created.memoryId);
 
       // STEP 6: Get (validate delete)
-      const afterDelete = await cortex.vector.get(spaceId, created.memoryId);
+      const afterDelete = await memoir.vector.get(spaceId, created.memoryId);
       expect(afterDelete).toBeNull();
     });
 
@@ -136,54 +136,54 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-vector-list`;
 
       // Initial list
-      const list0 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list0 = await memoir.vector.list({ memorySpaceId: spaceId });
       const count0 = list0.length;
 
       // Create
-      const mem1 = await cortex.vector.store(spaceId, {
+      const mem1 = await memoir.vector.store(spaceId, {
         content: "Memory 1",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const list1 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list1 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(list1.length).toBe(count0 + 1);
       expect(list1.some((m) => m.memoryId === mem1.memoryId)).toBe(true);
 
       // Create another
-      const mem2 = await cortex.vector.store(spaceId, {
+      const mem2 = await memoir.vector.store(spaceId, {
         content: "Memory 2",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const list2 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list2 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(list2.length).toBe(count0 + 2);
       expect(list2.some((m) => m.memoryId === mem2.memoryId)).toBe(true);
 
       // Update first
-      await cortex.vector.update(spaceId, mem1.memoryId, {
+      await memoir.vector.update(spaceId, mem1.memoryId, {
         content: "Updated 1",
       });
 
-      const list3 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list3 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(list3.length).toBe(count0 + 2); // Still 2
       const updatedInList = list3.find((m) => m.memoryId === mem1.memoryId);
       expect(updatedInList!.content).toBe("Updated 1");
 
       // Delete first
-      await cortex.vector.delete(spaceId, mem1.memoryId);
+      await memoir.vector.delete(spaceId, mem1.memoryId);
 
-      const list4 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list4 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(list4.length).toBe(count0 + 1); // Now 1
       expect(list4.some((m) => m.memoryId === mem1.memoryId)).toBe(false);
 
       // Delete second
-      await cortex.vector.delete(spaceId, mem2.memoryId);
+      await memoir.vector.delete(spaceId, mem2.memoryId);
 
-      const list5 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list5 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(list5.length).toBe(count0); // Back to initial
     });
 
@@ -191,36 +191,36 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-vector-count`;
 
       // Initial count
-      const count0 = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list0 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count0 = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list0 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(count0).toBe(list0.length);
 
       // Create
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Count test",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const count1 = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list1 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count1 = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list1 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(count1).toBe(list1.length);
       expect(count1).toBe(count0 + 1);
 
       // Update doesn't change count
-      await cortex.vector.update(spaceId, mem.memoryId, { content: "Updated" });
+      await memoir.vector.update(spaceId, mem.memoryId, { content: "Updated" });
 
-      const count2 = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list2 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count2 = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list2 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(count2).toBe(list2.length);
       expect(count2).toBe(count1);
 
       // Delete
-      await cortex.vector.delete(spaceId, mem.memoryId);
+      await memoir.vector.delete(spaceId, mem.memoryId);
 
-      const count3 = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list3 = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count3 = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list3 = await memoir.vector.list({ memorySpaceId: spaceId });
       expect(count3).toBe(list3.length);
       expect(count3).toBe(count0);
     });
@@ -235,7 +235,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-conv-crud`;
 
       // STEP 1: Create
-      const created = await cortex.conversations.create({
+      const created = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: "test-user", agentId: TEST_AGENT_ID },
@@ -245,14 +245,14 @@ describe("Operation Sequence Validation", () => {
       expect(created.messages).toHaveLength(0);
 
       // STEP 2: Get (validate create)
-      const afterCreate = await cortex.conversations.get(
+      const afterCreate = await memoir.conversations.get(
         created.conversationId,
       );
       expect(afterCreate!.conversationId).toBe(created.conversationId);
       expect(afterCreate!.messages).toHaveLength(0);
 
       // STEP 3: Add message
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: created.conversationId,
         message: {
           role: "user",
@@ -261,17 +261,17 @@ describe("Operation Sequence Validation", () => {
       });
 
       // STEP 4: Get (validate message added)
-      const afterMessage = await cortex.conversations.get(
+      const afterMessage = await memoir.conversations.get(
         created.conversationId,
       );
       expect(afterMessage!.messages).toHaveLength(1);
       expect(afterMessage!.messages[0].content).toBe("First message");
 
       // STEP 5: Delete
-      await cortex.conversations.delete(created.conversationId);
+      await memoir.conversations.delete(created.conversationId);
 
       // STEP 6: Get (validate delete)
-      const afterDelete = await cortex.conversations.get(
+      const afterDelete = await memoir.conversations.get(
         created.conversationId,
       );
       expect(afterDelete).toBeNull();
@@ -280,7 +280,7 @@ describe("Operation Sequence Validation", () => {
     it("count reflects each message addition", async () => {
       const spaceId = `${ctx.runId}-conv-count`;
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: "test-user", agentId: TEST_AGENT_ID },
@@ -288,7 +288,7 @@ describe("Operation Sequence Validation", () => {
 
       // Add 5 messages
       for (let i = 1; i <= 5; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv.conversationId,
           message: {
             role: i % 2 === 0 ? "agent" : "user",
@@ -297,7 +297,7 @@ describe("Operation Sequence Validation", () => {
         });
 
         // Verify count after each addition
-        const updated = await cortex.conversations.get(conv.conversationId);
+        const updated = await memoir.conversations.get(conv.conversationId);
         expect(updated!.messages).toHaveLength(i);
       }
     });
@@ -312,7 +312,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-facts-seq`;
 
       // STEP 1: Store v1
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Version 1",
         factType: "knowledge",
@@ -325,7 +325,7 @@ describe("Operation Sequence Validation", () => {
       expect(v1.supersededBy).toBeUndefined();
 
       // STEP 2: Update to v2
-      const v2 = await cortex.facts.update(spaceId, v1.factId, {
+      const v2 = await memoir.facts.update(spaceId, v1.factId, {
         fact: "Version 2",
         confidence: 80,
       });
@@ -335,25 +335,25 @@ describe("Operation Sequence Validation", () => {
       expect(v2.supersedes).toBeDefined();
 
       // STEP 3: Get v1 (should be superseded)
-      const v1After = await cortex.facts.get(spaceId, v1.factId);
+      const v1After = await memoir.facts.get(spaceId, v1.factId);
       expect(v1After!.supersededBy).toBeDefined();
 
       // STEP 4: Update to v3
-      const v3 = await cortex.facts.update(spaceId, v2.factId, {
+      const v3 = await memoir.facts.update(spaceId, v2.factId, {
         confidence: 90,
       });
 
       expect(v3.version).toBe(3);
 
       // STEP 5: Get v2 (should be superseded)
-      const v2After = await cortex.facts.get(spaceId, v2.factId);
+      const v2After = await memoir.facts.get(spaceId, v2.factId);
       expect(v2After!.supersededBy).toBeDefined();
 
       // STEP 6: Delete latest
-      await cortex.facts.delete(spaceId, v3.factId);
+      await memoir.facts.delete(spaceId, v3.factId);
 
       // All versions should be retrievable for history
-      const history = await cortex.facts.getHistory(spaceId, v1.factId);
+      const history = await memoir.facts.getHistory(spaceId, v1.factId);
       expect(history.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -361,7 +361,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-facts-list`;
 
       // Create and update fact
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Original",
         factType: "knowledge",
@@ -370,15 +370,15 @@ describe("Operation Sequence Validation", () => {
         sourceType: "manual",
       });
 
-      const list1 = await cortex.facts.list({ memorySpaceId: spaceId });
+      const list1 = await memoir.facts.list({ memorySpaceId: spaceId });
       expect(list1.some((f) => f.factId === v1.factId)).toBe(true);
 
       // Update (creates v2, supersedes v1)
-      const v2 = await cortex.facts.update(spaceId, v1.factId, {
+      const v2 = await memoir.facts.update(spaceId, v1.factId, {
         fact: "Updated",
       });
 
-      const list2 = await cortex.facts.list({ memorySpaceId: spaceId });
+      const list2 = await memoir.facts.list({ memorySpaceId: spaceId });
 
       // v1 should NOT appear (superseded)
       expect(list2.some((f) => f.factId === v1.factId)).toBe(false);
@@ -390,10 +390,10 @@ describe("Operation Sequence Validation", () => {
     it("count reflects fact versioning correctly", async () => {
       const spaceId = `${ctx.runId}-facts-count`;
 
-      const count0 = await cortex.facts.count({ memorySpaceId: spaceId });
+      const count0 = await memoir.facts.count({ memorySpaceId: spaceId });
 
       // Store fact
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Count test",
         factType: "knowledge",
@@ -402,19 +402,19 @@ describe("Operation Sequence Validation", () => {
         sourceType: "manual",
       });
 
-      const count1 = await cortex.facts.count({ memorySpaceId: spaceId });
+      const count1 = await memoir.facts.count({ memorySpaceId: spaceId });
       expect(count1).toBe(count0 + 1);
 
       // Update (new version, but count stays same - excludes superseded)
-      await cortex.facts.update(spaceId, v1.factId, { confidence: 80 });
+      await memoir.facts.update(spaceId, v1.factId, { confidence: 80 });
 
-      const count2 = await cortex.facts.count({ memorySpaceId: spaceId });
+      const count2 = await memoir.facts.count({ memorySpaceId: spaceId });
       expect(count2).toBe(count1); // Still same (1 active fact)
 
       // Delete
-      await cortex.facts.delete(spaceId, v1.factId);
+      await memoir.facts.delete(spaceId, v1.factId);
 
-      const count3 = await cortex.facts.count({ memorySpaceId: spaceId });
+      const count3 = await memoir.facts.count({ memorySpaceId: spaceId });
       expect(count3).toBeLessThanOrEqual(count2);
     });
   });
@@ -429,7 +429,7 @@ describe("Operation Sequence Validation", () => {
       const userId = "lifecycle-user";
 
       // STEP 1: Create
-      const created = await cortex.contexts.create({
+      const created = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Lifecycle test",
@@ -443,7 +443,7 @@ describe("Operation Sequence Validation", () => {
       // Wait for Convex consistency - poll until context is queryable
       const contextReady = await waitForCondition(
         async () => {
-          const result = await cortex.contexts.get(created.contextId);
+          const result = await memoir.contexts.get(created.contextId);
           return result !== null;
         },
         ctx,
@@ -453,23 +453,23 @@ describe("Operation Sequence Validation", () => {
       expect(contextReady).toBe(true);
 
       // STEP 2: Get (validate create)
-      const afterCreate = await cortex.contexts.get(created.contextId);
+      const afterCreate = await memoir.contexts.get(created.contextId);
       expect((afterCreate as any).contextId).toBe(created.contextId);
       expect((afterCreate as any).data?.progress).toBe(0);
 
       // STEP 3: Update data
-      const updated = await cortex.contexts.update(created.contextId, {
+      const updated = await memoir.contexts.update(created.contextId, {
         data: { progress: 50 },
       });
 
       expect(updated.data?.progress).toBe(50);
 
       // STEP 4: Get (validate update)
-      const afterUpdate = await cortex.contexts.get(created.contextId);
+      const afterUpdate = await memoir.contexts.get(created.contextId);
       expect((afterUpdate as any).data?.progress).toBe(50);
 
       // STEP 5: Complete
-      const completed = await cortex.contexts.update(created.contextId, {
+      const completed = await memoir.contexts.update(created.contextId, {
         status: "completed",
         data: { progress: 100 },
       });
@@ -479,15 +479,15 @@ describe("Operation Sequence Validation", () => {
       expect(completed.completedAt).toBeDefined();
 
       // STEP 6: Get (validate completion)
-      const afterComplete = await cortex.contexts.get(created.contextId);
+      const afterComplete = await memoir.contexts.get(created.contextId);
       expect((afterComplete as any).status).toBe("completed");
       expect((afterComplete as any).completedAt).toBeDefined();
 
       // STEP 7: Delete
-      await cortex.contexts.delete(created.contextId);
+      await memoir.contexts.delete(created.contextId);
 
       // STEP 8: Get (validate delete)
-      const afterDelete = await cortex.contexts.get(created.contextId);
+      const afterDelete = await memoir.contexts.get(created.contextId);
       expect(afterDelete).toBeNull();
     });
 
@@ -496,7 +496,7 @@ describe("Operation Sequence Validation", () => {
       const userId = "hierarchy-user";
 
       // Create parent
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Parent",
@@ -507,7 +507,7 @@ describe("Operation Sequence Validation", () => {
       // This is critical because the child creation validates parentId exists
       const parentReady = await waitForCondition(
         async () => {
-          const result = await cortex.contexts.get(parent.contextId);
+          const result = await memoir.contexts.get(parent.contextId);
           return result !== null;
         },
         ctx,
@@ -517,7 +517,7 @@ describe("Operation Sequence Validation", () => {
       expect(parentReady).toBe(true);
 
       // Create child
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Child",
@@ -526,21 +526,21 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Update parent
-      await cortex.contexts.update(parent.contextId, {
+      await memoir.contexts.update(parent.contextId, {
         data: { parentData: "updated" },
       });
 
       // Child still references parent
-      const childAfter = await cortex.contexts.get(child.contextId);
+      const childAfter = await memoir.contexts.get(child.contextId);
       expect((childAfter as any).parentId).toBe(parent.contextId);
 
       // Update child
-      await cortex.contexts.update(child.contextId, {
+      await memoir.contexts.update(child.contextId, {
         data: { childData: "updated" },
       });
 
       // Parent unaffected
-      const parentAfter = await cortex.contexts.get(parent.contextId);
+      const parentAfter = await memoir.contexts.get(parent.contextId);
       expect((parentAfter as any).data?.parentData).toBe("updated");
       expect((parentAfter as any).data?.childData).toBeUndefined();
     });
@@ -555,7 +555,7 @@ describe("Operation Sequence Validation", () => {
       const id = `immutable-seq-${Date.now()}`;
 
       // Store v1
-      const v1 = await cortex.immutable.store({
+      const v1 = await memoir.immutable.store({
         type: "document",
         id,
         data: { title: "V1", content: "Original" },
@@ -564,12 +564,12 @@ describe("Operation Sequence Validation", () => {
       expect(v1.version).toBe(1);
 
       // Get specific version
-      const v1Retrieved = await cortex.immutable.getVersion("document", id, 1);
+      const v1Retrieved = await memoir.immutable.getVersion("document", id, 1);
 
       expect(v1Retrieved!.data.title).toBe("V1");
 
       // Store v2
-      const v2 = await cortex.immutable.store({
+      const v2 = await memoir.immutable.store({
         type: "document",
         id,
         data: { title: "V2", content: "Updated" },
@@ -578,12 +578,12 @@ describe("Operation Sequence Validation", () => {
       expect(v2.version).toBe(2);
 
       // Get latest
-      const latest = await cortex.immutable.get("document", id);
+      const latest = await memoir.immutable.get("document", id);
       expect(latest!.version).toBe(2);
       expect(latest!.data.title).toBe("V2");
 
       // Get history
-      const history = await cortex.immutable.getHistory("document", id);
+      const history = await memoir.immutable.getHistory("document", id);
       expect(history.length).toBe(2);
       expect(history[0].version).toBe(1);
       expect(history[1].version).toBe(2);
@@ -593,25 +593,25 @@ describe("Operation Sequence Validation", () => {
       const id = `immutable-list-${Date.now()}`;
 
       // Store v1
-      await cortex.immutable.store({
+      await memoir.immutable.store({
         type: "config",
         id,
         data: { setting: "v1" },
       });
 
-      const list1 = await cortex.immutable.list({ type: "config" });
+      const list1 = await memoir.immutable.list({ type: "config" });
       const filteredList1 = list1.filter((item) => item.id === id);
       expect(filteredList1.length).toBe(1);
       expect(filteredList1[0].version).toBe(1);
 
       // Store v2
-      await cortex.immutable.store({
+      await memoir.immutable.store({
         type: "config",
         id,
         data: { setting: "v2" },
       });
 
-      const list2 = await cortex.immutable.list({ type: "config" });
+      const list2 = await memoir.immutable.list({ type: "config" });
       const filteredList2 = list2.filter((item) => item.id === id);
       expect(filteredList2.length).toBe(1); // Still 1 (latest only)
       expect(filteredList2[0].version).toBe(2);
@@ -628,30 +628,30 @@ describe("Operation Sequence Validation", () => {
       const key = "sequence-test";
 
       // STEP 1: Set
-      await cortex.mutable.set(ns, key, { count: 0, status: "initial" });
+      await memoir.mutable.set(ns, key, { count: 0, status: "initial" });
 
       // STEP 2: Get (validate set)
-      const afterSet = await cortex.mutable.get(ns, key);
+      const afterSet = await memoir.mutable.get(ns, key);
       expect((afterSet as any).count).toBe(0);
       expect((afterSet as any).status).toBe("initial");
 
       // STEP 3: Update
-      await cortex.mutable.update(ns, key, (current: any) => ({
+      await memoir.mutable.update(ns, key, (current: any) => ({
         ...current,
         count: current.count + 1,
         status: "updated",
       }));
 
       // STEP 4: Get (validate update)
-      const afterUpdate = await cortex.mutable.get(ns, key);
+      const afterUpdate = await memoir.mutable.get(ns, key);
       expect((afterUpdate as any).count).toBe(1);
       expect((afterUpdate as any).status).toBe("updated");
 
       // STEP 5: Delete
-      await cortex.mutable.delete(ns, key);
+      await memoir.mutable.delete(ns, key);
 
       // STEP 6: Get (validate delete)
-      const afterDelete = await cortex.mutable.get(ns, key);
+      const afterDelete = await memoir.mutable.get(ns, key);
       expect(afterDelete).toBeNull();
     });
 
@@ -660,13 +660,13 @@ describe("Operation Sequence Validation", () => {
       const key = "counter";
 
       // Set initial
-      await cortex.mutable.set(ns, key, 0);
+      await memoir.mutable.set(ns, key, 0);
 
       // Increment 10 times
       for (let i = 1; i <= 10; i++) {
-        await cortex.mutable.increment(ns, key, 1);
+        await memoir.mutable.increment(ns, key, 1);
 
-        const current = await cortex.mutable.get(ns, key);
+        const current = await memoir.mutable.get(ns, key);
         expect(current).toBe(i);
       }
     });
@@ -676,7 +676,7 @@ describe("Operation Sequence Validation", () => {
       const key = "extended-counter";
 
       // Set initial value
-      await cortex.mutable.set(ns, key, 100);
+      await memoir.mutable.set(ns, key, 100);
 
       // Track expected value
       let expectedValue = 100;
@@ -684,20 +684,20 @@ describe("Operation Sequence Validation", () => {
       // Perform 25 increments with varying amounts
       for (let i = 1; i <= 25; i++) {
         const amount = i % 3 === 0 ? 5 : i % 2 === 0 ? 2 : 1;
-        await cortex.mutable.increment(ns, key, amount);
+        await memoir.mutable.increment(ns, key, amount);
         expectedValue += amount;
 
         // Verify at each step
-        const current = await cortex.mutable.get(ns, key);
+        const current = await memoir.mutable.get(ns, key);
         expect(current).toBe(expectedValue);
       }
 
       // Final verification
-      const finalValue = await cortex.mutable.get(ns, key);
+      const finalValue = await memoir.mutable.get(ns, key);
       expect(finalValue).toBe(expectedValue);
 
       // Also verify via getRecord
-      const record = await cortex.mutable.getRecord(ns, key);
+      const record = await memoir.mutable.getRecord(ns, key);
       expect(record!.value).toBe(expectedValue);
     });
 
@@ -705,7 +705,7 @@ describe("Operation Sequence Validation", () => {
       const ns = `${ctx.runId}-mutable-mixed`;
       const key = "mixed-counter";
 
-      await cortex.mutable.set(ns, key, 50);
+      await memoir.mutable.set(ns, key, 50);
       let expected = 50;
 
       // 15 operations: increment/decrement alternating
@@ -729,19 +729,19 @@ describe("Operation Sequence Validation", () => {
 
       for (const { op, amount } of operations) {
         if (op === "inc") {
-          await cortex.mutable.increment(ns, key, amount);
+          await memoir.mutable.increment(ns, key, amount);
           expected += amount;
         } else {
-          await cortex.mutable.decrement(ns, key, amount);
+          await memoir.mutable.decrement(ns, key, amount);
           expected -= amount;
         }
 
-        const current = await cortex.mutable.get(ns, key);
+        const current = await memoir.mutable.get(ns, key);
         expect(current).toBe(expected);
       }
 
       // Final check
-      const final = await cortex.mutable.get(ns, key);
+      const final = await memoir.mutable.get(ns, key);
       expect(final).toBe(expected);
       // Expected: 50 + 10 - 3 + 5 - 2 + 8 - 4 + 12 - 7 + 3 - 1 + 6 - 5 + 2 - 8 + 4 = 70
       expect(final).toBe(70);
@@ -751,12 +751,12 @@ describe("Operation Sequence Validation", () => {
       const ns = `${ctx.runId}-mutable-tx-inc`;
 
       // Setup keys
-      await cortex.mutable.set(ns, "counter-a", 0);
-      await cortex.mutable.set(ns, "counter-b", 100);
-      await cortex.mutable.set(ns, "counter-c", 50);
+      await memoir.mutable.set(ns, "counter-a", 0);
+      await memoir.mutable.set(ns, "counter-b", 100);
+      await memoir.mutable.set(ns, "counter-c", 50);
 
       // Execute transaction with multiple increments
-      const result = await cortex.mutable.transaction([
+      const result = await memoir.mutable.transaction([
         { op: "increment", namespace: ns, key: "counter-a", amount: 10 },
         { op: "increment", namespace: ns, key: "counter-b", amount: 5 },
         { op: "decrement", namespace: ns, key: "counter-c", amount: 15 },
@@ -768,9 +768,9 @@ describe("Operation Sequence Validation", () => {
       expect(result.operationsExecuted).toBe(5);
 
       // Verify final values
-      const a = await cortex.mutable.get(ns, "counter-a");
-      const b = await cortex.mutable.get(ns, "counter-b");
-      const c = await cortex.mutable.get(ns, "counter-c");
+      const a = await memoir.mutable.get(ns, "counter-a");
+      const b = await memoir.mutable.get(ns, "counter-b");
+      const c = await memoir.mutable.get(ns, "counter-c");
 
       expect(a).toBe(30); // 0 + 10 + 20
       expect(b).toBe(108); // 100 + 5 + 3
@@ -780,21 +780,21 @@ describe("Operation Sequence Validation", () => {
     it("list reflects mutable operations", async () => {
       const ns = `${ctx.runId}-mutable-list`;
 
-      const list0 = await cortex.mutable.list({ namespace: ns });
+      const list0 = await memoir.mutable.list({ namespace: ns });
       const count0 = list0.length;
 
       // Set multiple keys
-      await cortex.mutable.set(ns, "key1", "value1");
-      await cortex.mutable.set(ns, "key2", "value2");
-      await cortex.mutable.set(ns, "key3", "value3");
+      await memoir.mutable.set(ns, "key1", "value1");
+      await memoir.mutable.set(ns, "key2", "value2");
+      await memoir.mutable.set(ns, "key3", "value3");
 
-      const list1 = await cortex.mutable.list({ namespace: ns });
+      const list1 = await memoir.mutable.list({ namespace: ns });
       expect(list1.length).toBe(count0 + 3);
 
       // Delete one
-      await cortex.mutable.delete(ns, "key2");
+      await memoir.mutable.delete(ns, "key2");
 
-      const list2 = await cortex.mutable.list({ namespace: ns });
+      const list2 = await memoir.mutable.list({ namespace: ns });
       expect(list2.length).toBe(count0 + 2);
       expect(list2.some((e) => e.key === "key2")).toBe(false);
     });
@@ -809,7 +809,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-space-lifecycle-${Date.now()}`;
 
       // STEP 1: Register
-      const space = await cortex.memorySpaces.register({
+      const space = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "team",
         name: "Lifecycle space",
@@ -819,71 +819,71 @@ describe("Operation Sequence Validation", () => {
       expect(space.participants).toHaveLength(1);
 
       // STEP 2: Add participant
-      await cortex.memorySpaces.addParticipant(spaceId, {
+      await memoir.memorySpaces.addParticipant(spaceId, {
         id: "user-2",
         type: "user",
         joinedAt: Date.now(),
       });
 
-      const afterAdd = await cortex.memorySpaces.get(spaceId);
+      const afterAdd = await memoir.memorySpaces.get(spaceId);
       expect(afterAdd!.participants).toHaveLength(2);
 
       // STEP 3: Remove participant
-      await cortex.memorySpaces.removeParticipant(spaceId, "user-1");
+      await memoir.memorySpaces.removeParticipant(spaceId, "user-1");
 
-      const afterRemove = await cortex.memorySpaces.get(spaceId);
+      const afterRemove = await memoir.memorySpaces.get(spaceId);
       expect(afterRemove!.participants).toHaveLength(1);
       expect(
         afterRemove!.participants.some((p: any) => p.id === "user-1"),
       ).toBe(false);
 
       // STEP 4: Delete
-      await cortex.memorySpaces.delete(spaceId, {
+      await memoir.memorySpaces.delete(spaceId, {
         cascade: true,
         reason: "test cleanup",
       });
 
-      const afterDelete = await cortex.memorySpaces.get(spaceId);
+      const afterDelete = await memoir.memorySpaces.get(spaceId);
       expect(afterDelete).toBeNull();
     });
 
     it("stats update after each data operation", async () => {
       const spaceId = `${ctx.runId}-stats-seq-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Stats test",
       });
 
       // Initial stats
-      const stats0 = await cortex.memorySpaces.getStats(spaceId);
+      const stats0 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats0.totalMemories).toBe(0);
       expect(stats0.totalConversations).toBe(0);
 
       // Add conversation
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: "stats-user", agentId: TEST_AGENT_ID },
       });
 
-      const stats1 = await cortex.memorySpaces.getStats(spaceId);
+      const stats1 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats1.totalConversations).toBe(1);
 
       // Add memory
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Stats memory",
         contentType: "raw",
         source: { type: "system", userId: "stats-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const stats2 = await cortex.memorySpaces.getStats(spaceId);
+      const stats2 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats2.totalMemories).toBe(1);
 
       // Add fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Stats fact",
         factType: "knowledge",
@@ -892,7 +892,7 @@ describe("Operation Sequence Validation", () => {
         sourceType: "manual",
       });
 
-      const stats3 = await cortex.memorySpaces.getStats(spaceId);
+      const stats3 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats3.totalFacts).toBeGreaterThanOrEqual(1);
     });
   });
@@ -906,7 +906,7 @@ describe("Operation Sequence Validation", () => {
       const userId = `user-seq-${Date.now()}`;
 
       // STEP 1: Create via update
-      const created = await cortex.users.update(userId, {
+      const created = await memoir.users.update(userId, {
         name: "Test User",
         email: "test@example.com",
       });
@@ -914,11 +914,11 @@ describe("Operation Sequence Validation", () => {
       expect(created.version).toBe(1);
 
       // STEP 2: Get
-      const afterCreate = await cortex.users.get(userId);
+      const afterCreate = await memoir.users.get(userId);
       expect(afterCreate!.data.name).toBe("Test User");
 
       // STEP 3: Merge additional data using merge() method
-      const merged = await cortex.users.merge(userId, {
+      const merged = await memoir.users.merge(userId, {
         preferences: { theme: "dark" },
       });
 
@@ -926,15 +926,15 @@ describe("Operation Sequence Validation", () => {
       expect((merged.data as any)?.preferences?.theme).toBe("dark"); // Added
 
       // STEP 4: Get (validate merge)
-      const afterMerge = await cortex.users.get(userId);
+      const afterMerge = await memoir.users.get(userId);
       expect(afterMerge!.data.name).toBe("Test User");
       expect((afterMerge!.data as any)?.preferences?.theme).toBe("dark");
 
       // STEP 5: Delete
-      await cortex.users.delete(userId, { cascade: true });
+      await memoir.users.delete(userId, { cascade: true });
 
       // STEP 6: Get (validate delete)
-      const afterDelete = await cortex.users.get(userId);
+      const afterDelete = await memoir.users.get(userId);
       expect(afterDelete).toBeNull();
     });
 
@@ -942,19 +942,19 @@ describe("Operation Sequence Validation", () => {
       const userId = `user-version-${Date.now()}`;
 
       // Update 1
-      const v1 = await cortex.users.update(userId, { name: "V1" });
+      const v1 = await memoir.users.update(userId, { name: "V1" });
       expect(v1.version).toBe(1);
 
       // Update 2
-      const v2 = await cortex.users.update(userId, { name: "V2" });
+      const v2 = await memoir.users.update(userId, { name: "V2" });
       expect(v2.version).toBe(2);
 
       // Update 3
-      const v3 = await cortex.users.update(userId, { name: "V3" });
+      const v3 = await memoir.users.update(userId, { name: "V3" });
       expect(v3.version).toBe(3);
 
       // Get should return latest
-      const latest = await cortex.users.get(userId);
+      const latest = await memoir.users.get(userId);
       expect(latest!.version).toBe(3);
       expect(latest!.data.name).toBe("V3");
     });
@@ -970,7 +970,7 @@ describe("Operation Sequence Validation", () => {
 
       // Create 20 memories in parallel
       const promises = Array.from({ length: 20 }, (_, i) =>
-        cortex.vector.store(spaceId, {
+        memoir.vector.store(spaceId, {
           content: `Parallel memory ${i}`,
           contentType: "raw",
           source: { type: "system", userId: "test-user" },
@@ -989,12 +989,12 @@ describe("Operation Sequence Validation", () => {
 
       // All should be retrievable
       for (const mem of results) {
-        const retrieved = await cortex.vector.get(spaceId, mem.memoryId);
+        const retrieved = await memoir.vector.get(spaceId, mem.memoryId);
         expect(retrieved).not.toBeNull();
       }
 
       // Count should match
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(count).toBeGreaterThanOrEqual(20);
     });
 
@@ -1004,7 +1004,7 @@ describe("Operation Sequence Validation", () => {
       // Create 10 memories
       const memories = await Promise.all(
         Array.from({ length: 10 }, (_, i) =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: `Memory ${i}`,
             contentType: "raw",
             source: { type: "system", userId: "test-user" },
@@ -1015,7 +1015,7 @@ describe("Operation Sequence Validation", () => {
 
       // Update all in parallel with different values
       const updatePromises = memories.map((mem, i) =>
-        cortex.vector.update(spaceId, mem.memoryId, {
+        memoir.vector.update(spaceId, mem.memoryId, {
           content: `Updated ${i}`,
           importance: 60 + i,
         }),
@@ -1036,7 +1036,7 @@ describe("Operation Sequence Validation", () => {
       // Create memories
       const memories = await Promise.all(
         Array.from({ length: 15 }, (_, i) =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: `Delete test ${i}`,
             contentType: "raw",
             source: { type: "system", userId: "test-user" },
@@ -1047,12 +1047,12 @@ describe("Operation Sequence Validation", () => {
 
       // Delete all in parallel
       await Promise.all(
-        memories.map((mem) => cortex.vector.delete(spaceId, mem.memoryId)),
+        memories.map((mem) => memoir.vector.delete(spaceId, mem.memoryId)),
       );
 
       // All should be deleted
       for (const mem of memories) {
-        const check = await cortex.vector.get(spaceId, mem.memoryId);
+        const check = await memoir.vector.get(spaceId, mem.memoryId);
         expect(check).toBeNull();
       }
     });
@@ -1062,13 +1062,13 @@ describe("Operation Sequence Validation", () => {
 
       // Create some memories
       const mems = await Promise.all([
-        cortex.vector.store(spaceId, {
+        memoir.vector.store(spaceId, {
           content: "Mem 1",
           contentType: "raw",
           source: { type: "system", userId: "test-user" },
           metadata: { importance: 50, tags: [] },
         }),
-        cortex.vector.store(spaceId, {
+        memoir.vector.store(spaceId, {
           content: "Mem 2",
           contentType: "raw",
           source: { type: "system", userId: "test-user" },
@@ -1079,23 +1079,23 @@ describe("Operation Sequence Validation", () => {
       // Interleaved operations
       await Promise.all([
         // Create new
-        cortex.vector.store(spaceId, {
+        memoir.vector.store(spaceId, {
           content: "Mem 3",
           contentType: "raw",
           source: { type: "system", userId: "test-user" },
           metadata: { importance: 50, tags: [] },
         }),
         // Update existing
-        cortex.vector.update(spaceId, mems[0].memoryId, {
+        memoir.vector.update(spaceId, mems[0].memoryId, {
           content: "Updated 1",
         }),
         // Delete existing
-        cortex.vector.delete(spaceId, mems[1].memoryId),
+        memoir.vector.delete(spaceId, mems[1].memoryId),
       ]);
 
       // Verify final state
-      const mem1 = await cortex.vector.get(spaceId, mems[0].memoryId);
-      const mem2 = await cortex.vector.get(spaceId, mems[1].memoryId);
+      const mem1 = await memoir.vector.get(spaceId, mems[0].memoryId);
+      const mem2 = await memoir.vector.get(spaceId, mems[1].memoryId);
 
       expect(mem1!.content).toBe("Updated 1"); // Updated
       expect(mem2).toBeNull(); // Deleted
@@ -1113,7 +1113,7 @@ describe("Operation Sequence Validation", () => {
       const userId = ctx.userId("cross-layer");
 
       // STEP 1: Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId, agentId: TEST_AGENT_ID },
@@ -1122,7 +1122,7 @@ describe("Operation Sequence Validation", () => {
       expect(conv.conversationId).toBeDefined();
 
       // STEP 2: Add message
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -1131,7 +1131,7 @@ describe("Operation Sequence Validation", () => {
       });
 
       // STEP 3: Store memory referencing conversation
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "User prefers dark mode",
         contentType: "summarized",
         source: { type: "conversation", userId },
@@ -1146,7 +1146,7 @@ describe("Operation Sequence Validation", () => {
       expect(mem.conversationRef!.conversationId).toBe(conv.conversationId);
 
       // STEP 4: Extract fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "User prefers dark mode UI",
         factType: "preference",
@@ -1163,7 +1163,7 @@ describe("Operation Sequence Validation", () => {
       expect(fact.sourceRef!.memoryId).toBe(mem.memoryId);
 
       // STEP 5: Create context
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Handle preference update",
@@ -1176,7 +1176,7 @@ describe("Operation Sequence Validation", () => {
       // Wait for Convex consistency - poll until context is queryable
       const ctxReady = await waitForCondition(
         async () => {
-          const result = await cortex.contexts.get(testCtx.contextId);
+          const result = await memoir.contexts.get(testCtx.contextId);
           return result !== null;
         },
         ctx,
@@ -1187,12 +1187,12 @@ describe("Operation Sequence Validation", () => {
 
       // VALIDATE: Complete chain retrievable
       // Use retryOperation for validation to handle eventual consistency races
-      const convCheck = await cortex.conversations.get(conv.conversationId);
-      const memCheck = await cortex.vector.get(spaceId, mem.memoryId);
-      const factCheck = await cortex.facts.get(spaceId, fact.factId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
+      const memCheck = await memoir.vector.get(spaceId, mem.memoryId);
+      const factCheck = await memoir.facts.get(spaceId, fact.factId);
       const ctxCheck = await retryOperation(
         async () => {
-          const result = await cortex.contexts.get(testCtx.contextId);
+          const result = await memoir.contexts.get(testCtx.contextId);
           if (result === null) {
             throw new Error("CONTEXT_NOT_FOUND");
           }
@@ -1214,7 +1214,7 @@ describe("Operation Sequence Validation", () => {
       const conversationId = ctx.conversationId("remember-forget");
 
       // Remember
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId,
         userMessage: "Test message",
@@ -1228,11 +1228,11 @@ describe("Operation Sequence Validation", () => {
       expect(result.conversation.conversationId).toBeDefined();
 
       // Get memories
-      const mem1 = await cortex.vector.get(
+      const mem1 = await memoir.vector.get(
         spaceId,
         result.memories[0].memoryId,
       );
-      const mem2 = await cortex.vector.get(
+      const mem2 = await memoir.vector.get(
         spaceId,
         result.memories[1].memoryId,
       );
@@ -1241,13 +1241,13 @@ describe("Operation Sequence Validation", () => {
       expect(mem2).not.toBeNull();
 
       // Forget first memory
-      await cortex.memory.forget(spaceId, result.memories[0].memoryId);
+      await memoir.memory.forget(spaceId, result.memories[0].memoryId);
 
-      const afterForget1 = await cortex.vector.get(
+      const afterForget1 = await memoir.vector.get(
         spaceId,
         result.memories[0].memoryId,
       );
-      const afterForget2 = await cortex.vector.get(
+      const afterForget2 = await memoir.vector.get(
         spaceId,
         result.memories[1].memoryId,
       );
@@ -1268,7 +1268,7 @@ describe("Operation Sequence Validation", () => {
       // Create 10 memories with same tag
       const created = await Promise.all(
         Array.from({ length: 10 }, (_, i) =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: `Bulk memory ${i}`,
             contentType: "raw",
             source: { type: "system", userId: "test-user" },
@@ -1278,7 +1278,7 @@ describe("Operation Sequence Validation", () => {
       );
 
       // Verify all exist
-      const listBefore = await cortex.vector.list({ memorySpaceId: spaceId });
+      const listBefore = await memoir.vector.list({ memorySpaceId: spaceId });
       const countBefore = listBefore.filter((m) =>
         m.tags.includes("bulk-delete"),
       ).length;
@@ -1287,21 +1287,21 @@ describe("Operation Sequence Validation", () => {
       // Delete by tag
       const toDelete = listBefore.filter((m) => m.tags.includes("bulk-delete"));
       for (const mem of toDelete) {
-        await cortex.vector.delete(spaceId, mem.memoryId);
+        await memoir.vector.delete(spaceId, mem.memoryId);
       }
       const result = { deleted: toDelete.length };
 
       expect(result.deleted).toBeGreaterThanOrEqual(10);
 
       // Verify count after delete
-      const listAfter = await cortex.vector.list({ memorySpaceId: spaceId });
+      const listAfter = await memoir.vector.list({ memorySpaceId: spaceId });
       const countAfter = listAfter.filter((m) =>
         m.tags.includes("bulk-delete"),
       ).length;
       expect(countAfter).toBe(0);
 
       // Verify list after delete
-      const listAfterFinal = await cortex.vector.list({
+      const listAfterFinal = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const filteredAfter = listAfterFinal.filter((m) =>
@@ -1311,7 +1311,7 @@ describe("Operation Sequence Validation", () => {
 
       // Verify each individually deleted
       for (const mem of created) {
-        const check = await cortex.vector.get(spaceId, mem.memoryId);
+        const check = await memoir.vector.get(spaceId, mem.memoryId);
         expect(check).toBeNull();
       }
     });
@@ -1322,7 +1322,7 @@ describe("Operation Sequence Validation", () => {
       // Create memories
       const created = await Promise.all(
         Array.from({ length: 8 }, (_, i) =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: `Bulk update ${i}`,
             contentType: "raw",
             source: { type: "system", userId: "test-user" },
@@ -1332,19 +1332,19 @@ describe("Operation Sequence Validation", () => {
       );
 
       // Update all
-      const toUpdate = await cortex.vector.list({ memorySpaceId: spaceId });
+      const toUpdate = await memoir.vector.list({ memorySpaceId: spaceId });
       const filteredToUpdate = toUpdate.filter((m) =>
         m.tags.includes("bulk-update"),
       );
       for (const mem of filteredToUpdate) {
-        await cortex.vector.update(spaceId, mem.memoryId, { importance: 90 });
+        await memoir.vector.update(spaceId, mem.memoryId, { importance: 90 });
       }
       const result = { updated: filteredToUpdate.length };
 
       expect(result.updated).toBe(8);
 
       // Verify all updated
-      const list = await cortex.vector.list({
+      const list = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const filteredList = list.filter((m) => m.tags.includes("bulk-update"));
@@ -1355,7 +1355,7 @@ describe("Operation Sequence Validation", () => {
 
       // Verify each individually
       for (const mem of created) {
-        const check = await cortex.vector.get(spaceId, mem.memoryId);
+        const check = await memoir.vector.get(spaceId, mem.memoryId);
         expect(check!.importance).toBe(90);
       }
     });
@@ -1369,7 +1369,7 @@ describe("Operation Sequence Validation", () => {
     it("failed update doesn't corrupt state", async () => {
       const spaceId = `${ctx.runId}-error-recovery`;
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Original",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1378,7 +1378,7 @@ describe("Operation Sequence Validation", () => {
 
       // Attempt invalid update (may be accepted or rejected depending on validation)
       try {
-        await cortex.vector.update(spaceId, mem.memoryId, {
+        await memoir.vector.update(spaceId, mem.memoryId, {
           importance: 9999, // Out of range but may be accepted
         } as any);
       } catch (_e) {
@@ -1386,7 +1386,7 @@ describe("Operation Sequence Validation", () => {
       }
 
       // Verify state (either preserved or clamped)
-      const after = await cortex.vector.get(spaceId, mem.memoryId);
+      const after = await memoir.vector.get(spaceId, mem.memoryId);
       expect(after!.content).toBe("Original");
       // Importance may be updated or preserved depending on backend validation
       expect(after!.importance).toBeGreaterThan(0);
@@ -1395,7 +1395,7 @@ describe("Operation Sequence Validation", () => {
     it("failed delete leaves entity intact", async () => {
       const spaceId = `${ctx.runId}-failed-delete`;
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Test",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1404,27 +1404,27 @@ describe("Operation Sequence Validation", () => {
 
       // Attempt delete with wrong space (should fail)
       try {
-        await cortex.vector.delete("wrong-space", mem.memoryId);
+        await memoir.vector.delete("wrong-space", mem.memoryId);
       } catch (_e) {
         // Expected
       }
 
       // Memory should still exist
-      const check = await cortex.vector.get(spaceId, mem.memoryId);
+      const check = await memoir.vector.get(spaceId, mem.memoryId);
       expect(check).not.toBeNull();
     });
 
     it("operation failure doesn't affect count", async () => {
       const spaceId = `${ctx.runId}-count-recovery`;
 
-      const countBefore = await cortex.vector.count({ memorySpaceId: spaceId });
+      const countBefore = await memoir.vector.count({ memorySpaceId: spaceId });
 
       // Attempt to get non-existent memory (fails gracefully)
-      const result = await cortex.vector.get(spaceId, "non-existent-id");
+      const result = await memoir.vector.get(spaceId, "non-existent-id");
       expect(result).toBeNull();
 
       // Count unchanged
-      const countAfter = await cortex.vector.count({ memorySpaceId: spaceId });
+      const countAfter = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(countAfter).toBe(countBefore);
     });
   });
@@ -1439,30 +1439,30 @@ describe("Operation Sequence Validation", () => {
       const userId = "journey-user";
 
       // Step 1: User profile
-      await cortex.users.update(userId, {
+      await memoir.users.update(userId, {
         name: "Journey User",
         email: "journey@test.com",
       });
 
       // Step 2: Start conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId, agentId: TEST_AGENT_ID },
       });
 
       // Step 3: Add messages
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Hello" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "agent", content: "Hi there!" },
       });
 
       // Step 4: Remember interaction
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: conv.conversationId,
         userMessage: "I like pizza",
@@ -1473,7 +1473,7 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Step 5: Extract fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "User likes pizza",
         factType: "preference",
@@ -1484,7 +1484,7 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Step 6: Create workflow context
-      const testCtx = await cortex.contexts.create({
+      const testCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Handle food preferences",
@@ -1496,14 +1496,14 @@ describe("Operation Sequence Validation", () => {
       });
 
       // VALIDATE: Complete chain
-      const userCheck = await cortex.users.get(userId);
-      const convCheck = await cortex.conversations.get(conv.conversationId);
-      const memCheck = await cortex.vector.get(
+      const userCheck = await memoir.users.get(userId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
+      const memCheck = await memoir.vector.get(
         spaceId,
         remembered.memories[0].memoryId,
       );
-      const factCheck = await cortex.facts.get(spaceId, fact.factId);
-      const ctxCheck = await cortex.contexts.get(testCtx.contextId);
+      const factCheck = await memoir.facts.get(spaceId, fact.factId);
+      const ctxCheck = await memoir.contexts.get(testCtx.contextId);
 
       expect(userCheck).not.toBeNull();
       expect(convCheck).not.toBeNull();
@@ -1525,26 +1525,26 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-cascade-workflow-${Date.now()}`;
 
       // Create complete workflow
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Cascade test",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: "cascade-user", agentId: TEST_AGENT_ID },
       });
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Cascade memory",
         contentType: "raw",
         source: { type: "system", userId: "cascade-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Cascade fact",
         factType: "knowledge",
@@ -1554,15 +1554,15 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Delete space with cascade
-      await cortex.memorySpaces.delete(spaceId, {
+      await memoir.memorySpaces.delete(spaceId, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Verify all deleted
-      const convCheck = await cortex.conversations.get(conv.conversationId);
-      const memCheck = await cortex.vector.get(spaceId, mem.memoryId);
-      const factCheck = await cortex.facts.get(spaceId, fact.factId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
+      const memCheck = await memoir.vector.get(spaceId, mem.memoryId);
+      const factCheck = await memoir.facts.get(spaceId, fact.factId);
 
       expect(convCheck).toBeNull();
       expect(memCheck).toBeNull();
@@ -1580,7 +1580,7 @@ describe("Operation Sequence Validation", () => {
       const convId = `rapid-conv-${Date.now()}`;
 
       // Create
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: spaceId,
@@ -1588,10 +1588,10 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Delete
-      await cortex.conversations.delete(convId);
+      await memoir.conversations.delete(convId);
 
       // Recreate with same ID
-      const recreated = await cortex.conversations.create({
+      const recreated = await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: spaceId,
@@ -1605,7 +1605,7 @@ describe("Operation Sequence Validation", () => {
     it("update sequence with no actual changes is idempotent", async () => {
       const spaceId = `${ctx.runId}-idempotent`;
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Unchanged",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1613,11 +1613,11 @@ describe("Operation Sequence Validation", () => {
       });
 
       // Update with same values multiple times
-      await cortex.vector.update(spaceId, mem.memoryId, { importance: 50 });
-      await cortex.vector.update(spaceId, mem.memoryId, { importance: 50 });
-      await cortex.vector.update(spaceId, mem.memoryId, { importance: 50 });
+      await memoir.vector.update(spaceId, mem.memoryId, { importance: 50 });
+      await memoir.vector.update(spaceId, mem.memoryId, { importance: 50 });
+      await memoir.vector.update(spaceId, mem.memoryId, { importance: 50 });
 
-      const final = await cortex.vector.get(spaceId, mem.memoryId);
+      const final = await memoir.vector.get(spaceId, mem.memoryId);
 
       // Version may or may not increment (implementation dependent)
       expect(final!.importance).toBe(50);
@@ -1628,7 +1628,7 @@ describe("Operation Sequence Validation", () => {
       const spaceId = `${ctx.runId}-mixed`;
 
       // Create valid memory
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Valid",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1637,7 +1637,7 @@ describe("Operation Sequence Validation", () => {
 
       // Try invalid operation (should fail)
       try {
-        await cortex.vector.update("wrong-space", mem.memoryId, {
+        await memoir.vector.update("wrong-space", mem.memoryId, {
           content: "Hacked",
         });
       } catch (_e) {
@@ -1645,7 +1645,7 @@ describe("Operation Sequence Validation", () => {
       }
 
       // Valid operation should still work
-      const updated = await cortex.vector.update(spaceId, mem.memoryId, {
+      const updated = await memoir.vector.update(spaceId, mem.memoryId, {
         content: "Updated correctly",
       });
 
@@ -1657,7 +1657,7 @@ describe("Operation Sequence Validation", () => {
       const userId = "long-user";
 
       // 20-step sequence
-      let context = await cortex.contexts.create({
+      let context = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Long sequence test",
@@ -1672,19 +1672,19 @@ describe("Operation Sequence Validation", () => {
         // Use retry for CI resilience - first update after create can hit eventual consistency
         context = await retryOperation(
           () =>
-            cortex.contexts.update(context.contextId, {
+            memoir.contexts.update(context.contextId, {
               data: { step: i },
             }),
           `contexts.update(step=${i})`,
         );
 
         // Verify state after each step
-        const check = await cortex.contexts.get(context.contextId);
+        const check = await memoir.contexts.get(context.contextId);
         expect((check as any).data?.step).toBe(i);
       }
 
       // Final check
-      const final = await cortex.contexts.get(context.contextId);
+      const final = await memoir.contexts.get(context.contextId);
       expect((final as any).data?.step).toBe(20);
     });
   });

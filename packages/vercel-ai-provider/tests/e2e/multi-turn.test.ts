@@ -6,8 +6,8 @@
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { createCortexMemory } from "../../src/index";
-import { Cortex } from "@cortexmemory/sdk";
+import { createMemoirMemory } from "../../src/index";
+import { Memoir } from "@memoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,
@@ -146,7 +146,7 @@ function createSimpleLLM() {
 describe("Multi-Turn Conversations E2E", () => {
   let memorySpaceId: string;
   let userId: string;
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   beforeAll(() => {
     if (SKIP_E2E) {
@@ -165,12 +165,12 @@ describe("Multi-Turn Conversations E2E", () => {
 
     memorySpaceId = createTestMemorySpaceId("e2e-multi");
     userId = createTestUserId();
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterEach(async () => {
-    if (cortex) {
-      cortex.close();
+    if (memoir) {
+      memoir.close();
     }
   });
 
@@ -184,7 +184,7 @@ describe("Multi-Turn Conversations E2E", () => {
       it("should accumulate facts about user across multiple turns", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -253,12 +253,12 @@ describe("Multi-Turn Conversations E2E", () => {
         console.log("Response:", result.text);
 
         // Verify facts were accumulated
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -288,7 +288,7 @@ describe("Multi-Turn Conversations E2E", () => {
       it("should handle complex preference updates over time", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -343,12 +343,12 @@ describe("Multi-Turn Conversations E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 4000));
 
         // Verify current state
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -379,7 +379,7 @@ describe("Multi-Turn Conversations E2E", () => {
       it("should maintain context across streamed conversations", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -462,7 +462,7 @@ describe("Multi-Turn Conversations E2E", () => {
       it("should handle rapid fact updates without corruption", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -505,12 +505,12 @@ describe("Multi-Turn Conversations E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
         // Verify state
-        const allFacts = await cortex.facts.list({
+        const allFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: true,
         });
 
-        const activeFacts = await cortex.facts.list({
+        const activeFacts = await memoir.facts.list({
           memorySpaceId,
           includeSuperseded: false,
         });
@@ -544,7 +544,7 @@ describe("Multi-Turn Conversations E2E", () => {
       it("should maintain facts across different conversation sessions", async () => {
         // Session 1: Create facts
         const session1ConvId = createTestConversationId();
-        const factory1 = createCortexMemory({
+        const factory1 = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId, // Same user
@@ -575,7 +575,7 @@ describe("Multi-Turn Conversations E2E", () => {
 
         // Session 2: Different conversation, same user
         const session2ConvId = createTestConversationId();
-        const factory2 = createCortexMemory({
+        const factory2 = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId, // Same user!

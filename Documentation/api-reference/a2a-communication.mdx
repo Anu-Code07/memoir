@@ -11,7 +11,7 @@ Complete API reference for agent-to-agent communication helpers.
 
 ## Overview
 
-The A2A Communication API (`cortex.a2a.*`) provides **convenience helpers** for inter-agent communication. It's not a separate storage system - it's syntactic sugar over the standard memory system with `source.type='a2a'`.
+The A2A Communication API (`memoir.a2a.*`) provides **convenience helpers** for inter-agent communication. It's not a separate storage system - it's syntactic sugar over the standard memory system with `source.type='a2a'`.
 
 <Callout type="warning" title="Infrastructure Requirement">
 
@@ -62,7 +62,7 @@ A2A = Agent Memory + Pub/Sub (optional) + Convenience
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Approach 1: A2A Helper (RECOMMENDED - 7 lines)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "finance-agent",
   to: "hr-agent",
   message: "What is the Q4 budget?",
@@ -80,7 +80,7 @@ const conversationId = await getOrCreateA2AConversation(
 );
 
 // Store in sender's memory (ACID + Vector)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "finance-agent-space",
   conversationId,
   userMessage: "What is the Q4 budget?",
@@ -90,7 +90,7 @@ await cortex.memory.remember({
 });
 
 // Store in receiver's memory (ACID + Vector)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "hr-agent-space",
   conversationId,
   userMessage: "[From finance-agent]",
@@ -107,7 +107,7 @@ await cortex.memory.remember({
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 1. Get or create A2A conversation in ACID (Layer 1a)
 let conversationId;
-const existing = await cortex.conversations.search({
+const existing = await memoir.conversations.search({
   type: "agent-agent",
   participants: { $all: ["finance-agent", "hr-agent"] },
 });
@@ -115,7 +115,7 @@ const existing = await cortex.conversations.search({
 if (existing.length > 0) {
   conversationId = existing[0].conversationId;
 } else {
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "agent-agent",
     participants: { agent1: "finance-agent", agent2: "hr-agent" },
   });
@@ -123,7 +123,7 @@ if (existing.length > 0) {
 }
 
 // 2. Add message to ACID conversation
-const msg = await cortex.conversations.addMessage(conversationId, {
+const msg = await memoir.conversations.addMessage(conversationId, {
   type: "a2a",
   from: "finance-agent",
   to: "hr-agent",
@@ -132,7 +132,7 @@ const msg = await cortex.conversations.addMessage(conversationId, {
 });
 
 // 3. Store in sender's Vector memory (Layer 2)
-await cortex.vector.store("finance-agent", {
+await memoir.vector.store("finance-agent", {
   content: "Sent to hr-agent: What is the Q4 budget?",
   contentType: "raw",
   embedding: await embed("What is the Q4 budget?"), // Optional
@@ -154,7 +154,7 @@ await cortex.vector.store("finance-agent", {
 });
 
 // 4. Store in receiver's Vector memory (Layer 2)
-await cortex.vector.store("hr-agent", {
+await memoir.vector.store("hr-agent", {
   content: "Received from finance-agent: What is the Q4 budget?",
   contentType: "raw",
   embedding: await embed("What is the Q4 budget?"),
@@ -175,7 +175,7 @@ await cortex.vector.store("hr-agent", {
   },
 });
 
-// That's 50+ lines vs 7 lines with cortex.a2a.send()!
+// That's 50+ lines vs 7 lines with memoir.a2a.send()!
 ```
 
 **Code Reduction:**
@@ -183,13 +183,13 @@ await cortex.vector.store("hr-agent", {
 <ComparisonTable
   headers={["Approach", "Lines of Code", "Handles ACID", "Bidirectional / Complexity"]}
   items={[
-    { feature: "cortex.a2a.send()", values: ["7", "Automatic", "Both agents / Low complexity"] },
-    { feature: "cortex.memory.remember()", values: ["~20", "Automatic", "One agent (call 2x) / Medium complexity"] },
+    { feature: "memoir.a2a.send()", values: ["7", "Automatic", "Both agents / Low complexity"] },
+    { feature: "memoir.memory.remember()", values: ["~20", "Automatic", "One agent (call 2x) / Medium complexity"] },
     { feature: "Manual (Layer 1+2)", values: ["50+", "Manual", "One agent (call 2x) / High complexity"] },
   ]}
 />
 
-<Callout type="tip" title="Why cortex.a2a.send() is best for A2A">
+<Callout type="tip" title="Why memoir.a2a.send() is best for A2A">
 
 - Handles ACID conversation management
 - Stores in BOTH agents automatically
@@ -209,7 +209,7 @@ await cortex.vector.store("hr-agent", {
     Sender memory (direction='outbound') + Receiver memory (direction='inbound') — Both reference ACID via conversationRef
   </FlowNode>
   <FlowNode title="Pub/Sub Infrastructure" icon="network" variant="warning">
-    Direct Mode: Your Redis/RabbitMQ/NATS — Cloud Mode (planned): Cortex-managed infrastructure
+    Direct Mode: Your Redis/RabbitMQ/NATS — Cloud Mode (planned): Memoir-managed infrastructure
   </FlowNode>
   <FlowNode title="A2A Helpers" icon="layers" variant="success">
     Convenience wrappers (handle ACID + bidirectional Vector storage + pub/sub)
@@ -233,7 +233,7 @@ await cortex.vector.store("hr-agent", {
 
 ### Direct Mode: Developer Manages Execution + Pub/Sub
 
-**What Cortex provides:**
+**What Memoir provides:**
 
 - Storage APIs (database operations)
 - Metadata conventions (messageType, inReplyTo, etc.)
@@ -253,8 +253,8 @@ import Redis from "ioredis"; // Standard ioredis package
 // 1. Your Redis instance
 const redis = new Redis(process.env.REDIS_URL);
 
-// 2. Cortex SDK (storage only)
-const cortex = new Cortex({
+// 2. Memoir SDK (storage only)
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
 });
 
@@ -270,8 +270,8 @@ async function runAgent(memorySpaceId: string) {
     const notification = JSON.parse(message);
 
     if (notification.type === "a2a-request") {
-      // 1. Fetch from Cortex storage
-      const request = await cortex.memory.get(
+      // 1. Fetch from Memoir storage
+      const request = await memoir.memory.get(
         memorySpaceId,
         notification.memoryId,
       );
@@ -279,8 +279,8 @@ async function runAgent(memorySpaceId: string) {
       // 2. Process with your agent logic
       const answer = await yourAgentLogic(request.content);
 
-      // 3. Store response in Cortex
-      await cortex.a2a.send({
+      // 3. Store response in Memoir
+      await memoir.a2a.send({
         from: memorySpaceId,
         to: notification.from,
         message: answer,
@@ -306,8 +306,8 @@ async function manualRequest(
   message: string,
   timeout = 30000,
 ) {
-  // Send via Cortex (stores in database)
-  const sent = await cortex.a2a.send({
+  // Send via Memoir (stores in database)
+  const sent = await memoir.a2a.send({
     from,
     to,
     message,
@@ -364,12 +364,12 @@ const response = await manualRequest(
 
 **Key Points:**
 
-- Cortex provides **storage APIs** (database operations)
+- Memoir provides **storage APIs** (database operations)
 - YOU provide **execution** (agent runners) + **pub/sub** (Redis/RabbitMQ)
 - YOU wire them together (subscriptions, notifications)
-- Cortex just provides the patterns and storage conventions
+- Memoir just provides the patterns and storage conventions
 
-### Cloud Mode: Cortex Manages Everything
+### Cloud Mode: Memoir Manages Everything
 
 <Callout type="info" title="Cloud Feature">
 
@@ -377,16 +377,16 @@ Cloud Mode messaging layer provides managed pub/sub infrastructure (planned).
 
 </Callout>
 
-In Cloud Mode, Cortex will provide:
+In Cloud Mode, Memoir will provide:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   mode: "cloud",
-  apiKey: process.env.CORTEX_CLOUD_KEY,
+  apiKey: process.env.MEMOIR_CLOUD_KEY,
 });
 
 // request() works automatically
-const response = await cortex.a2a.request({
+const response = await memoir.a2a.request({
   from: "finance-agent",
   to: "hr-agent",
   message: "What is the budget?",
@@ -414,7 +414,7 @@ This is a fire-and-forget operation. Works in all modes without pub/sub.
 **Signature:**
 
 ```typescript
-cortex.a2a.send(
+memoir.a2a.send(
   params: A2ASendParams
 ): Promise<A2AMessage>
 ```
@@ -475,7 +475,7 @@ interface A2AMessage {
 **Example 1: Basic send**
 
 ```typescript
-const result = await cortex.a2a.send({
+const result = await memoir.a2a.send({
   from: "sales-agent",
   to: "support-agent",
   message: "Customer is asking about enterprise pricing",
@@ -492,7 +492,7 @@ console.log(`Receiver memory: ${result.receiverMemoryId}`);
 
 ```typescript
 // A2A about a specific user (GDPR-enabled)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "support-agent",
   to: "billing-agent",
   message: "User-123 requesting invoice for October",
@@ -505,7 +505,7 @@ await cortex.a2a.send({
 });
 
 // Later: GDPR deletion includes this A2A message
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 // A2A message deleted from both agents!
 ```
 
@@ -513,13 +513,13 @@ await cortex.users.delete("user-123", { cascade: true });
 
 ```typescript
 // A2A as part of larger workflow
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund for order #789",
   memorySpaceId: "supervisor-agent-space",
   userId: "user-123",
 });
 
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "supervisor-agent",
   to: "finance-agent",
   message: "Please approve $500 refund",
@@ -529,7 +529,7 @@ await cortex.a2a.send({
 });
 
 // Finance agent can access full context
-const ctx = await cortex.contexts.get(context.id);
+const ctx = await memoir.contexts.get(context.id);
 console.log("Workflow purpose:", ctx.purpose);
 ```
 
@@ -537,7 +537,7 @@ console.log("Workflow purpose:", ctx.purpose);
 
 ```typescript
 // Low-value notification (skip ACID to save storage)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "FYI: Daily report generated",
@@ -589,7 +589,7 @@ This operation requires real-time messaging.
 **Signature:**
 
 ```typescript
-cortex.a2a.request(
+memoir.a2a.request(
   params: A2ARequestParams
 ): Promise<A2AResponse>
 ```
@@ -640,7 +640,7 @@ interface A2AResponse {
 
 ```typescript
 try {
-  const response = await cortex.a2a.request({
+  const response = await memoir.a2a.request({
     from: "finance-agent",
     to: "hr-agent",
     message: "What is the Q4 headcount budget?",
@@ -662,7 +662,7 @@ try {
 
 ```typescript
 // Auto-retry on timeout
-const response = await cortex.a2a.request({
+const response = await memoir.a2a.request({
   from: "agent-1",
   to: "agent-2",
   message: "Complex calculation needed",
@@ -689,7 +689,7 @@ const response = await cortex.a2a.request({
 // If you need to manually check for requests (batch processing)
 async function handleIncomingRequests(memorySpaceId: string, agentId: string) {
   // List all A2A memories and filter for pending requests
-  const allA2A = await cortex.vector.list({
+  const allA2A = await memoir.vector.list({
     memorySpaceId,
     sourceType: "a2a",
     limit: 100,
@@ -713,7 +713,7 @@ async function handleIncomingRequests(memorySpaceId: string, agentId: string) {
     const answer = await processRequest(request.content);
     const meta = request.metadata as { fromAgent?: string; messageId?: string };
 
-    await cortex.a2a.send({
+    await memoir.a2a.send({
       from: agentId,
       to: meta.fromAgent!,
       message: answer,
@@ -724,7 +724,7 @@ async function handleIncomingRequests(memorySpaceId: string, agentId: string) {
     });
 
     // Mark as responded
-    await cortex.vector.update(memorySpaceId, request.memoryId, {
+    await memoir.vector.update(memorySpaceId, request.memoryId, {
       metadata: {
         ...request.metadata,
         responded: true,
@@ -773,7 +773,7 @@ Optimized delivery requires real-time messaging.
 **Signature:**
 
 ```typescript
-cortex.a2a.broadcast(
+memoir.a2a.broadcast(
   params: A2ABroadcastParams
 ): Promise<A2ABroadcastResult>
 ```
@@ -831,7 +831,7 @@ interface A2ABroadcastResult {
 **Example 1: Team announcement**
 
 ```typescript
-const result = await cortex.a2a.broadcast({
+const result = await memoir.a2a.broadcast({
   from: "manager-agent",
   to: ["dev-agent-1", "dev-agent-2", "qa-agent", "designer-agent"],
   message: "Sprint review meeting Friday at 2 PM",
@@ -851,9 +851,9 @@ console.log(`Created ${result.memoriesCreated} total memories`);
 
 ```typescript
 // Notify all agents about policy change
-const allAgents = await cortex.agents.list();
+const allAgents = await memoir.agents.list();
 
-await cortex.a2a.broadcast({
+await memoir.a2a.broadcast({
   from: "admin-agent",
   to: allAgents.map((a) => a.id),
   message: "New policy: All refunds over $1000 require manager approval",
@@ -866,7 +866,7 @@ await cortex.a2a.broadcast({
 });
 
 // Each agent can query their announcements
-const allA2A = await cortex.vector.list({
+const allA2A = await memoir.vector.list({
   memorySpaceId: "agent-1",
   sourceType: "a2a",
   limit: 100,
@@ -903,7 +903,7 @@ Get chronological conversation between two agents with rich filtering.
 **Signature:**
 
 ```typescript
-cortex.a2a.getConversation(
+memoir.a2a.getConversation(
   agent1: string,
   agent2: string,
   filters?: A2AConversationFilters
@@ -975,7 +975,7 @@ interface A2AConversationMessage {
 
 ```typescript
 // Get all communication between two agents
-const convo = await cortex.a2a.getConversation("finance-agent", "hr-agent");
+const convo = await memoir.a2a.getConversation("finance-agent", "hr-agent");
 
 console.log(`${convo.messageCount} messages exchanged`);
 convo.messages.forEach((msg) => {
@@ -985,7 +985,7 @@ convo.messages.forEach((msg) => {
 
 // Can retrieve full ACID history if needed
 if (convo.canRetrieveFullHistory) {
-  const fullHistory = await cortex.conversations.get(convo.conversationId);
+  const fullHistory = await memoir.conversations.get(convo.conversationId);
   console.log(
     "Complete conversation:",
     fullHistory.messages.length,
@@ -998,7 +998,7 @@ if (convo.canRetrieveFullHistory) {
 
 ```typescript
 // Get only important budget-related messages from last 30 days
-const filtered = await cortex.a2a.getConversation("finance-agent", "hr-agent", {
+const filtered = await memoir.a2a.getConversation("finance-agent", "hr-agent", {
   since: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
   minImportance: 70,
   tags: ["budget"],
@@ -1012,7 +1012,7 @@ console.log(`Found ${filtered.messageCount} important budget discussions`);
 
 ```typescript
 // Get all A2A about a specific user
-const userRelated = await cortex.a2a.getConversation(
+const userRelated = await memoir.a2a.getConversation(
   "support-agent",
   "billing-agent",
   {
@@ -1046,20 +1046,20 @@ Since A2A uses the memory system, you can use **any memory operation** on A2A me
 
 ```typescript
 // All A2A for an agent (semantic search on "a2a" query)
-const allA2A = await cortex.memory.search("agent-1", "a2a communication", {
+const allA2A = await memoir.memory.search("agent-1", "a2a communication", {
   sourceType: "a2a",
   limit: 100,
 });
 
 // Use list() for non-semantic filtering by source type
-const allA2AList = await cortex.vector.list({
+const allA2AList = await memoir.vector.list({
   memorySpaceId: "agent-1",
   sourceType: "a2a",
   limit: 100,
 });
 
 // Filter by tags (sent vs received are tagged)
-const sent = await cortex.vector.list({
+const sent = await memoir.vector.list({
   memorySpaceId: "agent-1",
   sourceType: "a2a",
   // Post-filter for 'sent' tag
@@ -1070,7 +1070,7 @@ const sent = await cortex.vector.list({
 
 ```typescript
 // Semantic search across A2A messages
-const results = await cortex.memory.search(
+const results = await memoir.memory.search(
   "agent-1",
   "did we discuss the budget increase?",
   {
@@ -1092,7 +1092,7 @@ results.forEach((m) => {
 
 ```typescript
 // Get A2A requests and filter for pending
-const a2aMemories = await cortex.vector.list({
+const a2aMemories = await memoir.vector.list({
   memorySpaceId: "hr-agent",
   sourceType: "a2a",
   limit: 100,
@@ -1119,7 +1119,7 @@ console.log(`${pending.length} pending requests`);
 
 ```typescript
 // Total A2A messages
-const total = await cortex.vector.count({
+const total = await memoir.vector.count({
   memorySpaceId: "agent-1",
   sourceType: "a2a",
 });
@@ -1135,14 +1135,14 @@ console.log(`Total A2A messages: ${total}`);
 
 ```typescript
 // Create workflow context
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request",
   memorySpaceId: "supervisor-agent-space",
   userId: "user-123",
 });
 
 // Delegate via A2A linked to context
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "supervisor-agent",
   to: "specialist-agent",
   message: "Please handle refund for ticket #456",
@@ -1152,10 +1152,10 @@ await cortex.a2a.send({
 });
 
 // Specialist can access context
-const ctx = await cortex.contexts.get(context.id);
+const ctx = await memoir.contexts.get(context.id);
 
 // Find all A2A for this workflow
-const allA2A = await cortex.vector.list({
+const allA2A = await memoir.vector.list({
   memorySpaceId: "supervisor-agent",
   sourceType: "a2a",
   limit: 100,
@@ -1172,14 +1172,14 @@ const workflowComms = allA2A.filter((m) => {
 
 ```typescript
 // User makes request
-const userMsg = await cortex.conversations.addMessage("conv-456", {
+const userMsg = await memoir.conversations.addMessage("conv-456", {
   role: "user",
   text: "I need help with my refund",
   userId: "user-123",
 });
 
 // Create context linked to conversation
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Handle user refund request",
   memorySpaceId: "support-agent-space",
   userId: "user-123",
@@ -1190,7 +1190,7 @@ const context = await cortex.contexts.create({
 });
 
 // A2A delegation with full traceability
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "support-agent",
   to: "finance-agent",
   message: "User needs refund approval for $500",
@@ -1199,7 +1199,7 @@ await cortex.a2a.send({
 });
 
 // Finance agent can trace back to original user request
-const ctx = await cortex.contexts.get(context.id, {
+const ctx = await memoir.contexts.get(context.id, {
   includeConversation: true,
 });
 console.log("Original user request:", ctx.triggerMessages[0].text);
@@ -1209,7 +1209,7 @@ console.log("Original user request:", ctx.triggerMessages[0].text);
 
 ```typescript
 // A2A about a user
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "support-agent",
   to: "billing-agent",
   message: "User requesting account deletion",
@@ -1218,7 +1218,7 @@ await cortex.a2a.send({
 });
 
 // User requests deletion
-const result = await cortex.users.delete("user-123", { cascade: true });
+const result = await memoir.users.delete("user-123", { cascade: true });
 
 console.log(`A2A messages deleted: ${result.vectorMemoriesDeleted}`);
 // Includes the A2A message above!
@@ -1234,14 +1234,14 @@ console.log(`A2A messages deleted: ${result.vectorMemoriesDeleted}`);
 // Full traceability: User → Context → A2A → Memories
 
 // 1. User conversation (Layer 1a - ACID)
-const userMsg = await cortex.conversations.addMessage("conv-456", {
+const userMsg = await memoir.conversations.addMessage("conv-456", {
   role: "user",
   text: "I need a refund",
   userId: "user-123",
 });
 
 // 2. Workflow context (linked to conversation)
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund",
   memorySpaceId: "supervisor-agent-space",
   userId: "user-123",
@@ -1252,7 +1252,7 @@ const context = await cortex.contexts.create({
 });
 
 // 3. A2A delegation (linked to context AND conversation)
-const a2aResult = await cortex.a2a.send({
+const a2aResult = await memoir.a2a.send({
   from: "supervisor-agent",
   to: "specialist-agent",
   message: "Handle refund for user",
@@ -1262,16 +1262,16 @@ const a2aResult = await cortex.a2a.send({
 
 // Now specialist agent can access:
 // - A2A message (in their memory)
-const a2aMemory = await cortex.memory.get(
+const a2aMemory = await memoir.memory.get(
   "specialist-agent",
   a2aResult.receiverMemoryId,
 );
 
 // - Context chain
-const ctx = await cortex.contexts.get(a2aMemory.metadata.contextId);
+const ctx = await memoir.contexts.get(a2aMemory.metadata.contextId);
 
 // - Original user conversation (via context)
-const userConvo = await cortex.conversations.get(
+const userConvo = await memoir.conversations.get(
   ctx.conversationRef.conversationId,
 );
 
@@ -1289,7 +1289,7 @@ async function analyzeA2ACommunication(
   const sinceTimestamp = Date.now() - period * 24 * 60 * 60 * 1000;
 
   // Get all A2A memories
-  const allMemories = await cortex.vector.list({
+  const allMemories = await memoir.vector.list({
     memorySpaceId,
     sourceType: "a2a",
     limit: 1000,
@@ -1347,7 +1347,7 @@ console.log("Last 30 days:", stats);
 
 ```typescript
 // List A2A memories for bulk processing
-const a2aMemories = await cortex.vector.list({
+const a2aMemories = await memoir.vector.list({
   memorySpaceId: "agent-1",
   sourceType: "a2a",
   limit: 1000,
@@ -1361,7 +1361,7 @@ const oldLowImportance = a2aMemories.filter((m) => {
 
 // Update each memory individually (mark as archived)
 for (const memory of oldLowImportance) {
-  await cortex.vector.update("agent-1", memory.memoryId, {
+  await memoir.vector.update("agent-1", memory.memoryId, {
     metadata: { ...memory.metadata, archived: true },
   });
 }
@@ -1373,7 +1373,7 @@ const trivialOld = a2aMemories.filter((m) => {
 });
 
 for (const memory of trivialOld) {
-  await cortex.vector.delete("agent-1", memory.memoryId);
+  await memoir.vector.delete("agent-1", memory.memoryId);
 }
 
 // Export A2A for audit (manual serialization)
@@ -1436,11 +1436,11 @@ interface A2ASenderMemory extends MemoryEntry {
 
 **This means all memory operations work on A2A:**
 
-- `cortex.memory.search()` - Semantic or text search
-- `cortex.memory.get()` - Retrieve by ID
-- `cortex.memory.update()` - Update (creates version)
-- `cortex.memory.delete()` - Delete
-- `cortex.memory.count()` - Count
+- `memoir.memory.search()` - Semantic or text search
+- `memoir.memory.get()` - Retrieve by ID
+- `memoir.memory.update()` - Update (creates version)
+- `memoir.memory.delete()` - Delete
+- `memoir.memory.count()` - Count
 - All universal filters apply!
 
 ---
@@ -1467,7 +1467,7 @@ interface A2ASenderMemory extends MemoryEntry {
 
 ```typescript
 // Send with helper (convenience)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "Important update",
@@ -1475,7 +1475,7 @@ await cortex.a2a.send({
 });
 
 // Query with memory API (power) - semantic search
-const results = await cortex.memory.search("agent-2", "important update", {
+const results = await memoir.memory.search("agent-2", "important update", {
   embedding: await embed("important update"),
   sourceType: "a2a",
   minImportance: 80,
@@ -1506,7 +1506,7 @@ const A2A_IMPORTANCE = {
   DEBUG: 10, // Debug/diagnostic messages
 };
 
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "Board approved budget increase",
@@ -1517,7 +1517,7 @@ await cortex.a2a.send({
 ### 2. Use Tags for Organization
 
 ```typescript
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "Approved budget increase",
@@ -1536,7 +1536,7 @@ await cortex.a2a.send({
 });
 
 // Query by tags using semantic search
-const approvals = await cortex.memory.search("agent-1", "budget approval", {
+const approvals = await memoir.memory.search("agent-1", "budget approval", {
   sourceType: "a2a",
   tags: ["approval", "budget"],
   limit: 20,
@@ -1547,12 +1547,12 @@ const approvals = await cortex.memory.search("agent-1", "budget approval", {
 
 ```typescript
 // Always link A2A to context when part of workflow
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund",
   memorySpaceId: "supervisor-agent-space",
 });
 
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "supervisor-agent",
   to: "specialist-agent",
   message: "Handle this refund",
@@ -1564,7 +1564,7 @@ await cortex.a2a.send({
 
 ```typescript
 // Default: Track in ACID (audit trail)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "Important decision",
@@ -1573,7 +1573,7 @@ await cortex.a2a.send({
 });
 
 // Only skip for ephemeral, low-value messages
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-1",
   to: "agent-2",
   message: "Heartbeat ping",
@@ -1588,7 +1588,7 @@ await cortex.a2a.send({
 // Use try-catch for request() pattern
 async function askWithFallback(from: string, to: string, message: string) {
   try {
-    const response = await cortex.a2a.request({
+    const response = await memoir.a2a.request({
       from,
       to,
       message,
@@ -1600,7 +1600,7 @@ async function askWithFallback(from: string, to: string, message: string) {
   } catch (error) {
     if (error instanceof A2ATimeoutError) {
       // Fallback to async
-      await cortex.a2a.send({
+      await memoir.a2a.send({
         from,
         to,
         message: `${message} (respond when ready)`,
@@ -1641,7 +1641,7 @@ Everything A2A helpers do can be done with the memory API directly. But they eli
 
 <Callout type="note" title="Cloud Mode Under Development">
 
-The following features are planned for Cortex Cloud Mode. The SDK provides full A2A functionality today via Direct Mode.
+The following features are planned for Memoir Cloud Mode. The SDK provides full A2A functionality today via Direct Mode.
 
 </Callout>
 
@@ -1696,7 +1696,7 @@ type A2AMeta = {
 };
 
 // 1-hop: Direct collaborators
-const allA2A = await cortex.vector.list({
+const allA2A = await memoir.vector.list({
   memorySpaceId: "finance-agent",
   sourceType: "a2a",
   limit: 1000,
@@ -1712,7 +1712,7 @@ const directCollaborators = new Set(
 // 2-hop: Collaborator's collaborators
 const secondDegree = new Set<string>();
 for (const agent of directCollaborators) {
-  const theirA2A = await cortex.vector.list({
+  const theirA2A = await memoir.vector.list({
     memorySpaceId: agent as string,
     sourceType: "a2a",
     limit: 1000,
@@ -1767,7 +1767,7 @@ For advanced graph analytics (community detection, centrality, influence metrics
 The SDK exports a custom error class for validation failures:
 
 ```typescript
-import { A2AValidationError } from "@cortex/sdk/a2a";
+import { A2AValidationError } from "@memoir/sdk/a2a";
 
 // Error properties
 interface A2AValidationError extends Error {
@@ -1778,7 +1778,7 @@ interface A2AValidationError extends Error {
 
 // Usage
 try {
-  await cortex.a2a.send({
+  await memoir.a2a.send({
     from: "", // Invalid - empty
     to: "agent-2",
     message: "Hello",
@@ -1796,7 +1796,7 @@ try {
 Thrown when request() times out waiting for a response:
 
 ```typescript
-import { A2ATimeoutError } from "@cortex/sdk";
+import { A2ATimeoutError } from "@memoir/sdk";
 
 interface A2ATimeoutError extends Error {
   name: "A2ATimeoutError";
@@ -1805,7 +1805,7 @@ interface A2ATimeoutError extends Error {
 }
 
 try {
-  await cortex.a2a.request({
+  await memoir.a2a.request({
     from: "agent-1",
     to: "agent-2",
     message: "Hello",
@@ -1878,4 +1878,4 @@ try {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

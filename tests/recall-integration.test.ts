@@ -6,7 +6,7 @@
  */
 
 import { jest } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "./helpers/isolation";
 
@@ -17,7 +17,7 @@ const ctx = createTestRunContext();
 jest.setTimeout(60000);
 
 describe("recall() Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
@@ -28,7 +28,7 @@ describe("recall() Integration", () => {
   const TEST_USER_NAME = "Recall Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
   });
 
@@ -45,7 +45,7 @@ describe("recall() Integration", () => {
       const conversationId = ctx.conversationId("simple");
 
       // Store with remember
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "My favorite color is blue",
@@ -56,7 +56,7 @@ describe("recall() Integration", () => {
       });
 
       // Recall
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "favorite color",
       });
@@ -70,7 +70,7 @@ describe("recall() Integration", () => {
     it("recalls from vector search", async () => {
       const conversationId = ctx.conversationId("vector");
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "I prefer dark mode for all my applications",
@@ -80,7 +80,7 @@ describe("recall() Integration", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "dark mode preference",
       });
@@ -93,7 +93,7 @@ describe("recall() Integration", () => {
       const conversationId = ctx.conversationId("userfilter");
       const specificUserId = ctx.userId("specific");
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "This is a user-specific message",
@@ -104,7 +104,7 @@ describe("recall() Integration", () => {
       });
 
       // Recall with userId filter should find it
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "user-specific message",
         userId: specificUserId,
@@ -123,7 +123,7 @@ describe("recall() Integration", () => {
       const conversationId = ctx.conversationId("multilayer");
 
       // Store with fact extraction
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "Call me Alex, I work at TechCorp",
@@ -149,7 +149,7 @@ describe("recall() Integration", () => {
         ],
       });
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "Alex TechCorp",
       });
@@ -164,7 +164,7 @@ describe("recall() Integration", () => {
       const conversationId = ctx.conversationId("dedup");
 
       // Store a distinctive message
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "My password hint is starlight123",
@@ -174,7 +174,7 @@ describe("recall() Integration", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "password hint starlight",
       });
@@ -190,7 +190,7 @@ describe("recall() Integration", () => {
       const conversationId2 = ctx.conversationId("rank2");
 
       // Store two messages with different relevance to the query
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conversationId1,
         userMessage: "I love Python programming",
@@ -201,7 +201,7 @@ describe("recall() Integration", () => {
         importance: 90,
       });
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conversationId2,
         userMessage: "The weather is nice today",
@@ -212,7 +212,7 @@ describe("recall() Integration", () => {
         importance: 50,
       });
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "Python programming",
       });
@@ -239,7 +239,7 @@ describe("recall() Integration", () => {
 
   describe("result options", () => {
     it("respects limit parameter", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limit: 3,
@@ -249,7 +249,7 @@ describe("recall() Integration", () => {
     });
 
     it("generates LLM context by default", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
       });
@@ -262,7 +262,7 @@ describe("recall() Integration", () => {
     });
 
     it("skips LLM context when formatForLLM is false", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test query",
         formatForLLM: false,
@@ -274,7 +274,7 @@ describe("recall() Integration", () => {
     it("includes conversation enrichment by default", async () => {
       const conversationId = ctx.conversationId("enrich");
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "Remember this enrichment test",
@@ -284,7 +284,7 @@ describe("recall() Integration", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "enrichment test",
         includeConversation: true,
@@ -306,7 +306,7 @@ describe("recall() Integration", () => {
 
   describe("source control", () => {
     it("can disable vector source", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         sources: {
@@ -321,7 +321,7 @@ describe("recall() Integration", () => {
     });
 
     it("can disable facts source", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         sources: {
@@ -342,7 +342,7 @@ describe("recall() Integration", () => {
 
   describe("result metadata", () => {
     it("includes query timing", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
       });
@@ -352,7 +352,7 @@ describe("recall() Integration", () => {
     });
 
     it("includes total results count", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
       });
@@ -362,7 +362,7 @@ describe("recall() Integration", () => {
     });
 
     it("reports graph expansion status", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
       });
@@ -372,7 +372,7 @@ describe("recall() Integration", () => {
     });
 
     it("includes source breakdown", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
       });
@@ -393,7 +393,7 @@ describe("recall() Integration", () => {
 
   describe("configurable limits", () => {
     it("respects limits.total parameter", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limits: {
@@ -405,7 +405,7 @@ describe("recall() Integration", () => {
     });
 
     it("backward compatible: limit param maps to limits.total", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limit: 2,
@@ -415,7 +415,7 @@ describe("recall() Integration", () => {
     });
 
     it("limits.total takes precedence over legacy limit", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limit: 10, // Legacy param
@@ -428,7 +428,7 @@ describe("recall() Integration", () => {
     });
 
     it("respects limits.memories for vector search", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limits: {
@@ -447,7 +447,7 @@ describe("recall() Integration", () => {
     });
 
     it("respects limits.facts for facts search", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limits: {
@@ -466,7 +466,7 @@ describe("recall() Integration", () => {
     });
 
     it("disables graph expansion when graphHops is 0", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limits: {
@@ -481,7 +481,7 @@ describe("recall() Integration", () => {
 
     it("accepts all limit parameters without error", async () => {
       // Test that all limit parameters are accepted and don't cause errors
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "test",
         limits: {
@@ -507,7 +507,7 @@ describe("recall() Integration", () => {
     it("handles empty memory space gracefully", async () => {
       const emptySpaceId = ctx.memorySpaceId("empty");
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: emptySpaceId,
         query: "anything",
       });
@@ -518,7 +518,7 @@ describe("recall() Integration", () => {
     });
 
     it("handles special characters in query", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: 'user\'s preference (test) & "quoted"',
       });
@@ -531,7 +531,7 @@ describe("recall() Integration", () => {
     it("handles very long queries", async () => {
       const longQuery = "test ".repeat(100);
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: longQuery,
       });

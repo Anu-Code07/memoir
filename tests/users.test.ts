@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Users API E2E Tests
+ * Memoir SDK - Users API E2E Tests
  *
  * Tests the complete Users API implementation:
  * - SDK API calls
@@ -11,7 +11,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import {
@@ -27,7 +27,7 @@ describe("Users API (Coordination Layer)", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("users");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   let graphAdapter: GraphAdapter | undefined;
@@ -72,7 +72,7 @@ describe("Users API (Coordination Layer)", () => {
     }
 
     // Initialize SDK with optional graph adapter
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       ...(graphAdapter && {
         graph: {
@@ -110,7 +110,7 @@ describe("Users API (Coordination Layer)", () => {
       }
     }
 
-    cortex.close();
+    memoir.close();
     await client.close();
 
     // Close graph adapter connection if it exists
@@ -136,7 +136,7 @@ describe("Users API (Coordination Layer)", () => {
       // Use context generator for unique ID
       const userId = ctx.userId("create");
 
-      const result = await cortex.users.update(userId, {
+      const result = await memoir.users.update(userId, {
         displayName: "Alice",
         email: "alice@example.com",
         preferences: {
@@ -170,10 +170,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("get");
 
       // Create user first
-      await cortex.users.update(userId, { displayName: "Alice" });
+      await memoir.users.update(userId, { displayName: "Alice" });
 
       // Then retrieve it
-      const result = await cortex.users.get(userId);
+      const result = await memoir.users.get(userId);
 
       expect(result).not.toBeNull();
       expect(result!.id).toBe(userId);
@@ -185,13 +185,13 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("update");
 
       // Create initial version
-      await cortex.users.update(userId, {
+      await memoir.users.update(userId, {
         displayName: "Alice",
         email: "alice@example.com",
       });
 
       // Update to create version 2
-      const result = await cortex.users.update(userId, {
+      const result = await memoir.users.update(userId, {
         displayName: "Alice Johnson",
         email: "alice.j@example.com",
         preferences: {
@@ -215,7 +215,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("returns null for non-existent user", async () => {
-      const result = await cortex.users.get("non-existent-user");
+      const result = await memoir.users.get("non-existent-user");
       expect(result).toBeNull();
     });
   });
@@ -227,12 +227,12 @@ describe("Users API (Coordination Layer)", () => {
       const userId2 = ctx.userId("list-2");
       const userId3 = ctx.userId("list-3");
 
-      await cortex.users.update(userId1, { name: "Bob" });
-      await cortex.users.update(userId2, { name: "Charlie" });
-      await cortex.users.update(userId3, { name: "Dave" });
+      await memoir.users.update(userId1, { name: "Bob" });
+      await memoir.users.update(userId2, { name: "Charlie" });
+      await memoir.users.update(userId3, { name: "Dave" });
 
       // Filter to only users from this test run for accurate count
-      const testRunUsers = await listUsers(cortex, ctx);
+      const testRunUsers = await listUsers(memoir, ctx);
 
       expect(testRunUsers.length).toBeGreaterThanOrEqual(3);
       expect(testRunUsers.some((u) => u.id === userId1)).toBe(true);
@@ -241,14 +241,14 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("lists users with limit", async () => {
-      const results = await cortex.users.list({ limit: 2 });
+      const results = await memoir.users.list({ limit: 2 });
 
       expect(results.users.length).toBeLessThanOrEqual(2);
     });
 
     it("counts users", async () => {
       // Use filtered count for parallel-safe assertion
-      const testRunUserCount = await countUsers(cortex, ctx);
+      const testRunUserCount = await countUsers(memoir, ctx);
 
       // Should have users from this test run's previous tests
       expect(testRunUserCount).toBeGreaterThanOrEqual(1);
@@ -257,9 +257,9 @@ describe("Users API (Coordination Layer)", () => {
     it("should filter by createdAfter timestamp", async () => {
       const userId = ctx.userId("filter-created-after");
       const beforeCreate = Date.now();
-      await cortex.users.update(userId, { name: "CreatedAfter Test" });
+      await memoir.users.update(userId, { name: "CreatedAfter Test" });
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         createdAfter: beforeCreate - 1000, // 1 second before
       });
 
@@ -270,10 +270,10 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should filter by createdBefore timestamp", async () => {
       const userId = ctx.userId("filter-created-before");
-      await cortex.users.update(userId, { name: "CreatedBefore Test" });
+      await memoir.users.update(userId, { name: "CreatedBefore Test" });
       const afterCreate = Date.now() + 1000;
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         createdBefore: afterCreate,
       });
 
@@ -284,11 +284,11 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should filter by updatedAfter timestamp", async () => {
       const userId = ctx.userId("filter-updated-after");
-      await cortex.users.update(userId, { name: "Initial" });
+      await memoir.users.update(userId, { name: "Initial" });
       const beforeUpdate = Date.now();
-      await cortex.users.update(userId, { name: "Updated" });
+      await memoir.users.update(userId, { name: "Updated" });
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         updatedAfter: beforeUpdate - 100,
       });
 
@@ -297,10 +297,10 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should filter by updatedBefore timestamp", async () => {
       const userId = ctx.userId("filter-updated-before");
-      await cortex.users.update(userId, { name: "Test" });
+      await memoir.users.update(userId, { name: "Test" });
       const afterUpdate = Date.now() + 1000;
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         updatedBefore: afterUpdate,
       });
 
@@ -309,11 +309,11 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should apply displayName filter (case-insensitive)", async () => {
       const userId = ctx.userId("filter-displayname");
-      await cortex.users.update(userId, {
+      await memoir.users.update(userId, {
         displayName: "UniqueDisplayName123",
       });
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         displayName: "uniquedisplayname", // lowercase
       });
 
@@ -324,9 +324,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should apply email filter (case-insensitive)", async () => {
       const userId = ctx.userId("filter-email");
-      await cortex.users.update(userId, { email: "UniqueEmail123@Test.Com" });
+      await memoir.users.update(userId, { email: "UniqueEmail123@Test.Com" });
 
-      const results = await cortex.users.list({
+      const results = await memoir.users.list({
         email: "uniqueemail123@test", // lowercase, partial
       });
 
@@ -337,7 +337,7 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should sort by createdAt (asc/desc)", async () => {
       // Sort descending
-      const desc = await cortex.users.list({
+      const desc = await memoir.users.list({
         sortBy: "createdAt",
         sortOrder: "desc",
         limit: 10,
@@ -350,7 +350,7 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Sort ascending
-      const asc = await cortex.users.list({
+      const asc = await memoir.users.list({
         sortBy: "createdAt",
         sortOrder: "asc",
         limit: 10,
@@ -365,7 +365,7 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should sort by updatedAt (asc/desc)", async () => {
       // Sort descending
-      const desc = await cortex.users.list({
+      const desc = await memoir.users.list({
         sortBy: "updatedAt",
         sortOrder: "desc",
         limit: 10,
@@ -380,9 +380,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should paginate with offset", async () => {
       // Get first page
-      const page1 = await cortex.users.list({ limit: 2, offset: 0 });
+      const page1 = await memoir.users.list({ limit: 2, offset: 0 });
       // Get second page
-      const page2 = await cortex.users.list({ limit: 2, offset: 2 });
+      const page2 = await memoir.users.list({ limit: 2, offset: 2 });
 
       // Pages should have no overlap (unless total < 3)
       if (page1.users.length === 2 && page2.users.length > 0) {
@@ -395,12 +395,12 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should return hasMore correctly", async () => {
       // Create enough users to test pagination
-      await cortex.users.update(ctx.userId("hasmore-1"), { name: "HasMore1" });
-      await cortex.users.update(ctx.userId("hasmore-2"), { name: "HasMore2" });
-      await cortex.users.update(ctx.userId("hasmore-3"), { name: "HasMore3" });
+      await memoir.users.update(ctx.userId("hasmore-1"), { name: "HasMore1" });
+      await memoir.users.update(ctx.userId("hasmore-2"), { name: "HasMore2" });
+      await memoir.users.update(ctx.userId("hasmore-3"), { name: "HasMore3" });
 
       // Request with small limit
-      const results = await cortex.users.list({ limit: 1 });
+      const results = await memoir.users.list({ limit: 1 });
 
       // If there are more users than requested, hasMore should be true
       if (results.total > results.limit) {
@@ -412,17 +412,17 @@ describe("Users API (Coordination Layer)", () => {
   describe("search()", () => {
     beforeAll(async () => {
       // Create test users for search tests
-      await cortex.users.update(ctx.userId("search-alice"), {
+      await memoir.users.update(ctx.userId("search-alice"), {
         displayName: "Alice Smith",
         email: "alice@example.com",
         role: "admin",
       });
-      await cortex.users.update(ctx.userId("search-bob"), {
+      await memoir.users.update(ctx.userId("search-bob"), {
         displayName: "Bob Johnson",
         email: "bob@example.com",
         role: "user",
       });
-      await cortex.users.update(ctx.userId("search-charlie"), {
+      await memoir.users.update(ctx.userId("search-charlie"), {
         displayName: "Charlie Brown",
         email: "charlie@test.org",
         role: "user",
@@ -432,7 +432,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should return users matching displayName filter", async () => {
-      const results = await cortex.users.search({
+      const results = await memoir.users.search({
         displayName: "alice",
       });
 
@@ -443,7 +443,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should return users matching email filter", async () => {
-      const results = await cortex.users.search({
+      const results = await memoir.users.search({
         email: "example.com",
       });
 
@@ -459,7 +459,7 @@ describe("Users API (Coordination Layer)", () => {
       const oneHourAgo = now - 60 * 60 * 1000;
 
       // Search for users created in the last hour
-      const results = await cortex.users.search({
+      const results = await memoir.users.search({
         createdAfter: oneHourAgo,
       });
 
@@ -472,7 +472,7 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should support pagination (limit/offset)", async () => {
       // Get first page - must specify sortBy for deterministic pagination
-      const page1 = await cortex.users.search({
+      const page1 = await memoir.users.search({
         limit: 2,
         sortBy: "createdAt",
         sortOrder: "asc",
@@ -480,7 +480,7 @@ describe("Users API (Coordination Layer)", () => {
       expect(page1.length).toBeLessThanOrEqual(2);
 
       // Get second page with same sort order
-      const page2 = await cortex.users.search({
+      const page2 = await memoir.users.search({
         limit: 2,
         offset: 2,
         sortBy: "createdAt",
@@ -498,7 +498,7 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should support sorting (sortBy/sortOrder)", async () => {
       // Sort by createdAt descending (newest first)
-      const desc = await cortex.users.search({
+      const desc = await memoir.users.search({
         sortBy: "createdAt",
         sortOrder: "desc",
         limit: 10,
@@ -510,7 +510,7 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Sort by createdAt ascending (oldest first)
-      const asc = await cortex.users.search({
+      const asc = await memoir.users.search({
         sortBy: "createdAt",
         sortOrder: "asc",
         limit: 10,
@@ -523,7 +523,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should return empty array when no matches", async () => {
-      const results = await cortex.users.search({
+      const results = await memoir.users.search({
         displayName: "ZZZNONEXISTENT12345",
       });
 
@@ -531,7 +531,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should throw on invalid filter structure", async () => {
-      await expect(cortex.users.search({ limit: -5 })).rejects.toThrow(
+      await expect(memoir.users.search({ limit: -5 })).rejects.toThrow(
         "limit must be between 1 and 1000",
       );
     });
@@ -540,14 +540,14 @@ describe("Users API (Coordination Layer)", () => {
   describe("exists()", () => {
     it("returns true for existing user", async () => {
       const userId = ctx.userId("exists");
-      await cortex.users.update(userId, { name: "Exists Test" });
+      await memoir.users.update(userId, { name: "Exists Test" });
 
-      const exists = await cortex.users.exists(userId);
+      const exists = await memoir.users.exists(userId);
       expect(exists).toBe(true);
     });
 
     it("returns false for non-existent user", async () => {
-      const exists = await cortex.users.exists(
+      const exists = await memoir.users.exists(
         "non-existent-user-" + Date.now(),
       );
       expect(exists).toBe(false);
@@ -563,13 +563,13 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("version-test");
 
       // Create user with multiple versions
-      await cortex.users.update(userId, { name: "Version 1" });
-      await cortex.users.update(userId, { name: "Version 2" });
-      await cortex.users.update(userId, { name: "Version 3" });
+      await memoir.users.update(userId, { name: "Version 1" });
+      await memoir.users.update(userId, { name: "Version 2" });
+      await memoir.users.update(userId, { name: "Version 3" });
 
-      const v1 = await cortex.users.getVersion(userId, 1);
-      const v2 = await cortex.users.getVersion(userId, 2);
-      const v3 = await cortex.users.getVersion(userId, 3);
+      const v1 = await memoir.users.getVersion(userId, 1);
+      const v2 = await memoir.users.getVersion(userId, 2);
+      const v3 = await memoir.users.getVersion(userId, 3);
 
       expect(v1).not.toBeNull();
       expect(v1!.version).toBe(1);
@@ -588,14 +588,14 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("version-history");
 
       // Create user with multiple versions
-      await cortex.users.update(userId, { name: "Version 1" });
+      await memoir.users.update(userId, { name: "Version 1" });
       await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
-      await cortex.users.update(userId, { name: "Version 2" });
+      await memoir.users.update(userId, { name: "Version 2" });
       await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
-      await cortex.users.update(userId, { name: "Version 3" });
+      await memoir.users.update(userId, { name: "Version 3" });
       await new Promise((resolve) => setTimeout(resolve, 50)); // Wait for final persist
 
-      const history = await cortex.users.getHistory(userId);
+      const history = await memoir.users.getHistory(userId);
 
       // Debug: Log actual order
       console.log(
@@ -632,12 +632,12 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("version-timestamp");
 
       // Create user with multiple versions
-      await cortex.users.update(userId, { name: "Version 1" });
-      await cortex.users.update(userId, { name: "Version 2" });
-      await cortex.users.update(userId, { name: "Version 3" });
+      await memoir.users.update(userId, { name: "Version 1" });
+      await memoir.users.update(userId, { name: "Version 2" });
+      await memoir.users.update(userId, { name: "Version 3" });
 
       const now = new Date();
-      const result = await cortex.users.getAtTimestamp(userId, now);
+      const result = await memoir.users.getAtTimestamp(userId, now);
 
       expect(result).not.toBeNull();
       expect(result!.data.name).toBe("Version 3"); // Current version
@@ -651,9 +651,9 @@ describe("Users API (Coordination Layer)", () => {
   describe("delete() - simple mode", () => {
     it("deletes user profile only (no cascade)", async () => {
       const userId = ctx.userId("simple-delete");
-      await cortex.users.update(userId, { name: "To Delete" });
+      await memoir.users.update(userId, { name: "To Delete" });
 
-      const result = await cortex.users.delete(userId);
+      const result = await memoir.users.delete(userId);
 
       expect(result.userId).toBe(userId);
       expect(result.totalDeleted).toBe(1);
@@ -665,7 +665,7 @@ describe("Users API (Coordination Layer)", () => {
       expect(result.factsDeleted).toBe(0);
 
       // Verify user is deleted
-      const user = await cortex.users.get(userId);
+      const user = await memoir.users.get(userId);
       expect(user).toBeNull();
     });
   });
@@ -680,10 +680,10 @@ describe("Users API (Coordination Layer)", () => {
       const CASCADE_SPACE_ID = ctx.memorySpaceId("cascade-test");
 
       // Create user
-      await cortex.users.update(CASCADE_USER_ID, { name: "Cascade Test" });
+      await memoir.users.update(CASCADE_USER_ID, { name: "Cascade Test" });
 
       // Create conversation with userId
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: CASCADE_SPACE_ID,
         type: "user-agent",
         participants: {
@@ -693,7 +693,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       // Create immutable record with userId
-      await cortex.immutable.store({
+      await memoir.immutable.store({
         type: ctx.immutableType("feedback"),
         id: ctx.immutableId("feedback-cascade"),
         data: { rating: 5 },
@@ -703,7 +703,7 @@ describe("Users API (Coordination Layer)", () => {
       // Create mutable record with userId
       // Note: Using standard "user-sessions" namespace so cascade deletion can find it
       // (cascade deletion only searches predefined common namespaces)
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         "user-sessions",
         ctx.mutableKey("session-cascade"),
         { active: true },
@@ -712,7 +712,7 @@ describe("Users API (Coordination Layer)", () => {
 
       // Create vector memory with userId (requires memory space registration)
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: CASCADE_SPACE_ID,
           type: "personal",
         });
@@ -720,7 +720,7 @@ describe("Users API (Coordination Layer)", () => {
         // May already exist
       }
 
-      await cortex.vector.store(CASCADE_SPACE_ID, {
+      await memoir.vector.store(CASCADE_SPACE_ID, {
         content: "Test memory",
         contentType: "raw",
         userId: CASCADE_USER_ID,
@@ -737,21 +737,21 @@ describe("Users API (Coordination Layer)", () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Verify test data was created before deletion
-      const verifyImmutable = await cortex.immutable.list({
+      const verifyImmutable = await memoir.immutable.list({
         userId: CASCADE_USER_ID,
       });
       console.log(
         `  ℹ️  Setup verification: ${verifyImmutable.length} immutable records with userId`,
       );
 
-      const verifyConvos = await cortex.conversations.list({
+      const verifyConvos = await memoir.conversations.list({
         userId: CASCADE_USER_ID,
       });
       console.log(
         `  ℹ️  Setup verification: ${verifyConvos.conversations.length} conversations`,
       );
 
-      const verifyVector = await cortex.vector.list({
+      const verifyVector = await memoir.vector.list({
         memorySpaceId: CASCADE_SPACE_ID,
         userId: CASCADE_USER_ID,
       });
@@ -792,7 +792,7 @@ describe("Users API (Coordination Layer)", () => {
         }
       }
 
-      const result = await cortex.users.delete(CASCADE_USER_ID, {
+      const result = await memoir.users.delete(CASCADE_USER_ID, {
         cascade: true,
       });
 
@@ -835,11 +835,11 @@ describe("Users API (Coordination Layer)", () => {
       expect(result.verification.issues).toBeDefined();
 
       // Verify user is deleted
-      const user = await cortex.users.get(CASCADE_USER_ID);
+      const user = await memoir.users.get(CASCADE_USER_ID);
       expect(user).toBeNull();
 
       // Verify conversation is deleted
-      const convos = await cortex.conversations.list({
+      const convos = await memoir.conversations.list({
         userId: CASCADE_USER_ID,
       });
       expect(convos.conversations).toHaveLength(0);
@@ -848,7 +848,7 @@ describe("Users API (Coordination Layer)", () => {
       // Instead, verification happens through the userId query which confirmed 0 results
 
       // Verify vector is deleted
-      const vector = await cortex.vector.list({
+      const vector = await memoir.vector.list({
         memorySpaceId: CASCADE_SPACE_ID,
         userId: CASCADE_USER_ID,
       });
@@ -861,9 +861,9 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("dry-run-test");
 
       // Create user with data
-      await cortex.users.update(userId, { name: "Dry Run Test" });
+      await memoir.users.update(userId, { name: "Dry Run Test" });
 
-      const result = await cortex.users.delete(userId, {
+      const result = await memoir.users.delete(userId, {
         cascade: true,
         dryRun: true,
       });
@@ -874,7 +874,7 @@ describe("Users API (Coordination Layer)", () => {
       expect(result.verification.issues[0]).toContain("DRY RUN");
 
       // Verify user still exists
-      const user = await cortex.users.get(userId);
+      const user = await memoir.users.get(userId);
       expect(user).not.toBeNull();
       expect(user!.id).toBe(userId);
     });
@@ -883,9 +883,9 @@ describe("Users API (Coordination Layer)", () => {
   describe("delete() - verification", () => {
     it("runs verification step after deletion", async () => {
       const userId = ctx.userId("verify-test");
-      await cortex.users.update(userId, { name: "Verify Test" });
+      await memoir.users.update(userId, { name: "Verify Test" });
 
-      const result = await cortex.users.delete(userId, {
+      const result = await memoir.users.delete(userId, {
         cascade: true,
         verify: true, // Explicit (default is true)
       });
@@ -917,9 +917,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("skips verification when disabled", async () => {
       const userId = ctx.userId("verify-skip");
-      await cortex.users.update(userId, { name: "Skip Verify" });
+      await memoir.users.update(userId, { name: "Skip Verify" });
 
-      const result = await cortex.users.delete(userId, {
+      const result = await memoir.users.delete(userId, {
         cascade: true,
         verify: false,
       });
@@ -938,10 +938,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId1 = ctx.userId("export-json-1");
       const userId2 = ctx.userId("export-json-2");
 
-      await cortex.users.update(userId1, { name: "Export 1" });
-      await cortex.users.update(userId2, { name: "Export 2" });
+      await memoir.users.update(userId1, { name: "Export 1" });
+      await memoir.users.update(userId2, { name: "Export 2" });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
       });
 
@@ -954,9 +954,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("exports users as CSV", async () => {
       const userId = ctx.userId("export-csv");
-      await cortex.users.update(userId, { name: "Export CSV" });
+      await memoir.users.update(userId, { name: "Export CSV" });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "csv",
       });
 
@@ -973,64 +973,64 @@ describe("Users API (Coordination Layer)", () => {
   describe("Client-Side Validation", () => {
     describe("get() validation", () => {
       it("should throw on empty userId", async () => {
-        await expect(cortex.users.get("")).rejects.toThrow(
+        await expect(memoir.users.get("")).rejects.toThrow(
           "userId cannot be empty",
         );
       });
 
       it("should throw on whitespace-only userId", async () => {
-        await expect(cortex.users.get("   ")).rejects.toThrow(
+        await expect(memoir.users.get("   ")).rejects.toThrow(
           "userId cannot be empty",
         );
       });
 
       it("should throw on null userId", async () => {
-        await expect(cortex.users.get(null as any)).rejects.toThrow(
+        await expect(memoir.users.get(null as any)).rejects.toThrow(
           "userId is required",
         );
       });
 
       it("should throw on undefined userId", async () => {
-        await expect(cortex.users.get(undefined as any)).rejects.toThrow(
+        await expect(memoir.users.get(undefined as any)).rejects.toThrow(
           "userId is required",
         );
       });
 
       it("should accept valid userId", async () => {
         // Should not throw - may return null but validates
-        await cortex.users.get("valid-user-123");
+        await memoir.users.get("valid-user-123");
         // No assertion needed - just checking it doesn't throw
       });
     });
 
     describe("update() validation", () => {
       it("should throw on empty userId", async () => {
-        await expect(cortex.users.update("", { name: "Test" })).rejects.toThrow(
+        await expect(memoir.users.update("", { name: "Test" })).rejects.toThrow(
           "userId cannot be empty",
         );
       });
 
       it("should throw on null data", async () => {
         await expect(
-          cortex.users.update("user-123", null as any),
+          memoir.users.update("user-123", null as any),
         ).rejects.toThrow("data is required");
       });
 
       it("should throw on undefined data", async () => {
         await expect(
-          cortex.users.update("user-123", undefined as any),
+          memoir.users.update("user-123", undefined as any),
         ).rejects.toThrow("data is required");
       });
 
       it("should throw on array data", async () => {
         await expect(
-          cortex.users.update("user-123", [] as any),
+          memoir.users.update("user-123", [] as any),
         ).rejects.toThrow("data must be an object");
       });
 
       it("should accept valid userId and data", async () => {
         // Should succeed
-        const result = await cortex.users.update(ctx.userId("valid"), {
+        const result = await memoir.users.update(ctx.userId("valid"), {
           name: "Test",
         });
         expect(result.id).toBeTruthy();
@@ -1039,16 +1039,16 @@ describe("Users API (Coordination Layer)", () => {
 
     describe("delete() validation", () => {
       it("should throw on empty userId", async () => {
-        await expect(cortex.users.delete("")).rejects.toThrow(
+        await expect(memoir.users.delete("")).rejects.toThrow(
           "userId cannot be empty",
         );
       });
 
       it("should accept valid options", async () => {
         const userId = ctx.userId("delete-test");
-        await cortex.users.update(userId, { name: "Test" });
+        await memoir.users.update(userId, { name: "Test" });
 
-        const result = await cortex.users.delete(userId, {
+        const result = await memoir.users.delete(userId, {
           cascade: false,
           verify: true,
           dryRun: false,
@@ -1059,62 +1059,62 @@ describe("Users API (Coordination Layer)", () => {
 
     describe("list() validation", () => {
       it("should throw on invalid limit (< 1)", async () => {
-        await expect(cortex.users.list({ limit: 0 })).rejects.toThrow(
+        await expect(memoir.users.list({ limit: 0 })).rejects.toThrow(
           "limit must be between 1 and 1000",
         );
       });
 
       it("should throw on invalid limit (> 1000)", async () => {
-        await expect(cortex.users.list({ limit: 1001 })).rejects.toThrow(
+        await expect(memoir.users.list({ limit: 1001 })).rejects.toThrow(
           "limit must be between 1 and 1000",
         );
       });
 
       it("should throw on negative limit", async () => {
-        await expect(cortex.users.list({ limit: -5 })).rejects.toThrow(
+        await expect(memoir.users.list({ limit: -5 })).rejects.toThrow(
           "limit must be between 1 and 1000",
         );
       });
 
       it("should accept valid limit", async () => {
-        const result = await cortex.users.list({ limit: 10 });
+        const result = await memoir.users.list({ limit: 10 });
         expect(Array.isArray(result.users)).toBe(true);
       });
 
       it("should accept undefined filters", async () => {
-        const result = await cortex.users.list();
+        const result = await memoir.users.list();
         expect(Array.isArray(result.users)).toBe(true);
       });
     });
 
     describe("getVersion() validation", () => {
       it("should throw on invalid version (< 1)", async () => {
-        await expect(cortex.users.getVersion("user-123", 0)).rejects.toThrow(
+        await expect(memoir.users.getVersion("user-123", 0)).rejects.toThrow(
           "version must be >= 1",
         );
       });
 
       it("should throw on negative version", async () => {
-        await expect(cortex.users.getVersion("user-123", -1)).rejects.toThrow(
+        await expect(memoir.users.getVersion("user-123", -1)).rejects.toThrow(
           "version must be >= 1",
         );
       });
 
       it("should throw on non-integer version", async () => {
-        await expect(cortex.users.getVersion("user-123", 1.5)).rejects.toThrow(
+        await expect(memoir.users.getVersion("user-123", 1.5)).rejects.toThrow(
           "version must be an integer",
         );
       });
 
       it("should throw on NaN version", async () => {
-        await expect(cortex.users.getVersion("user-123", NaN)).rejects.toThrow(
+        await expect(memoir.users.getVersion("user-123", NaN)).rejects.toThrow(
           "version must be a valid number",
         );
       });
 
       it("should accept valid version", async () => {
         // May return null but validates
-        await cortex.users.getVersion("user-123", 1);
+        await memoir.users.getVersion("user-123", 1);
         // No error means validation passed
       });
     });
@@ -1123,18 +1123,18 @@ describe("Users API (Coordination Layer)", () => {
       it("should throw on invalid Date", async () => {
         const invalidDate = new Date("invalid");
         await expect(
-          cortex.users.getAtTimestamp("user-123", invalidDate),
+          memoir.users.getAtTimestamp("user-123", invalidDate),
         ).rejects.toThrow("timestamp must be a valid numeric timestamp");
       });
 
       it("should throw on null Date", async () => {
         await expect(
-          cortex.users.getAtTimestamp("user-123", null as any),
+          memoir.users.getAtTimestamp("user-123", null as any),
         ).rejects.toThrow(); // Throws when trying to call .getTime() on null
       });
 
       it("should accept valid Date", async () => {
-        await cortex.users.getAtTimestamp("user-123", new Date());
+        await memoir.users.getAtTimestamp("user-123", new Date());
         // No error means validation passed
       });
     });
@@ -1142,25 +1142,25 @@ describe("Users API (Coordination Layer)", () => {
     describe("getOrCreate() validation", () => {
       it("should throw on empty userId", async () => {
         await expect(
-          cortex.users.getOrCreate("", { name: "Test" }),
+          memoir.users.getOrCreate("", { name: "Test" }),
         ).rejects.toThrow("userId cannot be empty");
       });
 
       it("should throw on invalid defaults type", async () => {
         await expect(
-          cortex.users.getOrCreate("user-123", [] as any),
+          memoir.users.getOrCreate("user-123", [] as any),
         ).rejects.toThrow("defaults must be an object");
       });
 
       it("should accept valid userId with no defaults", async () => {
-        const result = await cortex.users.getOrCreate(
+        const result = await memoir.users.getOrCreate(
           ctx.userId("no-defaults"),
         );
         expect(result).toBeDefined();
       });
 
       it("should accept valid userId with defaults", async () => {
-        const result = await cortex.users.getOrCreate(
+        const result = await memoir.users.getOrCreate(
           ctx.userId("with-defaults"),
           { name: "Test" },
         );
@@ -1170,19 +1170,19 @@ describe("Users API (Coordination Layer)", () => {
 
     describe("merge() validation", () => {
       it("should throw on empty userId", async () => {
-        await expect(cortex.users.merge("", { name: "Test" })).rejects.toThrow(
+        await expect(memoir.users.merge("", { name: "Test" })).rejects.toThrow(
           "userId cannot be empty",
         );
       });
 
       it("should throw on null updates", async () => {
         await expect(
-          cortex.users.merge("user-123", null as any),
+          memoir.users.merge("user-123", null as any),
         ).rejects.toThrow("updates is required");
       });
 
       it("should throw on array updates", async () => {
-        await expect(cortex.users.merge("user-123", [] as any)).rejects.toThrow(
+        await expect(memoir.users.merge("user-123", [] as any)).rejects.toThrow(
           "updates must be an object",
         );
       });
@@ -1191,17 +1191,17 @@ describe("Users API (Coordination Layer)", () => {
     describe("export() validation", () => {
       it("should throw on invalid format", async () => {
         await expect(
-          cortex.users.export({ format: "xml" as any }),
+          memoir.users.export({ format: "xml" as any }),
         ).rejects.toThrow("Invalid export format");
       });
 
       it("should accept json format", async () => {
-        const result = await cortex.users.export({ format: "json" });
+        const result = await memoir.users.export({ format: "json" });
         expect(result).toBeTruthy();
       });
 
       it("should accept csv format", async () => {
-        const result = await cortex.users.export({ format: "csv" });
+        const result = await memoir.users.export({ format: "csv" });
         expect(result).toBeTruthy();
       });
     });
@@ -1209,33 +1209,33 @@ describe("Users API (Coordination Layer)", () => {
     describe("updateMany() validation", () => {
       it("should throw on empty userIds array", async () => {
         await expect(
-          cortex.users.updateMany([], { data: { name: "Test" } }),
+          memoir.users.updateMany([], { data: { name: "Test" } }),
         ).rejects.toThrow("userIds array cannot be empty");
       });
 
       it("should throw on array with > 100 userIds", async () => {
         const tooManyIds = Array.from({ length: 101 }, (_, i) => `user-${i}`);
         await expect(
-          cortex.users.updateMany(tooManyIds, { data: { name: "Test" } }),
+          memoir.users.updateMany(tooManyIds, { data: { name: "Test" } }),
         ).rejects.toThrow("userIds array cannot exceed 100 items");
       });
 
       it("should throw on missing updates.data", async () => {
         await expect(
-          cortex.users.updateMany(["user-1"], {} as any),
+          memoir.users.updateMany(["user-1"], {} as any),
         ).rejects.toThrow("updates.data is required");
       });
 
       it("should throw on duplicate userIds", async () => {
         await expect(
-          cortex.users.updateMany(["user-1", "user-1"], {
+          memoir.users.updateMany(["user-1", "user-1"], {
             data: { name: "Test" },
           }),
         ).rejects.toThrow("Duplicate userIds found in array");
       });
 
       it("should accept valid array", async () => {
-        const result = await cortex.users.updateMany(
+        const result = await memoir.users.updateMany(
           ["user-1", "user-2"],
           { data: { name: "Test" } },
           { dryRun: true },
@@ -1246,20 +1246,20 @@ describe("Users API (Coordination Layer)", () => {
 
     describe("deleteMany() validation", () => {
       it("should throw on empty userIds array", async () => {
-        await expect(cortex.users.deleteMany([])).rejects.toThrow(
+        await expect(memoir.users.deleteMany([])).rejects.toThrow(
           "userIds array cannot be empty",
         );
       });
 
       it("should throw on array with > 100 userIds", async () => {
         const tooManyIds = Array.from({ length: 101 }, (_, i) => `user-${i}`);
-        await expect(cortex.users.deleteMany(tooManyIds)).rejects.toThrow(
+        await expect(memoir.users.deleteMany(tooManyIds)).rejects.toThrow(
           "userIds array cannot exceed 100 items",
         );
       });
 
       it("should accept valid array", async () => {
-        const result = await cortex.users.deleteMany(["user-1", "user-2"], {
+        const result = await memoir.users.deleteMany(["user-1", "user-2"], {
           dryRun: true,
         });
         expect(result).toBeDefined();
@@ -1269,7 +1269,7 @@ describe("Users API (Coordination Layer)", () => {
     describe("Error details", () => {
       it("should include error code in thrown errors", async () => {
         try {
-          await cortex.users.get("");
+          await memoir.users.get("");
           fail("Should have thrown");
         } catch (error: any) {
           expect(error.code).toBe("INVALID_USER_ID_FORMAT");
@@ -1279,7 +1279,7 @@ describe("Users API (Coordination Layer)", () => {
 
       it("should include field name in thrown errors", async () => {
         try {
-          await cortex.users.update("", { name: "Test" });
+          await memoir.users.update("", { name: "Test" });
           fail("Should have thrown");
         } catch (error: any) {
           expect(error.field).toBe("userId");
@@ -1299,12 +1299,12 @@ describe("Users API (Coordination Layer)", () => {
       const userId2 = ctx.userId("bulk-update-2");
       const userId3 = ctx.userId("bulk-update-3");
 
-      await cortex.users.update(userId1, { name: "User 1", status: "active" });
-      await cortex.users.update(userId2, { name: "User 2", status: "active" });
-      await cortex.users.update(userId3, { name: "User 3", status: "active" });
+      await memoir.users.update(userId1, { name: "User 1", status: "active" });
+      await memoir.users.update(userId2, { name: "User 2", status: "active" });
+      await memoir.users.update(userId3, { name: "User 3", status: "active" });
 
       // Bulk update
-      const result = await cortex.users.updateMany(
+      const result = await memoir.users.updateMany(
         [userId1, userId2, userId3],
         { data: { status: "premium", tier: "gold" } },
       );
@@ -1316,8 +1316,8 @@ describe("Users API (Coordination Layer)", () => {
       expect(result.userIds).toContain(userId3);
 
       // Verify updates applied
-      const user1 = await cortex.users.get(userId1);
-      const user2 = await cortex.users.get(userId2);
+      const user1 = await memoir.users.get(userId1);
+      const user2 = await memoir.users.get(userId2);
       expect(user1!.data.status).toBe("premium");
       expect(user1!.data.tier).toBe("gold");
       expect(user2!.data.status).toBe("premium");
@@ -1329,11 +1329,11 @@ describe("Users API (Coordination Layer)", () => {
       const userId1 = ctx.userId(`bulk-filter-update-${now}-1`);
       const userId2 = ctx.userId(`bulk-filter-update-${now}-2`);
 
-      await cortex.users.update(userId1, { name: "Filter User 1" });
-      await cortex.users.update(userId2, { name: "Filter User 2" });
+      await memoir.users.update(userId1, { name: "Filter User 1" });
+      await memoir.users.update(userId2, { name: "Filter User 2" });
 
       // Update using filter
-      const result = await cortex.users.updateMany(
+      const result = await memoir.users.updateMany(
         { createdAfter: now - 1000 },
         { data: { filtered: true } },
       );
@@ -1345,10 +1345,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId1 = ctx.userId("count-update-1");
       const userId2 = ctx.userId("count-update-2");
 
-      await cortex.users.update(userId1, { name: "Count 1" });
-      await cortex.users.update(userId2, { name: "Count 2" });
+      await memoir.users.update(userId1, { name: "Count 1" });
+      await memoir.users.update(userId2, { name: "Count 2" });
 
-      const result = await cortex.users.updateMany([userId1, userId2], {
+      const result = await memoir.users.updateMany([userId1, userId2], {
         data: { counted: true },
       });
 
@@ -1358,13 +1358,13 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should skip non-existent users gracefully", async () => {
       const existingUser = ctx.userId("bulk-existing");
-      await cortex.users.update(existingUser, { name: "Existing" });
+      await memoir.users.update(existingUser, { name: "Existing" });
 
       const nonExistentUser = ctx.userId(
         `nonexistent-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       );
 
-      const result = await cortex.users.updateMany(
+      const result = await memoir.users.updateMany(
         [existingUser, nonExistentUser],
         { data: { partial: true } },
       );
@@ -1378,7 +1378,7 @@ describe("Users API (Coordination Layer)", () => {
       // This is a validation test - filter that could match many users
       // We can't easily create 101 users, but we test the limit validation
       await expect(
-        cortex.users.updateMany(
+        memoir.users.updateMany(
           Array.from({ length: 101 }, (_, i) => `user-${i}`),
           { data: { test: true } },
         ),
@@ -1392,19 +1392,19 @@ describe("Users API (Coordination Layer)", () => {
       const userId2 = ctx.userId("bulk-delete-exec-2");
       const userId3 = ctx.userId("bulk-delete-exec-3");
 
-      await cortex.users.update(userId1, { name: "Delete 1" });
-      await cortex.users.update(userId2, { name: "Delete 2" });
-      await cortex.users.update(userId3, { name: "Delete 3" });
+      await memoir.users.update(userId1, { name: "Delete 1" });
+      await memoir.users.update(userId2, { name: "Delete 2" });
+      await memoir.users.update(userId3, { name: "Delete 3" });
 
-      const result = await cortex.users.deleteMany([userId1, userId2, userId3]);
+      const result = await memoir.users.deleteMany([userId1, userId2, userId3]);
 
       expect(result.deleted).toBe(3);
       expect(result.userIds).toHaveLength(3);
 
       // Verify deletion
-      const user1 = await cortex.users.get(userId1);
-      const user2 = await cortex.users.get(userId2);
-      const user3 = await cortex.users.get(userId3);
+      const user1 = await memoir.users.get(userId1);
+      const user2 = await memoir.users.get(userId2);
+      const user3 = await memoir.users.get(userId3);
       expect(user1).toBeNull();
       expect(user2).toBeNull();
       expect(user3).toBeNull();
@@ -1415,11 +1415,11 @@ describe("Users API (Coordination Layer)", () => {
       const userId1 = ctx.userId(`bulk-filter-delete-${now}-1`);
       const userId2 = ctx.userId(`bulk-filter-delete-${now}-2`);
 
-      await cortex.users.update(userId1, { name: "Filter Delete 1" });
-      await cortex.users.update(userId2, { name: "Filter Delete 2" });
+      await memoir.users.update(userId1, { name: "Filter Delete 1" });
+      await memoir.users.update(userId2, { name: "Filter Delete 2" });
 
       // Delete using filter
-      const result = await cortex.users.deleteMany({
+      const result = await memoir.users.deleteMany({
         createdAfter: now - 1000,
         limit: 10, // Limit to avoid deleting too many
       });
@@ -1432,11 +1432,11 @@ describe("Users API (Coordination Layer)", () => {
       const spaceId = ctx.memorySpaceId("bulk-cascade");
 
       // Create user with associated data
-      await cortex.users.update(userId, { name: "Cascade User" });
+      await memoir.users.update(userId, { name: "Cascade User" });
 
       // Register memory space
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "personal",
         });
@@ -1445,23 +1445,23 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId, agentId: "cascade-agent" },
       });
 
       // Delete with cascade
-      const result = await cortex.users.deleteMany([userId], { cascade: true });
+      const result = await memoir.users.deleteMany([userId], { cascade: true });
 
       expect(result.deleted).toBe(1);
 
       // Verify user deleted
-      const user = await cortex.users.get(userId);
+      const user = await memoir.users.get(userId);
       expect(user).toBeNull();
 
       // Verify conversation deleted (cascade)
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck).toBeNull();
     });
 
@@ -1469,10 +1469,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId1 = ctx.userId("delete-count-1");
       const userId2 = ctx.userId("delete-count-2");
 
-      await cortex.users.update(userId1, { name: "Count 1" });
-      await cortex.users.update(userId2, { name: "Count 2" });
+      await memoir.users.update(userId1, { name: "Count 1" });
+      await memoir.users.update(userId2, { name: "Count 2" });
 
-      const result = await cortex.users.deleteMany([userId1, userId2]);
+      const result = await memoir.users.deleteMany([userId1, userId2]);
 
       expect(result.deleted).toBe(2);
       expect(result.userIds.length).toBe(result.deleted);
@@ -1480,7 +1480,7 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should throw when filter matches > 100 users", async () => {
       await expect(
-        cortex.users.deleteMany(
+        memoir.users.deleteMany(
           Array.from({ length: 101 }, (_, i) => `user-${i}`),
         ),
       ).rejects.toThrow("userIds array cannot exceed 100 items");
@@ -1494,11 +1494,11 @@ describe("Users API (Coordination Layer)", () => {
   describe("count() with filters", () => {
     it("should count with createdAfter filter", async () => {
       const beforeCreate = Date.now();
-      await cortex.users.update(ctx.userId("count-created-after"), {
+      await memoir.users.update(ctx.userId("count-created-after"), {
         name: "Count After",
       });
 
-      const count = await cortex.users.count({
+      const count = await memoir.users.count({
         createdAfter: beforeCreate - 1000,
       });
 
@@ -1506,12 +1506,12 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should count with createdBefore filter", async () => {
-      await cortex.users.update(ctx.userId("count-created-before"), {
+      await memoir.users.update(ctx.userId("count-created-before"), {
         name: "Count Before",
       });
       const afterCreate = Date.now() + 1000;
 
-      const count = await cortex.users.count({
+      const count = await memoir.users.count({
         createdBefore: afterCreate,
       });
 
@@ -1520,11 +1520,11 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should count with updatedAfter/Before filters", async () => {
       const beforeUpdate = Date.now();
-      await cortex.users.update(ctx.userId("count-updated"), {
+      await memoir.users.update(ctx.userId("count-updated"), {
         name: "Count Updated",
       });
 
-      const count = await cortex.users.count({
+      const count = await memoir.users.count({
         updatedAfter: beforeUpdate - 1000,
         updatedBefore: Date.now() + 1000,
       });
@@ -1536,7 +1536,7 @@ describe("Users API (Coordination Layer)", () => {
       // Use a future timestamp that no users would match
       const futureTime = Date.now() + 365 * 24 * 60 * 60 * 1000; // 1 year from now
 
-      const count = await cortex.users.count({
+      const count = await memoir.users.count({
         createdAfter: futureTime,
       });
 
@@ -1553,11 +1553,11 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("export-history");
 
       // Create user with multiple versions
-      await cortex.users.update(userId, { name: "Version 1" });
-      await cortex.users.update(userId, { name: "Version 2" });
-      await cortex.users.update(userId, { name: "Version 3" });
+      await memoir.users.update(userId, { name: "Version 1" });
+      await memoir.users.update(userId, { name: "Version 2" });
+      await memoir.users.update(userId, { name: "Version 3" });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
         includeVersionHistory: true,
       });
@@ -1574,11 +1574,11 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("export-convos");
       const spaceId = ctx.memorySpaceId("export-convos");
 
-      await cortex.users.update(userId, { name: "Export Convo User" });
+      await memoir.users.update(userId, { name: "Export Convo User" });
 
       // Register space and create conversation
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "personal",
         });
@@ -1586,13 +1586,13 @@ describe("Users API (Coordination Layer)", () => {
         // May exist
       }
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId, agentId: "export-agent" },
       });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
         includeConversations: true,
       });
@@ -1609,11 +1609,11 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("export-memories");
       const spaceId = ctx.memorySpaceId("export-memories");
 
-      await cortex.users.update(userId, { name: "Export Memory User" });
+      await memoir.users.update(userId, { name: "Export Memory User" });
 
       // Register space
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "personal",
         });
@@ -1622,14 +1622,14 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Create conversation with memory space
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId, agentId: "export-mem-agent" },
       });
 
       // Store memory
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Export test memory",
         contentType: "raw",
         userId,
@@ -1637,7 +1637,7 @@ describe("Users API (Coordination Layer)", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
         includeConversations: true,
         includeMemories: true,
@@ -1653,9 +1653,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should apply filter correctly", async () => {
       const userId = ctx.userId("export-filter");
-      await cortex.users.update(userId, { displayName: "UniqueExportName999" });
+      await memoir.users.update(userId, { displayName: "UniqueExportName999" });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
         filters: { displayName: "UniqueExportName999" },
       });
@@ -1670,7 +1670,7 @@ describe("Users API (Coordination Layer)", () => {
     });
 
     it("should handle empty result set", async () => {
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "json",
         filters: { displayName: "ZZZZNONEXISTENT99999" },
       });
@@ -1681,10 +1681,10 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should include counts in CSV when extra fields requested", async () => {
       const userId = ctx.userId("export-csv-counts");
-      await cortex.users.update(userId, { name: "CSV Test" });
-      await cortex.users.update(userId, { name: "CSV Test v2" });
+      await memoir.users.update(userId, { name: "CSV Test" });
+      await memoir.users.update(userId, { name: "CSV Test v2" });
 
-      const result = await cortex.users.export({
+      const result = await memoir.users.export({
         format: "csv",
         includeVersionHistory: true,
       });
@@ -1701,10 +1701,10 @@ describe("Users API (Coordination Layer)", () => {
   describe("Sad Path - Not Found Scenarios", () => {
     it("getVersion() should return null for non-existent version number", async () => {
       const userId = ctx.userId("version-not-found");
-      await cortex.users.update(userId, { name: "Version Test" });
+      await memoir.users.update(userId, { name: "Version Test" });
 
       // Request version that doesn't exist
-      const result = await cortex.users.getVersion(userId, 999);
+      const result = await memoir.users.getVersion(userId, 999);
       expect(result).toBeNull();
     });
 
@@ -1713,7 +1713,7 @@ describe("Users API (Coordination Layer)", () => {
         `nonexistent-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       );
 
-      const result = await cortex.users.getVersion(nonExistentId, 1);
+      const result = await memoir.users.getVersion(nonExistentId, 1);
       expect(result).toBeNull();
     });
 
@@ -1722,7 +1722,7 @@ describe("Users API (Coordination Layer)", () => {
         `nonexistent-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       );
 
-      const result = await cortex.users.getHistory(nonExistentId);
+      const result = await memoir.users.getHistory(nonExistentId);
       expect(result).toEqual([]);
     });
 
@@ -1730,9 +1730,9 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("timestamp-before-creation");
       const beforeCreate = new Date(Date.now() - 86400000); // 1 day ago
 
-      await cortex.users.update(userId, { name: "Timestamp Test" });
+      await memoir.users.update(userId, { name: "Timestamp Test" });
 
-      const result = await cortex.users.getAtTimestamp(userId, beforeCreate);
+      const result = await memoir.users.getAtTimestamp(userId, beforeCreate);
       expect(result).toBeNull();
     });
   });
@@ -1746,10 +1746,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("cascade-verify-conv");
       const spaceId = ctx.memorySpaceId("cascade-verify-conv");
 
-      await cortex.users.update(userId, { name: "Cascade Conv Test" });
+      await memoir.users.update(userId, { name: "Cascade Conv Test" });
 
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "personal",
         });
@@ -1757,25 +1757,25 @@ describe("Users API (Coordination Layer)", () => {
         // May exist
       }
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId, agentId: "verify-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Test message" },
       });
 
       // Cascade delete
-      const result = await cortex.users.delete(userId, { cascade: true });
+      const result = await memoir.users.delete(userId, { cascade: true });
 
       expect(result.conversationsDeleted).toBeGreaterThanOrEqual(1);
       expect(result.deletedLayers).toContain("conversations");
 
       // Verify conversation is gone
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck).toBeNull();
     });
 
@@ -1783,10 +1783,10 @@ describe("Users API (Coordination Layer)", () => {
       const userId = ctx.userId("cascade-verify-vector");
       const spaceId = ctx.memorySpaceId("cascade-verify-vector");
 
-      await cortex.users.update(userId, { name: "Cascade Vector Test" });
+      await memoir.users.update(userId, { name: "Cascade Vector Test" });
 
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "personal",
         });
@@ -1795,13 +1795,13 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Create conversation for memory space
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId, agentId: "verify-vector-agent" },
       });
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Cascade test memory",
         contentType: "raw",
         userId,
@@ -1810,23 +1810,23 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       // Cascade delete
-      const result = await cortex.users.delete(userId, { cascade: true });
+      const result = await memoir.users.delete(userId, { cascade: true });
 
       expect(result.vectorMemoriesDeleted).toBeGreaterThanOrEqual(1);
       expect(result.deletedLayers).toContain("vector");
 
       // Verify memory is gone
-      const memCheck = await cortex.vector.get(spaceId, mem.memoryId);
+      const memCheck = await memoir.vector.get(spaceId, mem.memoryId);
       expect(memCheck).toBeNull();
     });
 
     it("should verify cascade deletes immutable records", async () => {
       const userId = ctx.userId("cascade-verify-immutable");
 
-      await cortex.users.update(userId, { name: "Cascade Immutable Test" });
+      await memoir.users.update(userId, { name: "Cascade Immutable Test" });
 
       // Create immutable record with userId
-      await cortex.immutable.store({
+      await memoir.immutable.store({
         type: ctx.immutableType("cascade-record"),
         id: ctx.immutableId("cascade-verify"),
         data: { test: true },
@@ -1834,7 +1834,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       // Cascade delete
-      const result = await cortex.users.delete(userId, { cascade: true });
+      const result = await memoir.users.delete(userId, { cascade: true });
 
       expect(result.immutableRecordsDeleted).toBeGreaterThanOrEqual(1);
       expect(result.deletedLayers).toContain("immutable");
@@ -1843,10 +1843,10 @@ describe("Users API (Coordination Layer)", () => {
     it("should verify cascade deletes mutable keys", async () => {
       const userId = ctx.userId("cascade-verify-mutable");
 
-      await cortex.users.update(userId, { name: "Cascade Mutable Test" });
+      await memoir.users.update(userId, { name: "Cascade Mutable Test" });
 
       // Create mutable record with userId in a common namespace
-      await cortex.mutable.set(
+      await memoir.mutable.set(
         "user-sessions",
         ctx.mutableKey("cascade-verify-session"),
         { active: true },
@@ -1854,7 +1854,7 @@ describe("Users API (Coordination Layer)", () => {
       );
 
       // Cascade delete
-      const result = await cortex.users.delete(userId, { cascade: true });
+      const result = await memoir.users.delete(userId, { cascade: true });
 
       expect(result.mutableKeysDeleted).toBeGreaterThanOrEqual(1);
       expect(result.deletedLayers).toContain("mutable");
@@ -1862,9 +1862,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("should verify cascade verification reports issues", async () => {
       const userId = ctx.userId("cascade-verify-report");
-      await cortex.users.update(userId, { name: "Verify Report Test" });
+      await memoir.users.update(userId, { name: "Verify Report Test" });
 
-      const result = await cortex.users.delete(userId, {
+      const result = await memoir.users.delete(userId, {
         cascade: true,
         verify: true,
       });
@@ -1892,7 +1892,7 @@ describe("Users API (Coordination Layer)", () => {
       const nonExistentUserId = ctx.userId(
         `nonexistent-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       );
-      const result = await cortex.users.delete(nonExistentUserId, {
+      const result = await memoir.users.delete(nonExistentUserId, {
         cascade: true,
       });
 
@@ -1903,9 +1903,9 @@ describe("Users API (Coordination Layer)", () => {
 
     it("handles user with no associated data", async () => {
       const userId = ctx.userId("isolated");
-      await cortex.users.update(userId, { name: "Isolated" });
+      await memoir.users.update(userId, { name: "Isolated" });
 
-      const result = await cortex.users.delete(userId, {
+      const result = await memoir.users.delete(userId, {
         cascade: true,
       });
 
@@ -1915,13 +1915,13 @@ describe("Users API (Coordination Layer)", () => {
 
     it("handles concurrent updates correctly", async () => {
       const userId = ctx.userId("concurrent");
-      await cortex.users.update(userId, { name: "Initial" });
+      await memoir.users.update(userId, { name: "Initial" });
 
       // Simulate concurrent updates
       const [r1, r2, r3] = await Promise.all([
-        cortex.users.update(userId, { name: "Update 1" }),
-        cortex.users.update(userId, { name: "Update 2" }),
-        cortex.users.update(userId, { name: "Update 3" }),
+        memoir.users.update(userId, { name: "Update 1" }),
+        memoir.users.update(userId, { name: "Update 2" }),
+        memoir.users.update(userId, { name: "Update 3" }),
       ]);
 
       // All should succeed with different versions
@@ -1930,7 +1930,7 @@ describe("Users API (Coordination Layer)", () => {
       expect(r3.version).toBeGreaterThan(0);
 
       // Final user should have highest version
-      const final = await cortex.users.get(userId);
+      const final = await memoir.users.get(userId);
       expect(final!.version).toBeGreaterThanOrEqual(3);
     });
   });
@@ -1946,13 +1946,13 @@ describe("Users API (Coordination Layer)", () => {
 
     beforeAll(async () => {
       // Create user
-      await cortex.users.update(INTEGRATION_USER_ID, {
+      await memoir.users.update(INTEGRATION_USER_ID, {
         name: "Integration Test",
       });
 
       // Register memory space
       try {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: INTEGRATION_SPACE_ID,
           type: "personal",
         });
@@ -1961,7 +1961,7 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: INTEGRATION_SPACE_ID,
         type: "user-agent",
         participants: {
@@ -1971,7 +1971,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       // Add message
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -1980,7 +1980,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       // Store memory
-      await cortex.vector.store(INTEGRATION_SPACE_ID, {
+      await memoir.vector.store(INTEGRATION_SPACE_ID, {
         content: "User said hello",
         contentType: "raw",
         userId: INTEGRATION_USER_ID,
@@ -2008,7 +2008,7 @@ describe("Users API (Coordination Layer)", () => {
         console.log("  ✅ Created graph node for integration test");
       }
 
-      const result = await cortex.users.delete(INTEGRATION_USER_ID, {
+      const result = await memoir.users.delete(INTEGRATION_USER_ID, {
         cascade: true,
       });
 
@@ -2032,18 +2032,18 @@ describe("Users API (Coordination Layer)", () => {
       }
 
       // Verify deletions
-      const convos = await cortex.conversations.list({
+      const convos = await memoir.conversations.list({
         userId: INTEGRATION_USER_ID,
       });
       expect(convos.conversations).toHaveLength(0);
 
-      const memories = await cortex.vector.list({
+      const memories = await memoir.vector.list({
         memorySpaceId: INTEGRATION_SPACE_ID,
         userId: INTEGRATION_USER_ID,
       });
       expect(memories).toHaveLength(0);
 
-      const user = await cortex.users.get(INTEGRATION_USER_ID);
+      const user = await memoir.users.get(INTEGRATION_USER_ID);
       expect(user).toBeNull();
 
       console.log(
@@ -2057,9 +2057,9 @@ describe("Users API (Coordination Layer)", () => {
     beforeEach(async () => {
       // Cleanup user if exists
       try {
-        const user = await cortex.users.get(ctx.userId("new-api-methods"));
+        const user = await memoir.users.get(ctx.userId("new-api-methods"));
         if (user) {
-          await cortex.users.delete(ctx.userId("new-api-methods"));
+          await memoir.users.delete(ctx.userId("new-api-methods"));
         }
       } catch (_error) {
         // User doesn't exist, continue
@@ -2068,7 +2068,7 @@ describe("Users API (Coordination Layer)", () => {
 
     describe("getOrCreate()", () => {
       it("creates user with defaults if doesn't exist", async () => {
-        const result = await cortex.users.getOrCreate(
+        const result = await memoir.users.getOrCreate(
           ctx.userId("new-api-methods"),
           {
             displayName: "New User",
@@ -2086,13 +2086,13 @@ describe("Users API (Coordination Layer)", () => {
 
       it("returns existing user without modifications", async () => {
         // Create user first
-        await cortex.users.update(ctx.userId("new-api-methods"), {
+        await memoir.users.update(ctx.userId("new-api-methods"), {
           displayName: "Existing User",
           email: "existing@example.com",
         });
 
         // getOrCreate should return existing without modification
-        const result = await cortex.users.getOrCreate(
+        const result = await memoir.users.getOrCreate(
           ctx.userId("new-api-methods"),
           {
             displayName: "Default User", // Won't be used
@@ -2104,7 +2104,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       it("creates user with empty defaults if not provided", async () => {
-        const result = await cortex.users.getOrCreate(
+        const result = await memoir.users.getOrCreate(
           ctx.userId("new-api-methods"),
         );
 
@@ -2118,7 +2118,7 @@ describe("Users API (Coordination Layer)", () => {
     describe("merge()", () => {
       it("deep merges nested objects", async () => {
         // Create user with initial data
-        await cortex.users.update(ctx.userId("new-api-methods"), {
+        await memoir.users.update(ctx.userId("new-api-methods"), {
           displayName: "Alex",
           preferences: {
             theme: "dark",
@@ -2130,7 +2130,7 @@ describe("Users API (Coordination Layer)", () => {
         });
 
         // Merge new preferences
-        const result = await cortex.users.merge(ctx.userId("new-api-methods"), {
+        const result = await memoir.users.merge(ctx.userId("new-api-methods"), {
           preferences: {
             notifications: true, // New field
           },
@@ -2148,12 +2148,12 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       it("overwrites non-object values", async () => {
-        await cortex.users.update(ctx.userId("new-api-methods"), {
+        await memoir.users.update(ctx.userId("new-api-methods"), {
           displayName: "Old Name",
           tier: "free",
         });
 
-        const result = await cortex.users.merge(ctx.userId("new-api-methods"), {
+        const result = await memoir.users.merge(ctx.userId("new-api-methods"), {
           displayName: "New Name",
           tier: "pro",
         });
@@ -2163,7 +2163,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       it("handles merging into non-existent user", async () => {
-        const result = await cortex.users.merge(ctx.userId("new-api-methods"), {
+        const result = await memoir.users.merge(ctx.userId("new-api-methods"), {
           displayName: "Created User",
         });
 
@@ -2172,7 +2172,7 @@ describe("Users API (Coordination Layer)", () => {
       });
 
       it("handles complex nested merges", async () => {
-        await cortex.users.update(ctx.userId("new-api-methods"), {
+        await memoir.users.update(ctx.userId("new-api-methods"), {
           settings: {
             ui: {
               theme: "dark",
@@ -2184,7 +2184,7 @@ describe("Users API (Coordination Layer)", () => {
           },
         });
 
-        const result = await cortex.users.merge(ctx.userId("new-api-methods"), {
+        const result = await memoir.users.merge(ctx.userId("new-api-methods"), {
           settings: {
             ui: {
               fontSize: 16, // Update nested value

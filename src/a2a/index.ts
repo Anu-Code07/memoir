@@ -78,7 +78,7 @@ export class A2AAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.a2a.send({
+   * const result = await memoir.a2a.send({
    *   from: "sales-agent",
    *   to: "support-agent",
    *   message: "Customer asking about enterprise pricing",
@@ -125,7 +125,7 @@ export class A2AAPI {
    * @example
    * ```typescript
    * try {
-   *   const response = await cortex.a2a.request({
+   *   const response = await memoir.a2a.request({
    *     from: "finance-agent",
    *     to: "hr-agent",
    *     message: "What is the Q4 budget?",
@@ -228,7 +228,7 @@ export class A2AAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.a2a.broadcast({
+   * const result = await memoir.a2a.broadcast({
    *   from: "manager-agent",
    *   to: ["dev-agent-1", "dev-agent-2", "qa-agent"],
    *   message: "Sprint review meeting Friday at 2 PM",
@@ -273,7 +273,7 @@ export class A2AAPI {
    *
    * @example
    * ```typescript
-   * const convo = await cortex.a2a.getConversation(
+   * const convo = await memoir.a2a.getConversation(
    *   "finance-agent",
    *   "hr-agent",
    *   {

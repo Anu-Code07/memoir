@@ -1,13 +1,13 @@
 /**
  * Graph Batch Sync
  *
- * Functions for initial bulk sync of Cortex data to graph database
+ * Functions for initial bulk sync of Memoir data to graph database
  */
 
 /* eslint-disable no-console */
 // Console logging is intentional for batch sync progress tracking
 
-import type { Cortex } from "../..";
+import type { Memoir } from "../..";
 import type { GraphAdapter } from "../types";
 import {
   syncContextToGraph,
@@ -52,9 +52,9 @@ export interface BatchSyncResult {
 }
 
 /**
- * Perform initial graph sync from Cortex
+ * Perform initial graph sync from Memoir
  *
- * Syncs all existing Cortex data to the graph database.
+ * Syncs all existing Memoir data to the graph database.
  * This should be run once after setting up a new graph database.
  *
  * @example
@@ -62,7 +62,7 @@ export interface BatchSyncResult {
  * const adapter = new CypherGraphAdapter();
  * await adapter.connect({ uri: 'bolt://localhost:7687', username: 'neo4j', password: 'password' });
  *
- * const result = await initialGraphSync(cortex, adapter, {
+ * const result = await initialGraphSync(memoir, adapter, {
  *   onProgress: (entity, current, total) => {
  *     console.log(`Syncing ${entity}: ${current}/${total}`);
  *   }
@@ -72,7 +72,7 @@ export interface BatchSyncResult {
  * ```
  */
 export async function initialGraphSync(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   options: BatchSyncOptions = {},
 ): Promise<BatchSyncResult> {
@@ -93,7 +93,7 @@ export async function initialGraphSync(
     // Phase 1: Sync Memory Spaces
     console.log("📦 Phase 1: Syncing Memory Spaces...");
     const memorySpacesResult = await syncMemorySpaces(
-      cortex,
+      memoir,
       adapter,
       options.limits?.memorySpaces,
       options.onProgress,
@@ -103,7 +103,7 @@ export async function initialGraphSync(
     // Phase 2: Sync Contexts
     console.log("📦 Phase 2: Syncing Contexts...");
     const contextsResult = await syncContexts(
-      cortex,
+      memoir,
       adapter,
       syncRels,
       options.limits?.contexts,
@@ -115,7 +115,7 @@ export async function initialGraphSync(
     // Phase 3: Sync Conversations
     console.log("📦 Phase 3: Syncing Conversations...");
     const conversationsResult = await syncConversations(
-      cortex,
+      memoir,
       adapter,
       syncRels,
       options.limits?.conversations,
@@ -127,7 +127,7 @@ export async function initialGraphSync(
     // Phase 4: Sync Memories
     console.log("📦 Phase 4: Syncing Memories...");
     const memoriesResult = await syncMemories(
-      cortex,
+      memoir,
       adapter,
       syncRels,
       options.limits?.memories,
@@ -139,7 +139,7 @@ export async function initialGraphSync(
     // Phase 5: Sync Facts
     console.log("📦 Phase 5: Syncing Facts...");
     const factsResult = await syncFacts(
-      cortex,
+      memoir,
       adapter,
       syncRels,
       options.limits?.facts,
@@ -163,7 +163,7 @@ export async function initialGraphSync(
 // ============================================================================
 
 async function syncMemorySpaces(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   limit: number = 1000,
   onProgress?: (entity: string, current: number, total: number) => void,
@@ -173,7 +173,7 @@ async function syncMemorySpaces(
   try {
     // List all memory spaces (API max limit is 1000)
     const effectiveLimit = Math.min(limit, 1000);
-    const memorySpacesResult = await cortex.memorySpaces.list({
+    const memorySpacesResult = await memoir.memorySpaces.list({
       limit: effectiveLimit,
     });
     const memorySpaces = memorySpacesResult.spaces;
@@ -204,7 +204,7 @@ async function syncMemorySpaces(
 }
 
 async function syncContexts(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   syncRels: boolean,
   limit: number = 1000,
@@ -219,7 +219,7 @@ async function syncContexts(
   try {
     // List all contexts (API max limit is 1000)
     const effectiveLimit = Math.min(limit, 1000);
-    const contexts = await cortex.contexts.list({ limit: effectiveLimit });
+    const contexts = await memoir.contexts.list({ limit: effectiveLimit });
 
     for (let i = 0; i < contexts.length; i++) {
       const context = contexts[i];
@@ -254,7 +254,7 @@ async function syncContexts(
 }
 
 async function syncConversations(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   syncRels: boolean,
   limit: number = 10000,
@@ -268,7 +268,7 @@ async function syncConversations(
 
   try {
     // List all conversations (API limit is 1000)
-    const conversationsResult = await cortex.conversations.list({
+    const conversationsResult = await memoir.conversations.list({
       limit: Math.min(limit, 1000),
     });
     const conversations = conversationsResult.conversations;
@@ -306,7 +306,7 @@ async function syncConversations(
 }
 
 async function syncMemories(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   syncRels: boolean,
   limit: number = 10000,
@@ -321,7 +321,7 @@ async function syncMemories(
   try {
     // We need to get memories from each memory space
     // First, get all memory spaces
-    const memorySpacesResult = await cortex.memorySpaces.list({ limit: 1000 });
+    const memorySpacesResult = await memoir.memorySpaces.list({ limit: 1000 });
     const memorySpaces = memorySpacesResult.spaces;
 
     let processedCount = 0;
@@ -329,7 +329,7 @@ async function syncMemories(
     for (const memorySpace of memorySpaces) {
       try {
         // List memories for this memory space
-        const memories = await cortex.vector.list({
+        const memories = await memoir.vector.list({
           memorySpaceId: memorySpace.memorySpaceId,
           limit: Math.floor(limit / memorySpaces.length), // Distribute limit across spaces
         });
@@ -383,7 +383,7 @@ async function syncMemories(
 }
 
 async function syncFacts(
-  cortex: Cortex,
+  memoir: Memoir,
   adapter: GraphAdapter,
   syncRels: boolean,
   limit: number = 10000,
@@ -397,7 +397,7 @@ async function syncFacts(
 
   try {
     // Get all memory spaces to list facts
-    const memorySpacesResult = await cortex.memorySpaces.list({ limit: 1000 });
+    const memorySpacesResult = await memoir.memorySpaces.list({ limit: 1000 });
     const memorySpaces = memorySpacesResult.spaces;
 
     let processedCount = 0;
@@ -405,7 +405,7 @@ async function syncFacts(
     for (const memorySpace of memorySpaces) {
       try {
         // List facts for this memory space
-        const facts = await cortex.facts.list({
+        const facts = await memoir.facts.list({
           memorySpaceId: memorySpace.memorySpaceId,
           limit: Math.floor(limit / memorySpaces.length),
         });

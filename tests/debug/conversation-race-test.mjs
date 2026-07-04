@@ -9,7 +9,7 @@
  * Expected: One of the parallel calls should fail with CONVERSATION_ALREADY_EXISTS
  */
 
-import { Cortex } from "../../dist/index.js";
+import { Memoir } from "../../dist/index.js";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -29,8 +29,8 @@ async function testConversationRace() {
     process.exit(1);
   }
 
-  console.log("Creating Cortex instance...");
-  const cortex = new Cortex({
+  console.log("Creating Memoir instance...");
+  const memoir = new Memoir({
     convexUrl: process.env.CONVEX_URL,
   });
 
@@ -54,7 +54,7 @@ async function testConversationRace() {
     // 3. One succeeds, one fails with CONVERSATION_ALREADY_EXISTS
 
     const results = await Promise.allSettled([
-      cortex.memory.remember({
+      memoir.memory.remember({
         conversationId,
         memorySpaceId,
         userMessage: "Message 1 from parallel call A",
@@ -63,7 +63,7 @@ async function testConversationRace() {
         userName: "Test User",
         agentId: "agent-1",
       }),
-      cortex.memory.remember({
+      memoir.memory.remember({
         conversationId,
         memorySpaceId,
         userMessage: "Message 2 from parallel call B",
@@ -123,7 +123,7 @@ async function testConversationRace() {
     console.error("\n❌ Unexpected error:", error.message);
     console.error(error);
   } finally {
-    cortex.close();
+    memoir.close();
     console.log("\nTest complete.");
   }
 }
@@ -132,7 +132,7 @@ async function testConversationRace() {
 async function testSequentialCalls() {
   console.log("\n=== Sequential Calls Test (Control) ===\n");
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: process.env.CONVEX_URL,
   });
 
@@ -144,7 +144,7 @@ async function testSequentialCalls() {
 
   try {
     // First call
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       conversationId,
       memorySpaceId,
       userMessage: "First message",
@@ -156,7 +156,7 @@ async function testSequentialCalls() {
     console.log("✅ First call: Success");
 
     // Second call (same conversation)
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       conversationId,
       memorySpaceId,
       userMessage: "Second message",
@@ -171,7 +171,7 @@ async function testSequentialCalls() {
   } catch (error) {
     console.error("\n❌ Error:", error.message);
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 

@@ -57,11 +57,11 @@ jobs:
               - 'tsconfig.json'
               - 'jest.config.js'
             python:
-              - 'cortex-sdk-python/**'
+              - 'memoir-sdk-python/**'
             vercel-ai-provider:
               - 'packages/vercel-ai-provider/**'
             cli:
-              - 'packages/cortex-cli/**'
+              - 'packages/memoir-cli/**'
             convex:
               - 'convex-dev/**'
 
@@ -229,7 +229,7 @@ jobs:
       - name: Install Python dev dependencies
         if: needs.detect-changes.outputs.python == 'true' || github.event.pull_request.base.ref == 'main'
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
           # Install additional dev deps from requirements-dev.txt (git URL deps can't be in pyproject.toml for PyPI)
@@ -238,14 +238,14 @@ jobs:
       - name: Type check with mypy (Python)
         if: needs.detect-changes.outputs.python == 'true' || github.event.pull_request.base.ref == 'main'
         run: |
-          cd cortex-sdk-python
-          mypy cortex --ignore-missing-imports
+          cd memoir-sdk-python
+          mypy memoir --ignore-missing-imports
 
       - name: Lint with ruff (Python)
         if: needs.detect-changes.outputs.python == 'true' || github.event.pull_request.base.ref == 'main'
         run: |
-          cd cortex-sdk-python
-          ruff check cortex/
+          cd memoir-sdk-python
+          ruff check memoir/
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # STAGE 3: TypeScript SDK Tests (sharded across 5 parallel runners)
@@ -364,7 +364,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           python -m pip install --upgrade pip
           pip install python-dotenv
           pip install -e ".[dev]"
@@ -392,8 +392,8 @@ jobs:
 
       - name: Run tests (shard ${{ matrix.shard }}/5)
         run: |
-          cd cortex-sdk-python
-          pytest tests/ -v --cov=cortex --cov-report=term-missing \
+          cd memoir-sdk-python
+          pytest tests/ -v --cov=memoir --cov-report=term-missing \
             --splits 5 --group ${{ matrix.shard }}
         env:
           CONVEX_URL_PY: ${{ secrets.CONVEX_URL_PY }}
@@ -406,7 +406,7 @@ jobs:
       - name: Verify Python SDK version matches pyproject.toml
         if: matrix.shard == 1
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           echo "🔍 Verifying Python SDK version synchronization..."
           # Use tomllib (3.11+) with tomli fallback (3.10)
           PYPROJECT_VERSION=$(python -c "
@@ -416,9 +416,9 @@ jobs:
               import tomli as tomllib
           print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])
           ")
-          SDK_VERSION=$(python -c "import cortex; print(cortex.__version__)")
+          SDK_VERSION=$(python -c "import memoir; print(memoir.__version__)")
           echo "  pyproject.toml version: $PYPROJECT_VERSION"
-          echo "  cortex.__version__:     $SDK_VERSION"
+          echo "  memoir.__version__:     $SDK_VERSION"
           if [[ "$PYPROJECT_VERSION" != "$SDK_VERSION" ]]; then
             echo ""
             echo "❌ Version mismatch detected!"
@@ -474,22 +474,22 @@ jobs:
         run: npm run build
 
       - name: Run Vercel AI Provider tests
-        run: npm test --workspace=@cortexmemory/vercel-ai-provider
+        run: npm test --workspace=@memoir/vercel-ai-provider
 
       - name: Lint Vercel AI Provider
-        run: npm run lint --workspace=@cortexmemory/vercel-ai-provider
+        run: npm run lint --workspace=@memoir/vercel-ai-provider
 
       - name: Build Vercel AI Provider
-        run: npm run build --workspace=@cortexmemory/vercel-ai-provider
+        run: npm run build --workspace=@memoir/vercel-ai-provider
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@cortexmemory/vercel-ai-provider
+        run: npm pack --dry-run --workspace=@memoir/vercel-ai-provider
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # STAGE 3: CLI Tests (parallel with other test jobs)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   test-cli:
-    name: Test Cortex CLI
+    name: Test Memoir CLI
     runs-on: ubuntu-latest
     needs: [detect-changes, setup-and-purge]
     # Run if CLI changed OR if PR is targeting main branch
@@ -531,26 +531,26 @@ jobs:
         run: npm run build
 
       - name: Run CLI unit tests
-        run: npm run test:unit --workspace=@cortexmemory/cli
+        run: npm run test:unit --workspace=@memoir/cli
 
       - name: Run CLI E2E tests
-        run: npm run test:e2e --workspace=@cortexmemory/cli
+        run: npm run test:e2e --workspace=@memoir/cli
         env:
           CONVEX_URL_CLI: ${{ secrets.CONVEX_URL_CLI }}
           CONVEX_URL: ${{ secrets.CONVEX_URL_CLI }}
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY_CLI }}
 
       - name: Lint CLI
-        run: npm run lint --workspace=@cortexmemory/cli
+        run: npm run lint --workspace=@memoir/cli
 
       - name: Build CLI
-        run: npm run build --workspace=@cortexmemory/cli
+        run: npm run build --workspace=@memoir/cli
 
       - name: Verify CLI version matches package.json
         run: |
           echo "🔍 Verifying CLI version synchronization..."
-          PACKAGE_VERSION=$(node -p "require('./packages/cortex-cli/package.json').version")
-          CLI_VERSION=$(node packages/cortex-cli/dist/index.js --version)
+          PACKAGE_VERSION=$(node -p "require('./packages/memoir-cli/package.json').version")
+          CLI_VERSION=$(node packages/memoir-cli/dist/index.js --version)
           echo "  package.json version: $PACKAGE_VERSION"
           echo "  CLI --version output:  $CLI_VERSION"
           if [[ "$PACKAGE_VERSION" != "$CLI_VERSION" ]]; then
@@ -563,7 +563,7 @@ jobs:
           echo "✅ CLI version matches package.json"
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@cortexmemory/cli
+        run: npm pack --dry-run --workspace=@memoir/cli
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # STAGE 4: All Checks Passed (final gate)

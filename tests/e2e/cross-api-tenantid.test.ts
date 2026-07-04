@@ -12,7 +12,7 @@
  * - Graph sync (if enabled)
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { createTestRunContext } from "../helpers/isolation";
 import {
   generateTenantId,
@@ -27,7 +27,7 @@ const ctx = createTestRunContext();
 const describeWithConvex = process.env.CONVEX_URL ? describe : describe.skip;
 
 describeWithConvex("Cross-API TenantId Propagation E2E", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let testTenantId: string;
   let testUserId: string;
   let testMemorySpaceId: string;
@@ -42,13 +42,13 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       organizationId: "org_cross_api_test",
     });
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authContext,
     });
 
     // Register memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Cross-API TenantId Test Space",
       type: "custom",
@@ -57,7 +57,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(testMemorySpaceId, {
+      await memoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -79,7 +79,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     const mutableKey = `cross_api_key_${ctx.runId}`;
 
     it("Step 1: Create user profile with tenantId", async () => {
-      const profile = await cortex.users.update(testUserId, {
+      const profile = await memoir.users.update(testUserId, {
         displayName: "Cross-API Test User",
         email: "cross-api@test.com",
       });
@@ -89,7 +89,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 2: Create session with tenantId", async () => {
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         memorySpaceId: testMemorySpaceId,
@@ -105,7 +105,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 3: Create conversation with tenantId", async () => {
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: testUserId, agentId: "test-agent" },
@@ -118,7 +118,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 4: Create memory with tenantId (remember)", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId,
         userMessage: "Cross-API test: What is the meaning of life?",
@@ -135,7 +135,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 5: Retrieve memory with tenantId (recall)", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: testMemorySpaceId,
         query: "meaning of life",
         limit: 10,
@@ -152,7 +152,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 6: Create fact with tenantId", async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: testMemorySpaceId,
         fact: "Cross-API test: The user prefers detailed explanations",
         factType: "knowledge",
@@ -171,7 +171,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 7: Store immutable record with tenantId", async () => {
-      const result = await cortex.immutable.store({
+      const result = await memoir.immutable.store({
         type: "cross_api_test",
         id: `cross_api_immutable_${ctx.runId}`,
         data: {
@@ -190,24 +190,24 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     it("Step 8: Store mutable record with tenantId", async () => {
-      await cortex.mutable.set(testMemorySpaceId, mutableKey, {
+      await memoir.mutable.set(testMemorySpaceId, mutableKey, {
         testData: "Mutable cross-API test data",
         counter: 1,
       });
 
-      const retrieved = await cortex.mutable.get(testMemorySpaceId, mutableKey);
+      const retrieved = await memoir.mutable.get(testMemorySpaceId, mutableKey);
 
       // Mutable.get returns the value directly - tenantId is tracked at record level
       expect(retrieved).toBeDefined();
     });
 
     it("Step 9: Update mutable record preserves tenantId", async () => {
-      await cortex.mutable.set(testMemorySpaceId, mutableKey, {
+      await memoir.mutable.set(testMemorySpaceId, mutableKey, {
         testData: "Updated mutable data",
         counter: 2,
       });
 
-      const updated = await cortex.mutable.get(testMemorySpaceId, mutableKey);
+      const updated = await memoir.mutable.get(testMemorySpaceId, mutableKey);
 
       expect(updated).toBeDefined();
       expect((updated as { counter?: number })?.counter).toBe(2);
@@ -215,7 +215,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
     it("Step 10: List operations respect tenantId", async () => {
       // List conversations
-      const convResult = await cortex.conversations.list({
+      const convResult = await memoir.conversations.list({
         memorySpaceId: testMemorySpaceId,
         limit: 100,
       });
@@ -225,7 +225,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       });
 
       // List facts
-      const factList = await cortex.facts.list({
+      const factList = await memoir.facts.list({
         memorySpaceId: testMemorySpaceId,
         limit: 100,
       });
@@ -237,7 +237,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       });
 
       // List sessions
-      const sessionList = await cortex.sessions.list({
+      const sessionList = await memoir.sessions.list({
         tenantId: testTenantId,
       });
 
@@ -248,19 +248,19 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
     it("Step 11: Cleanup with tenantId", async () => {
       // End session
-      await cortex.sessions.end(sessionId);
+      await memoir.sessions.end(sessionId);
 
       // Delete mutable
-      await cortex.mutable.delete(testMemorySpaceId, mutableKey);
+      await memoir.mutable.delete(testMemorySpaceId, mutableKey);
 
       // Delete fact
-      await cortex.facts.delete(testMemorySpaceId, factId);
+      await memoir.facts.delete(testMemorySpaceId, factId);
 
       // Delete conversation (cascades memories)
-      await cortex.conversations.delete(conversationId);
+      await memoir.conversations.delete(conversationId);
 
       // Delete user
-      await cortex.users.delete(testUserId, { cascade: false });
+      await memoir.users.delete(testUserId, { cascade: false });
     });
   });
 
@@ -272,12 +272,12 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     it("should maintain tenantId across parallel API calls", async () => {
       // Parallel operations across different APIs
       const [conv, fact, session, immutable] = await Promise.all([
-        cortex.conversations.create({
+        memoir.conversations.create({
           memorySpaceId: testMemorySpaceId,
           type: "user-agent",
           participants: { userId: testUserId, agentId: "test-agent" },
         }),
-        cortex.facts.store({
+        memoir.facts.store({
           memorySpaceId: testMemorySpaceId,
           fact: "Parallel test fact",
           factType: "knowledge",
@@ -285,11 +285,11 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
           sourceType: "manual",
           userId: testUserId,
         }),
-        cortex.sessions.create({
+        memoir.sessions.create({
           userId: testUserId,
           tenantId: testTenantId,
         }),
-        cortex.immutable.store({
+        memoir.immutable.store({
           type: "parallel_test",
           id: `parallel_${ctx.runId}`,
           data: { test: "parallel" },
@@ -304,9 +304,9 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
       // Cleanup
       await Promise.all([
-        cortex.conversations.delete(conv.conversationId),
-        cortex.facts.delete(testMemorySpaceId, fact.factId),
-        cortex.sessions.end(session.sessionId),
+        memoir.conversations.delete(conv.conversationId),
+        memoir.facts.delete(testMemorySpaceId, fact.factId),
+        memoir.sessions.end(session.sessionId),
       ]);
     });
   });
@@ -319,7 +319,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     beforeAll(async () => {
       // Create test data
       for (let i = 0; i < 3; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: testMemorySpaceId,
           fact: `Count test fact ${i}`,
           factType: "knowledge",
@@ -332,14 +332,14 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
     it("should count only tenant-specific records", async () => {
       // Count facts for this tenant
-      const factCount = await cortex.facts.count({
+      const factCount = await memoir.facts.count({
         memorySpaceId: testMemorySpaceId,
       });
 
       expect(factCount).toBeGreaterThanOrEqual(3);
 
       // Count sessions for this tenant
-      const sessionCount = await cortex.sessions.count({
+      const sessionCount = await memoir.sessions.count({
         tenantId: testTenantId,
       });
 
@@ -353,14 +353,14 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
   describe("TenantId Propagation to Related Entities", () => {
     it("should propagate tenantId from conversation to messages", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: testUserId, agentId: "test-agent" },
       });
 
       // Add message to conversation
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -369,22 +369,22 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       });
 
       // Retrieve conversation with messages
-      const retrieved = await cortex.conversations.get(conv.conversationId);
+      const retrieved = await memoir.conversations.get(conv.conversationId);
 
       expect(retrieved?.tenantId).toBe(testTenantId);
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
 
     it("should propagate tenantId from memory to embeddings", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: testUserId, agentId: "test-agent" },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "What is the capital of France?",
@@ -398,7 +398,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       expect(result.memories[0].tenantId).toBe(testTenantId);
 
       // Recall should also respect tenantId
-      const recalled = await cortex.memory.recall({
+      const recalled = await memoir.memory.recall({
         memorySpaceId: testMemorySpaceId,
         query: "capital of France",
         limit: 10,
@@ -411,7 +411,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       });
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -423,7 +423,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     let searchFactId: string;
 
     beforeAll(async () => {
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: testMemorySpaceId,
         fact: `Unique searchable term ${ctx.runId}`,
         factType: "knowledge",
@@ -435,11 +435,11 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
     });
 
     afterAll(async () => {
-      await cortex.facts.delete(testMemorySpaceId, searchFactId);
+      await memoir.facts.delete(testMemorySpaceId, searchFactId);
     });
 
     it("should return only tenant-specific results in searches", async () => {
-      const results = await cortex.facts.search(testMemorySpaceId, ctx.runId, {
+      const results = await memoir.facts.search(testMemorySpaceId, ctx.runId, {
         limit: 100,
       });
 
@@ -467,7 +467,7 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
       // Create multiple facts in sequence
       const facts: string[] = [];
       for (let i = 0; i < 5; i++) {
-        const fact = await cortex.facts.store({
+        const fact = await memoir.facts.store({
           memorySpaceId: testMemorySpaceId,
           fact: `Batch fact ${i} for tenant test`,
           factType: "knowledge",
@@ -480,13 +480,13 @@ describeWithConvex("Cross-API TenantId Propagation E2E", () => {
 
       // Verify all have correct tenantId
       for (const factId of facts) {
-        const fact = await cortex.facts.get(testMemorySpaceId, factId);
+        const fact = await memoir.facts.get(testMemorySpaceId, factId);
         expect(fact?.tenantId).toBe(testTenantId);
       }
 
       // Cleanup
       for (const factId of facts) {
-        await cortex.facts.delete(testMemorySpaceId, factId);
+        await memoir.facts.delete(testMemorySpaceId, factId);
       }
     });
   });

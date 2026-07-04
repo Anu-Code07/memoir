@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Facts Store API (Layer 3)
+ * Memoir SDK - Facts Store API (Layer 3)
  *
  * LLM-extracted, memorySpace-scoped, versioned facts
  * Structured knowledge with relationships

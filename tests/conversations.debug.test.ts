@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversations API E2E Tests (DEBUG MODE)
+ * Memoir SDK - Conversations API E2E Tests (DEBUG MODE)
  *
  * Enhanced test suite with:
  * - Table cleanup before all tests
@@ -10,7 +10,7 @@
  * Run with: TEST_DEBUG=true TEST_VERBOSE=true npm test conversations.debug
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import {
@@ -24,7 +24,7 @@ import {
 } from "./helpers";
 
 describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   let inspector: StorageInspector;
@@ -42,7 +42,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
     logSection("TEST SUITE INITIALIZATION");
 
     // Initialize SDK and helpers
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     inspector = new StorageInspector(client);
@@ -59,7 +59,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
 
   afterAll(async () => {
     logSection("TEST SUITE CLEANUP");
-    cortex.close();
+    memoir.close();
     await client.close();
   });
 
@@ -68,7 +68,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("TEST: Create User-Agent Conversation");
 
       logStep(1, "Call SDK create method");
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         type: "user-agent",
         participants: {
@@ -116,7 +116,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("TEST: Create Agent-Agent Conversation");
 
       logStep(1, "Call SDK create method");
-      const result = await cortex.conversations.create({
+      const result = await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         type: "agent-agent",
         participants: {
@@ -145,7 +145,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       const customId = "conv-duplicate-debug";
 
       logStep(1, "Create first conversation");
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: customId,
         type: "user-agent",
@@ -161,7 +161,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
 
       logStep(2, "Attempt to create duplicate");
       await expect(
-        cortex.conversations.create({
+        memoir.conversations.create({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: customId,
           type: "user-agent",
@@ -184,7 +184,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("TEST: Add Message to Conversation");
 
       logStep(1, "Create conversation");
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         type: "user-agent",
         participants: {
@@ -198,7 +198,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       await inspector.inspectConversation(conversation.conversationId);
 
       logStep(2, "Add first message");
-      const updated1 = await cortex.conversations.addMessage({
+      const updated1 = await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "user",
@@ -215,7 +215,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       await inspector.inspectConversation(conversation.conversationId);
 
       logStep(3, "Add second message");
-      const updated2 = await cortex.conversations.addMessage({
+      const updated2 = await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "agent",
@@ -230,7 +230,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       await inspector.inspectConversation(conversation.conversationId);
 
       logStep(4, "Add third message");
-      const updated3 = await cortex.conversations.addMessage({
+      const updated3 = await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "user",
@@ -269,7 +269,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("SETUP: Creating test data for list/count operations");
 
       // Create test conversations
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "conv-list-debug-1",
         type: "user-agent",
@@ -280,7 +280,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
         },
       });
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "conv-list-debug-2",
         type: "user-agent",
@@ -291,7 +291,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
         },
       });
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "conv-list-debug-3",
         type: "agent-agent",
@@ -310,7 +310,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
     it("Step 1: List all conversations", async () => {
       logSection("TEST: List All Conversations");
 
-      const result = await cortex.conversations.list();
+      const result = await memoir.conversations.list();
 
       debugLog("Result", `Found ${result.conversations.length} conversations`);
       expect(result.conversations.length).toBeGreaterThan(0);
@@ -322,7 +322,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
     it("Step 2: List by userId", async () => {
       logSection("TEST: List by userId");
 
-      const result = await cortex.conversations.list({
+      const result = await memoir.conversations.list({
         userId: "user-list-debug",
       });
 
@@ -344,19 +344,19 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("TEST: Count Operations");
 
       logStep(1, "Count all");
-      const totalCount = await cortex.conversations.count();
+      const totalCount = await memoir.conversations.count();
 
       debugLog("Count", `Total conversations: ${totalCount}`);
 
       logStep(2, "Count by userId");
-      const userCount = await cortex.conversations.count({
+      const userCount = await memoir.conversations.count({
         userId: "user-list-debug",
       });
 
       debugLog("Count", `User conversations: ${userCount}`);
 
       logStep(3, "Count by type");
-      const userAgentCount = await cortex.conversations.count({
+      const userAgentCount = await memoir.conversations.count({
         type: "user-agent",
       });
 
@@ -372,7 +372,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       logSection("TEST: Delete Conversation");
 
       logStep(1, "Create conversation to delete");
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         type: "user-agent",
         participants: {
@@ -386,7 +386,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       await inspector.inspectConversation(conversation.conversationId);
 
       logStep(2, "Delete the conversation");
-      const result = await cortex.conversations.delete(
+      const result = await memoir.conversations.delete(
         conversation.conversationId,
       );
 
@@ -397,7 +397,7 @@ describe("Conversations API (Layer 1a) - DEBUG MODE", () => {
       );
 
       logStep(3, "Verify it's gone from SDK");
-      const retrieved = await cortex.conversations.get(
+      const retrieved = await memoir.conversations.get(
         conversation.conversationId,
       );
 

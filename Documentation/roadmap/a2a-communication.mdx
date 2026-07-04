@@ -39,7 +39,7 @@ Subscribe to incoming messages with real-time notifications.
 ```typescript
 // Manual polling required
 setInterval(async () => {
-  const messages = await cortex.memory.search(spaceId, "*", {
+  const messages = await memoir.memory.search(spaceId, "*", {
     filters: {
       "source.type": "a2a",
       "source.recipient": "agent-123",
@@ -56,12 +56,12 @@ setInterval(async () => {
 **Planned Behavior:**
 ```typescript
 // Real-time subscriptions
-cortex.a2a.subscribe("agent-123", (message) => {
+memoir.a2a.subscribe("agent-123", (message) => {
   console.log(`New message from ${message.from}: ${message.content}`);
 });
 
 // Automatic real-time delivery
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-456",
   to: "agent-123",
   content: "Task completed!",
@@ -77,7 +77,7 @@ await cortex.a2a.send({
 
 **Requirements:**
 - Managed pub/sub infrastructure (Cloud Mode)
-- WebSocket connection from client to Cortex Cloud
+- WebSocket connection from client to Memoir Cloud
 
 ---
 
@@ -88,7 +88,7 @@ Dedicated methods for inbox and sent message management.
 **Current Behavior:**
 ```typescript
 // Manual search required
-const inbox = await cortex.memory.search(spaceId, "*", {
+const inbox = await memoir.memory.search(spaceId, "*", {
   filters: {
     "source.type": "a2a",
     "source.recipient": "agent-123",
@@ -97,7 +97,7 @@ const inbox = await cortex.memory.search(spaceId, "*", {
   sortOrder: "desc",
 });
 
-const sent = await cortex.memory.search(spaceId, "*", {
+const sent = await memoir.memory.search(spaceId, "*", {
   filters: {
     "source.type": "a2a",
     "source.sender": "agent-123",
@@ -110,17 +110,17 @@ const sent = await cortex.memory.search(spaceId, "*", {
 **Planned Behavior:**
 ```typescript
 // Dedicated inbox methods
-const inbox = await cortex.a2a.getInbox("agent-123", {
+const inbox = await memoir.a2a.getInbox("agent-123", {
   status: "unread",
   limit: 20,
 });
 
-const sent = await cortex.a2a.getSent("agent-123", {
+const sent = await memoir.a2a.getSent("agent-123", {
   limit: 20,
 });
 
 // Mark messages as read
-await cortex.a2a.markRead(messageIds);
+await memoir.a2a.markRead(messageIds);
 ```
 
 **Methods:**
@@ -149,14 +149,14 @@ Automatic pub/sub infrastructure without managing Redis/RabbitMQ/NATS.
 **Planned Behavior (Cloud Mode):**
 ```typescript
 // Automatic pub/sub infrastructure
-const cortex = new Cortex({
+const memoir = new Memoir({
   mode: "cloud",
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
   pubsub: "managed", // Cloud Mode handles infrastructure
 });
 
 // Subscriptions work automatically
-cortex.a2a.subscribe("agent-123", (message) => {
+memoir.a2a.subscribe("agent-123", (message) => {
   console.log(`Message: ${message.content}`);
 });
 ```
@@ -183,13 +183,13 @@ Automatically execute agent code when messages are received (webhooks or serverl
 **Planned Behavior (Cloud Mode):**
 ```typescript
 // Register webhook for automatic execution
-await cortex.a2a.registerWebhook("agent-123", {
+await memoir.a2a.registerWebhook("agent-123", {
   url: "https://my-app.com/api/agent-123/inbox",
   events: ["message.received", "message.urgent"],
 });
 
 // Or serverless function
-await cortex.a2a.registerFunction("agent-123", {
+await memoir.a2a.registerFunction("agent-123", {
   handler: async (message) => {
     // Automatic execution on message receipt
     console.log(`Processing: ${message.content}`);
@@ -212,7 +212,7 @@ Visual analytics for agent communication patterns.
 
 **Communication Frequency:**
 ```typescript
-const analytics = await cortex.analytics.getA2ACommunication("agent-123", {
+const analytics = await memoir.analytics.getA2ACommunication("agent-123", {
   period: "last-30-days",
 });
 
@@ -260,7 +260,7 @@ AI-powered agent selection and load balancing.
 **AI-Suggested Agent Selection:**
 ```typescript
 // Suggest best agent for a task
-const suggestion = await cortex.a2a.suggestAgent({
+const suggestion = await memoir.a2a.suggestAgent({
   task: "Summarize a research paper",
   requiredCapabilities: ["text-processing", "summarization"],
 });
@@ -281,7 +281,7 @@ console.log(suggestion);
 **Automatic Load Balancing:**
 ```typescript
 // Broadcast with automatic load balancing
-await cortex.a2a.broadcast({
+await memoir.a2a.broadcast({
   from: "agent-coordinator",
   to: ["agent-worker-*"], // Wildcard: all worker agents
   content: "Process batch job",
@@ -304,7 +304,7 @@ Daily/weekly summaries of agent communication.
 **Daily Summaries:**
 ```typescript
 // Automatic daily summary
-const summary = await cortex.a2a.getDailySummary("agent-123", {
+const summary = await memoir.a2a.getDailySummary("agent-123", {
   date: new Date("2026-01-08"),
 });
 
@@ -361,7 +361,7 @@ Until these features are available, use these patterns:
 
 ```typescript
 async function getInbox(agentId: string) {
-  return await cortex.memory.search(spaceId, "*", {
+  return await memoir.memory.search(spaceId, "*", {
     filters: {
       "source.type": "a2a",
       "source.recipient": agentId,
@@ -373,7 +373,7 @@ async function getInbox(agentId: string) {
 
 async function markRead(messageIds: string[]) {
   for (const id of messageIds) {
-    await cortex.memory.update(spaceId, id, {
+    await memoir.memory.update(spaceId, id, {
       metadata: { ...memory.metadata, status: "read" },
     });
   }
@@ -385,7 +385,7 @@ async function markRead(messageIds: string[]) {
 ```typescript
 async function pollInbox(agentId: string, interval: number = 5000) {
   setInterval(async () => {
-    const unread = await cortex.memory.search(spaceId, "*", {
+    const unread = await memoir.memory.search(spaceId, "*", {
       filters: {
         "source.type": "a2a",
         "source.recipient": agentId,
@@ -404,11 +404,11 @@ async function pollInbox(agentId: string, interval: number = 5000) {
 
 ```typescript
 async function getMessageStats(agentId: string) {
-  const sent = await cortex.memory.search(spaceId, "*", {
+  const sent = await memoir.memory.search(spaceId, "*", {
     filters: { "source.type": "a2a", "source.sender": agentId },
   });
   
-  const received = await cortex.memory.search(spaceId, "*", {
+  const received = await memoir.memory.search(spaceId, "*", {
     filters: { "source.type": "a2a", "source.recipient": agentId },
   });
   

@@ -5,7 +5,7 @@
  * Tests both ReadableStream and AsyncIterable support.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import {
@@ -245,7 +245,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const streamCtx = createTestRunContext();
 
 describe("Memory Streaming: rememberStream() Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -254,13 +254,13 @@ describe("Memory Streaming: rememberStream() Integration", () => {
   const TEST_AGENT_ID = streamCtx.agentId("streaming");
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() for parallel execution compatibility.
 
     // Create memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       name: "Streaming Test Space",
       type: "custom",
@@ -283,7 +283,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "stream-conv-1",
         userMessage: "What's the weather?",
@@ -298,7 +298,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       expect(result.conversation.conversationId).toBe("stream-conv-1");
 
       // Verify stored in database
-      const memories = await cortex.memory.search(
+      const memories = await memoir.memory.search(
         TEST_MEMSPACE_ID,
         "weather sunny",
       );
@@ -312,7 +312,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         yield "generator";
       }
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "stream-conv-2",
         userMessage: "Say hello",
@@ -337,7 +337,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         yield "Third";
       }
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "stream-conv-3",
         userMessage: "Count to three",
@@ -369,7 +369,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "stream-conv-emb",
         userMessage: "Test embeddings",
@@ -418,7 +418,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "stream-conv-facts",
         userMessage: "My favorite color is blue",
@@ -444,7 +444,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       });
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: "stream-conv-empty",
           userMessage: "Test",
@@ -465,7 +465,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       });
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: "stream-conv-error",
           userMessage: "Test",
@@ -487,7 +487,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       });
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: TEST_MEMSPACE_ID,
           conversationId: "stream-conv-whitespace",
           userMessage: "Test",
@@ -506,12 +506,12 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       const space2 = `stream-space-2-${Date.now()}`;
 
       // Create both spaces
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: space1,
         name: "Stream Space 1",
         type: "custom",
       });
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: space2,
         name: "Stream Space 2",
         type: "custom",
@@ -525,7 +525,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      await cortex.memory.rememberStream({
+      await memoir.memory.rememberStream({
         memorySpaceId: space1,
         conversationId: "conv-space-1",
         userMessage: "Test space 1",
@@ -543,7 +543,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      await cortex.memory.rememberStream({
+      await memoir.memory.rememberStream({
         memorySpaceId: space2,
         conversationId: "conv-space-2",
         userMessage: "Test space 2",
@@ -554,8 +554,8 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       });
 
       // Verify isolation
-      const memories1 = await cortex.memory.search(space1, "space");
-      const memories2 = await cortex.memory.search(space2, "space");
+      const memories1 = await memoir.memory.search(space1, "space");
+      const memories2 = await memoir.memory.search(space2, "space");
 
       const space1Content = memories1
         .map((m) => ("content" in m ? m.content : m.memory.content))
@@ -580,7 +580,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "hive-conv-1",
         userMessage: "Test hive mode",
@@ -611,7 +611,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      await cortex.memory.rememberStream({
+      await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "First question",
@@ -629,7 +629,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      await cortex.memory.rememberStream({
+      await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId,
         userMessage: "Second question",
@@ -640,7 +640,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
       });
 
       // Verify conversation has both exchanges
-      const conversation = await cortex.conversations.get(conversationId);
+      const conversation = await memoir.conversations.get(conversationId);
       expect(conversation).not.toBeNull();
       expect(conversation!.messageCount).toBeGreaterThanOrEqual(4); // 2 user + 2 agent
     });
@@ -660,7 +660,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "large-stream-conv",
         userMessage: "Generate large response",
@@ -687,7 +687,7 @@ describe("Memory Streaming: rememberStream() Integration", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: "emoji-stream-conv",
         userMessage: "Emoji test",

@@ -2,7 +2,7 @@
 id: sessions-operations
 title: Sessions Operations API
 sidebar_position: 8
-description: Complete API reference for session lifecycle management and multi-session support in Cortex.
+description: Complete API reference for session lifecycle management and multi-session support in Memoir.
 ---
 
 # Sessions Operations API
@@ -17,7 +17,7 @@ Complete API reference for session lifecycle management and multi-session suppor
 
 ## Overview
 
-The Sessions API (`cortex.sessions.*`) provides native session management for user-facing agentic platforms. Sessions track user interactions, manage activity timeouts, and provide an isolated context for conversations.
+The Sessions API (`memoir.sessions.*`) provides native session management for user-facing agentic platforms. Sessions track user interactions, manage activity timeouts, and provide an isolated context for conversations.
 
 **Key Features:**
 
@@ -103,7 +103,7 @@ The `metadata` field is completely flexible and can store any data your applicat
 
 ```typescript
 // Device and client info
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     deviceType: "mobile",
@@ -119,7 +119,7 @@ await cortex.sessions.create({
 
 ```typescript
 // Auth provider claims
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     authProvider: "auth0",
@@ -137,7 +137,7 @@ await cortex.sessions.create({
 
 ```typescript
 // Geographic context
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   metadata: {
     ipAddress: "192.168.1.1",
@@ -162,7 +162,7 @@ Create a new session for a user.
 **Signature:**
 
 ```typescript
-cortex.sessions.create(params: CreateSessionParams): Promise<Session>
+memoir.sessions.create(params: CreateSessionParams): Promise<Session>
 ```
 
 **Parameters:**
@@ -182,7 +182,7 @@ cortex.sessions.create(params: CreateSessionParams): Promise<Session>
 
 ```typescript
 // Create a new session
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   tenantId: "tenant-abc",
   memorySpaceId: "user-123-personal",
@@ -205,7 +205,7 @@ Get a session by ID.
 **Signature:**
 
 ```typescript
-cortex.sessions.get(sessionId: string): Promise<Session | null>
+memoir.sessions.get(sessionId: string): Promise<Session | null>
 ```
 
 **Parameters:**
@@ -219,7 +219,7 @@ cortex.sessions.get(sessionId: string): Promise<Session | null>
 **Example:**
 
 ```typescript
-const session = await cortex.sessions.get("session-xyz");
+const session = await memoir.sessions.get("session-xyz");
 if (session) {
   console.log(`Status: ${session.status}`);
   console.log(`Last active: ${new Date(session.lastActiveAt)}`);
@@ -235,7 +235,7 @@ Get existing active session for user, or create a new one.
 **Signature:**
 
 ```typescript
-cortex.sessions.getOrCreate(
+memoir.sessions.getOrCreate(
   userId: string,
   metadata?: Record<string, unknown>
 ): Promise<Session>
@@ -254,7 +254,7 @@ cortex.sessions.getOrCreate(
 
 ```typescript
 // Returns existing active session or creates new one
-const session = await cortex.sessions.getOrCreate("user-123", {
+const session = await memoir.sessions.getOrCreate("user-123", {
   deviceType: "mobile",
 });
 
@@ -271,7 +271,7 @@ Update session activity timestamp (heartbeat).
 **Signature:**
 
 ```typescript
-cortex.sessions.touch(sessionId: string): Promise<void>
+memoir.sessions.touch(sessionId: string): Promise<void>
 ```
 
 **Parameters:**
@@ -286,7 +286,7 @@ cortex.sessions.touch(sessionId: string): Promise<void>
 
 ```typescript
 // Update activity on every user interaction
-await cortex.sessions.touch(session.sessionId);
+await memoir.sessions.touch(session.sessionId);
 
 // Prevents session from going idle
 ```
@@ -300,7 +300,7 @@ Explicitly end a session.
 **Signature:**
 
 ```typescript
-cortex.sessions.end(sessionId: string): Promise<void>
+memoir.sessions.end(sessionId: string): Promise<void>
 ```
 
 **Parameters:**
@@ -315,7 +315,7 @@ cortex.sessions.end(sessionId: string): Promise<void>
 
 ```typescript
 // End session on logout
-await cortex.sessions.end(session.sessionId);
+await memoir.sessions.end(session.sessionId);
 
 // Session is now 'ended' and cannot be resumed
 ```
@@ -329,7 +329,7 @@ End all active sessions for a user.
 **Signature:**
 
 ```typescript
-cortex.sessions.endAll(
+memoir.sessions.endAll(
   userId: string,
   options?: EndAllOptions
 ): Promise<EndSessionsResult>
@@ -357,12 +357,12 @@ cortex.sessions.endAll(
 
 ```typescript
 // End all sessions on password change
-const result = await cortex.sessions.endAll("user-123");
+const result = await memoir.sessions.endAll("user-123");
 console.log(`Ended ${result.ended} sessions`);
 console.log(`Session IDs: ${result.sessionIds.join(", ")}`);
 
 // End sessions only for a specific tenant (multi-tenant safe)
-const tenantResult = await cortex.sessions.endAll("user-123", {
+const tenantResult = await memoir.sessions.endAll("user-123", {
   tenantId: "tenant-abc",
 });
 console.log(`Ended ${tenantResult.ended} sessions in tenant`);
@@ -377,7 +377,7 @@ List sessions with filters.
 **Signature:**
 
 ```typescript
-cortex.sessions.list(filters: SessionFilters): Promise<Session[]>
+memoir.sessions.list(filters: SessionFilters): Promise<Session[]>
 ```
 
 **Parameters:**
@@ -406,20 +406,20 @@ cortex.sessions.list(filters: SessionFilters): Promise<Session[]>
 
 ```typescript
 // Get all active sessions for a user
-const activeSessions = await cortex.sessions.list({
+const activeSessions = await memoir.sessions.list({
   userId: "user-123",
   status: "active",
 });
 
 // Get tenant-wide sessions
-const tenantSessions = await cortex.sessions.list({
+const tenantSessions = await memoir.sessions.list({
   tenantId: "tenant-abc",
   status: "active",
   limit: 100,
 });
 
 // Get sessions by memory space
-const spaceSessions = await cortex.sessions.list({
+const spaceSessions = await memoir.sessions.list({
   memorySpaceId: "project-workspace",
   status: "active",
 });
@@ -434,7 +434,7 @@ Count sessions matching filters.
 **Signature:**
 
 ```typescript
-cortex.sessions.count(filters: SessionFilters): Promise<number>
+memoir.sessions.count(filters: SessionFilters): Promise<number>
 ```
 
 **Parameters:**
@@ -451,7 +451,7 @@ cortex.sessions.count(filters: SessionFilters): Promise<number>
 **Example:**
 
 ```typescript
-const activeSessions = await cortex.sessions.count({
+const activeSessions = await memoir.sessions.count({
   tenantId: "tenant-abc",
   status: "active",
 });
@@ -468,7 +468,7 @@ Get all active sessions for a user.
 **Signature:**
 
 ```typescript
-cortex.sessions.getActive(userId: string): Promise<Session[]>
+memoir.sessions.getActive(userId: string): Promise<Session[]>
 ```
 
 **Parameters:**
@@ -482,7 +482,7 @@ cortex.sessions.getActive(userId: string): Promise<Session[]>
 **Example:**
 
 ```typescript
-const sessions = await cortex.sessions.getActive("user-123");
+const sessions = await memoir.sessions.getActive("user-123");
 console.log(`User has ${sessions.length} active sessions`);
 
 // Useful for "active devices" view
@@ -500,7 +500,7 @@ Expire idle sessions (typically run as background job).
 **Signature:**
 
 ```typescript
-cortex.sessions.expireIdle(options?: ExpireSessionsOptions): Promise<{ expired: number }>
+memoir.sessions.expireIdle(options?: ExpireSessionsOptions): Promise<{ expired: number }>
 ```
 
 **Parameters:**
@@ -525,13 +525,13 @@ cortex.sessions.expireIdle(options?: ExpireSessionsOptions): Promise<{ expired: 
 
 ```typescript
 // Background job to clean up idle sessions
-const result = await cortex.sessions.expireIdle({
+const result = await memoir.sessions.expireIdle({
   tenantId: "tenant-abc",
 });
 console.log(`Expired ${result.expired} idle sessions`);
 
 // Custom idle timeout (15 minutes)
-const customResult = await cortex.sessions.expireIdle({
+const customResult = await memoir.sessions.expireIdle({
   tenantId: "tenant-abc",
   idleTimeout: 15 * 60 * 1000, // 15 minutes in ms
 });
@@ -544,7 +544,7 @@ const customResult = await cortex.sessions.expireIdle({
 Session lifecycle timeouts are configurable via the Governance API.
 
 ```typescript
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
 
   // Session lifecycle configuration
@@ -578,14 +578,14 @@ Sessions support full multi-tenant isolation via `tenantId`:
 
 ```typescript
 // Create tenant-scoped session
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: 'user-123',
   tenantId: 'customer-abc',  // SaaS platform isolation
   metadata: { ... },
 });
 
 // Query sessions within tenant
-const tenantSessions = await cortex.sessions.list({
+const tenantSessions = await memoir.sessions.list({
   tenantId: 'customer-abc',
   status: 'active',
 });
@@ -598,7 +598,7 @@ const tenantSessions = await cortex.sessions.list({
 Sessions integrate with the Auth Context system for tenant isolation:
 
 ```typescript
-import { createAuthContext } from "@cortex-platform/sdk";
+import { createAuthContext } from "@memoir-platform/sdk";
 
 // Create auth context with session info
 const auth = createAuthContext({
@@ -612,22 +612,22 @@ const auth = createAuthContext({
   },
 });
 
-// Initialize Cortex with auth context
-const cortex = new Cortex({
+// Initialize Memoir with auth context
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth,
 });
 
 // tenantId is automatically injected from auth context
 // This provides tenant isolation without passing tenantId to every call
-const session = await cortex.sessions.create({
+const session = await memoir.sessions.create({
   userId: "user-123",
   // tenantId is auto-injected from auth context
   metadata: { deviceType: "web" },
 });
 
 // Queries are automatically scoped to the tenant
-const sessions = await cortex.sessions.list({
+const sessions = await memoir.sessions.list({
   userId: "user-123",
   // tenantId is auto-injected, only returns sessions for this tenant
 });
@@ -647,7 +647,7 @@ Sessions are included in GDPR cascade deletion:
 
 ```typescript
 // When deleting a user, all their sessions are also deleted
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Sessions are deleted as part of the cascade:
 // - User profile
@@ -670,17 +670,17 @@ async function handleUserConnection(
   metadata: Record<string, unknown>,
 ) {
   // Try to get existing active session
-  const existingSessions = await cortex.sessions.getActive(userId);
+  const existingSessions = await memoir.sessions.getActive(userId);
 
   if (existingSessions.length > 0) {
     // Resume most recent session
     const session = existingSessions[0];
-    await cortex.sessions.touch(session.sessionId);
+    await memoir.sessions.touch(session.sessionId);
     return session;
   }
 
   // Create new session
-  return cortex.sessions.create({
+  return memoir.sessions.create({
     userId,
     metadata,
   });
@@ -691,7 +691,7 @@ async function handleUserConnection(
 
 ```typescript
 async function getActiveSessions(userId: string) {
-  const sessions = await cortex.sessions.getActive(userId);
+  const sessions = await memoir.sessions.getActive(userId);
 
   return sessions.map((s) => ({
     id: s.sessionId,
@@ -702,11 +702,11 @@ async function getActiveSessions(userId: string) {
 }
 
 async function logoutOtherDevices(userId: string, currentSessionId: string) {
-  const sessions = await cortex.sessions.getActive(userId);
+  const sessions = await memoir.sessions.getActive(userId);
 
   for (const session of sessions) {
     if (session.sessionId !== currentSessionId) {
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
     }
   }
 }
@@ -717,9 +717,9 @@ async function logoutOtherDevices(userId: string, currentSessionId: string) {
 ```typescript
 async function getSessionStats(tenantId: string) {
   const [active, idle, ended] = await Promise.all([
-    cortex.sessions.count({ tenantId, status: "active" }),
-    cortex.sessions.count({ tenantId, status: "idle" }),
-    cortex.sessions.count({ tenantId, status: "ended" }),
+    memoir.sessions.count({ tenantId, status: "active" }),
+    memoir.sessions.count({ tenantId, status: "idle" }),
+    memoir.sessions.count({ tenantId, status: "ended" }),
   ]);
 
   return {
@@ -739,10 +739,10 @@ async function getSessionStats(tenantId: string) {
 The Sessions API throws `SessionValidationError` for client-side validation failures:
 
 ```typescript
-import { SessionValidationError } from "@cortex-platform/sdk";
+import { SessionValidationError } from "@memoir-platform/sdk";
 
 try {
-  await cortex.sessions.create({
+  await memoir.sessions.create({
     userId: "", // Invalid: empty userId
   });
 } catch (error) {
@@ -786,7 +786,7 @@ Backend operations throw standard `Error` for runtime failures:
 
 ```typescript
 try {
-  await cortex.sessions.touch("non-existent-session");
+  await memoir.sessions.touch("non-existent-session");
 } catch (error) {
   if (error instanceof Error) {
     // Error message: "Session not found: non-existent-session"
@@ -800,7 +800,7 @@ try {
   icon="sparkles"
 >
 
-**PLANNED:** Session-specific error codes (`CortexErrorCode.SESSION_NOT_FOUND`, `CortexErrorCode.SESSION_EXPIRED`, `CortexErrorCode.SESSION_ALREADY_ENDED`) are planned for a future release to provide more structured error handling.
+**PLANNED:** Session-specific error codes (`MemoirErrorCode.SESSION_NOT_FOUND`, `MemoirErrorCode.SESSION_EXPIRED`, `MemoirErrorCode.SESSION_ALREADY_ENDED`) are planned for a future release to provide more structured error handling.
 
 </Callout>
 

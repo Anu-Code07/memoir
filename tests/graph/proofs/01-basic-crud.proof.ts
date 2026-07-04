@@ -18,13 +18,13 @@ import type { GraphAdapter } from "../../../src/graph";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 const MEMGRAPH_CONFIG = {
   uri: process.env.MEMGRAPH_URI || "bolt://localhost:7688",
   username: process.env.MEMGRAPH_USERNAME || "memgraph",
-  password: process.env.MEMGRAPH_PASSWORD || "cortex-dev-password",
+  password: process.env.MEMGRAPH_PASSWORD || "memoir-dev-password",
 };
 
 /**
@@ -293,7 +293,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Database Integration - Basic CRUD Proof    ║");
+  console.log("║  Memoir Graph Database Integration - Basic CRUD Proof    ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test Neo4j

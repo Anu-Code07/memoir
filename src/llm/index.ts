@@ -285,7 +285,7 @@ function parseFactsResponse(content: string): ExtractedFact[] | null {
     const facts = parsed.facts || parsed;
 
     if (!Array.isArray(facts)) {
-      console.warn("[Cortex LLM] Invalid facts response format - not an array");
+      console.warn("[Memoir LLM] Invalid facts response format - not an array");
       return null;
     }
 
@@ -335,7 +335,7 @@ function parseFactsResponse(content: string): ExtractedFact[] | null {
         };
       });
   } catch (error) {
-    console.warn("[Cortex LLM] Failed to parse facts response:", error);
+    console.warn("[Memoir LLM] Failed to parse facts response:", error);
     return null;
   }
 }
@@ -425,7 +425,7 @@ class OpenAIClient implements LLMClient {
 
       const content = response.choices?.[0]?.message?.content;
       if (!content) {
-        console.warn("[Cortex LLM] OpenAI returned empty response");
+        console.warn("[Memoir LLM] OpenAI returned empty response");
         return null;
       }
 
@@ -436,10 +436,10 @@ class OpenAIClient implements LLMClient {
         error.message.includes("Cannot find module")
       ) {
         console.error(
-          "[Cortex LLM] OpenAI SDK not installed. Run: npm install openai",
+          "[Memoir LLM] OpenAI SDK not installed. Run: npm install openai",
         );
       } else {
-        console.error("[Cortex LLM] OpenAI extraction failed:", error);
+        console.error("[Memoir LLM] OpenAI extraction failed:", error);
       }
       return null;
     }
@@ -518,7 +518,7 @@ class OpenAIClient implements LLMClient {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const content = response.choices?.[0]?.message?.content;
     if (!content) {
-      throw new Error("[Cortex LLM] OpenAI returned empty response");
+      throw new Error("[Memoir LLM] OpenAI returned empty response");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -571,7 +571,7 @@ class AnthropicClient implements LLMClient {
         (block: any) => block.type === "text",
       );
       if (!textBlock || textBlock.type !== "text") {
-        console.warn("[Cortex LLM] Anthropic returned no text content");
+        console.warn("[Memoir LLM] Anthropic returned no text content");
         return null;
       }
 
@@ -582,10 +582,10 @@ class AnthropicClient implements LLMClient {
         error.message.includes("Cannot find module")
       ) {
         console.error(
-          "[Cortex LLM] Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk",
+          "[Memoir LLM] Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk",
         );
       } else {
-        console.error("[Cortex LLM] Anthropic extraction failed:", error);
+        console.error("[Memoir LLM] Anthropic extraction failed:", error);
       }
       return null;
     }
@@ -637,7 +637,7 @@ class AnthropicClient implements LLMClient {
     );
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!textBlock || textBlock.type !== "text") {
-      throw new Error("[Cortex LLM] Anthropic returned no text content");
+      throw new Error("[Memoir LLM] Anthropic returned no text content");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
@@ -662,11 +662,11 @@ export function createLLMClient(config: LLMConfig): LLMClient | null {
         };
       }
       console.warn(
-        "[Cortex LLM] Custom provider requires extractFacts function in config",
+        "[Memoir LLM] Custom provider requires extractFacts function in config",
       );
       return null;
     default:
-      console.warn(`[Cortex LLM] Unknown provider: ${config.provider}`);
+      console.warn(`[Memoir LLM] Unknown provider: ${config.provider}`);
       return null;
   }
 }

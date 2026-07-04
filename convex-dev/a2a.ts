@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - A2A Communication API
+ * Memoir SDK - A2A Communication API
  *
  * Agent-to-agent communication helpers with optional pub/sub support.
  * Provides convenience wrappers over the memory system with source.type='a2a'.

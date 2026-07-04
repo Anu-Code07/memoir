@@ -16,7 +16,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, "..", ".env.local") });
 dotenv.config({ path: join(__dirname, "..", ".env.test") });
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import { StorageInspector, TestCleanup } from "./helpers";
@@ -80,7 +80,7 @@ let currentImmutableType: string | null = null;
 let currentImmutableId: string | null = null;
 
 // Clients
-let cortex: Cortex;
+let memoir: Memoir;
 let client: ConvexClient;
 let cleanup: TestCleanup;
 let inspector: StorageInspector;
@@ -98,7 +98,7 @@ async function initialize() {
     throw new Error("CONVEX_URL not set in environment");
   }
 
-  cortex = new Cortex({ convexUrl });
+  memoir = new Memoir({ convexUrl });
   client = new ConvexClient(convexUrl);
   cleanup = new TestCleanup(client);
   inspector = new StorageInspector(client);
@@ -420,7 +420,7 @@ async function testCreateUserAgent() {
 
   console.log("📤 Input:", JSON.stringify(input, null, 2));
 
-  const result = await cortex.conversations.create(input);
+  const result = await memoir.conversations.create(input);
 
   currentConversationId = result.conversationId;
 
@@ -450,7 +450,7 @@ async function testCreateAgentAgent() {
 
   console.log("📤 Input:", JSON.stringify(input, null, 2));
 
-  const result = await cortex.conversations.create(input);
+  const result = await memoir.conversations.create(input);
 
   currentConversationId = result.conversationId;
 
@@ -474,7 +474,7 @@ async function testGet() {
 
   console.log(`\n📖 Testing: conversations.get("${currentConversationId}")...`);
 
-  const result = await cortex.conversations.get(currentConversationId);
+  const result = await memoir.conversations.get(currentConversationId);
 
   console.log("\n📥 Result:", JSON.stringify(result, null, 2));
   console.log();
@@ -506,7 +506,7 @@ async function testAddMessage() {
 
   console.log("📤 Input:", JSON.stringify(input, null, 2));
 
-  const result = await cortex.conversations.addMessage(input);
+  const result = await memoir.conversations.addMessage(input);
 
   console.log("\n📥 Result:", JSON.stringify(result, null, 2));
   console.log(`✅ Message count: ${result.messageCount}`);
@@ -522,7 +522,7 @@ async function testListByUser() {
     `\n📋 Testing: conversations.list({ userId: "${TEST_USER_ID}" })...`,
   );
 
-  const result = await cortex.conversations.list({
+  const result = await memoir.conversations.list({
     userId: TEST_USER_ID,
   });
 
@@ -558,7 +558,7 @@ async function testListByMemorySpace() {
     `\n📋 Testing: conversations.list({ memorySpaceId: "${TEST_MEMSPACE_ID}" })...`,
   );
 
-  const result = await cortex.conversations.list({
+  const result = await memoir.conversations.list({
     memorySpaceId: TEST_MEMSPACE_ID,
   });
 
@@ -596,7 +596,7 @@ async function testCount() {
     `\n🔢 Testing: conversations.count({ userId: "${TEST_USER_ID}" })...`,
   );
 
-  const count = await cortex.conversations.count({
+  const count = await memoir.conversations.count({
     userId: TEST_USER_ID,
   });
 
@@ -618,7 +618,7 @@ async function testGetHistory() {
   );
 
   // Get first page
-  const page1 = await cortex.conversations.getHistory(currentConversationId, {
+  const page1 = await memoir.conversations.getHistory(currentConversationId, {
     limit: 5,
     offset: 0,
     sortOrder: "asc",
@@ -637,7 +637,7 @@ async function testGetHistory() {
   });
 
   // Try descending order
-  const page2 = await cortex.conversations.getHistory(currentConversationId, {
+  const page2 = await memoir.conversations.getHistory(currentConversationId, {
     limit: 3,
     sortOrder: "desc",
   });
@@ -656,7 +656,7 @@ async function testGetHistory() {
 async function testSearch() {
   console.log("\n🔍 Testing: conversations.search({ query: 'test' })...");
 
-  const results = await cortex.conversations.search({
+  const results = await memoir.conversations.search({
     query: "test",
     filters: {
       limit: 5,
@@ -689,7 +689,7 @@ async function testSearch() {
 async function testExportJSON() {
   console.log("\n💾 Testing: conversations.export({ format: 'json' })...");
 
-  const exported = await cortex.conversations.export({
+  const exported = await memoir.conversations.export({
     filters: {
       userId: TEST_USER_ID,
     },
@@ -723,7 +723,7 @@ async function testExportJSON() {
 async function testExportCSV() {
   console.log("\n📊 Testing: conversations.export({ format: 'csv' })...");
 
-  const exported = await cortex.conversations.export({
+  const exported = await memoir.conversations.export({
     filters: {
       participantId: TEST_PARTICIPANT_ID,
     },
@@ -764,14 +764,14 @@ async function testDelete() {
     `\n🗑️  Testing: conversations.delete("${currentConversationId}")...`,
   );
 
-  await cortex.conversations.delete(currentConversationId);
+  await memoir.conversations.delete(currentConversationId);
 
   console.log("✅ Conversation deleted");
 
   // Verify deletion
   console.log("\n📊 Verifying deletion...");
   try {
-    await cortex.conversations.get(currentConversationId);
+    await memoir.conversations.get(currentConversationId);
     console.log("❌ ERROR: Conversation still exists!");
   } catch (error: unknown) {
     if (
@@ -850,9 +850,9 @@ async function runConversationsTests() {
   console.log("\n🔍 CONVERSATIONS VALIDATION\n");
   console.log("═".repeat(80));
 
-  const totalCount = await cortex.conversations.count();
-  const userConvs = await cortex.conversations.list({ userId: TEST_USER_ID });
-  const agentConvs = await cortex.conversations.list({
+  const totalCount = await memoir.conversations.count();
+  const userConvs = await memoir.conversations.list({ userId: TEST_USER_ID });
+  const agentConvs = await memoir.conversations.list({
     memorySpaceId: TEST_MEMSPACE_ID,
   });
 
@@ -916,8 +916,8 @@ async function runImmutableTests() {
   console.log("\n🔍 IMMUTABLE STORE VALIDATION\n");
   console.log("═".repeat(80));
 
-  const totalCount = await cortex.immutable.count();
-  const kbArticles = await cortex.immutable.list({ type: "kb-article" });
+  const totalCount = await memoir.immutable.count();
+  const kbArticles = await memoir.immutable.list({ type: "kb-article" });
 
   console.log("📊 Results:");
   console.log(`  Total entries: ${totalCount}`);
@@ -1065,9 +1065,9 @@ async function runAllTests() {
   console.log("═".repeat(80));
 
   // Layer 1a: Conversations
-  const totalConvCount = await cortex.conversations.count();
-  const userConvs = await cortex.conversations.list({ userId: TEST_USER_ID });
-  const agentConvs = await cortex.conversations.list({
+  const totalConvCount = await memoir.conversations.count();
+  const userConvs = await memoir.conversations.list({ userId: TEST_USER_ID });
+  const agentConvs = await memoir.conversations.list({
     memorySpaceId: TEST_MEMSPACE_ID,
   });
 
@@ -1077,23 +1077,23 @@ async function runAllTests() {
   console.log(`  By agent: ${agentConvs.conversations.length}`);
 
   // Layer 1b: Immutable
-  const totalImmCount = await cortex.immutable.count();
-  const kbArticles = await cortex.immutable.list({ type: "kb-article" });
+  const totalImmCount = await memoir.immutable.count();
+  const kbArticles = await memoir.immutable.list({ type: "kb-article" });
 
   console.log("\n📊 Layer 1b (Immutable Store):");
   console.log(`  Total entries: ${totalImmCount}`);
   console.log(`  KB articles: ${kbArticles.entries.length}`);
 
   // Layer 1c: Mutable
-  const inventoryCount = await cortex.mutable.count({ namespace: "inventory" });
-  const counterCount = await cortex.mutable.count({ namespace: "counters" });
+  const inventoryCount = await memoir.mutable.count({ namespace: "inventory" });
+  const counterCount = await memoir.mutable.count({ namespace: "counters" });
 
   console.log("\n📊 Layer 1c (Mutable Store):");
   console.log(`  Inventory items: ${inventoryCount}`);
   console.log(`  Counters: ${counterCount}`);
 
   // Layer 2: Vector
-  const totalVectorCount = await cortex.vector.count({
+  const totalVectorCount = await memoir.vector.count({
     memorySpaceId: TEST_MEMSPACE_ID,
   });
 
@@ -1101,7 +1101,7 @@ async function runAllTests() {
   console.log(`  Total memories: ${totalVectorCount}`);
 
   // Layer 3: Memory (uses Layer 1 + Layer 2)
-  const memorySearchResults = await cortex.memory.search(
+  const memorySearchResults = await memoir.memory.search(
     TEST_MEMSPACE_ID,
     "password",
   );
@@ -1169,7 +1169,7 @@ async function testImmutableStore() {
 
   console.log("📤 Input:", JSON.stringify(entry, null, 2));
 
-  const result = await cortex.immutable.store(entry);
+  const result = await memoir.immutable.store(entry);
 
   currentImmutableType = result.type;
   currentImmutableId = result.id;
@@ -1200,7 +1200,7 @@ async function testImmutableGet() {
     `\n📖 Testing: immutable.get("${currentImmutableType}", "${currentImmutableId}")...`,
   );
 
-  const result = await cortex.immutable.get(
+  const result = await memoir.immutable.get(
     currentImmutableType,
     currentImmutableId,
   );
@@ -1231,7 +1231,7 @@ async function testImmutableGetVersion() {
     `\n🔢 Testing: immutable.getVersion("${currentImmutableType}", "${currentImmutableId}", 1)...`,
   );
 
-  const v1 = await cortex.immutable.getVersion(
+  const v1 = await memoir.immutable.getVersion(
     currentImmutableType,
     currentImmutableId,
     1,
@@ -1260,7 +1260,7 @@ async function testImmutableGetHistory() {
     `\n📜 Testing: immutable.getHistory("${currentImmutableType}", "${currentImmutableId}")...`,
   );
 
-  const history = await cortex.immutable.getHistory(
+  const history = await memoir.immutable.getHistory(
     currentImmutableType,
     currentImmutableId,
   );
@@ -1281,7 +1281,7 @@ async function testImmutableGetHistory() {
 async function testImmutableList() {
   console.log("\n📋 Testing: immutable.list({ type: 'kb-article' })...");
 
-  const entries = await cortex.immutable.list({
+  const entries = await memoir.immutable.list({
     type: "kb-article",
   });
 
@@ -1298,7 +1298,7 @@ async function testImmutableList() {
 async function testImmutableSearch() {
   console.log("\n🔍 Testing: immutable.search({ query: 'test' })...");
 
-  const results = await cortex.immutable.search({
+  const results = await memoir.immutable.search({
     query: "test",
     limit: 5,
   });
@@ -1316,7 +1316,7 @@ async function testImmutableSearch() {
 async function testImmutableCount() {
   console.log("\n🔢 Testing: immutable.count({ type: 'kb-article' })...");
 
-  const count = await cortex.immutable.count({
+  const count = await memoir.immutable.count({
     type: "kb-article",
   });
 
@@ -1337,7 +1337,7 @@ async function testImmutablePurge() {
     `\n🗑️  Testing: immutable.purge("${currentImmutableType}", "${currentImmutableId}")...`,
   );
 
-  const result = await cortex.immutable.purge(
+  const result = await memoir.immutable.purge(
     currentImmutableType,
     currentImmutableId,
   );
@@ -1347,7 +1347,7 @@ async function testImmutablePurge() {
   console.log(`  Versions deleted: ${result.versionsDeleted}`);
 
   // Verify deletion
-  const check = await cortex.immutable.get(
+  const check = await memoir.immutable.get(
     currentImmutableType,
     currentImmutableId,
   );
@@ -1374,7 +1374,7 @@ async function testConvPropagation() {
   );
 
   // Create conversation
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: {
@@ -1391,7 +1391,7 @@ async function testConvPropagation() {
 
   // Add 5 messages
   for (let i = 1; i <= 5; i++) {
-    await cortex.conversations.addMessage({
+    await memoir.conversations.addMessage({
       conversationId: conv.conversationId,
       message: {
         role: i % 2 === 0 ? "agent" : "user",
@@ -1402,12 +1402,12 @@ async function testConvPropagation() {
   }
 
   // Verify in get()
-  const retrieved = await cortex.conversations.get(conv.conversationId);
+  const retrieved = await memoir.conversations.get(conv.conversationId);
 
   console.log(`\n✅ get() shows ${retrieved!.messageCount} messages`);
 
   // Verify in list()
-  const list = await cortex.conversations.list({ userId: TEST_USER_ID });
+  const list = await memoir.conversations.list({ userId: TEST_USER_ID });
   const inList = list.conversations.find(
     (c) => c.conversationId === conv.conversationId,
   );
@@ -1415,7 +1415,7 @@ async function testConvPropagation() {
   console.log(`✅ list() shows ${inList?.messageCount} messages`);
 
   // Verify in search()
-  const searchResults = await cortex.conversations.search({
+  const searchResults = await memoir.conversations.search({
     query: "PROPAGATE",
   });
   const inSearch = searchResults.find(
@@ -1427,7 +1427,7 @@ async function testConvPropagation() {
   );
 
   // Verify in getHistory()
-  const history = await cortex.conversations.getHistory(conv.conversationId);
+  const history = await memoir.conversations.getHistory(conv.conversationId);
 
   console.log(`✅ getHistory() returned ${history.messages.length} messages`);
 
@@ -1456,7 +1456,7 @@ async function testConvManyMessages() {
   );
 
   // Create conversation
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: {
@@ -1473,7 +1473,7 @@ async function testConvManyMessages() {
   // Add 100 messages
   console.log("   Adding 100 messages...");
   for (let i = 1; i <= 100; i++) {
-    await cortex.conversations.addMessage({
+    await memoir.conversations.addMessage({
       conversationId: conv.conversationId,
       message: {
         role: i % 2 === 0 ? "agent" : "user",
@@ -1488,12 +1488,12 @@ async function testConvManyMessages() {
   console.log("✅ Added 100 messages");
 
   // Get full conversation
-  const retrieved = await cortex.conversations.get(conv.conversationId);
+  const retrieved = await memoir.conversations.get(conv.conversationId);
 
   console.log(`\n✅ get() returned ${retrieved!.messageCount} messages`);
 
   // Test pagination
-  const page1 = await cortex.conversations.getHistory(conv.conversationId, {
+  const page1 = await memoir.conversations.getHistory(conv.conversationId, {
     limit: 20,
     offset: 0,
     sortOrder: "asc",
@@ -1504,7 +1504,7 @@ async function testConvManyMessages() {
   );
   console.log(`   First message: "${page1.messages[0].content}"`);
 
-  const page2 = await cortex.conversations.getHistory(conv.conversationId, {
+  const page2 = await memoir.conversations.getHistory(conv.conversationId, {
     limit: 20,
     offset: 20,
     sortOrder: "asc",
@@ -1530,7 +1530,7 @@ async function testConvDeleteMany() {
   // Create multiple conversations
   console.log("Creating 5 test conversations...");
   for (let i = 1; i <= 5; i++) {
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       type: "user-agent",
       memorySpaceId: TEST_MEMSPACE_ID,
       participants: {
@@ -1541,14 +1541,14 @@ async function testConvDeleteMany() {
     });
   }
 
-  const countBefore = await cortex.conversations.count({
+  const countBefore = await memoir.conversations.count({
     userId: `${TEST_USER_ID}-bulk`,
   });
 
   console.log(`✅ Created ${countBefore} conversations`);
 
   // Delete all
-  const result = await cortex.conversations.deleteMany({
+  const result = await memoir.conversations.deleteMany({
     userId: `${TEST_USER_ID}-bulk`,
   });
 
@@ -1557,7 +1557,7 @@ async function testConvDeleteMany() {
   console.log(`  Messages deleted: ${result.totalMessagesDeleted}`);
 
   // Verify
-  const countAfter = await cortex.conversations.count({
+  const countAfter = await memoir.conversations.count({
     userId: `${TEST_USER_ID}-bulk`,
   });
 
@@ -1579,7 +1579,7 @@ async function testConvGetMessage() {
   console.log(`\n📧 Testing: conversations.getMessage()...`);
 
   // Get the conversation to find a message ID
-  const conv = await cortex.conversations.get(currentConversationId);
+  const conv = await memoir.conversations.get(currentConversationId);
 
   if (!conv || conv.messages.length === 0) {
     console.log(
@@ -1593,7 +1593,7 @@ async function testConvGetMessage() {
 
   console.log(`Looking for message: ${messageId}`);
 
-  const message = await cortex.conversations.getMessage(
+  const message = await memoir.conversations.getMessage(
     currentConversationId,
     messageId,
   );
@@ -1620,7 +1620,7 @@ async function testConvGetMessagesByIds() {
 
   console.log(`\n📧 Testing: conversations.getMessagesByIds()...`);
 
-  const conv = await cortex.conversations.get(currentConversationId);
+  const conv = await memoir.conversations.get(currentConversationId);
 
   if (!conv || conv.messages.length === 0) {
     console.log("⚠️  No messages in conversation.\n");
@@ -1632,7 +1632,7 @@ async function testConvGetMessagesByIds() {
 
   console.log(`Retrieving ${messageIds.length} messages...`);
 
-  const messages = await cortex.conversations.getMessagesByIds(
+  const messages = await memoir.conversations.getMessagesByIds(
     currentConversationId,
     messageIds,
   );
@@ -1649,7 +1649,7 @@ async function testConvGetMessagesByIds() {
 async function testConvFindConversation() {
   console.log(`\n🔎 Testing: conversations.findConversation()...`);
 
-  const found = await cortex.conversations.findConversation({
+  const found = await memoir.conversations.findConversation({
     type: "user-agent",
     userId: TEST_USER_ID,
     memorySpaceId: TEST_MEMSPACE_ID,
@@ -1673,7 +1673,7 @@ async function testConvGetOrCreate() {
   console.log(`\n🔄 Testing: conversations.getOrCreate()...`);
   console.log("This will find existing or create new atomically\n");
 
-  const result = await cortex.conversations.getOrCreate({
+  const result = await memoir.conversations.getOrCreate({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: {
@@ -1693,7 +1693,7 @@ async function testConvGetOrCreate() {
   currentConversationId = result.conversationId;
 
   // Call again to demonstrate it returns same
-  const second = await cortex.conversations.getOrCreate({
+  const second = await memoir.conversations.getOrCreate({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: {
@@ -1714,7 +1714,7 @@ async function testConvIntegration() {
   console.log("Full workflow: create → add messages → verify in all APIs\n");
 
   // Create
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: {
@@ -1731,7 +1731,7 @@ async function testConvIntegration() {
   console.log(`✅ Step 1: Created conversation ${conv.conversationId}`);
 
   // Add message with unique keyword
-  await cortex.conversations.addMessage({
+  await memoir.conversations.addMessage({
     conversationId: conv.conversationId,
     message: {
       role: "user",
@@ -1741,11 +1741,11 @@ async function testConvIntegration() {
   console.log("✅ Step 2: Added message with unique keyword");
 
   // Verify in all operations
-  const get = await cortex.conversations.get(conv.conversationId);
+  const get = await memoir.conversations.get(conv.conversationId);
 
   console.log(`✅ Step 3: get() returned messageCount: ${get!.messageCount}`);
 
-  const list = await cortex.conversations.list({ userId: TEST_USER_ID });
+  const list = await memoir.conversations.list({ userId: TEST_USER_ID });
   const inList = list.conversations.some(
     (c) => c.conversationId === conv.conversationId,
   );
@@ -1754,7 +1754,7 @@ async function testConvIntegration() {
     `✅ Step 4: list() ${inList ? "found" : "did not find"} conversation`,
   );
 
-  const search = await cortex.conversations.search({
+  const search = await memoir.conversations.search({
     query: "UNIQUE_INTEGRATION_KEYWORD",
   });
   const inSearch = search.some(
@@ -1765,11 +1765,11 @@ async function testConvIntegration() {
     `✅ Step 5: search() ${inSearch ? "found" : "did not find"} conversation`,
   );
 
-  const count = await cortex.conversations.count({ userId: TEST_USER_ID });
+  const count = await memoir.conversations.count({ userId: TEST_USER_ID });
 
   console.log(`✅ Step 6: count() returned ${count}`);
 
-  const exported = await cortex.conversations.export({
+  const exported = await memoir.conversations.export({
     filters: { userId: TEST_USER_ID },
     format: "json",
   });
@@ -1805,7 +1805,7 @@ async function testImmPropagation() {
   const id = "test-entry";
 
   // Create v1 with "draft" keyword
-  const v1 = await cortex.immutable.store({
+  const v1 = await memoir.immutable.store({
     type,
     id,
     data: {
@@ -1820,7 +1820,7 @@ async function testImmPropagation() {
   console.log(`✅ Step 1: Created v${v1.version} with status "draft"`);
 
   // Verify in search
-  let searchResults = await cortex.immutable.search({ query: "draft" });
+  let searchResults = await memoir.immutable.search({ query: "draft" });
   const foundDraft = searchResults.some((r) => r.entry.id === id);
 
   console.log(
@@ -1828,7 +1828,7 @@ async function testImmPropagation() {
   );
 
   // Update to v2 with "published" keyword
-  const v2 = await cortex.immutable.store({
+  const v2 = await memoir.immutable.store({
     type,
     id,
     data: {
@@ -1840,14 +1840,14 @@ async function testImmPropagation() {
   console.log(`✅ Step 3: Updated to v${v2.version} with status "published"`);
 
   // Verify get() shows new version
-  const current = await cortex.immutable.get(type, id);
+  const current = await memoir.immutable.get(type, id);
 
   console.log(
     `✅ Step 4: get() returned v${current!.version} with status "${current!.data.status}"`,
   );
 
   // Verify search finds new keyword
-  searchResults = await cortex.immutable.search({ query: "published" });
+  searchResults = await memoir.immutable.search({ query: "published" });
   const foundPublished = searchResults.some((r) => r.entry.id === id);
 
   console.log(
@@ -1855,7 +1855,7 @@ async function testImmPropagation() {
   );
 
   // Verify search doesn't find old keyword
-  const draftResults = await cortex.immutable.search({ query: "draft" });
+  const draftResults = await memoir.immutable.search({ query: "draft" });
   const stillHasDraft = draftResults.some((r) => r.entry.id === id);
 
   console.log(
@@ -1863,7 +1863,7 @@ async function testImmPropagation() {
   );
 
   // Verify getVersion(1) still has old data
-  const historicalV1 = await cortex.immutable.getVersion(type, id, 1);
+  const historicalV1 = await memoir.immutable.getVersion(type, id, 1);
 
   console.log(
     `✅ Step 7: getVersion(1) still has status "${historicalV1!.data.status}"`,
@@ -1897,7 +1897,7 @@ async function testImmManyVersions() {
 
   console.log("Creating 25 versions...");
   for (let i = 1; i <= 25; i++) {
-    await cortex.immutable.store({
+    await memoir.immutable.store({
       type,
       id,
       data: {
@@ -1915,7 +1915,7 @@ async function testImmManyVersions() {
   console.log("✅ Created 25 versions");
 
   // Get current
-  const current = await cortex.immutable.get(type, id);
+  const current = await memoir.immutable.get(type, id);
 
   console.log(
     `\n✅ get() returned v${current!.version} with iteration ${current!.data.iteration}`,
@@ -1925,14 +1925,14 @@ async function testImmManyVersions() {
   );
 
   // Get history
-  const history = await cortex.immutable.getHistory(type, id);
+  const history = await memoir.immutable.getHistory(type, id);
 
   console.log(`✅ getHistory() returned ${history.length} versions`);
 
   // Spot check specific versions
-  const v1 = await cortex.immutable.getVersion(type, id, 1);
-  const v10 = await cortex.immutable.getVersion(type, id, 10);
-  const v25 = await cortex.immutable.getVersion(type, id, 25);
+  const v1 = await memoir.immutable.getVersion(type, id, 1);
+  const v10 = await memoir.immutable.getVersion(type, id, 10);
+  const v25 = await memoir.immutable.getVersion(type, id, 25);
 
   console.log(`\n✅ Version spot check:`);
   console.log(`   v1: iteration ${v1!.data.iteration}`);
@@ -1965,7 +1965,7 @@ async function testImmGetAtTimestamp() {
   console.log(`\n⏰ Testing: immutable.getAtTimestamp()...`);
 
   // Get history to find timestamps
-  const history = await cortex.immutable.getHistory(
+  const history = await memoir.immutable.getHistory(
     currentImmutableType,
     currentImmutableId,
   );
@@ -1983,7 +1983,7 @@ async function testImmGetAtTimestamp() {
 
   console.log("\n📥 Testing different timestamps:");
 
-  const beforeCreation = await cortex.immutable.getAtTimestamp(
+  const beforeCreation = await memoir.immutable.getAtTimestamp(
     currentImmutableType,
     currentImmutableId,
     past,
@@ -1993,7 +1993,7 @@ async function testImmGetAtTimestamp() {
     `  Before creation: ${beforeCreation ? `v${beforeCreation.version}` : "null (didn't exist)"}`,
   );
 
-  const atFirst = await cortex.immutable.getAtTimestamp(
+  const atFirst = await memoir.immutable.getAtTimestamp(
     currentImmutableType,
     currentImmutableId,
     atV1,
@@ -2003,7 +2003,7 @@ async function testImmGetAtTimestamp() {
     `  At first version: ${atFirst ? `v${atFirst.version}` : "null"}`,
   );
 
-  const inFuture = await cortex.immutable.getAtTimestamp(
+  const inFuture = await memoir.immutable.getAtTimestamp(
     currentImmutableType,
     currentImmutableId,
     future,
@@ -2021,27 +2021,27 @@ async function testImmPurgeMany() {
   // Create test entries
   console.log("Creating 3 test entries...");
   for (let i = 1; i <= 3; i++) {
-    await cortex.immutable.store({
+    await memoir.immutable.store({
       type: "bulk-delete-test",
       id: `entry-${i}`,
       data: { value: i },
     });
   }
 
-  const countBefore = await cortex.immutable.count({
+  const countBefore = await memoir.immutable.count({
     type: "bulk-delete-test",
   });
 
   console.log(`✅ Created ${countBefore} entries`);
 
   // Purge all
-  const result = await cortex.immutable.purgeMany({ type: "bulk-delete-test" });
+  const result = await memoir.immutable.purgeMany({ type: "bulk-delete-test" });
 
   console.log(`\n📥 Deleted:`);
   console.log(`  Entries: ${result.deleted}`);
   console.log(`  Total versions: ${result.totalVersionsDeleted}`);
 
-  const countAfter = await cortex.immutable.count({ type: "bulk-delete-test" });
+  const countAfter = await memoir.immutable.count({ type: "bulk-delete-test" });
 
   console.log(
     `\n✅ Verification: ${countAfter === 0 ? "All deleted" : `${countAfter} remaining`}`,
@@ -2058,25 +2058,25 @@ async function testImmPurgeVersions() {
   // Create 10 versions
   console.log("Creating 10 versions...");
   for (let i = 1; i <= 10; i++) {
-    await cortex.immutable.store({
+    await memoir.immutable.store({
       type,
       id,
       data: { iteration: i },
     });
   }
 
-  const before = await cortex.immutable.get(type, id);
+  const before = await memoir.immutable.get(type, id);
 
   console.log(`✅ Created ${before!.version} versions`);
 
   // Keep only latest 5
-  const result = await cortex.immutable.purgeVersions(type, id, 5);
+  const result = await memoir.immutable.purgeVersions(type, id, 5);
 
   console.log(`\n📥 Purge result:`);
   console.log(`  Versions purged: ${result.versionsPurged}`);
   console.log(`  Versions remaining: ${result.versionsRemaining}`);
 
-  const after = await cortex.immutable.get(type, id);
+  const after = await memoir.immutable.get(type, id);
 
   console.log(
     `\n✅ Verification: ${after!.previousVersions.length + 1} versions remain`,
@@ -2092,7 +2092,7 @@ async function testImmIntegration() {
   const id = "workflow-test";
 
   // Step 1: Store with unique keyword
-  const v1 = await cortex.immutable.store({
+  const v1 = await memoir.immutable.store({
     type,
     id,
     data: {
@@ -2107,13 +2107,13 @@ async function testImmIntegration() {
   console.log(`✅ Step 1: store() created v${v1.version}`);
 
   // Step 2: Verify in list
-  const list1 = await cortex.immutable.list({ type });
+  const list1 = await memoir.immutable.list({ type });
   const inList = list1.some((e) => e.id === id);
 
   console.log(`✅ Step 2: list() ${inList ? "found" : "did not find"} entry`);
 
   // Step 3: Verify in search
-  const search1 = await cortex.immutable.search({
+  const search1 = await memoir.immutable.search({
     query: "UNIQUE_IMM_KEYWORD",
     type,
   });
@@ -2124,12 +2124,12 @@ async function testImmIntegration() {
   );
 
   // Step 4: Count
-  const count1 = await cortex.immutable.count({ type });
+  const count1 = await memoir.immutable.count({ type });
 
   console.log(`✅ Step 4: count() returned ${count1}`);
 
   // Step 5: Update content (remove old keyword, add new)
-  const v2 = await cortex.immutable.store({
+  const v2 = await memoir.immutable.store({
     type,
     id,
     data: {
@@ -2141,7 +2141,7 @@ async function testImmIntegration() {
   console.log(`\n✅ Step 5: Updated to v${v2.version}`);
 
   // Step 6: List should still show it
-  const list2 = await cortex.immutable.list({ type });
+  const list2 = await memoir.immutable.list({ type });
   const stillInList = list2.some((e) => e.id === id);
 
   console.log(
@@ -2149,7 +2149,7 @@ async function testImmIntegration() {
   );
 
   // Step 7: Old keyword search should NOT find it
-  const searchOld = await cortex.immutable.search({
+  const searchOld = await memoir.immutable.search({
     query: "UNIQUE_IMM_KEYWORD",
     type,
   });
@@ -2160,7 +2160,7 @@ async function testImmIntegration() {
   );
 
   // Step 8: New keyword search should find it
-  const searchNew = await cortex.immutable.search({
+  const searchNew = await memoir.immutable.search({
     query: "DIFFERENT_KEYWORD",
     type,
   });
@@ -2171,7 +2171,7 @@ async function testImmIntegration() {
   );
 
   // Step 9: Count should be unchanged
-  const count2 = await cortex.immutable.count({ type });
+  const count2 = await memoir.immutable.count({ type });
 
   console.log(`✅ Step 9: count() unchanged at ${count2}`);
 
@@ -2194,7 +2194,7 @@ async function testImmIntegration() {
 async function testMutableSet() {
   console.log("\n💾 Testing: mutable.set()...");
 
-  const result = await cortex.mutable.set("inventory", "widget-qty", 100);
+  const result = await memoir.mutable.set("inventory", "widget-qty", 100);
 
   console.log("📥 Result:");
   console.log(`  Namespace: ${result.namespace}`);
@@ -2206,7 +2206,7 @@ async function testMutableSet() {
 async function testMutableGet() {
   console.log("\n📖 Testing: mutable.get()...");
 
-  const value = await cortex.mutable.get("inventory", "widget-qty");
+  const value = await memoir.mutable.get("inventory", "widget-qty");
 
   console.log(`📥 Value: ${value !== null ? value : "null (key not found)"}`);
   console.log();
@@ -2215,9 +2215,9 @@ async function testMutableGet() {
 async function testMutableUpdate() {
   console.log("\n🔄 Testing: mutable.update()...");
 
-  await cortex.mutable.set("counters", "test-counter", 0);
+  await memoir.mutable.set("counters", "test-counter", 0);
 
-  const result = await cortex.mutable.update(
+  const result = await memoir.mutable.update(
     "counters",
     "test-counter",
     (current: number) => current + 10,
@@ -2230,10 +2230,10 @@ async function testMutableUpdate() {
 async function testMutableIncrement() {
   console.log("\n➕ Testing: mutable.increment()...");
 
-  await cortex.mutable.set("counters", "inc-test", 0);
-  await cortex.mutable.increment("counters", "inc-test", 5);
+  await memoir.mutable.set("counters", "inc-test", 0);
+  await memoir.mutable.increment("counters", "inc-test", 5);
 
-  const value = await cortex.mutable.get("counters", "inc-test");
+  const value = await memoir.mutable.get("counters", "inc-test");
 
   console.log(`📥 After increment(5): ${value}`);
   console.log();
@@ -2242,10 +2242,10 @@ async function testMutableIncrement() {
 async function testMutableDecrement() {
   console.log("\n➖ Testing: mutable.decrement()...");
 
-  await cortex.mutable.set("inventory", "dec-test", 100);
-  await cortex.mutable.decrement("inventory", "dec-test", 10);
+  await memoir.mutable.set("inventory", "dec-test", 100);
+  await memoir.mutable.decrement("inventory", "dec-test", 10);
 
-  const value = await cortex.mutable.get("inventory", "dec-test");
+  const value = await memoir.mutable.get("inventory", "dec-test");
 
   console.log(`📥 After decrement(10): ${value}`);
   console.log();
@@ -2254,7 +2254,7 @@ async function testMutableDecrement() {
 async function testMutableList() {
   console.log("\n📋 Testing: mutable.list()...");
 
-  const items = await cortex.mutable.list({ namespace: "inventory" });
+  const items = await memoir.mutable.list({ namespace: "inventory" });
 
   console.log(`\n📥 Found ${items.length} items in inventory:`);
   items.slice(0, 5).forEach((item) => {
@@ -2268,7 +2268,7 @@ async function testMutableList() {
 async function testMutableCount() {
   console.log("\n🔢 Testing: mutable.count()...");
 
-  const count = await cortex.mutable.count({ namespace: "inventory" });
+  const count = await memoir.mutable.count({ namespace: "inventory" });
 
   console.log(`📥 Count: ${count} items in inventory`);
   console.log();
@@ -2277,7 +2277,7 @@ async function testMutableCount() {
 async function testMutableExists() {
   console.log("\n❓ Testing: mutable.exists()...");
 
-  const exists = await cortex.mutable.exists("inventory", "widget-qty");
+  const exists = await memoir.mutable.exists("inventory", "widget-qty");
 
   console.log(`📥 widget-qty exists: ${exists ? "Yes" : "No"}`);
   console.log();
@@ -2286,13 +2286,13 @@ async function testMutableExists() {
 async function testMutableDelete() {
   console.log("\n🗑️  Testing: mutable.delete()...");
 
-  await cortex.mutable.set("temp", "delete-me", "temporary");
+  await memoir.mutable.set("temp", "delete-me", "temporary");
   console.log("✅ Created temp/delete-me");
 
-  await cortex.mutable.delete("temp", "delete-me");
+  await memoir.mutable.delete("temp", "delete-me");
   console.log("✅ Deleted temp/delete-me");
 
-  const exists = await cortex.mutable.exists("temp", "delete-me");
+  const exists = await memoir.mutable.exists("temp", "delete-me");
 
   console.log(
     `✅ Verification: ${exists ? "Still exists (ERROR)" : "Deleted successfully"}`,
@@ -2304,20 +2304,20 @@ async function testMutablePurgeNamespace() {
   console.log("\n🧹 Testing: mutable.purgeNamespace()...");
 
   // Create test entries
-  await cortex.mutable.set("purge-ns-test", "key-1", 1);
-  await cortex.mutable.set("purge-ns-test", "key-2", 2);
+  await memoir.mutable.set("purge-ns-test", "key-1", 1);
+  await memoir.mutable.set("purge-ns-test", "key-2", 2);
 
-  const countBefore = await cortex.mutable.count({
+  const countBefore = await memoir.mutable.count({
     namespace: "purge-ns-test",
   });
 
   console.log(`✅ Created ${countBefore} keys`);
 
-  const result = await cortex.mutable.purgeNamespace("purge-ns-test");
+  const result = await memoir.mutable.purgeNamespace("purge-ns-test");
 
   console.log(`📥 Deleted ${result.deleted} keys`);
 
-  const countAfter = await cortex.mutable.count({ namespace: "purge-ns-test" });
+  const countAfter = await memoir.mutable.count({ namespace: "purge-ns-test" });
 
   console.log(
     `✅ Verification: ${countAfter === 0 ? "All deleted" : `${countAfter} remaining`}`,
@@ -2329,15 +2329,15 @@ async function testMutablePurgeMany() {
   console.log("\n🗑️  Testing: mutable.purgeMany()...");
 
   // Create test entries
-  await cortex.mutable.set("bulk-mut-del", "temp-1", "a");
-  await cortex.mutable.set("bulk-mut-del", "temp-2", "b");
-  await cortex.mutable.set("bulk-mut-del", "keep-1", "c");
+  await memoir.mutable.set("bulk-mut-del", "temp-1", "a");
+  await memoir.mutable.set("bulk-mut-del", "temp-2", "b");
+  await memoir.mutable.set("bulk-mut-del", "keep-1", "c");
 
-  const countBefore = await cortex.mutable.count({ namespace: "bulk-mut-del" });
+  const countBefore = await memoir.mutable.count({ namespace: "bulk-mut-del" });
 
   console.log(`✅ Created ${countBefore} keys`);
 
-  const result = await cortex.mutable.purgeMany({
+  const result = await memoir.mutable.purgeMany({
     namespace: "bulk-mut-del",
     keyPrefix: "temp-",
   });
@@ -2345,7 +2345,7 @@ async function testMutablePurgeMany() {
   console.log(`\n📥 Deleted ${result.deleted} keys with prefix "temp-"`);
   console.log(`Keys deleted: ${result.keys.join(", ")}`);
 
-  const countAfter = await cortex.mutable.count({
+  const countAfter = await memoir.mutable.count({
     namespace: "bulk-mut-del",
     keyPrefix: "temp-",
   });
@@ -2361,9 +2361,9 @@ async function testMutableTransaction() {
   console.log("Atomic multi-key operations - inventory transfer example\n");
 
   // Setup
-  await cortex.mutable.set("inventory", "product-a", 100);
-  await cortex.mutable.set("inventory", "product-b", 50);
-  await cortex.mutable.set("counters", "sales", 0);
+  await memoir.mutable.set("inventory", "product-a", 100);
+  await memoir.mutable.set("inventory", "product-b", 50);
+  await memoir.mutable.set("counters", "sales", 0);
 
   console.log("Initial state:");
   console.log("  product-a: 100");
@@ -2371,7 +2371,7 @@ async function testMutableTransaction() {
   console.log("  sales counter: 0");
 
   // Execute transaction: sell 10 units of product-a
-  const result = await cortex.mutable.transaction([
+  const result = await memoir.mutable.transaction([
     { op: "decrement", namespace: "inventory", key: "product-a", amount: 10 },
     { op: "increment", namespace: "counters", key: "sales", amount: 1 },
     { op: "set", namespace: "state", key: "last-sale", value: Date.now() },
@@ -2382,9 +2382,9 @@ async function testMutableTransaction() {
   console.log(`  Operations executed: ${result.operationsExecuted}`);
 
   // Verify
-  const productA = await cortex.mutable.get("inventory", "product-a");
-  const sales = await cortex.mutable.get("counters", "sales");
-  const lastSale = await cortex.mutable.get("state", "last-sale");
+  const productA = await memoir.mutable.get("inventory", "product-a");
+  const sales = await memoir.mutable.get("counters", "sales");
+  const lastSale = await memoir.mutable.get("state", "last-sale");
 
   console.log(`\n✅ Final state:`);
   console.log(`  product-a: ${productA} (should be 90)`);
@@ -2393,10 +2393,10 @@ async function testMutableTransaction() {
 
   // Test inventory transfer
   console.log(`\n🔄 Testing inventory transfer...`);
-  await cortex.mutable.set("transfer-test", "source", 100);
-  await cortex.mutable.set("transfer-test", "destination", 0);
+  await memoir.mutable.set("transfer-test", "source", 100);
+  await memoir.mutable.set("transfer-test", "destination", 0);
 
-  await cortex.mutable.transaction([
+  await memoir.mutable.transaction([
     { op: "decrement", namespace: "transfer-test", key: "source", amount: 25 },
     {
       op: "increment",
@@ -2406,8 +2406,8 @@ async function testMutableTransaction() {
     },
   ]);
 
-  const source = await cortex.mutable.get("transfer-test", "source");
-  const dest = await cortex.mutable.get("transfer-test", "destination");
+  const source = await memoir.mutable.get("transfer-test", "source");
+  const dest = await memoir.mutable.get("transfer-test", "destination");
 
   console.log(`  Source: ${source} (should be 75)`);
   console.log(`  Destination: ${dest} (should be 25)`);
@@ -2426,7 +2426,7 @@ async function testMutableTransaction() {
 async function testVectorStore() {
   console.log("\n💾 Testing: vector.store()...");
 
-  const result = await cortex.vector.store(TEST_MEMSPACE_ID, {
+  const result = await memoir.vector.store(TEST_MEMSPACE_ID, {
     content: "User prefers dark mode for UI",
     contentType: "raw",
     source: { type: "conversation", userId: TEST_USER_ID },
@@ -2458,7 +2458,7 @@ async function testVectorGet() {
 
   console.log(`\n📖 Testing: vector.get()...`);
 
-  const result = await cortex.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
+  const result = await memoir.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
 
   if (result) {
     console.log("📥 Retrieved:");
@@ -2475,7 +2475,7 @@ async function testVectorGet() {
 async function testVectorSearch() {
   console.log("\n🔍 Testing: vector.search()...");
 
-  const results = await cortex.vector.search(TEST_MEMSPACE_ID, "preferences");
+  const results = await memoir.vector.search(TEST_MEMSPACE_ID, "preferences");
 
   console.log(`📥 Found ${results.length} memories matching "preferences"`);
   results.forEach((m, i) => {
@@ -2489,7 +2489,7 @@ async function testVectorSearch() {
 async function testVectorList() {
   console.log("\n📋 Testing: vector.list()...");
 
-  const results = await cortex.vector.list({
+  const results = await memoir.vector.list({
     memorySpaceId: TEST_MEMSPACE_ID,
     limit: 10,
   });
@@ -2504,7 +2504,7 @@ async function testVectorList() {
 async function testVectorCount() {
   console.log("\n🔢 Testing: vector.count()...");
 
-  const count = await cortex.vector.count({
+  const count = await memoir.vector.count({
     memorySpaceId: TEST_MEMSPACE_ID,
   });
 
@@ -2523,12 +2523,12 @@ async function testVectorDelete() {
 
   console.log(`\n🗑️  Testing: vector.delete()...`);
 
-  await cortex.vector.delete(TEST_MEMSPACE_ID, currentMemoryId);
+  await memoir.vector.delete(TEST_MEMSPACE_ID, currentMemoryId);
 
   console.log("✅ Memory deleted");
 
   // Verify
-  const check = await cortex.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
+  const check = await memoir.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
 
   console.log(
     `✅ Verification: ${check === null ? "Deleted" : "Still exists (ERROR)"}`,
@@ -2549,7 +2549,7 @@ async function testVectorUpdate() {
 
   console.log(`\n✏️  Testing: vector.update()...`);
 
-  const updated = await cortex.vector.update(
+  const updated = await memoir.vector.update(
     TEST_MEMSPACE_ID,
     currentMemoryId,
     {
@@ -2572,7 +2572,7 @@ async function testVectorUpdateMany() {
 
   // Create test memories
   for (let i = 1; i <= 3; i++) {
-    await cortex.vector.store(TEST_MEMSPACE_ID, {
+    await memoir.vector.store(TEST_MEMSPACE_ID, {
       content: `Bulk update test ${i}`,
       contentType: "raw",
       source: { type: "system", timestamp: Date.now() },
@@ -2580,7 +2580,7 @@ async function testVectorUpdateMany() {
     });
   }
 
-  const result = await cortex.vector.updateMany(
+  const result = await memoir.vector.updateMany(
     { memorySpaceId: TEST_MEMSPACE_ID, sourceType: "system" },
     { importance: 80 },
   );
@@ -2595,7 +2595,7 @@ async function testVectorDeleteMany() {
 
   // Create test memories
   for (let i = 1; i <= 5; i++) {
-    await cortex.vector.store(TEST_MEMSPACE_ID, {
+    await memoir.vector.store(TEST_MEMSPACE_ID, {
       content: `Bulk delete test ${i}`,
       contentType: "raw",
       source: { type: "system", timestamp: Date.now() },
@@ -2604,7 +2604,7 @@ async function testVectorDeleteMany() {
     });
   }
 
-  const result = await cortex.vector.deleteMany({
+  const result = await memoir.vector.deleteMany({
     memorySpaceId: TEST_MEMSPACE_ID,
     userId: "user-bulk-delete-test",
   });
@@ -2617,7 +2617,7 @@ async function testVectorDeleteMany() {
 async function testVectorExport() {
   console.log(`\n📤 Testing: vector.export()...`);
 
-  const jsonExport = await cortex.vector.export({
+  const jsonExport = await memoir.vector.export({
     memorySpaceId: TEST_MEMSPACE_ID,
     format: "json",
   });
@@ -2626,7 +2626,7 @@ async function testVectorExport() {
   console.log(`   Format: ${jsonExport.format}`);
   console.log(`   Data length: ${jsonExport.data.length} characters`);
 
-  const csvExport = await cortex.vector.export({
+  const csvExport = await memoir.vector.export({
     memorySpaceId: TEST_MEMSPACE_ID,
     format: "csv",
   });
@@ -2639,21 +2639,21 @@ async function testVectorExport() {
 async function testVectorArchive() {
   console.log(`\n🗄️  Testing: vector.archive()...`);
 
-  const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+  const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
     content: "Archive test memory",
     contentType: "raw",
     source: { type: "system", timestamp: Date.now() },
     metadata: { importance: 50, tags: ["archive-test"] },
   });
 
-  const result = await cortex.vector.archive(TEST_MEMSPACE_ID, memory.memoryId);
+  const result = await memoir.vector.archive(TEST_MEMSPACE_ID, memory.memoryId);
 
   console.log(`✅ Archived memory ${memory.memoryId}`);
   console.log(`   Archived: ${result.archived}`);
   console.log(`   Restorable: ${result.restorable}`);
 
   // Verify archive
-  const archived = await cortex.vector.get(TEST_MEMSPACE_ID, memory.memoryId);
+  const archived = await memoir.vector.get(TEST_MEMSPACE_ID, memory.memoryId);
 
   console.log(`✅ Verification: tags=${archived!.tags.join(", ")}`);
   console.log(`✅ Verification: importance=${archived!.importance}`);
@@ -2671,7 +2671,7 @@ async function testVectorGetVersion() {
 
   console.log(`\n🕒 Testing: vector.getVersion()...`);
 
-  const v1 = await cortex.vector.getVersion(
+  const v1 = await memoir.vector.getVersion(
     TEST_MEMSPACE_ID,
     currentMemoryId,
     1,
@@ -2679,7 +2679,7 @@ async function testVectorGetVersion() {
 
   console.log(`✅ Version 1: ${v1?.content || "Not found"}`);
 
-  const v2 = await cortex.vector.getVersion(
+  const v2 = await memoir.vector.getVersion(
     TEST_MEMSPACE_ID,
     currentMemoryId,
     2,
@@ -2701,7 +2701,7 @@ async function testVectorGetHistory() {
 
   console.log(`\n📜 Testing: vector.getHistory()...`);
 
-  const history = await cortex.vector.getHistory(
+  const history = await memoir.vector.getHistory(
     TEST_MEMSPACE_ID,
     currentMemoryId,
   );
@@ -2724,7 +2724,7 @@ async function testVectorGetAtTimestamp() {
 
   console.log(`\n⏰ Testing: vector.getAtTimestamp()...`);
 
-  const memory = await cortex.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
+  const memory = await memoir.vector.get(TEST_MEMSPACE_ID, currentMemoryId);
 
   if (!memory) {
     console.log("Memory not found");
@@ -2732,7 +2732,7 @@ async function testVectorGetAtTimestamp() {
     return;
   }
 
-  const atCreation = await cortex.vector.getAtTimestamp(
+  const atCreation = await memoir.vector.getAtTimestamp(
     TEST_MEMSPACE_ID,
     currentMemoryId,
     memory.createdAt,
@@ -2742,7 +2742,7 @@ async function testVectorGetAtTimestamp() {
   console.log(`   Content: ${atCreation?.content.substring(0, 50)}...`);
   console.log(`   Version: ${atCreation?.version}`);
 
-  const now = await cortex.vector.getAtTimestamp(
+  const now = await memoir.vector.getAtTimestamp(
     TEST_MEMSPACE_ID,
     currentMemoryId,
     Date.now(),
@@ -2834,13 +2834,13 @@ async function testMemoryRemember() {
   console.log(`\n🎬 Testing: memory.remember()...`);
 
   // Create conversation first
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: { userId: TEST_USER_ID, participantId: TEST_PARTICIPANT_ID },
   });
 
-  const result = await cortex.memory.remember({
+  const result = await memoir.memory.remember({
     memorySpaceId: TEST_MEMSPACE_ID,
     participantId: TEST_PARTICIPANT_ID,
     conversationId: conv.conversationId,
@@ -2876,7 +2876,7 @@ async function testMemoryForget() {
 
   console.log(`\n💭 Testing: memory.forget()...`);
 
-  const result = await cortex.memory.forget(TEST_MEMSPACE_ID, currentMemoryId);
+  const result = await memoir.memory.forget(TEST_MEMSPACE_ID, currentMemoryId);
 
   console.log(`✅ Memory deleted: ${result.memoryDeleted}`);
   console.log(`✅ Conversation deleted: ${result.conversationDeleted}`);
@@ -2884,7 +2884,7 @@ async function testMemoryForget() {
   console.log(`✅ Restorable: ${result.restorable} (ACID preserved)`);
 
   // Verify
-  const vectorCheck = await cortex.vector.get(
+  const vectorCheck = await memoir.vector.get(
     TEST_MEMSPACE_ID,
     currentMemoryId,
   );
@@ -2894,7 +2894,7 @@ async function testMemoryForget() {
   );
 
   if (currentConversationId) {
-    const acidCheck = await cortex.conversations.get(currentConversationId);
+    const acidCheck = await memoir.conversations.get(currentConversationId);
 
     console.log(`✅ ACID verification: ${acidCheck ? "Preserved" : "Deleted"}`);
   }
@@ -2916,7 +2916,7 @@ async function testMemoryGetEnriched() {
 
   // Create a test memory if needed
   if (!currentMemoryId) {
-    const conv = await cortex.conversations.create({
+    const conv = await memoir.conversations.create({
       type: "user-agent",
       memorySpaceId: TEST_MEMSPACE_ID,
       participants: {
@@ -2926,7 +2926,7 @@ async function testMemoryGetEnriched() {
       },
     });
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: TEST_MEMSPACE_ID,
       participantId: TEST_PARTICIPANT_ID,
       conversationId: conv.conversationId,
@@ -2941,12 +2941,12 @@ async function testMemoryGetEnriched() {
   }
 
   // Test default (vector only)
-  const vectorOnly = await cortex.memory.get(TEST_MEMSPACE_ID, currentMemoryId);
+  const vectorOnly = await memoir.memory.get(TEST_MEMSPACE_ID, currentMemoryId);
 
   console.log(`✅ Default (Vector only): ${(vectorOnly as any).memoryId}`);
 
   // Test enriched
-  const enriched = await cortex.memory.get(TEST_MEMSPACE_ID, currentMemoryId, {
+  const enriched = await memoir.memory.get(TEST_MEMSPACE_ID, currentMemoryId, {
     includeConversation: true,
   });
 
@@ -2965,12 +2965,12 @@ async function testMemorySearchEnriched() {
   console.log(`\n🔍 Testing: memory.search() with enrichment...`);
 
   // Search default (vector only)
-  const vectorOnly = await cortex.memory.search(TEST_MEMSPACE_ID, "password");
+  const vectorOnly = await memoir.memory.search(TEST_MEMSPACE_ID, "password");
 
   console.log(`✅ Default search: ${vectorOnly.length} results (Vector only)`);
 
   // Search enriched
-  const enriched = await cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+  const enriched = await memoir.memory.search(TEST_MEMSPACE_ID, "password", {
     enrichConversation: true,
   });
 
@@ -2991,7 +2991,7 @@ async function testMemorySearchEnriched() {
 async function testMemoryStore() {
   console.log(`\n💾 Testing: memory.store()...`);
 
-  const result = await cortex.memory.store(TEST_MEMSPACE_ID, {
+  const result = await memoir.memory.store(TEST_MEMSPACE_ID, {
     content: "System-generated memory via Layer 3",
     contentType: "raw",
     source: { type: "system", timestamp: Date.now() },
@@ -3051,7 +3051,7 @@ async function testMemoryRememberWithAI() {
   console.log(`Using: text-embedding-3-small (1536-dim) + gpt-4.1-nano\n`);
 
   // Create conversation
-  const conv = await cortex.conversations.create({
+  const conv = await memoir.conversations.create({
     type: "user-agent",
     memorySpaceId: TEST_MEMSPACE_ID,
     participants: { userId: TEST_USER_ID, participantId: TEST_PARTICIPANT_ID },
@@ -3081,7 +3081,7 @@ async function testMemoryRememberWithAI() {
   for (const convo of conversations) {
     console.log(`\nProcessing: "${convo.user.substring(0, 50)}..."`);
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: TEST_MEMSPACE_ID,
       participantId: TEST_PARTICIPANT_ID,
       conversationId: conv.conversationId,
@@ -3131,7 +3131,7 @@ async function testSemanticSearchRecall() {
   for (const search of searches) {
     console.log(`Query: "${search.query}"`);
 
-    const results = await cortex.memory.search(TEST_MEMSPACE_ID, search.query, {
+    const results = await memoir.memory.search(TEST_MEMSPACE_ID, search.query, {
       embedding: await generateEmbedding(search.query),
       userId: TEST_USER_ID,
       limit: 3,
@@ -3162,7 +3162,7 @@ async function testEnrichedSearchWithAI() {
 
   console.log(`\n💬 Testing: Enriched search with ACID context...`);
 
-  const results = await cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+  const results = await memoir.memory.search(TEST_MEMSPACE_ID, "password", {
     embedding: await generateEmbedding("password credentials"),
     enrichConversation: true,
     userId: TEST_USER_ID,
@@ -3203,7 +3203,7 @@ async function testSummarizationQuality() {
 
   console.log(`\n📝 Testing: Summarization quality...`);
 
-  const memory = await cortex.vector.get(
+  const memory = await memoir.vector.get(
     TEST_MEMSPACE_ID,
     advancedMemories[0].memoryId,
   );
@@ -3242,7 +3242,7 @@ async function testSimilarityScores() {
 
   console.log(`\n📊 Testing: Similarity scores (cosine similarity)...`);
 
-  const results = await cortex.memory.search(
+  const results = await memoir.memory.search(
     TEST_MEMSPACE_ID,
     "API password for production environment",
     {
@@ -3348,8 +3348,8 @@ async function runMutableTests() {
   console.log("\n🔍 MUTABLE STORE VALIDATION\n");
   console.log("═".repeat(80));
 
-  const inventoryCount = await cortex.mutable.count({ namespace: "inventory" });
-  const counterCount = await cortex.mutable.count({ namespace: "counters" });
+  const inventoryCount = await memoir.mutable.count({ namespace: "inventory" });
+  const counterCount = await memoir.mutable.count({ namespace: "counters" });
 
   console.log("📊 Results:");
   console.log(`  Inventory items: ${inventoryCount}`);

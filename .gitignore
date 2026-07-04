@@ -104,7 +104,7 @@ GITHUB_ACTIONS_CREDENTIALS.json
 certificates/
 
 Internal Docs
-cortex-test/
+memoir-test/
 .cursor/
 dev-docs/
 _goals/

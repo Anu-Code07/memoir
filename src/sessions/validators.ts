@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Sessions API Validators
+ * Memoir SDK - Sessions API Validators
  *
  * Client-side validation for session operations.
  */

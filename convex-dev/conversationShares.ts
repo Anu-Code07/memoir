@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversation Shares API
+ * Memoir SDK - Conversation Shares API
  *
  * Shareable Chats Phase 2: Sharing Grants
  * Manages share links and permissions for conversations

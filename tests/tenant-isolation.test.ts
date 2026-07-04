@@ -7,7 +7,7 @@
  * - Cross-tenant queries return only appropriate data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { createTestRunContext } from "./helpers/isolation";
 import {
   generateTenantId,
@@ -36,7 +36,7 @@ describeWithConvex("Tenant Isolation", () => {
     const spaceAId = generateTenantMemorySpaceId(tenantAId);
     const authA = createTenantAuthContext(tenantAId, userAId);
 
-    const cortexA = new Cortex({
+    const memoirA = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authA,
     });
@@ -45,7 +45,7 @@ describeWithConvex("Tenant Isolation", () => {
       tenantId: tenantAId,
       userId: userAId,
       memorySpaceId: spaceAId,
-      cortex: cortexA,
+      memoir: memoirA,
       authContext: authA,
     };
 
@@ -55,7 +55,7 @@ describeWithConvex("Tenant Isolation", () => {
     const spaceBId = generateTenantMemorySpaceId(tenantBId);
     const authB = createTenantAuthContext(tenantBId, userBId);
 
-    const cortexB = new Cortex({
+    const memoirB = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authB,
     });
@@ -64,18 +64,18 @@ describeWithConvex("Tenant Isolation", () => {
       tenantId: tenantBId,
       userId: userBId,
       memorySpaceId: spaceBId,
-      cortex: cortexB,
+      memoir: memoirB,
       authContext: authB,
     };
 
     // Register memory spaces for both tenants
-    await tenantA.cortex.memorySpaces.register({
+    await tenantA.memoir.memorySpaces.register({
       memorySpaceId: tenantA.memorySpaceId,
       name: `Tenant A Space - ${ctx.runId}`,
       type: "team",
     });
 
-    await tenantB.cortex.memorySpaces.register({
+    await tenantB.memoir.memorySpaces.register({
       memorySpaceId: tenantB.memorySpaceId,
       name: `Tenant B Space - ${ctx.runId}`,
       type: "team",
@@ -85,7 +85,7 @@ describeWithConvex("Tenant Isolation", () => {
   afterAll(async () => {
     // Cleanup both tenant spaces
     try {
-      await tenantA.cortex.memorySpaces.delete(tenantA.memorySpaceId, {
+      await tenantA.memoir.memorySpaces.delete(tenantA.memorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -94,7 +94,7 @@ describeWithConvex("Tenant Isolation", () => {
     }
 
     try {
-      await tenantB.cortex.memorySpaces.delete(tenantB.memorySpaceId, {
+      await tenantB.memoir.memorySpaces.delete(tenantB.memorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -112,7 +112,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     beforeAll(async () => {
       // Create a conversation in Tenant A
-      const conv = await tenantA.cortex.conversations.create({
+      const conv = await tenantA.memoir.conversations.create({
         memorySpaceId: tenantA.memorySpaceId,
         type: "user-agent",
         participants: {
@@ -125,7 +125,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     afterAll(async () => {
       try {
-        await tenantA.cortex.conversations.delete(conversationAId);
+        await tenantA.memoir.conversations.delete(conversationAId);
       } catch {
         // Ignore
       }
@@ -133,14 +133,14 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not allow Tenant B to access Tenant A conversation", async () => {
       // Attempt to get Tenant A's conversation using Tenant B's context
-      const conv = await tenantB.cortex.conversations.get(conversationAId);
+      const conv = await tenantB.memoir.conversations.get(conversationAId);
 
       // Should either return null or throw access denied
       expect(conv).toBeNull();
     });
 
     it("should not show Tenant A conversations in Tenant B list", async () => {
-      const convBResult = await tenantB.cortex.conversations.list({
+      const convBResult = await tenantB.memoir.conversations.list({
         memorySpaceId: tenantA.memorySpaceId, // Trying to list from A's space
         limit: 100,
       });
@@ -153,7 +153,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should show Tenant A conversations in Tenant A list", async () => {
-      const convAResult = await tenantA.cortex.conversations.list({
+      const convAResult = await tenantA.memoir.conversations.list({
         memorySpaceId: tenantA.memorySpaceId,
         limit: 100,
       });
@@ -178,13 +178,13 @@ describeWithConvex("Tenant Isolation", () => {
       tenantAAgentId = `agent_${tenantA.tenantId}`;
 
       // Create memory in Tenant A
-      const conv = await tenantA.cortex.conversations.create({
+      const conv = await tenantA.memoir.conversations.create({
         memorySpaceId: tenantA.memorySpaceId,
         type: "user-agent",
         participants: { userId: tenantA.userId, agentId: tenantAAgentId },
       });
 
-      const result = await tenantA.cortex.memory.remember({
+      const result = await tenantA.memoir.memory.remember({
         memorySpaceId: tenantA.memorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "Secret information for Tenant A only",
@@ -199,7 +199,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not return Tenant A memories in Tenant B recall", async () => {
       // Tenant B attempts to recall Tenant A's secret information
-      const result = await tenantB.cortex.memory.recall({
+      const result = await tenantB.memoir.memory.recall({
         memorySpaceId: tenantA.memorySpaceId,
         query: "Secret information",
         limit: 100,
@@ -213,7 +213,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should return Tenant A memories in Tenant A recall", async () => {
-      const result = await tenantA.cortex.memory.recall({
+      const result = await tenantA.memoir.memory.recall({
         memorySpaceId: tenantA.memorySpaceId,
         query: "Secret information",
         limit: 100,
@@ -224,7 +224,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A memories from Tenant B", async () => {
-      const memories = await tenantB.cortex.memory.list({
+      const memories = await tenantB.memoir.memory.list({
         memorySpaceId: tenantA.memorySpaceId,
         limit: 100,
       });
@@ -246,7 +246,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     beforeAll(async () => {
       // Create a fact in Tenant A
-      const fact = await tenantA.cortex.facts.store({
+      const fact = await tenantA.memoir.facts.store({
         memorySpaceId: tenantA.memorySpaceId,
         fact: "Tenant A's secret: API key is xyz123",
         factType: "knowledge",
@@ -259,7 +259,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     afterAll(async () => {
       try {
-        await tenantA.cortex.facts.delete(tenantA.memorySpaceId, tenantAFactId);
+        await tenantA.memoir.facts.delete(tenantA.memorySpaceId, tenantAFactId);
       } catch {
         // Ignore
       }
@@ -267,7 +267,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not allow Tenant B to get Tenant A fact", async () => {
       try {
-        const fact = await tenantB.cortex.facts.get(
+        const fact = await tenantB.memoir.facts.get(
           tenantA.memorySpaceId,
           tenantAFactId,
         );
@@ -280,7 +280,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A facts from Tenant B", async () => {
-      const facts = await tenantB.cortex.facts.list({
+      const facts = await tenantB.memoir.facts.list({
         memorySpaceId: tenantA.memorySpaceId,
         limit: 100,
       });
@@ -293,7 +293,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not allow Tenant B to search Tenant A facts", async () => {
-      const results = await tenantB.cortex.facts.search(
+      const results = await tenantB.memoir.facts.search(
         tenantA.memorySpaceId,
         "API key",
         { limit: 100 },
@@ -307,7 +307,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should allow Tenant A to access own facts", async () => {
-      const fact = await tenantA.cortex.facts.get(
+      const fact = await tenantA.memoir.facts.get(
         tenantA.memorySpaceId,
         tenantAFactId,
       );
@@ -327,7 +327,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     beforeAll(async () => {
       // Store immutable data in Tenant A
-      const result = await tenantA.cortex.immutable.store({
+      const result = await tenantA.memoir.immutable.store({
         type: immutableType,
         id: secretId,
         data: { secretData: "This is Tenant A's secret configuration" },
@@ -337,7 +337,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not allow Tenant B to get Tenant A immutable record", async () => {
-      const record = await tenantB.cortex.immutable.get(
+      const record = await tenantB.memoir.immutable.get(
         immutableType,
         secretId,
       );
@@ -346,7 +346,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A immutable records from Tenant B", async () => {
-      const records = await tenantB.cortex.immutable.list({
+      const records = await tenantB.memoir.immutable.list({
         type: immutableType,
         limit: 100,
       });
@@ -358,7 +358,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should allow Tenant A to access own immutable records", async () => {
-      const record = await tenantA.cortex.immutable.get(
+      const record = await tenantA.memoir.immutable.get(
         immutableType,
         secretId,
       );
@@ -377,21 +377,21 @@ describeWithConvex("Tenant Isolation", () => {
 
     beforeAll(async () => {
       // Store mutable data in Tenant A
-      await tenantA.cortex.mutable.set(tenantA.memorySpaceId, mutableKey, {
+      await tenantA.memoir.mutable.set(tenantA.memorySpaceId, mutableKey, {
         settings: { theme: "dark", secretToken: "abc123" },
       });
     });
 
     afterAll(async () => {
       try {
-        await tenantA.cortex.mutable.delete(tenantA.memorySpaceId, mutableKey);
+        await tenantA.memoir.mutable.delete(tenantA.memorySpaceId, mutableKey);
       } catch {
         // Ignore
       }
     });
 
     it("should not allow Tenant B to get Tenant A mutable record", async () => {
-      const record = await tenantB.cortex.mutable.get(
+      const record = await tenantB.memoir.mutable.get(
         tenantA.memorySpaceId,
         mutableKey,
       );
@@ -400,7 +400,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A mutable keys from Tenant B", async () => {
-      const records = await tenantB.cortex.mutable.list({
+      const records = await tenantB.memoir.mutable.list({
         namespace: tenantA.memorySpaceId,
         limit: 100,
       });
@@ -413,12 +413,12 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not allow Tenant B to overwrite Tenant A mutable record", async () => {
       // Tenant B attempts to overwrite Tenant A's data
-      await tenantB.cortex.mutable.set(tenantA.memorySpaceId, mutableKey, {
+      await tenantB.memoir.mutable.set(tenantA.memorySpaceId, mutableKey, {
         malicious: "data",
       });
 
       // Verify Tenant A's data is unchanged
-      const record = await tenantA.cortex.mutable.get(
+      const record = await tenantA.memoir.mutable.get(
         tenantA.memorySpaceId,
         mutableKey,
       );
@@ -430,7 +430,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should allow Tenant A to access own mutable records", async () => {
-      const record = await tenantA.cortex.mutable.get(
+      const record = await tenantA.memoir.mutable.get(
         tenantA.memorySpaceId,
         mutableKey,
       );
@@ -450,13 +450,13 @@ describeWithConvex("Tenant Isolation", () => {
   describe("User Data Isolation", () => {
     beforeAll(async () => {
       // Create user profile in Tenant A
-      await tenantA.cortex.users.update(tenantA.userId, {
+      await tenantA.memoir.users.update(tenantA.userId, {
         displayName: "Tenant A User",
         email: "user-a@tenant-a.com",
       });
 
       // Create user profile in Tenant B
-      await tenantB.cortex.users.update(tenantB.userId, {
+      await tenantB.memoir.users.update(tenantB.userId, {
         displayName: "Tenant B User",
         email: "user-b@tenant-b.com",
       });
@@ -464,15 +464,15 @@ describeWithConvex("Tenant Isolation", () => {
 
     afterAll(async () => {
       try {
-        await tenantA.cortex.users.delete(tenantA.userId, { cascade: false });
-        await tenantB.cortex.users.delete(tenantB.userId, { cascade: false });
+        await tenantA.memoir.users.delete(tenantA.userId, { cascade: false });
+        await tenantB.memoir.users.delete(tenantB.userId, { cascade: false });
       } catch {
         // Ignore
       }
     });
 
     it("should not allow Tenant B to get Tenant A user profile", async () => {
-      const user = await tenantB.cortex.users.get(tenantA.userId);
+      const user = await tenantB.memoir.users.get(tenantA.userId);
 
       // Should either be null or only return limited info
       if (user) {
@@ -484,7 +484,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A users from Tenant B", async () => {
-      const result = await tenantB.cortex.users.list({ limit: 100 });
+      const result = await tenantB.memoir.users.list({ limit: 100 });
 
       // Should not contain Tenant A's user
       const leaked = result.users.filter(
@@ -496,7 +496,7 @@ describeWithConvex("Tenant Isolation", () => {
     it("should not allow Tenant B to modify Tenant A user", async () => {
       // Tenant B attempts to modify Tenant A's user
       try {
-        await tenantB.cortex.users.update(tenantA.userId, {
+        await tenantB.memoir.users.update(tenantA.userId, {
           displayName: "Modified by Tenant B",
         });
       } catch {
@@ -504,7 +504,7 @@ describeWithConvex("Tenant Isolation", () => {
       }
 
       // Verify Tenant A's data is unchanged
-      const user = await tenantA.cortex.users.get(tenantA.userId);
+      const user = await tenantA.memoir.users.get(tenantA.userId);
       expect(user?.data?.displayName).toBe("Tenant A User");
     });
   });
@@ -518,7 +518,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     beforeAll(async () => {
       // Create session in Tenant A
-      const session = await tenantA.cortex.sessions.create({
+      const session = await tenantA.memoir.sessions.create({
         userId: tenantA.userId,
         tenantId: tenantA.tenantId,
         metadata: { source: "isolation-test" },
@@ -528,21 +528,21 @@ describeWithConvex("Tenant Isolation", () => {
 
     afterAll(async () => {
       try {
-        await tenantA.cortex.sessions.end(tenantASessionId);
+        await tenantA.memoir.sessions.end(tenantASessionId);
       } catch {
         // Ignore
       }
     });
 
     it("should not allow Tenant B to get Tenant A session", async () => {
-      const session = await tenantB.cortex.sessions.get(tenantASessionId);
+      const session = await tenantB.memoir.sessions.get(tenantASessionId);
 
       // Should be null - different tenant
       expect(session).toBeNull();
     });
 
     it("should not list Tenant A sessions from Tenant B", async () => {
-      const sessions = await tenantB.cortex.sessions.list({
+      const sessions = await tenantB.memoir.sessions.list({
         tenantId: tenantA.tenantId,
       });
 
@@ -552,13 +552,13 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not allow Tenant B to end Tenant A session", async () => {
       try {
-        await tenantB.cortex.sessions.end(tenantASessionId);
+        await tenantB.memoir.sessions.end(tenantASessionId);
       } catch {
         // Expected to fail
       }
 
       // Verify session is still active
-      const session = await tenantA.cortex.sessions.get(tenantASessionId);
+      const session = await tenantA.memoir.sessions.get(tenantASessionId);
       expect(session?.status).toBe("active");
     });
   });
@@ -569,7 +569,7 @@ describeWithConvex("Tenant Isolation", () => {
 
   describe("Memory Space Isolation", () => {
     it("should not allow Tenant B to access Tenant A memory space", async () => {
-      const space = await tenantB.cortex.memorySpaces.get(
+      const space = await tenantB.memoir.memorySpaces.get(
         tenantA.memorySpaceId,
       );
 
@@ -581,7 +581,7 @@ describeWithConvex("Tenant Isolation", () => {
     });
 
     it("should not list Tenant A memory spaces from Tenant B", async () => {
-      const result = await tenantB.cortex.memorySpaces.list({ limit: 100 });
+      const result = await tenantB.memoir.memorySpaces.list({ limit: 100 });
 
       const leaked = result.spaces.filter(
         (s: { memorySpaceId: string }) =>
@@ -592,7 +592,7 @@ describeWithConvex("Tenant Isolation", () => {
 
     it("should not allow Tenant B to delete Tenant A memory space", async () => {
       try {
-        await tenantB.cortex.memorySpaces.delete(tenantA.memorySpaceId, {
+        await tenantB.memoir.memorySpaces.delete(tenantA.memorySpaceId, {
           cascade: true,
           reason: "Cross-tenant deletion attempt",
         });
@@ -601,7 +601,7 @@ describeWithConvex("Tenant Isolation", () => {
       }
 
       // Verify space still exists
-      const space = await tenantA.cortex.memorySpaces.get(
+      const space = await tenantA.memoir.memorySpaces.get(
         tenantA.memorySpaceId,
       );
       expect(space).not.toBeNull();
@@ -615,7 +615,7 @@ describeWithConvex("Tenant Isolation", () => {
   describe("Cross-Tenant Data Integrity", () => {
     it("should maintain separate counts per tenant", async () => {
       // Create some data in both tenants
-      await tenantA.cortex.facts.store({
+      await tenantA.memoir.facts.store({
         memorySpaceId: tenantA.memorySpaceId,
         fact: "Tenant A count test fact 1",
         factType: "knowledge",
@@ -624,7 +624,7 @@ describeWithConvex("Tenant Isolation", () => {
         userId: tenantA.userId,
       });
 
-      await tenantA.cortex.facts.store({
+      await tenantA.memoir.facts.store({
         memorySpaceId: tenantA.memorySpaceId,
         fact: "Tenant A count test fact 2",
         factType: "knowledge",
@@ -633,7 +633,7 @@ describeWithConvex("Tenant Isolation", () => {
         userId: tenantA.userId,
       });
 
-      await tenantB.cortex.facts.store({
+      await tenantB.memoir.facts.store({
         memorySpaceId: tenantB.memorySpaceId,
         fact: "Tenant B count test fact 1",
         factType: "knowledge",
@@ -643,11 +643,11 @@ describeWithConvex("Tenant Isolation", () => {
       });
 
       // Count facts per tenant
-      const countA = await tenantA.cortex.facts.count({
+      const countA = await tenantA.memoir.facts.count({
         memorySpaceId: tenantA.memorySpaceId,
       });
 
-      const countB = await tenantB.cortex.facts.count({
+      const countB = await tenantB.memoir.facts.count({
         memorySpaceId: tenantB.memorySpaceId,
       });
 
@@ -656,7 +656,7 @@ describeWithConvex("Tenant Isolation", () => {
       expect(countB).toBeGreaterThanOrEqual(1);
 
       // Tenant A trying to count from B's space should return 0
-      const crossCount = await tenantA.cortex.facts.count({
+      const crossCount = await tenantA.memoir.facts.count({
         memorySpaceId: tenantB.memorySpaceId,
       });
       expect(crossCount).toBe(0);
@@ -666,7 +666,7 @@ describeWithConvex("Tenant Isolation", () => {
       const uniqueSearchTerm = `unique-term-${ctx.runId}`;
 
       // Create fact with unique term in Tenant A
-      await tenantA.cortex.facts.store({
+      await tenantA.memoir.facts.store({
         memorySpaceId: tenantA.memorySpaceId,
         fact: `This fact contains ${uniqueSearchTerm} and is private`,
         factType: "knowledge",
@@ -676,7 +676,7 @@ describeWithConvex("Tenant Isolation", () => {
       });
 
       // Tenant B searches for the unique term
-      const results = await tenantB.cortex.facts.search(
+      const results = await tenantB.memoir.facts.search(
         tenantB.memorySpaceId,
         uniqueSearchTerm,
         { limit: 100 },
@@ -697,7 +697,7 @@ describeWithConvex("Tenant Isolation", () => {
   describe("Isolation Helper Verification", () => {
     it("should correctly identify isolated conversations", async () => {
       // Create conversation in Tenant A
-      const conv = await tenantA.cortex.conversations.create({
+      const conv = await tenantA.memoir.conversations.create({
         memorySpaceId: tenantA.memorySpaceId,
         type: "user-agent",
         participants: {
@@ -714,7 +714,7 @@ describeWithConvex("Tenant Isolation", () => {
       expect(result.isolated).toBe(true);
 
       // Cleanup
-      await tenantA.cortex.conversations.delete(conv.conversationId);
+      await tenantA.memoir.conversations.delete(conv.conversationId);
     });
   });
 });

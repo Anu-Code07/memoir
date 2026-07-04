@@ -1,6 +1,6 @@
-# Contributing to Cortex
+# Contributing to Memoir
 
-Thank you for your interest in contributing to Cortex! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Memoir! This document provides guidelines and instructions for contributing to the project.
 
 ## 🌟 Ways to Contribute
 
@@ -26,8 +26,8 @@ Thank you for your interest in contributing to Cortex! This document provides gu
 1. **Fork and Clone**
 
    ```bash
-   git clone https://github.com/SaintNick1214/cortex.git
-   cd cortex
+   git clone https://github.com/Anu-Code07/memoir.git
+   cd memoir
    ```
 
 2. **Install Dependencies**
@@ -65,7 +65,7 @@ Thank you for your interest in contributing to Cortex! This document provides gu
 ### Project Structure
 
 ```
-cortex/
+memoir/
 ├── src/                    # Source code
 │   ├── memory/            # Memory operations
 │   ├── agents/            # Agent management
@@ -135,19 +135,19 @@ export function storeMemory(memorySpaceId: any, entry: any): any {
 
 ```typescript
 // Use custom error classes
-export class CortexError extends Error {
+export class MemoirError extends Error {
   constructor(
     message: string,
     public code: string,
     public context?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = "CortexError";
+    this.name = "MemoirError";
   }
 }
 
 // Always provide context
-throw new CortexError("Failed to store memory", "MEMORY_STORE_FAILED", {
+throw new MemoirError("Failed to store memory", "MEMORY_STORE_FAILED", {
   agentId,
   memoryId,
 });
@@ -165,9 +165,9 @@ throw new CortexError("Failed to store memory", "MEMORY_STORE_FAILED", {
 // Example test
 describe("memory.remember", () => {
   it("should store a conversation with ACID + Vector", async () => {
-    const cortex = new Cortex({ convexUrl: testConvexUrl });
+    const memoir = new Memoir({ convexUrl: testConvexUrl });
 
-    const result = await cortex.memory.remember({
+    const result = await memoir.memory.remember({
       memorySpaceId: "agent-1",
       conversationId: "test-conv-1",
       userMessage: "Test message",
@@ -183,7 +183,7 @@ describe("memory.remember", () => {
   });
 
   it("should store system memory in Vector layer", async () => {
-    const memory = await cortex.vector.store("agent-1", {
+    const memory = await memoir.vector.store("agent-1", {
       content: "Test system memory",
       contentType: "raw",
       source: { type: "system", timestamp: new Date() },
@@ -343,7 +343,7 @@ Test complete workflows:
 describe("chatbot memory workflow", () => {
   it("should remember user preferences across sessions", async () => {
     // Store preference (Layer 3 - ACID + Vector)
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       memorySpaceId: "agent-1",
       conversationId: "conv-1",
       userMessage: "I prefer email notifications",
@@ -353,7 +353,7 @@ describe("chatbot memory workflow", () => {
     });
 
     // New session - search (Layer 3 - searches Vector)
-    const memories = await cortex.memory.search("agent-1", "preference");
+    const memories = await memoir.memory.search("agent-1", "preference");
 
     // Verify retrieval
     expect(memories[0].content).toContain("email notifications");
@@ -384,7 +384,7 @@ describe("chatbot memory workflow", () => {
  *
  * @example
  * ```typescript
- * const result = await cortex.memory.remember({
+ * const result = await memoir.memory.remember({
  *   memorySpaceId: 'agent-1',
  *   conversationId: 'conv-123',
  *   userMessage: 'I prefer dark mode',
@@ -420,7 +420,7 @@ Good bug reports include:
 1. **Clear Title**: Summarize the issue
 2. **Description**: What happened vs. what should happen
 3. **Reproduction Steps**: Minimal steps to reproduce
-4. **Environment**: OS, Node version, Cortex version
+4. **Environment**: OS, Node version, Memoir version
 5. **Code Sample**: Minimal reproducible example
 6. **Error Messages**: Full error output
 7. **Screenshots**: If applicable
@@ -434,7 +434,7 @@ Brief description of the bug
 
 ### Steps to Reproduce
 
-1. Initialize Cortex with...
+1. Initialize Memoir with...
 2. Call memory.store with...
 3. See error
 
@@ -450,7 +450,7 @@ What actually happens
 
 - OS: macOS 14.0
 - Node: v20.10.0
-- Cortex: v0.1.0
+- Memoir: v0.1.0
 - Convex: v1.8.0
 
 ### Code Sample
@@ -520,10 +520,10 @@ Contributors are recognized in:
 
 ## 📞 Questions?
 
-- **General Questions**: [GitHub Discussions](https://github.com/yourusername/cortex/discussions)
-- **Bug Reports**: [GitHub Issues](https://github.com/yourusername/cortex/issues)
-- **Real-time Chat**: [Discord](https://discord.gg/cortex)
-- **Email**: contribute@cortexmemory.dev
+- **General Questions**: [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
+- **Bug Reports**: [GitHub Issues](https://github.com/Anu-Code07/memoir/issues)
+- **Real-time Chat**: [Discord](https://discord.gg/memoir)
+- **Email**: contribute@github.com/Anu-Code07/memoir
 
 ## 📄 License
 
@@ -536,8 +536,8 @@ This includes:
 - **Patent Retaliation**: If you sue over patents, your license terminates
 - **Future Apache 2.0**: Each version becomes Apache 2.0 licensed two years after release
 
-This protects both contributors and users. See [LICENSE.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/LICENSE.md) for full details.
+This protects both contributors and users. See [LICENSE.md](https://github.com/Anu-Code07/memoir/blob/main/LICENSE.md) for full details.
 
 ---
 
-Thank you for helping make Cortex better! 🎉
+Thank you for helping make Memoir better! 🎉

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Facts API (Layer 3)
+ * Memoir SDK - Facts API (Layer 3)
  *
  * Structured knowledge with versioning and relationships
  */
@@ -204,7 +204,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const fact = await cortex.facts.store({
+   * const fact = await memoir.facts.store({
    *   memorySpaceId: 'space-1',
    *   fact: 'User prefers dark mode',
    *   factType: 'preference',
@@ -274,7 +274,7 @@ export class FactsAPI {
     const factRecord = result as FactRecord;
 
     // Sync to graph automatically when graph adapter is configured
-    // Graph sync is controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization
+    // Graph sync is controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization
     if (this.graphAdapter) {
       try {
         const nodeId = await syncFactToGraph(
@@ -284,7 +284,7 @@ export class FactsAPI {
         );
         await syncFactRelationships(factRecord, nodeId, this.graphAdapter);
       } catch (error) {
-        console.warn("[Cortex] Failed to sync fact to graph:", error);
+        console.warn("[Memoir] Failed to sync fact to graph:", error);
       }
     }
 
@@ -301,7 +301,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.facts.storeWithDedup(
+   * const result = await memoir.facts.storeWithDedup(
    *   {
    *     memorySpaceId: 'space-1',
    *     fact: 'User prefers dark mode',
@@ -426,7 +426,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const fact = await cortex.facts.get('space-1', 'fact-123');
+   * const fact = await memoir.facts.get('space-1', 'fact-123');
    * ```
    */
   async get(memorySpaceId: string, factId: string): Promise<FactRecord | null> {
@@ -452,7 +452,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const facts = await cortex.facts.list({
+   * const facts = await memoir.facts.list({
    *   memorySpaceId: 'space-1',
    *   factType: 'preference',
    *   subject: 'user-123',
@@ -552,7 +552,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.facts.count({
+   * const count = await memoir.facts.count({
    *   memorySpaceId: 'space-1',
    *   factType: 'knowledge',
    * });
@@ -635,7 +635,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.facts.search('space-1', 'password', {
+   * const results = await memoir.facts.search('space-1', 'password', {
    *   factType: 'knowledge',
    *   minConfidence: 80,
    * });
@@ -751,7 +751,7 @@ export class FactsAPI {
    * @example
    * ```typescript
    * const embedding = await generateEmbedding('user preferences');
-   * const facts = await cortex.facts.semanticSearch('space-1', embedding, {
+   * const facts = await memoir.facts.semanticSearch('space-1', embedding, {
    *   minConfidence: 80,
    *   limit: 10,
    * });
@@ -816,7 +816,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const updated = await cortex.facts.update('space-1', 'fact-123', {
+   * const updated = await memoir.facts.update('space-1', 'fact-123', {
    *   fact: 'Updated fact statement',
    *   confidence: 99,
    * });
@@ -873,7 +873,7 @@ export class FactsAPI {
     const factRecord = result as FactRecord;
 
     // Sync to graph automatically when graph adapter is configured
-    // Graph sync is controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization
+    // Graph sync is controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization
     if (this.graphAdapter) {
       try {
         const nodes = await this.graphAdapter.findNodes("Fact", { factId }, 1);
@@ -884,7 +884,7 @@ export class FactsAPI {
           );
         }
       } catch (error) {
-        console.warn("[Cortex] Failed to update fact in graph:", error);
+        console.warn("[Memoir] Failed to update fact in graph:", error);
       }
     }
 
@@ -896,7 +896,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.facts.delete('space-1', 'fact-123');
+   * await memoir.facts.delete('space-1', 'fact-123');
    * ```
    */
   async delete(
@@ -923,12 +923,12 @@ export class FactsAPI {
     }
 
     // Delete from graph automatically with Entity orphan cleanup
-    // Graph sync is controlled by CORTEX_GRAPH_SYNC env var at Cortex initialization
+    // Graph sync is controlled by MEMOIR_GRAPH_SYNC env var at Memoir initialization
     if (this.graphAdapter) {
       try {
         await deleteFactFromGraph(factId, this.graphAdapter, true);
       } catch (error) {
-        console.warn("[Cortex] Failed to delete fact from graph:", error);
+        console.warn("[Memoir] Failed to delete fact from graph:", error);
       }
     }
 
@@ -941,18 +941,18 @@ export class FactsAPI {
    * @example
    * ```typescript
    * // Delete all facts in a memory space
-   * const result = await cortex.facts.deleteMany({
+   * const result = await memoir.facts.deleteMany({
    *   memorySpaceId: 'space-1',
    * });
    *
    * // Delete all facts for a specific user (GDPR compliance)
-   * const gdprResult = await cortex.facts.deleteMany({
+   * const gdprResult = await memoir.facts.deleteMany({
    *   memorySpaceId: 'space-1',
    *   userId: 'user-to-delete',
    * });
    *
    * // Delete all preference facts
-   * const prefResult = await cortex.facts.deleteMany({
+   * const prefResult = await memoir.facts.deleteMany({
    *   memorySpaceId: 'space-1',
    *   factType: 'preference',
    * });
@@ -990,7 +990,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.facts.getHistory('space-1', 'fact-123');
+   * const history = await memoir.facts.getHistory('space-1', 'fact-123');
    * ```
    */
   async getHistory(
@@ -1018,7 +1018,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const userFacts = await cortex.facts.queryBySubject({
+   * const userFacts = await memoir.facts.queryBySubject({
    *   memorySpaceId: 'space-1',
    *   subject: 'user-123',
    *   factType: 'preference',
@@ -1118,7 +1118,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const workPlaces = await cortex.facts.queryByRelationship({
+   * const workPlaces = await memoir.facts.queryByRelationship({
    *   memorySpaceId: 'space-1',
    *   subject: 'user-123',
    *   predicate: 'works_at',
@@ -1221,7 +1221,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const exported = await cortex.facts.export({
+   * const exported = await memoir.facts.export({
    *   memorySpaceId: 'space-1',
    *   format: 'jsonld',
    * });
@@ -1274,7 +1274,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.facts.consolidate({
+   * await memoir.facts.consolidate({
    *   memorySpaceId: 'space-1',
    *   factIds: ['fact-1', 'fact-2', 'fact-3'],
    *   keepFactId: 'fact-1',
@@ -1327,7 +1327,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.facts.revise({
+   * const result = await memoir.facts.revise({
    *   memorySpaceId: 'space-1',
    *   fact: {
    *     fact: 'User prefers purple',
@@ -1392,7 +1392,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const conflicts = await cortex.facts.checkConflicts({
+   * const conflicts = await memoir.facts.checkConflicts({
    *   memorySpaceId: 'space-1',
    *   fact: {
    *     fact: 'User prefers purple',
@@ -1431,7 +1431,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * await cortex.facts.supersede({
+   * await memoir.facts.supersede({
    *   memorySpaceId: 'space-1',
    *   oldFactId: 'fact-old',
    *   newFactId: 'fact-new',
@@ -1498,7 +1498,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.facts.history('fact-123');
+   * const history = await memoir.facts.history('fact-123');
    * for (const event of history) {
    *   console.log(`${event.action} at ${new Date(event.timestamp)}: ${event.reason}`);
    * }
@@ -1516,7 +1516,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const changes = await cortex.facts.getChanges({
+   * const changes = await memoir.facts.getChanges({
    *   memorySpaceId: 'space-1',
    *   after: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
    *   action: 'SUPERSEDE',
@@ -1536,7 +1536,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const chain = await cortex.facts.getSupersessionChain('fact-latest');
+   * const chain = await memoir.facts.getSupersessionChain('fact-latest');
    * // Returns: [oldest] -> [older] -> [old] -> [current]
    * ```
    */
@@ -1554,7 +1554,7 @@ export class FactsAPI {
    *
    * @example
    * ```typescript
-   * const summary = await cortex.facts.getActivitySummary('space-1', 24); // Last 24 hours
+   * const summary = await memoir.facts.getActivitySummary('space-1', 24); // Last 24 hours
    * console.log(`Total events: ${summary.totalEvents}`);
    * console.log(`Creates: ${summary.actionCounts.CREATE}`);
    * ```

@@ -2,18 +2,18 @@
 id: governance-policies
 title: Governance Policies
 sidebar_position: 9
-description: Centralized control over data retention, purging, and compliance rules across all Cortex storage layers
+description: Centralized control over data retention, purging, and compliance rules across all Memoir storage layers
 ---
 
 # Governance Policies
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Centralized control over data retention, purging, and compliance rules across all Cortex storage layers.
+Centralized control over data retention, purging, and compliance rules across all Memoir storage layers.
 
 ## Overview
 
-Cortex provides built-in governance through the `cortex.governance.*` API. This enables enterprise-grade data lifecycle management with compliance templates for GDPR, HIPAA, SOC2, and FINRA.
+Memoir provides built-in governance through the `memoir.governance.*` API. This enables enterprise-grade data lifecycle management with compliance templates for GDPR, HIPAA, SOC2, and FINRA.
 
 **Why Governance Matters:**
 
@@ -33,23 +33,23 @@ Cortex provides built-in governance through the `cortex.governance.*` API. This 
 ## Quick Start
 
 ```typescript
-import { Cortex } from "@cortex-platform/sdk";
+import { Memoir } from "@memoir-platform/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // Use a compliance template
-const gdprPolicy = await cortex.governance.getTemplate("GDPR");
+const gdprPolicy = await memoir.governance.getTemplate("GDPR");
 
 // Apply organization-wide policy
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
   ...gdprPolicy,
 });
 
 // Enforce policy manually
-await cortex.governance.enforce({
+await memoir.governance.enforce({
   scope: { organizationId: "org-123" },
   layers: ["vector", "conversations"],
   rules: ["retention", "purging"],
@@ -63,7 +63,7 @@ Pre-built templates make compliance setup straightforward:
 ### GDPR Template
 
 ```typescript
-const gdprPolicy = await cortex.governance.getTemplate("GDPR");
+const gdprPolicy = await memoir.governance.getTemplate("GDPR");
 
 // Provides:
 // - 7-year conversation retention
@@ -76,7 +76,7 @@ const gdprPolicy = await cortex.governance.getTemplate("GDPR");
 ### HIPAA Template
 
 ```typescript
-const hipaaPolicy = await cortex.governance.getTemplate("HIPAA");
+const hipaaPolicy = await memoir.governance.getTemplate("HIPAA");
 
 // Provides:
 // - 6-year retention minimum (no archiveAfter - immediate deletion after 6 years)
@@ -89,7 +89,7 @@ const hipaaPolicy = await cortex.governance.getTemplate("HIPAA");
 ### SOC2 Template
 
 ```typescript
-const soc2Policy = await cortex.governance.getTemplate("SOC2");
+const soc2Policy = await memoir.governance.getTemplate("SOC2");
 
 // Provides:
 // - 7-year audit retention
@@ -102,7 +102,7 @@ const soc2Policy = await cortex.governance.getTemplate("SOC2");
 ### FINRA Template
 
 ```typescript
-const finraPolicy = await cortex.governance.getTemplate("FINRA");
+const finraPolicy = await memoir.governance.getTemplate("FINRA");
 
 // Provides:
 // - 7-year mandatory retention (no early deletion)
@@ -119,7 +119,7 @@ const finraPolicy = await cortex.governance.getTemplate("FINRA");
 ### Organization-Wide Policy
 
 ```typescript
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
 
   // Conversation retention
@@ -204,7 +204,7 @@ Override organization policy for specific memory spaces:
 
 ```typescript
 // Audit agent needs unlimited retention
-await cortex.governance.setAgentOverride("audit-agent-space", {
+await memoir.governance.setAgentOverride("audit-agent-space", {
   vector: {
     retention: {
       defaultVersions: -1, // Unlimited
@@ -221,7 +221,7 @@ await cortex.governance.setAgentOverride("audit-agent-space", {
 });
 
 // Temporary agent needs minimal retention
-await cortex.governance.setAgentOverride("temp-agent-space", {
+await memoir.governance.setAgentOverride("temp-agent-space", {
   vector: {
     retention: {
       defaultVersions: 1, // Current only
@@ -242,7 +242,7 @@ await cortex.governance.setAgentOverride("temp-agent-space", {
 Configure session lifecycle and limits:
 
 ```typescript
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
   // ... other policy fields ...
 
@@ -275,7 +275,7 @@ See [Sessions Management](/advanced-topics/sessions-management) for how these po
 Trigger policy enforcement manually:
 
 ```typescript
-const result = await cortex.governance.enforce({
+const result = await memoir.governance.enforce({
   scope: { organizationId: "org-123" },
   layers: ["vector", "immutable"],
   rules: ["retention", "purging"],
@@ -289,7 +289,7 @@ console.log(`Storage freed: ${result.storageFreed} MB`);
 ### Enforcement for Specific Space
 
 ```typescript
-const result = await cortex.governance.enforce({
+const result = await memoir.governance.enforce({
   scope: { memorySpaceId: "audit-agent-space" },
   layers: ["vector"],
   rules: ["retention"],
@@ -303,7 +303,7 @@ const result = await cortex.governance.enforce({
 Test policy impact before applying:
 
 ```typescript
-const impact = await cortex.governance.simulate({
+const impact = await memoir.governance.simulate({
   organizationId: "org-123",
   vector: {
     retention: {
@@ -321,7 +321,7 @@ console.log(`Estimated monthly savings: $${impact.costSavings}`);
 
 // Apply only if acceptable
 if (impact.costSavings > 50) {
-  await cortex.governance.setPolicy({ ... });
+  await memoir.governance.setPolicy({ ... });
 }
 ```
 
@@ -330,7 +330,7 @@ if (impact.costSavings > 50) {
 Generate compliance reports:
 
 ```typescript
-const report = await cortex.governance.getComplianceReport({
+const report = await memoir.governance.getComplianceReport({
   organizationId: "org-123",
   period: {
     start: new Date("2025-01-01"),
@@ -371,7 +371,7 @@ console.log(report);
 Track what's being purged over time:
 
 ```typescript
-const stats = await cortex.governance.getEnforcementStats({
+const stats = await memoir.governance.getEnforcementStats({
   period: "30d",
 });
 
@@ -389,10 +389,10 @@ console.log(`- Cost savings: $${stats.costSavings}`);
 
 ```typescript
 // Use compliance template as base
-const basePolicy = await cortex.governance.getTemplate("GDPR");
+const basePolicy = await memoir.governance.getTemplate("GDPR");
 
 // Customize specific settings
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
   ...basePolicy,
   vector: {
@@ -410,7 +410,7 @@ await cortex.governance.setPolicy({
 ```typescript
 // Run daily enforcement job
 async function dailyGovernanceEnforcement() {
-  const result = await cortex.governance.enforce({
+  const result = await memoir.governance.enforce({
     scope: { organizationId: "org-123" },
     layers: ["vector", "conversations", "immutable"],
     rules: ["retention", "purging"],
@@ -427,13 +427,13 @@ async function dailyGovernanceEnforcement() {
 
 ```typescript
 // Tier 1: Organization defaults (GDPR)
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   organizationId: "org-123",
-  ...(await cortex.governance.getTemplate("GDPR")),
+  ...(await memoir.governance.getTemplate("GDPR")),
 });
 
 // Tier 2: Department overrides
-await cortex.governance.setAgentOverride("legal-dept-space", {
+await memoir.governance.setAgentOverride("legal-dept-space", {
   conversations: {
     retention: {
       deleteAfter: "10y", // Legal needs longer retention
@@ -442,7 +442,7 @@ await cortex.governance.setAgentOverride("legal-dept-space", {
 });
 
 // Tier 3: Temporary projects
-await cortex.governance.setAgentOverride("poc-project-space", {
+await memoir.governance.setAgentOverride("poc-project-space", {
   vector: {
     retention: { defaultVersions: 1 }, // Minimal
   },
@@ -456,7 +456,7 @@ await cortex.governance.setAgentOverride("poc-project-space", {
 
 Policies are applied in order of specificity:
 
-1. **Global defaults** (Cortex built-in)
+1. **Global defaults** (Memoir built-in)
 2. **Compliance template** (GDPR, HIPAA, etc.)
 3. **Organization policy** (setPolicy)
 4. **Memory space overrides** (setAgentOverride)
@@ -466,10 +466,10 @@ More specific policies override less specific ones for the same settings.
 ## Error Handling
 
 ```typescript
-import { GovernanceValidationError } from "@cortex-platform/sdk";
+import { GovernanceValidationError } from "@memoir-platform/sdk";
 
 try {
-  await cortex.governance.setPolicy({
+  await memoir.governance.setPolicy({
     organizationId: "org-123",
     conversations: {
       retention: { deleteAfter: "invalid" }, // Bad format

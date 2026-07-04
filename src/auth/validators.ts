@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Auth Context Validators
+ * Memoir SDK - Auth Context Validators
  *
  * Client-side validation for auth context parameters.
  */

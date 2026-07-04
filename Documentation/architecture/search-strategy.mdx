@@ -6,7 +6,7 @@ Multi-strategy search implementation: semantic, keyword, facts, temporal, and hy
 
 ## Overview
 
-Cortex provides **four primary search strategies** that can be used independently or combined:
+Memoir provides **four primary search strategies** that can be used independently or combined:
 
 1. **Semantic Search** - Vector similarity (meaning-based)
 2. **Facts Search** - Structured knowledge from Layer 3 (most efficient)
@@ -47,7 +47,7 @@ const query = "What is the user's preferred communication method?";
 const queryEmbedding = await embed(query);
 
 // SDK vector search
-const results = await cortex.vector.search(memorySpaceId, query, {
+const results = await memoir.vector.search(memorySpaceId, query, {
   embedding: queryEmbedding,
   limit: 20,
 });
@@ -82,11 +82,11 @@ const results = await cortex.vector.search(memorySpaceId, query, {
 ### SDK Usage
 
 ```typescript
-// Using the Cortex SDK
+// Using the Memoir SDK
 const query = "What is the user's preferred communication method?";
 const embedding = await embed(query);
 
-const results = await cortex.vector.search(memorySpaceId, query, {
+const results = await memoir.vector.search(memorySpaceId, query, {
   embedding,
   userId: "user-123",
   limit: 20,
@@ -105,7 +105,7 @@ All searches are automatically filtered by `tenantId` for multi-tenant isolation
 ### Conceptual Example: Internal Implementation
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how semantic search works internally. Use `cortex.vector.search()` or `cortex.memory.recall()` in your application code.
+The following shows how semantic search works internally. Use `memoir.vector.search()` or `memoir.memory.recall()` in your application code.
 </Callout>
 
 ```typescript
@@ -171,7 +171,7 @@ Searches structured facts from Layer 3 - the most token-efficient strategy:
 const query = "What is the user's communication preference?";
 
 // SDK facts search
-const facts = await cortex.facts.search(memorySpaceId, query, {
+const facts = await memoir.facts.search(memorySpaceId, query, {
   limit: 20,
 });
 
@@ -206,8 +206,8 @@ const facts = await cortex.facts.search(memorySpaceId, query, {
 ### SDK Usage
 
 ```typescript
-// Using the Cortex SDK
-const facts = await cortex.facts.search(
+// Using the Memoir SDK
+const facts = await memoir.facts.search(
   memorySpaceId,
   "What is the user's communication preference?",
   {
@@ -227,7 +227,7 @@ facts.forEach((fact) => {
 ### Conceptual Example: Internal Implementation
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how facts search works internally. Use `cortex.facts.search()` or `cortex.memory.recall()` in your application code.
+The following shows how facts search works internally. Use `memoir.facts.search()` or `memoir.memory.recall()` in your application code.
 </Callout>
 
 ```typescript
@@ -274,13 +274,13 @@ export const factsSearch = query({
 ### Facts by Subject (Entity-Centric)
 
 <Callout type="warning" title="Conceptual Example">
-The following shows entity-centric fact retrieval. Use `cortex.facts.search()` with subject filters or `cortex.memory.recall()` for orchestrated search.
+The following shows entity-centric fact retrieval. Use `memoir.facts.search()` with subject filters or `memoir.memory.recall()` for orchestrated search.
 </Callout>
 
 ```typescript
 // Conceptual: Query facts about a specific entity
-// In practice, use cortex.facts.search() with subject filters
-const userFacts = await cortex.facts.search(memorySpaceId, "*", {
+// In practice, use memoir.facts.search() with subject filters
+const userFacts = await memoir.facts.search(memorySpaceId, "*", {
   subject: "user-123",
   limit: 100,
 });
@@ -301,7 +301,7 @@ Uses Convex full-text search indexes:
 const query = "password Blue";
 
 // SDK vector search (uses keyword matching when no embedding provided)
-const results = await cortex.vector.search(memorySpaceId, query, {
+const results = await memoir.vector.search(memorySpaceId, query, {
   limit: 20,
 });
 
@@ -335,8 +335,8 @@ const results = await cortex.vector.search(memorySpaceId, query, {
 ### SDK Usage
 
 ```typescript
-// Using the Cortex SDK
-const results = await cortex.vector.search(memorySpaceId, "password Blue", {
+// Using the Memoir SDK
+const results = await memoir.vector.search(memorySpaceId, "password Blue", {
   userId: "user-123",
   limit: 20,
 });
@@ -350,7 +350,7 @@ results.forEach((result) => {
 ### Conceptual Example: Internal Implementation
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how keyword search works internally. Use `cortex.vector.search()` or `cortex.memory.recall()` in your application code.
+The following shows how keyword search works internally. Use `memoir.vector.search()` or `memoir.memory.recall()` in your application code.
 </Callout>
 
 ```typescript
@@ -391,7 +391,7 @@ Prioritizes recent or time-relevant memories:
 
 ```typescript
 // Get recent memories using recall()
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId,
   query: "*", // Empty query for recent-only
   sources: {
@@ -427,8 +427,8 @@ const result = await cortex.memory.recall({
 ### SDK Usage
 
 ```typescript
-// Using cortex.memory.recall() for recent memories
-const result = await cortex.memory.recall({
+// Using memoir.memory.recall() for recent memories
+const result = await memoir.memory.recall({
   memorySpaceId: memorySpaceId,
   query: "*", // Empty query for recent-only
   sources: {
@@ -447,7 +447,7 @@ result.items.forEach((item) => {
 ### Conceptual Example: Internal Implementation
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how temporal search works internally. Use `cortex.memory.recall()` in your application code.
+The following shows how temporal search works internally. Use `memoir.memory.recall()` in your application code.
 </Callout>
 
 ```typescript
@@ -501,11 +501,11 @@ export const recentSearch = query({
 
 ### Using recall() for Multi-Strategy Search
 
-The `cortex.memory.recall()` method automatically combines multiple search strategies:
+The `memoir.memory.recall()` method automatically combines multiple search strategies:
 
 ```typescript
 // Automatic multi-strategy search
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: memorySpaceId,
   query: "What are the user's preferences?",
   embedding: await embed("What are the user's preferences?"),
@@ -537,27 +537,27 @@ result.items.forEach((item) => {
 ### Conceptual Example: Internal Hybrid Logic
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how `recall()` combines strategies internally. Use `cortex.memory.recall()` directly in your application code.
+The following shows how `recall()` combines strategies internally. Use `memoir.memory.recall()` directly in your application code.
 </Callout>
 
 ```typescript
 // Conceptual: How recall() combines strategies internally
-// In practice, use cortex.memory.recall() which handles this automatically
+// In practice, use memoir.memory.recall() which handles this automatically
 
 // 1. Search facts (most token-efficient)
-const facts = await cortex.facts.search(memorySpaceId, query, {
+const facts = await memoir.facts.search(memorySpaceId, query, {
   minConfidence: 70,
   limit: 20,
 });
 
 // 2. Search vectors (semantic similarity)
-const vectors = await cortex.vector.search(memorySpaceId, query, {
+const vectors = await memoir.vector.search(memorySpaceId, query, {
   embedding,
   limit: 20,
 });
 
 // 3. recall() merges, deduplicates, and ranks automatically
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId,
   query,
   embedding,
@@ -588,7 +588,7 @@ The `recall()` method uses a **multi-signal scoring algorithm** with the followi
 ### Conceptual Example: Scoring Implementation
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how scoring works internally. `cortex.memory.recall()` applies this automatically.
+The following shows how scoring works internally. `memoir.memory.recall()` applies this automatically.
 </Callout>
 
 ```typescript
@@ -861,11 +861,11 @@ function calculateFinalScore(
 
 ### Using recall() for Automatic Strategy Selection
 
-The `cortex.memory.recall()` method automatically selects and combines strategies:
+The `memoir.memory.recall()` method automatically selects and combines strategies:
 
 ```typescript
 // Automatic strategy selection via recall()
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: memorySpaceId,
   query: "user preferences",
   embedding: await embed("user preferences"), // Optional: enables semantic search
@@ -883,23 +883,23 @@ const result = await cortex.memory.recall({
 ### Conceptual Example: Strategy Selection Logic
 
 <Callout type="warning" title="Conceptual Example">
-The following shows how strategy selection works internally. Use `cortex.memory.recall()` directly.
+The following shows how strategy selection works internally. Use `memoir.memory.recall()` directly.
 </Callout>
 
 ```typescript
 // Conceptual: How recall() selects strategies internally
-// In practice, use cortex.memory.recall() which handles this automatically
+// In practice, use memoir.memory.recall() which handles this automatically
 
 async function recall(memorySpaceId: string, query: string, options: any) {
   const results: RecallItem[] = [];
 
   // Always search facts (most token-efficient)
-  const facts = await cortex.facts.search(memorySpaceId, query, options);
+  const facts = await memoir.facts.search(memorySpaceId, query, options);
   results.push(...facts.map(f => factToRecallItem(f, "facts")));
 
   // Search vectors if embedding provided
   if (options.embedding) {
-    const vectors = await cortex.vector.search(memorySpaceId, query, options);
+    const vectors = await memoir.vector.search(memorySpaceId, query, options);
     results.push(...vectors.map(v => memoryToRecallItem(v, "vector")));
   }
 
@@ -1000,7 +1000,7 @@ async function getConversationContext(
 ) {
   const embedding = await embed(currentMessage);
 
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query: currentMessage,
     embedding,
@@ -1020,7 +1020,7 @@ async function getConversationContext(
 async function findAnswer(memorySpaceId: string, query: string) {
   const embedding = await embed(query);
 
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query,
     embedding,
@@ -1040,7 +1040,7 @@ async function findAnswer(memorySpaceId: string, query: string) {
 async function advancedSearch(memorySpaceId: string, criteria: any) {
   const embedding = await embed(criteria.query);
 
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query: criteria.query,
     embedding,
@@ -1071,7 +1071,7 @@ async function searchWithFallback(
 ) {
   try {
     // Use recall() which automatically combines strategies
-    const result = await cortex.memory.recall({
+    const result = await memoir.memory.recall({
       memorySpaceId,
       query: query || "*", // Empty query falls back to recent
       embedding, // Optional: enables semantic search if provided
@@ -1084,7 +1084,7 @@ async function searchWithFallback(
     }
 
     // Fall back to recent only
-    const recentResult = await cortex.memory.recall({
+    const recentResult = await memoir.memory.recall({
       memorySpaceId,
       query: "*",
       sources: {
@@ -1143,4 +1143,4 @@ async function searchWithFallback(
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

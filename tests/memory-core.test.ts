@@ -5,7 +5,7 @@
  * Split from memory.test.ts for parallel execution
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import { TestCleanup } from "./helpers/cleanup";
@@ -15,7 +15,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Core Operations", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -26,7 +26,7 @@ describe("Memory Core Operations", () => {
   const TEST_USER_NAME = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -48,7 +48,7 @@ describe("Memory Core Operations", () => {
 
     beforeAll(async () => {
       // Create a conversation for testing
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -62,7 +62,7 @@ describe("Memory Core Operations", () => {
     });
 
     it("stores both messages in ACID and creates 2 vector memories", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "The password is Blue",
@@ -98,7 +98,7 @@ describe("Memory Core Operations", () => {
     });
 
     it("links vector memories to ACID messages via conversationRef", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Remember this important fact",
@@ -133,7 +133,7 @@ describe("Memory Core Operations", () => {
     it("skips vector storage for agent acknowledgments (noise filtering)", async () => {
       // Test that pure acknowledgments like "Got it!" don't create vector memories
       // This improves semantic search quality by filtering noise
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "My favorite color is purple",
@@ -160,7 +160,7 @@ describe("Memory Core Operations", () => {
         return [0.1, 0.2, 0.3]; // Mock embedding
       };
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Test embedding",
@@ -187,7 +187,7 @@ describe("Memory Core Operations", () => {
         return `Extracted: ${_user}`;
       };
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Long user message with lots of detail",
@@ -209,7 +209,7 @@ describe("Memory Core Operations", () => {
     });
 
     it("applies importance and tags to memories", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Critical password information",
@@ -233,7 +233,7 @@ describe("Memory Core Operations", () => {
     });
 
     it("defaults to importance=50 when not specified", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Regular message",
@@ -258,7 +258,7 @@ describe("Memory Core Operations", () => {
 
     beforeEach(async () => {
       // Create conversation and memory
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -270,7 +270,7 @@ describe("Memory Core Operations", () => {
 
       testConversationId = conv.conversationId;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: testConversationId,
         userMessage: "Memory to forget",
@@ -284,25 +284,25 @@ describe("Memory Core Operations", () => {
     });
 
     it("deletes from vector by default", async () => {
-      const result = await cortex.memory.forget(TEST_MEMSPACE_ID, testMemoryId);
+      const result = await memoir.memory.forget(TEST_MEMSPACE_ID, testMemoryId);
 
       expect(result.memoryDeleted).toBe(true);
       expect(result.conversationDeleted).toBe(false);
       expect(result.restorable).toBe(true); // ACID preserved
 
       // Verify vector deleted
-      const memory = await cortex.vector.get(TEST_MEMSPACE_ID, testMemoryId);
+      const memory = await memoir.vector.get(TEST_MEMSPACE_ID, testMemoryId);
 
       expect(memory).toBeNull();
 
       // Verify ACID preserved
-      const conv = await cortex.conversations.get(testConversationId);
+      const conv = await memoir.conversations.get(testConversationId);
 
       expect(conv).not.toBeNull();
     });
 
     it("deletes from both layers when deleteConversation=true", async () => {
-      const result = await cortex.memory.forget(
+      const result = await memoir.memory.forget(
         TEST_MEMSPACE_ID,
         testMemoryId,
         {
@@ -316,12 +316,12 @@ describe("Memory Core Operations", () => {
       expect(result.restorable).toBe(false); // Both layers deleted
 
       // Verify vector deleted
-      const memory = await cortex.vector.get(TEST_MEMSPACE_ID, testMemoryId);
+      const memory = await memoir.vector.get(TEST_MEMSPACE_ID, testMemoryId);
 
       expect(memory).toBeNull();
 
       // Verify ACID deleted
-      const conv = await cortex.conversations.get(testConversationId);
+      const conv = await memoir.conversations.get(testConversationId);
 
       expect(conv).toBeNull();
     });
@@ -329,7 +329,7 @@ describe("Memory Core Operations", () => {
     it("throws error for non-existent memory", async () => {
       // Backend validation: existence check
       await expect(
-        cortex.memory.forget(TEST_MEMSPACE_ID, "non-existent"),
+        memoir.memory.forget(TEST_MEMSPACE_ID, "non-existent"),
       ).rejects.toThrow("MEMORY_NOT_FOUND");
     });
   });

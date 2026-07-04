@@ -1,8 +1,8 @@
 /**
  * Graph Database Integration Proof: Sync Workflow
  *
- * Demonstrates full Cortex → Graph synchronization workflow.
- * Creates data in Cortex, syncs to graph, then queries the graph.
+ * Demonstrates full Memoir → Graph synchronization workflow.
+ * Creates data in Memoir, syncs to graph, then queries the graph.
  *
  * Run with: tsx tests/graph/proofs/02-sync-workflow.proof.ts
  */
@@ -13,7 +13,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -33,7 +33,7 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 /**
@@ -44,7 +44,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
   console.log(`Testing Sync Workflow with ${dbName}`);
   console.log(`${"=".repeat(60)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
   const timestamp = Date.now();
   const uniqueId = `test-${timestamp}`;
 
@@ -58,12 +58,12 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Schema initialized in ${Date.now() - startSchema}ms\n`);
 
     // ============================================================================
-    // Phase 2: Create Data in Cortex
+    // Phase 2: Create Data in Memoir
     // ============================================================================
-    console.log("📝 Phase 2: Create Data in Cortex");
+    console.log("📝 Phase 2: Create Data in Memoir");
 
     // Register memory space
-    const memorySpace = await cortex.memorySpaces.register({
+    const memorySpace = await memoir.memorySpaces.register({
       memorySpaceId: `space-${uniqueId}`,
       name: "Test Agent",
       type: "personal",
@@ -71,7 +71,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Memory Space: ${memorySpace.memorySpaceId}`);
 
     // Create conversation
-    const conversation = await cortex.conversations.create({
+    const conversation = await memoir.conversations.create({
       memorySpaceId: memorySpace.memorySpaceId,
       type: "user-agent",
       participants: {
@@ -83,14 +83,14 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Conversation: ${conversation.conversationId}`);
 
     // Add messages
-    const msgResult = await cortex.conversations.addMessage({
+    const msgResult = await memoir.conversations.addMessage({
       conversationId: conversation.conversationId,
       message: {
         role: "user",
         content: "I need help with my project. I'm working on an AI assistant.",
       },
     });
-    await cortex.conversations.addMessage({
+    await memoir.conversations.addMessage({
       conversationId: conversation.conversationId,
       message: {
         role: "agent",
@@ -101,7 +101,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Messages: ${msgResult.messages.length}`);
 
     // Create context
-    const context = await cortex.contexts.create({
+    const context = await memoir.contexts.create({
       purpose: "Help user with AI project",
       memorySpaceId: memorySpace.memorySpaceId,
       userId: `user-${uniqueId}`,
@@ -113,7 +113,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Context: ${context.contextId}`);
 
     // Create child context
-    const childContext = await cortex.contexts.create({
+    const childContext = await memoir.contexts.create({
       purpose: "Research AI frameworks",
       memorySpaceId: memorySpace.memorySpaceId,
       parentId: context.contextId,
@@ -121,7 +121,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Child Context: ${childContext.contextId}`);
 
     // Create memory
-    const memory = await cortex.vector.store(memorySpace.memorySpaceId, {
+    const memory = await memoir.vector.store(memorySpace.memorySpaceId, {
       content: "User is building an AI assistant and needs help",
       contentType: "raw",
       userId: `user-${uniqueId}`,
@@ -142,7 +142,7 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     console.log(`  ✓ Memory: ${memory.memoryId}`);
 
     // Create fact
-    const fact = await cortex.facts.store({
+    const fact = await memoir.facts.store({
       memorySpaceId: memorySpace.memorySpaceId,
       fact: "User is working on an AI assistant project",
       factType: "knowledge",
@@ -355,18 +355,18 @@ async function runSyncWorkflow(adapter: GraphAdapter, dbName: string) {
     // ============================================================================
     console.log("🧹 Cleanup");
     // Delete in reverse order: children first, then parents
-    await cortex.contexts.delete(childContext.contextId);
-    await cortex.contexts.delete(context.contextId);
-    await cortex.vector.delete(memorySpace.memorySpaceId, memory.memoryId);
-    await cortex.facts.delete(memorySpace.memorySpaceId, fact.factId);
-    await cortex.conversations.delete(conversation.conversationId);
+    await memoir.contexts.delete(childContext.contextId);
+    await memoir.contexts.delete(context.contextId);
+    await memoir.vector.delete(memorySpace.memorySpaceId, memory.memoryId);
+    await memoir.facts.delete(memorySpace.memorySpaceId, fact.factId);
+    await memoir.conversations.delete(conversation.conversationId);
     // Note: memorySpaces don't have unregister method - they're managed differently
-    console.log("  ✓ Cortex data cleaned up\n");
+    console.log("  ✓ Memoir data cleaned up\n");
   } catch (error) {
     console.error(`❌ Sync workflow failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -377,7 +377,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Integration - Sync Workflow Proof          ║");
+  console.log("║  Memoir Graph Integration - Sync Workflow Proof          ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test with Neo4j (most reliable)
@@ -406,7 +406,7 @@ async function main() {
   );
 
   console.log("📝 Key Takeaways:");
-  console.log("   ✓ Cortex data successfully synced to graph database");
+  console.log("   ✓ Memoir data successfully synced to graph database");
   console.log("   ✓ All relationships properly created");
   console.log("   ✓ Graph queries return consistent data");
   console.log("   ✓ Convex remains source of truth");

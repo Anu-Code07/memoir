@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 // All valid context statuses
 const ALL_CONTEXT_STATUSES = [
@@ -21,17 +21,17 @@ const ALL_CONTEXT_STATUSES = [
 ] as const;
 
 describe("Contexts API - Comprehensive Filter Coverage", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const TEST_MEMSPACE_ID = `filter-ctx-test-${Date.now()}`;
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup test contexts (best-effort)
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -46,7 +46,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const userId = `filter-user-${status}`;
 
       // Create context with target status
-      const targetCtx = await cortex.contexts.create({
+      const targetCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: `Test ${status} context`,
@@ -55,7 +55,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
 
       // Create context with different status as noise
       if (status !== "active") {
-        await cortex.contexts.create({
+        await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: "Noise active context",
@@ -64,7 +64,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: List with status filter
-      const results = await cortex.contexts.list({
+      const results = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status,
       });
@@ -85,14 +85,14 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const userId = `count-user-${status}`;
 
       // Create 2 contexts with target status
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: `Test ${status} context 1`,
         status,
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: `Test ${status} context 2`,
@@ -101,7 +101,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
 
       // Create context with different status as noise
       if (status !== "completed") {
-        await cortex.contexts.create({
+        await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: "Noise completed context",
@@ -110,7 +110,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Count with status filter
-      const count = await cortex.contexts.count({
+      const count = await memoir.contexts.count({
         memorySpaceId: spaceId,
         status,
       });
@@ -126,7 +126,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const userId = "empty-user";
 
       // Create only active contexts
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Only active context",
@@ -134,7 +134,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Query for different status
-      const results = await cortex.contexts.list({
+      const results = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "blocked",
       });
@@ -148,7 +148,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const userId = "transition-user";
 
       // Create active context
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Transitioning context",
@@ -156,7 +156,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Verify it's in active list
-      const activeResults = await cortex.contexts.list({
+      const activeResults = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
       });
@@ -165,13 +165,13 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       ).toBe(true);
 
       // Update to completed
-      const updatedCtx = await cortex.contexts.update(ctx.contextId, {
+      const updatedCtx = await memoir.contexts.update(ctx.contextId, {
         status: "completed",
       });
       expect(updatedCtx.status).toBe("completed");
 
       // Verify it's now in completed list
-      const completedResults = await cortex.contexts.list({
+      const completedResults = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "completed",
       });
@@ -180,7 +180,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       ).toBe(true);
 
       // Verify it's NOT in active list anymore
-      const activeResultsAfter = await cortex.contexts.list({
+      const activeResultsAfter = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
       });
@@ -195,7 +195,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const otherUser = "other-user";
 
       // Create active context for target user
-      const _targetCtx = await cortex.contexts.create({
+      const _targetCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: targetUser,
         purpose: "Target active context",
@@ -203,7 +203,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Create active context for other user
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: otherUser,
         purpose: "Other user active context",
@@ -211,7 +211,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Create completed context for target user
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: targetUser,
         purpose: "Target completed context",
@@ -219,7 +219,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Execute: Filter by status AND userId
-      const results = await cortex.contexts.list({
+      const results = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
         userId: targetUser,
@@ -240,7 +240,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       // Create context for each status
       const contextsByStatus: Record<string, any> = {};
       for (const status of ALL_CONTEXT_STATUSES) {
-        const ctx = await cortex.contexts.create({
+        const ctx = await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: `Context with ${status} status`,
@@ -251,7 +251,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
 
       // Verify each status filter returns correct contexts
       for (const status of ALL_CONTEXT_STATUSES) {
-        const results = await cortex.contexts.list({
+        const results = await memoir.contexts.list({
           memorySpaceId: spaceId,
           status,
         });
@@ -271,7 +271,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
 
       // Create 3 active contexts
       for (let i = 0; i < 3; i++) {
-        await cortex.contexts.create({
+        await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: `Active context ${i}`,
@@ -281,7 +281,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
 
       // Create 2 completed contexts
       for (let i = 0; i < 2; i++) {
-        await cortex.contexts.create({
+        await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId,
           purpose: `Completed context ${i}`,
@@ -290,21 +290,21 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       }
 
       // Count active only
-      const activeCount = await cortex.contexts.count({
+      const activeCount = await memoir.contexts.count({
         memorySpaceId: spaceId,
         status: "active",
       });
       expect(activeCount).toBeGreaterThanOrEqual(3);
 
       // Count completed only
-      const completedCount = await cortex.contexts.count({
+      const completedCount = await memoir.contexts.count({
         memorySpaceId: spaceId,
         status: "completed",
       });
       expect(completedCount).toBeGreaterThanOrEqual(2);
 
       // Count all (no filter)
-      const totalCount = await cortex.contexts.count({
+      const totalCount = await memoir.contexts.count({
         memorySpaceId: spaceId,
       });
       expect(totalCount).toBeGreaterThanOrEqual(5);
@@ -315,7 +315,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       const userId = "parent-user";
 
       // Create parent context
-      const parentCtx = await cortex.contexts.create({
+      const parentCtx = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Parent context",
@@ -323,7 +323,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Create active child context
-      const _activeChild = await cortex.contexts.create({
+      const _activeChild = await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Active child context",
@@ -332,7 +332,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Create completed child context
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId,
         purpose: "Completed child context",
@@ -341,7 +341,7 @@ describe("Contexts API - Comprehensive Filter Coverage", () => {
       });
 
       // Execute: Filter by status AND parentId
-      const results = await cortex.contexts.list({
+      const results = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
         parentId: parentCtx.contextId,

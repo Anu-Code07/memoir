@@ -71,7 +71,7 @@ echo ""
 echo -e "${CYAN}🐍 Launching Python SDK ($PYTHON_PARALLEL runs)...${NC}"
 
 for i in $(seq 1 $PYTHON_PARALLEL); do
-    (cd cortex-sdk-python && CONVEX_URL=$LOCAL_CONVEX_URL CONVEX_TEST_MODE=local pytest tests/ -q > "$LOGS_DIR/python-$i.log" 2>&1; echo $? > "$LOGS_DIR/python-$i.exit") &
+    (cd memoir-sdk-python && CONVEX_URL=$LOCAL_CONVEX_URL CONVEX_TEST_MODE=local pytest tests/ -q > "$LOGS_DIR/python-$i.log" 2>&1; echo $? > "$LOGS_DIR/python-$i.exit") &
     echo "   Run $i (PID: $!)"
 done
 
@@ -92,7 +92,7 @@ if [ "$RUN_PACKAGES" == "true" ]; then
     echo -e "${CYAN}🔧 Launching CLI tests (⚠ hits DB - may conflict!)...${NC}"
     (
         npm run build > /dev/null 2>&1
-        cd packages/cortex-cli
+        cd packages/memoir-cli
         npm install > /dev/null 2>&1
         npm run test:unit > "$LOGS_DIR/cli-unit.tmp" 2>&1
         CONVEX_URL=$LOCAL_CONVEX_URL npm run test:integration >> "$LOGS_DIR/cli.log" 2>&1
@@ -157,9 +157,9 @@ if [ "$RUN_PACKAGES" == "true" ]; then
     # CLI
     exit_code=$(cat "$LOGS_DIR/cli.exit" 2>/dev/null || echo 1)
     if [ $exit_code -eq 0 ]; then
-        echo -e "   ${GREEN}✓${NC} Cortex CLI"
+        echo -e "   ${GREEN}✓${NC} Memoir CLI"
     else
-        echo -e "   ${RED}✗${NC} Cortex CLI (may have DB conflicts)"
+        echo -e "   ${RED}✗${NC} Memoir CLI (may have DB conflicts)"
         ALL_PASSED=false
     fi
 fi

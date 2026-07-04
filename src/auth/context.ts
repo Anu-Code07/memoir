@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Auth Context Creation and Validation
+ * Memoir SDK - Auth Context Creation and Validation
  *
  * Factory functions for creating and validating AuthContext objects.
  */
@@ -10,7 +10,7 @@ import { validateAuthContextParams } from "./validators";
 /**
  * Create a validated AuthContext from parameters.
  *
- * This is the primary way to create an auth context for use with Cortex.
+ * This is the primary way to create an auth context for use with Memoir.
  * All parameters are validated before the context is created.
  *
  * @param params - Auth context parameters
@@ -61,8 +61,8 @@ import { validateAuthContextParams } from "./validators";
  *   },
  * });
  *
- * // Use with Cortex
- * const cortex = new Cortex({
+ * // Use with Memoir
+ * const memoir = new Memoir({
  *   convexUrl: process.env.CONVEX_URL!,
  *   auth: authContext,
  * });

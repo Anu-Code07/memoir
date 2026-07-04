@@ -4,7 +4,7 @@
  * Tests streaming with memory integration through the provider
  */
 
-import { CortexMemoryProvider } from "../../src/provider";
+import { MemoirMemoryProvider } from "../../src/provider";
 import {
   createTestConfig,
   createMockLLM,
@@ -22,8 +22,8 @@ type StreamChunk = {
   text?: string;
 };
 
-// Mock Cortex SDK
-const mockCortex = {
+// Mock Memoir SDK
+const mockMemoir = {
   memory: {
     recall: jest.fn().mockResolvedValue({
       context: "",
@@ -46,8 +46,8 @@ const mockCortex = {
   close: jest.fn(),
 };
 
-jest.mock("@cortexmemory/sdk", () => ({
-  Cortex: jest.fn().mockImplementation(() => mockCortex),
+jest.mock("@memoir/sdk", () => ({
+  Memoir: jest.fn().mockImplementation(() => mockMemoir),
   CypherGraphAdapter: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
@@ -75,7 +75,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: { rawPrompt: null, rawSettings: {} },
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [
@@ -94,7 +94,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify rememberStream was called with collected text
-      expect(mockCortex.memory.rememberStream).toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).toHaveBeenCalled();
     });
 
     it("should handle text-delta format (v3/v4)", async () => {
@@ -105,7 +105,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -115,7 +115,7 @@ describe("Streaming Flow Integration", () => {
       const chunks = await consumeStream(result.stream);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockCortex.memory.rememberStream).toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).toHaveBeenCalled();
     });
 
     it("should handle delta format (v5)", async () => {
@@ -126,7 +126,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -137,7 +137,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(chunks[0].delta).toBe("V5 ");
-      expect(mockCortex.memory.rememberStream).toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).toHaveBeenCalled();
     });
 
     it("should handle text format", async () => {
@@ -148,7 +148,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -159,7 +159,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(chunks[0].text).toBe("Text ");
-      expect(mockCortex.memory.rememberStream).toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).toHaveBeenCalled();
     });
   });
 
@@ -169,7 +169,7 @@ describe("Streaming Flow Integration", () => {
 
   describe("memory search with streaming", () => {
     it("should recall context before streaming", async () => {
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "User prefers detailed answers",
         totalResults: 1,
         queryTimeMs: 20,
@@ -185,7 +185,7 @@ describe("Streaming Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doStream({
         prompt: [
@@ -195,7 +195,7 @@ describe("Streaming Flow Integration", () => {
       });
 
       // Recall should be called before streaming
-      expect(mockCortex.memory.recall).toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).toHaveBeenCalled();
 
       // LLM should receive augmented prompt
       const llmCall = mockLLM.doStream.mock.calls[0][0];
@@ -203,7 +203,7 @@ describe("Streaming Flow Integration", () => {
     });
 
     it("should inject context using configured strategy", async () => {
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "Context from memory",
         totalResults: 1,
         queryTimeMs: 10,
@@ -219,7 +219,7 @@ describe("Streaming Flow Integration", () => {
         contextInjectionStrategy: "system",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -239,7 +239,7 @@ describe("Streaming Flow Integration", () => {
     it("should not call rememberStream when storage disabled", async () => {
       const config = createTestConfig({ enableMemoryStorage: false });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -249,7 +249,7 @@ describe("Streaming Flow Integration", () => {
       await consumeStream(result.stream);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockCortex.memory.rememberStream).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).not.toHaveBeenCalled();
     });
 
     it("should return original stream when no user message", async () => {
@@ -260,7 +260,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "system", content: "System prompt only" }],
@@ -278,13 +278,13 @@ describe("Streaming Flow Integration", () => {
 
   describe("error handling", () => {
     it("should handle rememberStream failure gracefully", async () => {
-      mockCortex.memory.rememberStream.mockRejectedValueOnce(
+      mockMemoir.memory.rememberStream.mockRejectedValueOnce(
         new Error("Storage failed"),
       );
 
       const config = createTestConfig({ enableMemoryStorage: true });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -297,7 +297,7 @@ describe("Streaming Flow Integration", () => {
     });
 
     it("should handle recall failure and continue streaming", async () => {
-      mockCortex.memory.recall.mockRejectedValueOnce(
+      mockMemoir.memory.recall.mockRejectedValueOnce(
         new Error("Recall failed"),
       );
 
@@ -306,7 +306,7 @@ describe("Streaming Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -332,7 +332,7 @@ describe("Streaming Flow Integration", () => {
         },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -343,7 +343,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const rememberStreamOptions =
-        mockCortex.memory.rememberStream.mock.calls[0][1];
+        mockMemoir.memory.rememberStream.mock.calls[0][1];
       expect(rememberStreamOptions.storePartialResponse).toBe(true);
       expect(rememberStreamOptions.progressiveFactExtraction).toBe(true);
     });
@@ -362,7 +362,7 @@ describe("Streaming Flow Integration", () => {
         },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -373,7 +373,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const rememberStreamOptions =
-        mockCortex.memory.rememberStream.mock.calls[0][1];
+        mockMemoir.memory.rememberStream.mock.calls[0][1];
       expect(rememberStreamOptions.hooks).toBeDefined();
     });
 
@@ -383,7 +383,7 @@ describe("Streaming Flow Integration", () => {
         enableGraphMemory: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -394,7 +394,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const rememberStreamOptions =
-        mockCortex.memory.rememberStream.mock.calls[0][1];
+        mockMemoir.memory.rememberStream.mock.calls[0][1];
       // Note: syncToGraph removed in v0.29.0+ - graph sync is automatic when graphAdapter is configured
       // The option should not be present in the call
       expect(rememberStreamOptions.syncToGraph).toBeUndefined();
@@ -418,7 +418,7 @@ describe("Streaming Flow Integration", () => {
         layerObserver,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -429,7 +429,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const rememberStreamParams =
-        mockCortex.memory.rememberStream.mock.calls[0][0];
+        mockMemoir.memory.rememberStream.mock.calls[0][0];
       expect(rememberStreamParams.observer).toBe(layerObserver);
     });
   });
@@ -451,7 +451,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -462,7 +462,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Should not call rememberStream for empty response
-      expect(mockCortex.memory.rememberStream).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).not.toHaveBeenCalled();
     });
 
     it("should handle whitespace-only stream without storing", async () => {
@@ -473,7 +473,7 @@ describe("Streaming Flow Integration", () => {
         rawCall: {},
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -484,7 +484,7 @@ describe("Streaming Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Should not call rememberStream for whitespace-only response
-      expect(mockCortex.memory.rememberStream).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).not.toHaveBeenCalled();
     });
   });
 });

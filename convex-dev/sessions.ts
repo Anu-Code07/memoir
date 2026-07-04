@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Convex Sessions API
+ * Memoir SDK - Convex Sessions API
  *
  * Native session management with fully extensible metadata.
  */

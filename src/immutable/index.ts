@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Immutable Store API
+ * Memoir SDK - Immutable Store API
  *
  * Layer 1b: ACID-compliant versioned immutable storage for shared data
  */
@@ -78,7 +78,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const record = await cortex.immutable.store({
+   * const record = await memoir.immutable.store({
    *   type: 'kb-article',
    *   id: 'refund-policy',
    *   data: {
@@ -132,7 +132,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const article = await cortex.immutable.get('kb-article', 'refund-policy');
+   * const article = await memoir.immutable.get('kb-article', 'refund-policy');
    * ```
    */
   async get(type: string, id: string): Promise<ImmutableRecord | null> {
@@ -158,7 +158,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const v1 = await cortex.immutable.getVersion('kb-article', 'refund-policy', 1);
+   * const v1 = await memoir.immutable.getVersion('kb-article', 'refund-policy', 1);
    * ```
    */
   async getVersion(
@@ -190,7 +190,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.immutable.getHistory('kb-article', 'refund-policy');
+   * const history = await memoir.immutable.getHistory('kb-article', 'refund-policy');
    * console.log(`${history.length} versions`);
    * ```
    */
@@ -219,7 +219,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const articles = await cortex.immutable.list({
+   * const articles = await memoir.immutable.list({
    *   type: 'kb-article',
    *   limit: 10,
    * });
@@ -258,7 +258,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.immutable.search({
+   * const results = await memoir.immutable.search({
    *   query: 'refund',
    *   type: 'kb-article',
    * });
@@ -287,7 +287,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.immutable.count({
+   * const count = await memoir.immutable.count({
    *   type: 'kb-article',
    * });
    * ```
@@ -315,7 +315,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.immutable.purge('feedback', 'feedback-123');
+   * await memoir.immutable.purge('feedback', 'feedback-123');
    * ```
    */
   async purge(
@@ -357,7 +357,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const policy = await cortex.immutable.getAtTimestamp(
+   * const policy = await memoir.immutable.getAtTimestamp(
    *   'policy',
    *   'refund-policy',
    *   Date.parse('2025-01-01')
@@ -394,7 +394,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.immutable.purgeMany({ type: 'old-data', userId: 'user-123' });
+   * const result = await memoir.immutable.purgeMany({ type: 'old-data', userId: 'user-123' });
    * ```
    */
   async purgeMany(filter: { type?: string; userId?: string }): Promise<{
@@ -426,7 +426,7 @@ export class ImmutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.immutable.purgeVersions('kb-article', 'guide-123', 20); // Keep latest 20
+   * await memoir.immutable.purgeVersions('kb-article', 'guide-123', 20); // Keep latest 20
    * ```
    */
   async purgeVersions(

@@ -7,13 +7,13 @@
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { createCortexMemory, createCortexMemoryAsync } from "../../src/index";
+import { createMemoirMemory, createMemoirMemoryAsync } from "../../src/index";
 import {
   createLayerStreamObserver,
   LAYER_STREAM_EVENTS,
   type StreamWriter,
 } from "../../src/streaming-helpers";
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import type { LayerEvent, OrchestrationSummary } from "../../src/types";
 import {
   createTestMemorySpaceId,
@@ -153,7 +153,7 @@ function createSimpleLLM() {
 describe("Layer Streaming E2E", () => {
   let memorySpaceId: string;
   let userId: string;
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   beforeAll(() => {
     if (SKIP_E2E) {
@@ -174,13 +174,13 @@ describe("Layer Streaming E2E", () => {
     memorySpaceId = createTestMemorySpaceId("e2e-layer-stream");
     userId = createTestUserId();
 
-    // Initialize Cortex for direct verification
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    // Initialize Memoir for direct verification
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterEach(async () => {
-    if (cortex) {
-      cortex.close();
+    if (memoir) {
+      memoir.close();
     }
   });
 
@@ -206,7 +206,7 @@ describe("Layer Streaming E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -250,7 +250,7 @@ describe("Layer Streaming E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -298,7 +298,7 @@ describe("Layer Streaming E2E", () => {
           },
         };
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -355,7 +355,7 @@ describe("Layer Streaming E2E", () => {
 
         emitTo(mockWriter);
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -411,7 +411,7 @@ describe("Layer Streaming E2E", () => {
 
         emitTo(mockWriter);
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -452,7 +452,7 @@ describe("Layer Streaming E2E", () => {
   (SKIP_E2E || !process.env.OPENAI_API_KEY ? describe.skip : describe)(
     "async factory with layer observer",
     () => {
-      it("should work with createCortexMemoryAsync", async () => {
+      it("should work with createMemoirMemoryAsync", async () => {
         const events: Array<{ type: string }> = [];
 
         const layerObserver = {
@@ -467,7 +467,7 @@ describe("Layer Streaming E2E", () => {
           },
         };
 
-        const factory = await createCortexMemoryAsync({
+        const factory = await createMemoirMemoryAsync({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -532,7 +532,7 @@ describe("Layer Streaming E2E", () => {
 
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,

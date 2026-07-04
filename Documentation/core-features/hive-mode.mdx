@@ -113,7 +113,7 @@ description: Multiple AI tools sharing one memory space
   <Step title="Create shared memory space">
 
 ```typescript
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   memorySpaceId: 'user-123-personal',
   name: "Alice's Personal AI Memory",
   type: 'personal',
@@ -130,7 +130,7 @@ await cortex.memorySpaces.register({
 
 ```typescript
 // Tool 1: Cursor
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-personal',
   participantId: 'cursor',
   conversationId: 'conv-1',
@@ -141,7 +141,7 @@ await cortex.memory.remember({
 });
 
 // Tool 2: Claude
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-personal',  // Same space
   participantId: 'claude',
   conversationId: 'conv-2',
@@ -157,7 +157,7 @@ await cortex.memory.remember({
 
 ```typescript
 // Any tool can search the shared space
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   'user-123-personal',
   'user preferences'
 );
@@ -181,7 +181,7 @@ const memories = await cortex.memory.search(
 
 ```typescript
 // Store with participant tracking
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'team-engineering',
   participantId: 'code-review-bot',  // Track source
   conversationId: 'slack-thread-456',
@@ -192,13 +192,13 @@ await cortex.memory.remember({
 });
 
 // Later: filter by participant
-const reviewBotMemories = await cortex.memory.list({
+const reviewBotMemories = await memoir.memory.list({
   memorySpaceId: 'team-engineering',
   participantId: 'code-review-bot',
 });
 
 // Audit who contributed what
-const allMemories = await cortex.memory.list({ memorySpaceId: 'team-engineering' });
+const allMemories = await memoir.memory.list({ memorySpaceId: 'team-engineering' });
 allMemories.forEach(m => {
   console.log(`${m.participantId}: ${m.content.substring(0, 50)}...`);
 });
@@ -213,7 +213,7 @@ allMemories.forEach(m => {
 // MCP creates one memory space per user
 
 // In Cursor IDE
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-alice-personal',
   participantId: 'cursor',
   userMessage: 'Show me TypeScript best practices',
@@ -223,7 +223,7 @@ await cortex.memory.remember({
 });
 
 // Later in Claude Desktop
-const memories = await cortex.memory.search(
+const memories = await memoir.memory.search(
   'user-alice-personal',
   'typescript coding'
 );
@@ -256,7 +256,7 @@ const response = "I see you've been learning TypeScript. Let me help...";
 <Callout type="tip" title="Always Set participantId">
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'team-workspace',
   participantId: 'deployment-bot',  // Clear tracking
   // ...
@@ -287,13 +287,13 @@ Track who stores what for debugging and analytics.
 
 ```typescript
 // Good: Isolated per customer
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: `customer-${customerId}-space`,
   // ...
 });
 
 // Bad: All customers in one hive (privacy violation!)
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'saas-app-memory',  // Don't do this
   // ...
 });
@@ -310,7 +310,7 @@ await cortex.memory.remember({
 
 ```typescript
 // List all memories with participant info
-const memories = await cortex.memory.list({ memorySpaceId: 'team-workspace' });
+const memories = await memoir.memory.list({ memorySpaceId: 'team-workspace' });
 
 memories.forEach(m => {
   console.log(`${m.participantId}: ${m.content.substring(0, 50)}...`);
@@ -322,13 +322,13 @@ memories.forEach(m => {
 
 ```typescript
 // Delete all memories from specific participant
-const badMemories = await cortex.memory.list({
+const badMemories = await memoir.memory.list({
   memorySpaceId: 'team-workspace',
   participantId: 'buggy-bot',
 });
 
 for (const memory of badMemories) {
-  await cortex.memory.delete('team-workspace', memory.id);
+  await memoir.memory.delete('team-workspace', memory.id);
 }
 ```
 

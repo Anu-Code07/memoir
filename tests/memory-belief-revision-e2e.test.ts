@@ -12,7 +12,7 @@
  * - New fact addition (ADD)
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -24,7 +24,7 @@ const ctx = createTestRunContext();
 const describeWithConvex = process.env.CONVEX_URL ? describe : describe.skip;
 
 describeWithConvex("Memory Belief Revision E2E Workflows", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _cleanup: TestCleanup;
 
   // Use ctx-scoped IDs for parallel execution isolation
@@ -35,9 +35,9 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
 
   beforeAll(async () => {
     // Note: For full E2E tests with actual belief revision,
-    // you would configure Cortex with a real LLM API key.
+    // you would configure Memoir with a real LLM API key.
     // These tests use the deduplication fallback path.
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL || "",
     });
     const client = new ConvexClient(process.env.CONVEX_URL || "");
@@ -53,7 +53,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
       const convId = `${ctx.conversationId("color")}-workflow`;
 
       // Create conversation
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -77,7 +77,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result1 = await cortex.memory.remember(
+      const result1 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -108,7 +108,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result2 = await cortex.memory.remember(
+      const result2 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -127,7 +127,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
       expect(result2.facts[0].fact).toBe("User's favorite color is purple");
 
       // Both facts should exist in the system (dedup path doesn't supersede)
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: testMemorySpaceId,
         subject: testUserId,
       });
@@ -143,7 +143,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
     test("should store job changes over time", async () => {
       const convId = `${ctx.conversationId("job")}-workflow`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -167,7 +167,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result1 = await cortex.memory.remember(
+      const result1 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -197,7 +197,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result2 = await cortex.memory.remember(
+      const result2 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -220,7 +220,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
     test("should store progressive fact refinement", async () => {
       const convId = `${ctx.conversationId("pet")}-workflow`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -244,7 +244,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result1 = await cortex.memory.remember(
+      const result1 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -274,7 +274,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result2 = await cortex.memory.remember(
+      const result2 = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -297,7 +297,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
     test("should handle multiple facts in single remember() call", async () => {
       const convId = `${ctx.conversationId("multi")}-workflow`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -339,7 +339,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
         },
       ];
 
-      const result = await cortex.memory.remember(
+      const result = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -369,7 +369,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
     test("should handle empty fact extraction gracefully", async () => {
       const convId = `${ctx.conversationId("empty")}-workflow`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -383,7 +383,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
       // No facts to extract
       const extractEmpty = async () => [];
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: convId,
         userMessage: "Hello there!",
@@ -404,7 +404,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
     test("should handle null fact extraction gracefully", async () => {
       const convId = `${ctx.conversationId("null")}-workflow`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -418,7 +418,7 @@ describeWithConvex("Memory Belief Revision E2E Workflows", () => {
       // Null return from extractor
       const extractNull = async () => null as any;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: convId,
         userMessage: "Testing null",

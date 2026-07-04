@@ -1,7 +1,7 @@
 /**
  * Graph Sync Utilities
  *
- * Functions for syncing Cortex entities to graph database.
+ * Functions for syncing Memoir entities to graph database.
  * All sync operations use MERGE semantics for idempotency.
  */
 
@@ -228,13 +228,13 @@ export async function syncMemorySpaceToGraph(
 }
 
 /**
- * Find a graph node ID by Cortex entity ID
+ * Find a graph node ID by Memoir entity ID
  *
- * Helper function to look up nodes created from Cortex entities
+ * Helper function to look up nodes created from Memoir entities
  */
 export async function findGraphNodeId(
   label: string,
-  cortexId: string,
+  memoirId: string,
   adapter: GraphAdapter,
 ): Promise<string | null> {
   // Determine property name based on label
@@ -269,7 +269,7 @@ export async function findGraphNodeId(
   }
 
   // Find node by property
-  const nodes = await adapter.findNodes(label, { [propertyName]: cortexId }, 1);
+  const nodes = await adapter.findNodes(label, { [propertyName]: memoirId }, 1);
 
   return nodes.length > 0 ? nodes[0].id! : null;
 }

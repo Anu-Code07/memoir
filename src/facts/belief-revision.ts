@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Belief Revision Service
+ * Memoir SDK - Belief Revision Service
  *
  * Main orchestration service for the belief revision pipeline.
  * Determines whether a new fact should CREATE, UPDATE, SUPERSEDE, or be IGNORED.
@@ -516,7 +516,7 @@ export class BeliefRevisionService {
       const validation = validateConflictDecision(decision, existingFacts);
       if (!validation.valid) {
         console.warn(
-          `[Cortex] LLM decision validation failed: ${validation.error}. Falling back to default.`,
+          `[Memoir] LLM decision validation failed: ${validation.error}. Falling back to default.`,
         );
         return getDefaultDecision(newFact, existingFacts);
       }
@@ -524,7 +524,7 @@ export class BeliefRevisionService {
       return decision;
     } catch (error) {
       console.warn(
-        `[Cortex] LLM conflict resolution failed: ${error}. Falling back to default.`,
+        `[Memoir] LLM conflict resolution failed: ${error}. Falling back to default.`,
       );
       return getDefaultDecision(newFact, existingFacts);
     }
@@ -706,7 +706,7 @@ export class BeliefRevisionService {
       await syncFactRelationships(fact, nodeId, this.graphAdapter);
     } catch (error) {
       // Log but don't fail the operation - graph sync is secondary
-      console.warn("[Cortex] Failed to sync fact to graph:", error);
+      console.warn("[Memoir] Failed to sync fact to graph:", error);
     }
   }
 

@@ -13,7 +13,7 @@
  */
 
 import { jest } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createTestRunContext } from "../helpers/isolation";
 
@@ -24,7 +24,7 @@ const ctx = createTestRunContext();
 jest.setTimeout(300000); // 5 minutes
 
 describe("Recall Limits E2E Stress Tests", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   const _isLocalConvex = CONVEX_URL.includes("127.0.0.1") || CONVEX_URL.includes("localhost");
@@ -35,7 +35,7 @@ describe("Recall Limits E2E Stress Tests", () => {
   const TEST_AGENT_ID = ctx.agentId("stress-test");
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
   });
 
@@ -70,7 +70,7 @@ describe("Recall Limits E2E Stress Tests", () => {
           const conversationId = ctx.conversationId(`stress-${index}`);
 
           promises.push(
-            cortex.memory.remember({
+            memoir.memory.remember({
               memorySpaceId: TEST_MEMSPACE_ID,
               conversationId,
               userMessage: `Message ${index}: I have preferences about ${topic}. This is test data number ${index} to simulate a large memory space.`,
@@ -96,7 +96,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     }, 180000); // 3 minute timeout for seeding
 
     it("recall succeeds with default limits on large dataset", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
       });
@@ -108,7 +108,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     });
 
     it("recall with explicit limits succeeds on large dataset", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -134,7 +134,7 @@ describe("Recall Limits E2E Stress Tests", () => {
 
       const results = await Promise.all(
         queries.map((query) =>
-          cortex.memory.recall({
+          memoir.memory.recall({
             memorySpaceId: TEST_MEMSPACE_ID,
             query,
             limits: { total: 10 },
@@ -150,7 +150,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     });
 
     it("recall with all sources enabled succeeds", async () => {
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         sources: {
@@ -181,7 +181,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("does not throw 'Too many bytes read' error", async () => {
       // This is the key test - the previous architecture would fail here
       await expect(
-        cortex.memory.recall({
+        memoir.memory.recall({
           memorySpaceId: TEST_MEMSPACE_ID,
           query: "test",
         }),
@@ -191,7 +191,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("handles permissive limits without crashing", async () => {
       // Even with high limits, should not exceed Convex limits
       await expect(
-        cortex.memory.recall({
+        memoir.memory.recall({
           memorySpaceId: TEST_MEMSPACE_ID,
           query: "preferences",
           limits: {
@@ -212,7 +212,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("minimal limits execute in under 2 seconds", async () => {
       const start = Date.now();
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: {
@@ -233,7 +233,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("default limits execute in under 10 seconds", async () => {
       const start = Date.now();
 
-      const _result = await cortex.memory.recall({
+      const _result = await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
       });
@@ -247,7 +247,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("measures per-source latency", async () => {
       // Vector only
       const vectorStart = Date.now();
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: { memories: 10, total: 10 },
@@ -257,7 +257,7 @@ describe("Recall Limits E2E Stress Tests", () => {
 
       // Facts only
       const factsStart = Date.now();
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: { facts: 10, total: 10 },
@@ -285,7 +285,7 @@ describe("Recall Limits E2E Stress Tests", () => {
 
       for (let i = 0; i < 5; i++) {
         const start = Date.now();
-        await cortex.memory.recall({
+        await memoir.memory.recall({
           memorySpaceId: TEST_MEMSPACE_ID,
           query: "preferences",
           limits: { total: 10 },
@@ -306,7 +306,7 @@ describe("Recall Limits E2E Stress Tests", () => {
     it("limit changes affect performance predictably", async () => {
       // Small limit
       const smallStart = Date.now();
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: { memories: 5, facts: 5, total: 5 },
@@ -315,7 +315,7 @@ describe("Recall Limits E2E Stress Tests", () => {
 
       // Larger limit
       const largeStart = Date.now();
-      await cortex.memory.recall({
+      await memoir.memory.recall({
         memorySpaceId: TEST_MEMSPACE_ID,
         query: "preferences",
         limits: { memories: 50, facts: 50, total: 50 },

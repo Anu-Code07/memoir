@@ -2,19 +2,19 @@
 id: cloud-mode
 title: Cloud Mode
 sidebar_position: 3
-description: Managed Cortex services with auto-embeddings, GDPR compliance, and infrastructure (Planned)
+description: Managed Memoir services with auto-embeddings, GDPR compliance, and infrastructure (Planned)
 ---
 
 # Cloud Mode
 
 <Callout type="warning" title="Planned Feature">
-  Cloud Mode is a planned managed service offering. Currently, Cortex operates in "Direct Mode" where you manage your own Convex instance, embedding generation, and infrastructure.
+  Cloud Mode is a planned managed service offering. Currently, Memoir operates in "Direct Mode" where you manage your own Convex instance, embedding generation, and infrastructure.
 </Callout>
 
 <Callout type="info" title="What is Cloud Mode?">
-  **Cloud Mode** is a managed service layer that sits between your application and your Convex instance. Your data still resides in your Convex account, but Cortex Cloud handles embeddings, GDPR compliance, pub/sub infrastructure, and automation.
+  **Cloud Mode** is a managed service layer that sits between your application and your Convex instance. Your data still resides in your Convex account, but Memoir Cloud handles embeddings, GDPR compliance, pub/sub infrastructure, and automation.
   
-  **Architecture:** Your App → Cortex Cloud API → Your Convex Instance
+  **Architecture:** Your App → Memoir Cloud API → Your Convex Instance
 </Callout>
 
 ---
@@ -40,15 +40,15 @@ Cloud Mode provides enterprise-ready managed services while keeping your data in
 Generate embeddings automatically without managing API keys or providers.
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
   mode: "cloud",
   autoEmbed: true, // Cloud Mode automatic embeddings
 });
 
 // Embeddings generated automatically
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: "User prefers dark mode",
   metadata: { source: "preferences" },
   // No need to provide embedding!
@@ -66,14 +66,14 @@ await cortex.memory.store(spaceId, {
 Generate embeddings yourself in Direct Mode:
 
 ```typescript
-import { embed } from "@cortexmemory/sdk";
+import { embed } from "@memoir/sdk";
 
 const embedding = await embed(content, {
   provider: "openai",
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content,
   embedding,
   metadata: { source: "preferences" },
@@ -88,7 +88,7 @@ One-click deletion of all user data across all layers with legal guarantees.
 
 ```typescript
 // Cloud Mode: Legal guarantee + certificate
-await cortex.users.delete("user-123", {
+await memoir.users.delete("user-123", {
   cascade: true,
   auditReason: "User requested GDPR deletion",
   granularControl: {
@@ -122,21 +122,21 @@ Manual deletion in Direct Mode:
 
 ```typescript
 // Manual cascade deletion (no legal guarantees)
-const user = await cortex.users.get("user-123");
-const spaces = await cortex.memorySpaces.list({ participantId: "user-123" });
+const user = await memoir.users.get("user-123");
+const spaces = await memoir.memorySpaces.list({ participantId: "user-123" });
 
 for (const space of spaces) {
-  const conversations = await cortex.conversations.list({ participantId: "user-123" });
-  for (const conv of conversations) await cortex.conversations.delete(space.id, conv.id);
+  const conversations = await memoir.conversations.list({ participantId: "user-123" });
+  for (const conv of conversations) await memoir.conversations.delete(space.id, conv.id);
   
-  const memories = await cortex.memory.list({ memorySpaceId: space.id, participantId: "user-123" });
-  for (const mem of memories) await cortex.memory.delete(space.id, mem.id);
+  const memories = await memoir.memory.list({ memorySpaceId: space.id, participantId: "user-123" });
+  for (const mem of memories) await memoir.memory.delete(space.id, mem.id);
   
-  const facts = await cortex.facts.list({ memorySpaceId: space.id, userId: "user-123" });
-  for (const fact of facts) await cortex.facts.delete(space.id, fact.id);
+  const facts = await memoir.facts.list({ memorySpaceId: space.id, userId: "user-123" });
+  for (const fact of facts) await memoir.facts.delete(space.id, fact.id);
 }
 
-await cortex.users.delete("user-123");
+await memoir.users.delete("user-123");
 ```
 
 ---
@@ -147,19 +147,19 @@ Automatic real-time notifications and agent-to-agent communication without manag
 
 ```typescript
 // Cloud Mode: Automatic pub/sub
-const cortex = new Cortex({
+const memoir = new Memoir({
   mode: "cloud",
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
   pubsub: "managed", // Cloud Mode handles infrastructure
 });
 
 // Subscribe to inbox (real-time)
-cortex.a2a.subscribe("agent-123", (message) => {
+memoir.a2a.subscribe("agent-123", (message) => {
   console.log(`New message from ${message.from}: ${message.content}`);
 });
 
 // Send message (triggers subscriber immediately)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "agent-456",
   to: "agent-123",
   content: "Task completed!",
@@ -179,7 +179,7 @@ Manual polling in Direct Mode:
 ```typescript
 // Poll for new messages every 5 seconds
 setInterval(async () => {
-  const messages = await cortex.memory.search(spaceId, "*", {
+  const messages = await memoir.memory.search(spaceId, "*", {
     filters: {
       "source.type": "a2a",
       "source.recipient": "agent-123",
@@ -230,7 +230,7 @@ Visual dashboards for memory growth, search performance, and agent activity.
 DIY analytics using `getStats()`:
 
 ```typescript
-const stats = await cortex.memorySpaces.getStats(spaceId);
+const stats = await memoir.memorySpaces.getStats(spaceId);
 console.log(stats.totalMemories);
 console.log(stats.importanceBreakdown);
 console.log(stats.avgSearchTime);
@@ -244,7 +244,7 @@ Automatic policy enforcement on every storage operation without manual `enforce(
 
 ```typescript
 // Cloud Mode: Automatic enforcement
-await cortex.governance.setPolicy(spaceId, {
+await memoir.governance.setPolicy(spaceId, {
   vector: {
     maxRecords: 10000,
     purgeStrategy: "importance-based",
@@ -256,7 +256,7 @@ await cortex.governance.setPolicy(spaceId, {
 });
 
 // Automatic enforcement on store/update
-await cortex.memory.store(spaceId, {
+await memoir.memory.store(spaceId, {
   content: "...",
   metadata: { importance: 10 },
 });
@@ -268,7 +268,7 @@ Manual enforcement in Direct Mode:
 
 ```typescript
 // Scheduled job or manual calls
-await cortex.governance.enforce(spaceId);
+await memoir.governance.enforce(spaceId);
 ```
 
 ---
@@ -280,7 +280,7 @@ Usage tracking, billing, and per-agent resource limits for multi-tenant platform
 **Usage Tracking:**
 
 ```typescript
-const billing = await cortex.analytics.getAgentBilling("agent-123", {
+const billing = await memoir.analytics.getAgentBilling("agent-123", {
   period: "monthly",
 });
 
@@ -304,7 +304,7 @@ console.log(billing);
 **Agent Limits (Enterprise):**
 
 ```typescript
-await cortex.agents.update("agent-123", {
+await memoir.agents.update("agent-123", {
   limits: {
     maxMemories: 50000,
     maxStorageBytes: 100 * 1024 * 1024, // 100 MB
@@ -312,25 +312,25 @@ await cortex.agents.update("agent-123", {
 });
 
 // Throws error when limits exceeded
-await cortex.memory.store(spaceId, { content: "..." });
+await memoir.memory.store(spaceId, { content: "..." });
 // Error: Agent limit exceeded (50,001 / 50,000 memories)
 ```
 
 ---
 
-### Cortex-Managed Functions
+### Memoir-Managed Functions
 
-Deploy Cortex functions to your Convex instance with one command.
+Deploy Memoir functions to your Convex instance with one command.
 
 ```typescript
-// Option 1: Use Cortex-hosted functions (Cloud Mode)
-const cortex = new Cortex({
+// Option 1: Use Memoir-hosted functions (Cloud Mode)
+const memoir = new Memoir({
   mode: "cloud",
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
 });
 
 // Option 2: Deploy to your Convex instance
-// cortex deploy --convex-url https://your-project.convex.cloud
+// memoir deploy --convex-url https://your-project.convex.cloud
 ```
 
 **Benefits:**
@@ -347,7 +347,7 @@ const cortex = new Cortex({
   <ArchitectureLayer title="Your Application">
     <ArchitectureBox title="App" description="Your Next.js, React, or Node.js application" />
   </ArchitectureLayer>
-  <ArchitectureLayer title="Cortex Cloud API Layer">
+  <ArchitectureLayer title="Memoir Cloud API Layer">
     <ArchitectureBox title="Auto-Embeddings" description="OpenAI text-embedding-3-large" />
     <ArchitectureBox title="GDPR Cascade" description="Deletion orchestrator" />
     <ArchitectureBox title="Pub/Sub" description="Redis infrastructure" />
@@ -385,14 +385,14 @@ Migrating from Direct Mode to Cloud Mode will be seamless:
 
 ```typescript
 // Before (Direct Mode)
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // After (Cloud Mode) - just add API key
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
   mode: "cloud",
 });
 ```

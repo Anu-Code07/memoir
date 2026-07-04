@@ -2,14 +2,14 @@
  * AI SDK v6 Compatibility Layer
  *
  * This module provides helpers and type utilities for integrating
- * Cortex Memory with AI SDK v6's new Agent architecture while
+ * Memoir with AI SDK v6's new Agent architecture while
  * maintaining backward compatibility with v5.
  *
  * @module v6-compat
  * @since 0.27.0
  */
 
-import type { CortexMemoryConfig } from "./types";
+import type { MemoirMemoryConfig } from "./types";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AI SDK v6 Type Re-exports
@@ -36,23 +36,23 @@ export async function isV6Available(): Promise<boolean> {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Cortex-specific Call Options Schema
+// Memoir-specific Call Options Schema
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
- * Standard call options for Cortex memory-enabled agents.
+ * Standard call options for Memoir memory-enabled agents.
  *
- * When using ToolLoopAgent with Cortex, these options can be
+ * When using ToolLoopAgent with Memoir, these options can be
  * passed at runtime to configure memory retrieval and storage.
  *
  * @example
  * ```typescript
  * import { z } from 'zod';
- * import { CortexCallOptionsSchema } from '@cortexmemory/vercel-ai-provider';
+ * import { MemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'openai/gpt-4o-mini',
- *   callOptionsSchema: CortexCallOptionsSchema,
+ *   callOptionsSchema: MemoirCallOptionsSchema,
  *   prepareCall: async ({ options, ...settings }) => {
  *     // Inject memories into context
  *     const memories = await fetchMemories(options.userId, options.memorySpaceId);
@@ -69,7 +69,7 @@ export async function isV6Available(): Promise<boolean> {
  * });
  * ```
  */
-export interface CortexCallOptions {
+export interface MemoirCallOptions {
   /** User ID for memory isolation */
   userId: string;
 
@@ -84,23 +84,23 @@ export interface CortexCallOptions {
 }
 
 /**
- * Create a Zod schema for Cortex call options.
+ * Create a Zod schema for Memoir call options.
  *
  * Use this with ToolLoopAgent's callOptionsSchema for type-safe
  * runtime configuration of memory operations.
  *
  * @example
  * ```typescript
- * import { createCortexCallOptionsSchema } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'anthropic/claude-sonnet-4.5',
- *   callOptionsSchema: createCortexCallOptionsSchema(),
+ *   callOptionsSchema: createMemoirCallOptionsSchema(),
  *   // ...
  * });
  * ```
  */
-export function createCortexCallOptionsSchema() {
+export function createMemoirCallOptionsSchema() {
   // Dynamic import to avoid requiring zod at module load
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { z } = require("zod");
@@ -124,12 +124,12 @@ export function createCortexCallOptionsSchema() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
- * Cortex-specific message metadata attached to UI messages.
+ * Memoir-specific message metadata attached to UI messages.
  *
  * This metadata can be accessed in your UI components when
- * rendering messages from a Cortex-enabled agent.
+ * rendering messages from a Memoir-enabled agent.
  */
-export interface CortexMessageMetadata {
+export interface MemoirMessageMetadata {
   /** Memories retrieved for this message */
   memoriesUsed?: number;
 
@@ -154,7 +154,7 @@ export interface CortexMessageMetadata {
  *
  * @example
  * ```typescript
- * import { InferAgentUIMessage } from '@cortexmemory/vercel-ai-provider';
+ * import { InferAgentUIMessage } from '@memoir/vercel-ai-provider';
  * import { myAgent } from './agents/my-agent';
  *
  * type MyAgentMessage = InferAgentUIMessage<typeof myAgent>;
@@ -170,7 +170,7 @@ export type InferAgentUIMessage<TAgent> = TAgent extends {
       id: string;
       role: "user" | "assistant" | "system";
       createdAt?: Date;
-      metadata?: CortexMessageMetadata;
+      metadata?: MemoirMessageMetadata;
       parts?: Array<
         | { type: "text"; text: string }
         | { type: "tool-invocation"; toolCallId: string; toolName: keyof Tools }
@@ -204,13 +204,13 @@ export interface MemoryInjectionConfig {
   /** Use graph expansion for related context (default: true if graph configured) */
   includeGraph?: boolean;
 
-  /** Custom context formatting (default: uses Cortex's built-in LLM formatting) */
+  /** Custom context formatting (default: uses Memoir's built-in LLM formatting) */
   formatContext?: (recallContext: string) => string;
 }
 
 /**
- * Default context formatter - wraps Cortex's recall context.
- * Cortex recall() already returns LLM-optimized markdown.
+ * Default context formatter - wraps Memoir's recall context.
+ * Memoir recall() already returns LLM-optimized markdown.
  */
 export function defaultMemoryContextFormatter(recallContext: string): string {
   if (!recallContext) {
@@ -220,10 +220,10 @@ export function defaultMemoryContextFormatter(recallContext: string): string {
 }
 
 /**
- * Create a prepareCall function that injects Cortex memories.
+ * Create a prepareCall function that injects Memoir memories.
  *
  * This helper creates an async prepareCall function suitable for
- * use with AI SDK v6's ToolLoopAgent. It uses Cortex's `memory.recall()`
+ * use with AI SDK v6's ToolLoopAgent. It uses Memoir's `memory.recall()`
  * orchestration API to fetch and inject context from all memory layers
  * (vector, facts, graph) in a single call.
  *
@@ -239,12 +239,12 @@ export function defaultMemoryContextFormatter(recallContext: string): string {
  * @example
  * ```typescript
  * import { ToolLoopAgent } from 'ai';
- * import { createMemoryPrepareCall, createCortexCallOptionsSchema } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoryPrepareCall, createMemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'openai/gpt-4o-mini',
  *   instructions: 'You are a helpful assistant with long-term memory.',
- *   callOptionsSchema: createCortexCallOptionsSchema(),
+ *   callOptionsSchema: createMemoirCallOptionsSchema(),
  *   prepareCall: createMemoryPrepareCall({
  *     convexUrl: process.env.CONVEX_URL!,
  *     maxMemories: 20,
@@ -265,7 +265,7 @@ export function createMemoryPrepareCall(config: MemoryInjectionConfig) {
 
   return async <
     T extends {
-      options: CortexCallOptions;
+      options: MemoirCallOptions;
       instructions?: string;
       messages?: unknown[];
     },
@@ -299,13 +299,13 @@ export function createMemoryPrepareCall(config: MemoryInjectionConfig) {
     }
 
     // Dynamic import to avoid bundling issues
-    const { Cortex } = await import("@cortexmemory/sdk");
-    const cortex = new Cortex({ convexUrl });
+    const { Memoir } = await import("@memoir/sdk");
+    const memoir = new Memoir({ convexUrl });
 
     try {
       // Use the recall() orchestration API - searches all layers in parallel
       // and returns unified, ranked, LLM-ready context
-      const recallResult = await cortex.memory.recall({
+      const recallResult = await memoir.memory.recall({
         memorySpaceId: options.memorySpaceId,
         query,
         userId: options.userId,
@@ -333,12 +333,12 @@ export function createMemoryPrepareCall(config: MemoryInjectionConfig) {
       } as T;
     } catch (error) {
       // If memory recall fails, continue without augmentation
-      console.warn("[Cortex] Memory recall failed:", error);
+      console.warn("[Memoir] Memory recall failed:", error);
       return settings;
     } finally {
       // Always close the client to prevent connection/memory leaks
       try {
-        cortex.close();
+        memoir.close();
       } catch {
         // Ignore close errors - best effort cleanup
       }
@@ -351,17 +351,17 @@ export function createMemoryPrepareCall(config: MemoryInjectionConfig) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
- * Options for creating an agent UI stream response with Cortex.
+ * Options for creating an agent UI stream response with Memoir.
  */
-export interface CortexAgentStreamOptions {
+export interface MemoirAgentStreamOptions {
   /** The agent to run */
   agent: unknown;
 
   /** UI messages from the client */
   messages: unknown[];
 
-  /** Cortex-specific options */
-  cortexOptions: CortexCallOptions;
+  /** Memoir-specific options */
+  memoirOptions: MemoirCallOptions;
 
   /** Additional request body fields */
   additionalBody?: Record<string, unknown>;
@@ -371,24 +371,24 @@ export interface CortexAgentStreamOptions {
 }
 
 /**
- * Helper to create an agent UI stream response with Cortex options.
+ * Helper to create an agent UI stream response with Memoir options.
  *
  * This wraps AI SDK v6's createAgentUIStreamResponse and passes
- * Cortex-specific options to the agent.
+ * Memoir-specific options to the agent.
  *
  * @example
  * ```typescript
  * // app/api/chat/route.ts
- * import { createCortexAgentStreamResponse } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoirAgentStreamResponse } from '@memoir/vercel-ai-provider';
  * import { myAgent } from '@/agents/my-agent';
  *
  * export async function POST(req: Request) {
  *   const { messages, userId, memorySpaceId, conversationId } = await req.json();
  *
- *   return createCortexAgentStreamResponse({
+ *   return createMemoirAgentStreamResponse({
  *     agent: myAgent,
  *     messages,
- *     cortexOptions: {
+ *     memoirOptions: {
  *       userId,
  *       memorySpaceId,
  *       conversationId,
@@ -397,10 +397,10 @@ export interface CortexAgentStreamOptions {
  * }
  * ```
  */
-export async function createCortexAgentStreamResponse(
-  options: CortexAgentStreamOptions,
+export async function createMemoirAgentStreamResponse(
+  options: MemoirAgentStreamOptions,
 ): Promise<Response> {
-  const { agent, messages, cortexOptions, additionalBody, headers } = options;
+  const { agent, messages, memoirOptions, additionalBody, headers } = options;
 
   // Dynamic import to support both v5 and v6
   const ai = await import("ai");
@@ -411,7 +411,7 @@ export async function createCortexAgentStreamResponse(
       ai.createAgentUIStreamResponse as unknown as (opts: {
         agent: unknown;
         uiMessages: unknown[];
-        options?: CortexCallOptions;
+        options?: MemoirCallOptions;
         headers?: Record<string, string>;
         [key: string]: unknown;
       }) => Promise<Response>;
@@ -419,7 +419,7 @@ export async function createCortexAgentStreamResponse(
     return createAgentUIStreamResponse({
       agent,
       uiMessages: messages,
-      options: cortexOptions,
+      options: memoirOptions,
       headers,
       ...additionalBody,
     });
@@ -427,7 +427,7 @@ export async function createCortexAgentStreamResponse(
 
   // Fallback error for v5
   throw new Error(
-    "createCortexAgentStreamResponse requires AI SDK v6. " +
+    "createMemoirAgentStreamResponse requires AI SDK v6. " +
       "For v5, use createUIMessageStreamResponse with streamText instead.",
   );
 }

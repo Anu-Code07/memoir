@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 
 // Test configuration
@@ -21,13 +21,13 @@ const TEST_USER_ID = `test-user-streaming-${TIMESTAMP}`;
 const TEST_AGENT_ID = `test-agent-streaming-${TIMESTAMP}`;
 
 describe("rememberStream Integration Tests", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
 
   beforeAll(async () => {
-    // Initialize Cortex client
+    // Initialize Memoir client
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
 
     // Wait for client to be ready
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -51,7 +51,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-stream-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Say hello",
@@ -79,7 +79,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-readable-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Test readable",
@@ -108,7 +108,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-hooks-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -148,7 +148,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-metrics-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Test metrics",
@@ -177,7 +177,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-insights-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Test insights",
@@ -202,7 +202,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-empty-${Date.now()}`;
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
           userMessage: "Empty test",
@@ -223,7 +223,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-error-${Date.now()}`;
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
           userMessage: "Error test",
@@ -244,7 +244,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-compat-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Compatibility test",
@@ -275,7 +275,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-content-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "What is the password?",
@@ -303,7 +303,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-metadata-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Tell me something important",
@@ -337,7 +337,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-progressive-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -390,7 +390,7 @@ describe("rememberStream Integration Tests", () => {
 
       // With store-partial strategy, partial content should be preserved
       try {
-        await cortex.memory.rememberStream(
+        await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMORY_SPACE,
             conversationId,
@@ -425,7 +425,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-partial-id-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -464,7 +464,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-facts-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -505,7 +505,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-progressive-facts-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -546,7 +546,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-timeout-${Date.now()}`;
 
       try {
-        await cortex.memory.rememberStream(
+        await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMORY_SPACE,
             conversationId,
@@ -581,7 +581,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-error-hook-${Date.now()}`;
 
       try {
-        await cortex.memory.rememberStream(
+        await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMORY_SPACE,
             conversationId,
@@ -623,7 +623,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-retry-${Date.now()}`;
 
       try {
-        const result = await cortex.memory.rememberStream(
+        const result = await memoir.memory.rememberStream(
           {
             memorySpaceId: TEST_MEMORY_SPACE,
             conversationId,
@@ -658,7 +658,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-order-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Test order",
@@ -695,7 +695,7 @@ describe("rememberStream Integration Tests", () => {
       }
 
       const [resultA, resultB] = await Promise.all([
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: spaceA,
           conversationId: `conv-a-${Date.now()}`,
           userMessage: "Space A message",
@@ -704,7 +704,7 @@ describe("rememberStream Integration Tests", () => {
           userName: "Test User",
           agentId: TEST_AGENT_ID,
         }),
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: spaceB,
           conversationId: `conv-b-${Date.now()}`,
           userMessage: "Space B message",
@@ -725,7 +725,7 @@ describe("rememberStream Integration Tests", () => {
       });
 
       // Verify isolation - search in space A shouldn't find space B content
-      const searchA = await cortex.memory.search(spaceA, "space B", {
+      const searchA = await memoir.memory.search(spaceA, "space B", {
         limit: 10,
       });
 
@@ -746,7 +746,7 @@ describe("rememberStream Integration Tests", () => {
       const conversationId = `conv-thread-${Date.now()}`;
 
       // First turn
-      const result1 = await cortex.memory.rememberStream({
+      const result1 = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Turn 1 message",
@@ -761,7 +761,7 @@ describe("rememberStream Integration Tests", () => {
         yield "This is response 2";
       }
 
-      const result2 = await cortex.memory.rememberStream({
+      const result2 = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId, // Same conversation
         userMessage: "Turn 2 message",
@@ -776,7 +776,7 @@ describe("rememberStream Integration Tests", () => {
       expect(result2.conversation.conversationId).toBe(conversationId);
 
       // Get conversation to verify message count
-      const conversation = await cortex.conversations.get(conversationId);
+      const conversation = await memoir.conversations.get(conversationId);
 
       expect(conversation).toBeDefined();
       // Should have 4 messages: user1, agent1, user2, agent2
@@ -794,7 +794,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-user-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: TEST_MEMORY_SPACE,
         conversationId,
         userMessage: "Test user context",
@@ -826,7 +826,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-fast-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,
@@ -858,7 +858,7 @@ describe("rememberStream Integration Tests", () => {
 
       const conversationId = `conv-slow-${Date.now()}`;
 
-      const result = await cortex.memory.rememberStream(
+      const result = await memoir.memory.rememberStream(
         {
           memorySpaceId: TEST_MEMORY_SPACE,
           conversationId,

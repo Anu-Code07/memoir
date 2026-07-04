@@ -2,7 +2,7 @@ services:
   # Memgraph MAGE (with advanced algorithms)
   memgraph:
     image: memgraph/memgraph-mage:latest
-    container_name: cortex-memgraph
+    container_name: memoir-memgraph
     ports:
       - "7688:7687" # Bolt protocol
       - "7444:7444" # Logs
@@ -21,12 +21,12 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - cortex-graph
+      - memoir-graph
 
   # Memgraph Lab (UI for Memgraph)
   memgraph-lab:
     image: memgraph/lab:latest
-    container_name: cortex-memgraph-lab
+    container_name: memoir-memgraph-lab
     ports:
       - "3001:3000" # Memgraph Lab UI
     environment:
@@ -36,17 +36,17 @@ services:
       memgraph:
         condition: service_healthy
     networks:
-      - cortex-graph
+      - memoir-graph
 
   # Neo4j (Community Edition with Browser)
   neo4j:
     image: neo4j:latest
-    container_name: cortex-neo4j
+    container_name: memoir-neo4j
     ports:
       - "7474:7474" # HTTP (Neo4j Browser)
       - "7687:7687" # Bolt protocol (supports both encrypted and unencrypted)
     environment:
-      - NEO4J_AUTH=neo4j/cortex-dev-password
+      - NEO4J_AUTH=neo4j/memoir-dev-password
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_memory_heap_initial__size=512M
@@ -75,17 +75,17 @@ services:
           "-u",
           "neo4j",
           "-p",
-          "cortex-dev-password",
+          "memoir-dev-password",
           "RETURN 1",
         ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - cortex-graph
+      - memoir-graph
 
 networks:
-  cortex-graph:
+  memoir-graph:
     driver: bridge
 
 volumes:

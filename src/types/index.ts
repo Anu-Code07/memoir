@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - TypeScript Types
+ * Memoir SDK - TypeScript Types
  */
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -882,7 +882,7 @@ export interface RememberParams {
    *
    * @example
    * ```typescript
-   * await cortex.memory.remember({
+   * await memoir.memory.remember({
    *   memorySpaceId: 'user-123-space',
    *   conversationId: 'conv-123',
    *   userMessage: 'My name is Alex',
@@ -917,7 +917,7 @@ export interface RememberResult {
    *
    * @example
    * ```typescript
-   * const result = await cortex.memory.remember({...});
+   * const result = await memoir.memory.remember({...});
    * for (const revision of result.factRevisions ?? []) {
    *   console.log(`${revision.action}: ${revision.fact.fact}`);
    *   if (revision.superseded?.length) {
@@ -1300,7 +1300,7 @@ export interface ListFactsFilter {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string;
   tags?: string[];
@@ -1352,7 +1352,7 @@ export interface CountFactsFilter {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string;
   tags?: string[];
@@ -1392,7 +1392,7 @@ export interface SearchFactsOptions {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string;
   tags?: string[];
@@ -1441,7 +1441,7 @@ export interface QueryBySubjectFilter {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string;
   tags?: string[];
@@ -1480,7 +1480,7 @@ export interface QueryByRelationshipFilter {
   minConfidence?: number;
   confidence?: number; // Exact match
 
-  // Universal filters (Cortex standard)
+  // Universal filters (Memoir standard)
   userId?: string;
   participantId?: string;
   tags?: string[];
@@ -2483,18 +2483,18 @@ export interface EnforcementStats {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Graph Integration Options (automatic sync via CORTEX_GRAPH_SYNC env var)
+// Graph Integration Options (automatic sync via MEMOIR_GRAPH_SYNC env var)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
  * Graph sync option placeholder for backward compatibility.
  *
- * As of v0.29.0, graph sync is automatic when CORTEX_GRAPH_SYNC=true is set.
+ * As of v0.29.0, graph sync is automatic when MEMOIR_GRAPH_SYNC=true is set.
  * The syncToGraph option has been removed - graph sync is now controlled
  * entirely by the environment variable and graphAdapter configuration.
  *
  * @deprecated The syncToGraph option is no longer used. Graph sync is automatic
- * when CORTEX_GRAPH_SYNC=true and graph credentials are configured.
+ * when MEMOIR_GRAPH_SYNC=true and graph credentials are configured.
  */
 export interface GraphSyncOption {}
 
@@ -2587,7 +2587,7 @@ export interface UnregisterMemorySpaceOptions extends GraphSyncOption {}
 
 /**
  * Options for memory.remember() convenience method
- * Graph sync is automatic when CORTEX_GRAPH_SYNC=true and graphAdapter is configured
+ * Graph sync is automatic when MEMOIR_GRAPH_SYNC=true and graphAdapter is configured
  */
 export interface RememberOptions extends GraphSyncOption {
   /** Extract facts from conversation (default: false) */
@@ -2616,7 +2616,7 @@ export interface RememberOptions extends GraphSyncOption {
    */
   beliefRevision?:
     | {
-        /** Enable belief revision (default: true if Cortex configured) */
+        /** Enable belief revision (default: true if Memoir configured) */
         enabled?: boolean;
         /** Enable slot-based matching for fast conflict detection (default: true) */
         slotMatching?: boolean;
@@ -2628,7 +2628,7 @@ export interface RememberOptions extends GraphSyncOption {
 
 /**
  * Extended forget options
- * Graph sync is automatic when CORTEX_GRAPH_SYNC=true and graphAdapter is configured
+ * Graph sync is automatic when MEMOIR_GRAPH_SYNC=true and graphAdapter is configured
  */
 export interface ExtendedForgetOptions extends ForgetOptions, GraphSyncOption {}
 
@@ -2659,13 +2659,13 @@ export interface RecallOptions extends GraphSyncOption {
  *
  * Configuration hierarchy (highest priority first):
  * 1. Per-call override (this interface)
- * 2. Environment variables (CORTEX_RECALL_*)
+ * 2. Environment variables (MEMOIR_RECALL_*)
  * 3. SDK defaults
  *
  * @example
  * ```typescript
  * // Override specific limits
- * const result = await cortex.memory.recall({
+ * const result = await memoir.memory.recall({
  *   memorySpaceId: 'space-1',
  *   query: 'user preferences',
  *   limits: {
@@ -2676,7 +2676,7 @@ export interface RecallOptions extends GraphSyncOption {
  * });
  *
  * // Disable graph entirely for fast lookups
- * const result = await cortex.memory.recall({
+ * const result = await memoir.memory.recall({
  *   memorySpaceId: 'space-1',
  *   query: 'quick lookup',
  *   limits: { graphHops: 0 }
@@ -2686,14 +2686,14 @@ export interface RecallOptions extends GraphSyncOption {
 export interface RecallLimits {
   /**
    * Maximum memories to fetch from vector search.
-   * Env: CORTEX_RECALL_LIMIT_MEMORIES
+   * Env: MEMOIR_RECALL_LIMIT_MEMORIES
    * Default: 20
    */
   memories?: number;
 
   /**
    * Maximum facts to fetch from semantic/text search.
-   * Env: CORTEX_RECALL_LIMIT_FACTS
+   * Env: MEMOIR_RECALL_LIMIT_FACTS
    * Default: 15
    */
   facts?: number;
@@ -2703,7 +2703,7 @@ export interface RecallLimits {
    * - 0: Disabled (no graph expansion)
    * - 1: Immediate relationships only
    * - 2: Two-hop traversal (default)
-   * Env: CORTEX_RECALL_GRAPH_HOPS
+   * Env: MEMOIR_RECALL_GRAPH_HOPS
    * Default: 2
    */
   graphHops?: number;
@@ -2711,14 +2711,14 @@ export interface RecallLimits {
   /**
    * Maximum entities to expand per graph hop.
    * Controls the branching factor of graph traversal.
-   * Env: CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP
+   * Env: MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP
    * Default: 5
    */
   graphEntitiesPerHop?: number;
 
   /**
    * Maximum memories/facts to fetch per discovered entity.
-   * Env: CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY
+   * Env: MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY
    * Default: 3
    */
   graphResultsPerEntity?: number;
@@ -2726,7 +2726,7 @@ export interface RecallLimits {
   /**
    * Final aggregate limit on total results returned.
    * Applied after merge, dedupe, and ranking.
-   * Env: CORTEX_RECALL_LIMIT_TOTAL
+   * Env: MEMOIR_RECALL_LIMIT_TOTAL
    * Default: 30
    */
   total?: number;
@@ -2741,7 +2741,7 @@ export interface RecallLimits {
  * @example
  * ```typescript
  * // Minimal usage - full orchestration
- * const result = await cortex.memory.recall({
+ * const result = await memoir.memory.recall({
  *   memorySpaceId: 'user-123-space',
  *   query: 'user preferences',
  * });
@@ -2861,7 +2861,7 @@ export interface RecallParams {
    *
    * @example
    * ```typescript
-   * const result = await cortex.memory.recall({
+   * const result = await memoir.memory.recall({
    *   memorySpaceId: 'space-1',
    *   query: 'user preferences',
    *   observer: {
@@ -3239,14 +3239,14 @@ export interface OrchestrationSummary {
  * };
  *
  * // Use with recall()
- * const context = await cortex.memory.recall({
+ * const context = await memoir.memory.recall({
  *   memorySpaceId: 'space-1',
  *   query: 'user preferences',
  *   observer,
  * });
  *
  * // Use with remember()
- * await cortex.memory.remember({
+ * await memoir.memory.remember({
  *   memorySpaceId: 'user-123-space',
  *   conversationId: 'conv-123',
  *   userMessage: 'My name is Alex',

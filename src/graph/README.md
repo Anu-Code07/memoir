@@ -1,9 +1,9 @@
-# Cortex Graph Database Integration
+# Memoir Graph Database Integration
 
 > **Status**: Core implementation complete, tests and proofs in progress  
 > **Last Updated**: 2025-10-30
 
-Real graph database integration for Cortex, supporting Neo4j and Memgraph for advanced relationship queries beyond Graph-Lite capabilities.
+Real graph database integration for Memoir, supporting Neo4j and Memgraph for advanced relationship queries beyond Graph-Lite capabilities.
 
 ## What's Implemented
 
@@ -45,7 +45,7 @@ Real graph database integration for Cortex, supporting Neo4j and Memgraph for ad
   - `syncA2ARelationships()` - SENT_TO for agent communication
 
 - **Batch Sync** (`sync/batchSync.ts`)
-  - `initialGraphSync()` - Full sync of all Cortex data
+  - `initialGraphSync()` - Full sync of all Memoir data
   - Progress tracking and error reporting
   - Phased sync (Memory Spaces → Contexts → Conversations → Memories → Facts)
 
@@ -84,8 +84,8 @@ docker-compose -f docker-compose.graph.yml up -d
 docker ps
 
 # Wait for startup (15-30 seconds)
-docker logs cortex-neo4j
-docker logs cortex-memgraph
+docker logs memoir-neo4j
+docker logs memoir-memgraph
 ```
 
 ### 2. Configure Environment
@@ -96,12 +96,12 @@ Add to `.env.local`:
 # Neo4j
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=cortex-dev-password
+NEO4J_PASSWORD=memoir-dev-password
 
 # Memgraph
 MEMGRAPH_URI=bolt://localhost:7688
 MEMGRAPH_USERNAME=memgraph
-MEMGRAPH_PASSWORD=cortex-dev-password
+MEMGRAPH_PASSWORD=memoir-dev-password
 ```
 
 ### 3. Run Basic Proof
@@ -113,15 +113,15 @@ tsx tests/graph/proofs/01-basic-crud.proof.ts
 ## Usage Example
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
   initialGraphSync,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
-// Initialize Cortex
-const cortex = new Cortex({
+// Initialize Memoir
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
@@ -136,8 +136,8 @@ await graphAdapter.connect({
 // Initialize schema (first time only)
 await initializeGraphSchema(graphAdapter);
 
-// Sync existing Cortex data
-const result = await initialGraphSync(cortex, graphAdapter, {
+// Sync existing Memoir data
+const result = await initialGraphSync(memoir, graphAdapter, {
   onProgress: (entity, current, total) => {
     console.log(`Syncing ${entity}: ${current}/${total}`);
   },
@@ -183,7 +183,7 @@ await graphAdapter.disconnect();
   - End-to-end integration tests
 - **Proof Demonstrations** (`tests/graph/proofs/`)
   - ✅ 01-basic-crud.proof.ts (DONE)
-  - 02-sync-workflow.proof.ts (demonstrates full Cortex → Graph sync)
+  - 02-sync-workflow.proof.ts (demonstrates full Memoir → Graph sync)
   - 03-context-chains.proof.ts (deep hierarchy traversal + performance)
   - 04-agent-network.proof.ts (A2A communication network analysis)
   - 05-fact-graph.proof.ts (knowledge graph with entity relationships)
@@ -193,7 +193,7 @@ await graphAdapter.disconnect();
 
 - Complete remaining proof demonstrations
 - Add real-time sync triggers (Phase 2, using convex-helpers)
-- Add high-level Cortex API integration (`cortex.graph.*`)
+- Add high-level Memoir API integration (`memoir.graph.*`)
 - Update documentation with test results
 - Add CI/CD integration for graph tests
 

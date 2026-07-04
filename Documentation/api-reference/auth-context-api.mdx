@@ -2,7 +2,7 @@
 id: auth-context-api
 title: Auth Context API
 sidebar_position: 3
-description: Complete API reference for authentication context and multi-tenancy integration with Cortex SDK.
+description: Complete API reference for authentication context and multi-tenancy integration with Memoir SDK.
 ---
 
 # Auth Context API
@@ -61,8 +61,8 @@ The Auth Context API provides a framework-agnostic authentication layer that ena
   <FlowNode title="2. Create AuthContext" icon="user" variant="secondary">
     createAuthContext() extracts tenantId, userId, sessionId from token
   </FlowNode>
-  <FlowNode title="3. Initialize Cortex SDK" icon="layers" variant="warning">
-    Pass auth context to Cortex — auto-injects to ALL operations
+  <FlowNode title="3. Initialize Memoir SDK" icon="layers" variant="warning">
+    Pass auth context to Memoir — auto-injects to ALL operations
   </FlowNode>
   <FlowNode title="4. All Operations Isolated" icon="database" variant="success">
     Memories, Users, Sessions, Facts — fully tenant-isolated
@@ -75,7 +75,7 @@ The Auth Context API provides a framework-agnostic authentication layer that ena
 
 ### createAuthContext()
 
-Create an authentication context for use with Cortex SDK.
+Create an authentication context for use with Memoir SDK.
 
 **Signature:**
 
@@ -174,7 +174,7 @@ interface AuthContext {
   <TabItem value="minimal" label="Minimal">
 
 ```typescript
-import { createAuthContext } from "@cortexmemory/sdk";
+import { createAuthContext } from "@memoir/sdk";
 
 // Minimal (single-tenant app)
 const auth = createAuthContext({
@@ -186,7 +186,7 @@ const auth = createAuthContext({
   <TabItem value="multi-tenant" label="Multi-Tenant">
 
 ```typescript
-import { createAuthContext } from "@cortexmemory/sdk";
+import { createAuthContext } from "@memoir/sdk";
 
 // With multi-tenancy
 const auth = createAuthContext({
@@ -200,7 +200,7 @@ const auth = createAuthContext({
   <TabItem value="complete" label="Complete">
 
 ```typescript
-import { createAuthContext } from "@cortexmemory/sdk";
+import { createAuthContext } from "@memoir/sdk";
 
 // Complete (all fields)
 const auth = createAuthContext({
@@ -245,16 +245,16 @@ createAuthContext({ userId: "user-1", authenticatedAt: -1 });
 
 ---
 
-## Integration with Cortex SDK
+## Integration with Memoir SDK
 
 ### Initialization
 
-Pass auth context when creating Cortex instance:
+Pass auth context when creating Memoir instance:
 
 ```typescript
-import { Cortex, createAuthContext } from "@cortexmemory/sdk";
+import { Memoir, createAuthContext } from "@memoir/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     userId: "user-123",
@@ -276,7 +276,7 @@ When auth context is provided, the SDK automatically:
 
 ```typescript
 // Memory operations
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-space",
   // userId: "user-123" ← Auto-injected
   // tenantId: "tenant-abc" ← Auto-injected
@@ -286,21 +286,21 @@ await cortex.memory.remember({
 });
 
 // User operations
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alice",
   // Validates userId matches auth context
   // tenantId auto-injected
 });
 
 // Session operations
-await cortex.sessions.create({
+await memoir.sessions.create({
   userId: "user-123",
   // tenantId: "tenant-abc" ← Auto-injected
   metadata: { device: "web" },
 });
 
 // Fact operations
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "space-1",
   // userId: "user-123" ← Auto-injected
   // tenantId: "tenant-abc" ← Auto-injected
@@ -311,7 +311,7 @@ await cortex.facts.store({
 });
 
 // Context operations
-await cortex.contexts.create({
+await memoir.contexts.create({
   purpose: "Handle request",
   memorySpaceId: "agent-space",
   // userId: "user-123" ← Auto-injected
@@ -324,7 +324,7 @@ await cortex.contexts.create({
 Auth context automatically filters queries:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     userId: "user-123",
@@ -333,13 +333,13 @@ const cortex = new Cortex({
 });
 
 // All queries automatically filtered by tenantId
-const spaces = await cortex.memorySpaces.list();
+const spaces = await memoir.memorySpaces.list();
 // Only returns spaces for tenant-acme
 
-const users = await cortex.users.list({ limit: 100 });
+const users = await memoir.users.list({ limit: 100 });
 // Only returns users for tenant-acme
 
-const sessions = await cortex.sessions.list({ status: "active" });
+const sessions = await memoir.sessions.list({ status: "active" });
 // Only returns sessions for tenant-acme
 
 // This provides complete tenant isolation
@@ -355,7 +355,7 @@ The `tenantId` field enables complete data separation for SaaS platforms:
 
 ```typescript
 // Tenant A
-const cortexA = new Cortex({
+const memoirA = new Memoir({
   auth: createAuthContext({
     userId: "admin-a",
     tenantId: "tenant-a",
@@ -363,7 +363,7 @@ const cortexA = new Cortex({
 });
 
 // Tenant B
-const cortexB = new Cortex({
+const memoirB = new Memoir({
   auth: createAuthContext({
     userId: "admin-b",
     tenantId: "tenant-b",
@@ -371,68 +371,68 @@ const cortexB = new Cortex({
 });
 
 // Complete isolation - Tenant A cannot see Tenant B's data
-await cortexA.memory.remember({ memorySpaceId: "shared", ... });
-await cortexB.memory.search("shared", "anything");
+await memoirA.memory.remember({ memorySpaceId: "shared", ... });
+await memoirB.memory.search("shared", "anything");
 // Returns: [] (different tenant)
 ```
 
 ### Which Layers Support tenantId?
 
-**ALL Cortex layers automatically support tenant isolation:**
+**ALL Memoir layers automatically support tenant isolation:**
 
 <APITable
   parameters={[
     {
       name: "Layer 1a",
-      type: "cortex.conversations.*",
+      type: "memoir.conversations.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Layer 1b",
-      type: "cortex.immutable.*",
+      type: "memoir.immutable.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Layer 1c",
-      type: "cortex.mutable.*",
+      type: "memoir.mutable.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Layer 2",
-      type: "cortex.vector.*",
+      type: "memoir.vector.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Layer 3",
-      type: "cortex.facts.*",
+      type: "memoir.facts.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Spaces",
-      type: "cortex.memorySpaces.*",
+      type: "memoir.memorySpaces.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Users",
-      type: "cortex.users.*",
+      type: "memoir.users.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Contexts",
-      type: "cortex.contexts.*",
+      type: "memoir.contexts.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
     {
       name: "Sessions",
-      type: "cortex.sessions.*",
+      type: "memoir.sessions.*",
       required: false,
       description: "Auto-filtered by tenantId"
     },
@@ -450,7 +450,7 @@ await cortexB.memory.search("shared", "anything");
 When deleting users, tenantId is respected:
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   auth: createAuthContext({
     userId: "admin",
     tenantId: "tenant-acme",
@@ -458,7 +458,7 @@ const cortex = new Cortex({
 });
 
 // Delete user within tenant
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Deletes:
 // - All data with userId="user-123" AND tenantId="tenant-acme"
@@ -480,10 +480,10 @@ const auth = createAuthContext({
   sessionId: "session-xyz", // Current session
 });
 
-const cortex = new Cortex({ convexUrl, auth });
+const memoir = new Memoir({ convexUrl, auth });
 
 // Create or get session
-const session = await cortex.sessions.getOrCreate("user-123", {
+const session = await memoir.sessions.getOrCreate("user-123", {
   deviceType: "web",
   browser: "Chrome",
 });
@@ -502,7 +502,7 @@ const auth = createAuthContext({
 });
 
 // Touch session on user activity
-await cortex.sessions.touch("current-session");
+await memoir.sessions.touch("current-session");
 
 // Update last active timestamp
 ```
@@ -570,10 +570,10 @@ const auth = createAuthContext({
 ```typescript
 // Ensure user profile exists
 const auth = createAuthContext({ userId: "user-123" });
-const cortex = new Cortex({ convexUrl, auth });
+const memoir = new Memoir({ convexUrl, auth });
 
 // Create user profile if needed
-const user = await cortex.users.getOrCreate("user-123", {
+const user = await memoir.users.getOrCreate("user-123", {
   displayName: "New User",
   preferences: {},
 });
@@ -593,7 +593,7 @@ const auth = createAuthContext({
   sessionId: "session-xyz",
 });
 
-const cortex = new Cortex({ convexUrl, auth });
+const memoir = new Memoir({ convexUrl, auth });
 // All operations scoped to user, no tenant isolation
 ```
 
@@ -610,10 +610,10 @@ app.post("/api/chat", async (req, res) => {
     sessionId: req.session.id,
   });
 
-  const cortex = new Cortex({ convexUrl, auth });
+  const memoir = new Memoir({ convexUrl, auth });
 
   // All operations tenant-scoped
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 
   res.json({ success: true });
 });
@@ -649,10 +649,10 @@ const serviceAuth = createAuthContext({
   },
 });
 
-const cortex = new Cortex({ convexUrl, auth: serviceAuth });
+const memoir = new Memoir({ convexUrl, auth: serviceAuth });
 
 // Run maintenance operations
-await cortex.sessions.expireIdle();
+await memoir.sessions.expireIdle();
 ```
 
 ---
@@ -740,7 +740,7 @@ await cortex.sessions.expireIdle();
 
 ### Pattern 1: Per-Request Context (APIs)
 
-Create new Cortex instance per request:
+Create new Memoir instance per request:
 
 ```typescript
 // Express/Next.js API route
@@ -753,10 +753,10 @@ async function handler(req, res) {
   });
 
   // New instance per request
-  const cortex = new Cortex({ convexUrl, auth });
+  const memoir = new Memoir({ convexUrl, auth });
 
   // Use for this request only
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 
   res.json({ success: true });
 }
@@ -770,7 +770,7 @@ async function handler(req, res) {
 
 ### Pattern 2: Singleton Context (Single-User Apps)
 
-Reuse Cortex instance for entire app:
+Reuse Memoir instance for entire app:
 
 ```typescript
 // CLI or desktop app
@@ -780,11 +780,11 @@ const auth = createAuthContext({
 });
 
 // Global instance
-export const cortex = new Cortex({ convexUrl, auth });
+export const memoir = new Memoir({ convexUrl, auth });
 
 // Use throughout app
-await cortex.memory.remember({...});
-await cortex.memory.search(...);
+await memoir.memory.remember({...});
+await memoir.memory.search(...);
 ```
 
 <Callout type="tip">
@@ -806,12 +806,12 @@ async function switchOrg(userId: string, newOrgId: string) {
     metadata: { switchedAt: Date.now() },
   });
 
-  return new Cortex({ convexUrl, auth });
+  return new Memoir({ convexUrl, auth });
 }
 
 // Usage
-const cortexOrgA = await switchOrg("user-123", "org-a");
-const cortexOrgB = await switchOrg("user-123", "org-b");
+const memoirOrgA = await switchOrg("user-123", "org-a");
+const memoirOrgB = await switchOrg("user-123", "org-b");
 // Different contexts for different orgs
 ```
 
@@ -849,13 +849,13 @@ const auth = createAuthContext({
   tenantId: "tenant-a",
 });
 
-const cortex = new Cortex({ convexUrl, auth });
+const memoir = new Memoir({ convexUrl, auth });
 
 // Valid: userId matches auth
-await cortex.users.update("user-123", { displayName: "Alice" });
+await memoir.users.update("user-123", { displayName: "Alice" });
 
 // Note: You CAN update other users, but some operations validate
-await cortex.users.update("user-456", { displayName: "Bob" });
+await memoir.users.update("user-456", { displayName: "Bob" });
 // This works but may be restricted based on your application logic
 ```
 
@@ -868,7 +868,7 @@ await cortex.users.update("user-456", { displayName: "Bob" });
 Custom error class for auth context validation failures:
 
 ```typescript
-import { AuthContextError } from "@cortexmemory/sdk";
+import { AuthContextError } from "@memoir/sdk";
 
 try {
   const auth = createAuthContext({ tenantId: "tenant-1" }); // Missing userId
@@ -951,13 +951,13 @@ try {
 ```typescript
 // GOOD: Extract once, reuse
 const auth = extractAuthContext(req);
-const cortex = new Cortex({ convexUrl, auth });
-await cortex.memory.remember({...});
-await cortex.memory.search(...);
+const memoir = new Memoir({ convexUrl, auth });
+await memoir.memory.remember({...});
+await memoir.memory.search(...);
 
 // BAD: Extract multiple times
-const cortex1 = new Cortex({ convexUrl, auth: extractAuthContext(req) });
-const cortex2 = new Cortex({ convexUrl, auth: extractAuthContext(req) });
+const memoir1 = new Memoir({ convexUrl, auth: extractAuthContext(req) });
+const memoir2 = new Memoir({ convexUrl, auth: extractAuthContext(req) });
 ```
 
 ### 2. Use tenantId for All SaaS Apps
@@ -1025,26 +1025,26 @@ const auth = createAuthContext({
 
 <Callout type="info">
 
-Auth context is immutable once set. To change context, create a new Cortex instance.
+Auth context is immutable once set. To change context, create a new Memoir instance.
 
 </Callout>
 
 ```typescript
 // Initial auth
-let cortex = new Cortex({
+let memoir = new Memoir({
   convexUrl,
   auth: createAuthContext({ userId: "user-123", tenantId: "tenant-a" }),
 });
 
 // User switches tenant
-cortex = new Cortex({
+memoir = new Memoir({
   convexUrl,
   auth: createAuthContext({ userId: "user-123", tenantId: "tenant-b" }),
 });
 // New instance with new auth context
 ```
 
-### Auth Context Without Cortex
+### Auth Context Without Memoir
 
 Auth context is just data - can be used independently:
 
@@ -1132,8 +1132,8 @@ class AuthContextError extends Error {
 ### How Auto-Injection Works
 
 ```typescript
-// When you create Cortex with auth
-const cortex = new Cortex({
+// When you create Memoir with auth
+const memoir = new Memoir({
   convexUrl,
   auth: createAuthContext({
     userId: "user-123",
@@ -1142,7 +1142,7 @@ const cortex = new Cortex({
 });
 
 // Internally, the SDK wraps all operations:
-class CortexSDK {
+class MemoirSDK {
   constructor(config) {
     this.auth = config.auth;
   }
@@ -1165,7 +1165,7 @@ class CortexSDK {
 
 ```typescript
 // Queries automatically filter by tenantId
-class CortexSDK {
+class MemoirSDK {
   async list(memorySpaceId, filters) {
     // Auto-add tenantId filter
     const enrichedFilters = {
@@ -1210,4 +1210,4 @@ class CortexSDK {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

@@ -2,41 +2,41 @@
 id: installation
 title: Installation
 sidebar_position: 2
-description: Install Cortex CLI and SDK for your project
+description: Install Memoir CLI and SDK for your project
 ---
 
 # Installation
 
-Get Cortex up and running in minutes.
+Get Memoir up and running in minutes.
 
 ## Quick Start
 
-The fastest way to get started with Cortex:
+The fastest way to get started with Memoir:
 
 <Steps>
   <Step title="Install the CLI">
-    Install Cortex globally:
+    Install Memoir globally:
     
     <Tabs groupId="install-method">
       <TabItem value="brew" label="Homebrew (Recommended)">
-        <Terminal>brew install cortex-memory/tap/cli</Terminal>
+        <Terminal>brew install memoir/tap/cli</Terminal>
       </TabItem>
       <TabItem value="npm" label="npm">
-        <Terminal>npm install -g @cortexmemory/cli</Terminal>
+        <Terminal>npm install -g @memoir/cli</Terminal>
       </TabItem>
     </Tabs>
   </Step>
   <Step title="Verify installation">
     Check that the CLI is installed correctly:
     
-    <Terminal>cortex --version</Terminal>
+    <Terminal>memoir --version</Terminal>
     
     Should output: `0.27.4` or higher
   </Step>
   <Step title="Create your first project">
-    Initialize a new Cortex project:
+    Initialize a new Memoir project:
     
-    <Terminal>cortex init my-cortex-agent</Terminal>
+    <Terminal>memoir init my-memoir-agent</Terminal>
     
     The interactive wizard will guide you through setup in under 5 minutes.
   </Step>
@@ -45,7 +45,7 @@ The fastest way to get started with Cortex:
 ## Prerequisites
 
 <Callout type="warning" title="Requirements">
-Before installing Cortex, ensure you have:
+Before installing Memoir, ensure you have:
 
 **Required:**
 - **Node.js >= 20** — Download from [nodejs.org](https://nodejs.org)
@@ -68,12 +68,12 @@ Expected output: Node.js `v20.0.0+` and npm `9.0.0+`
     **Docker Desktop** — For graph database features
     - Download from [docker.com](https://www.docker.com/products/docker-desktop)
     - Only needed for advanced graph queries
-    - Not required for basic Cortex usage
+    - Not required for basic Memoir usage
 
     **OpenAI API Key** — For embeddings
     - Get from [platform.openai.com](https://platform.openai.com)
     - Or use any other embedding provider
-    - Cortex works without embeddings (keyword search)
+    - Memoir works without embeddings (keyword search)
   </AccordionItem>
 </Accordion>
 
@@ -85,28 +85,28 @@ Install the CLI globally to use it from anywhere:
 
 <Tabs groupId="package-manager">
   <TabItem value="brew" label="Homebrew (Recommended)">
-    <Terminal>brew install cortex-memory/tap/cli</Terminal>
+    <Terminal>brew install memoir/tap/cli</Terminal>
     
     Homebrew handles PATH configuration automatically and makes updates easy with `brew upgrade`.
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @cortexmemory/cli</Terminal>
+    <Terminal>npm install -g @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global add @cortexmemory/cli</Terminal>
+    <Terminal>yarn global add @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -g @cortexmemory/cli</Terminal>
+    <Terminal>pnpm add -g @memoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
 **Verify installation:**
 
-<Terminal>cortex --version</Terminal>
+<Terminal>memoir --version</Terminal>
 
 **Now create projects anywhere:**
 
-<Terminal>cortex init my-agent && cortex start</Terminal>
+<Terminal>memoir init my-agent && memoir start</Terminal>
 
 The CLI uses persistent config with absolute paths, so `cd` is not required.
 
@@ -114,7 +114,7 @@ The CLI uses persistent config with absolute paths, so `cd` is not required.
 
 Use the CLI without installing it globally:
 
-<Terminal>npx @cortexmemory/cli init my-agent</Terminal>
+<Terminal>npx @memoir/cli init my-agent</Terminal>
 
 <Callout type="info" title="When to use npx">
 - One-time project creation
@@ -130,13 +130,13 @@ Install as a dev dependency in your project:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm">
-    <Terminal>npm install --save-dev @cortexmemory/cli</Terminal>
+    <Terminal>npm install --save-dev @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn add --dev @cortexmemory/cli</Terminal>
+    <Terminal>yarn add --dev @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -D @cortexmemory/cli</Terminal>
+    <Terminal>pnpm add -D @memoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
@@ -145,17 +145,17 @@ Install as a dev dependency in your project:
 <CodeBlock filename="package.json" language="json">
 {`{
   "scripts": {
-    "cortex": "cortex",
-    "dev": "cortex dev",
-    "start": "cortex start",
-    "stop": "cortex stop"
+    "memoir": "memoir",
+    "dev": "memoir dev",
+    "start": "memoir start",
+    "stop": "memoir stop"
   }
 }`}
 </CodeBlock>
 
 **Then run:**
 
-<Terminal>npm run cortex init && npm run dev</Terminal>
+<Terminal>npm run memoir init && npm run dev</Terminal>
 
 ## Verification
 
@@ -163,31 +163,31 @@ After installation, verify everything works:
 
 <Steps>
   <Step title="Check CLI Installation">
-    <Terminal>cortex --version</Terminal>
+    <Terminal>memoir --version</Terminal>
     
     Should show: `0.27.4` or higher
     
-    <Terminal>cortex --help</Terminal>
+    <Terminal>memoir --help</Terminal>
     
     Should display available commands
   </Step>
   <Step title="Test CLI Connection">
-    <Terminal>cortex init test-project</Terminal>
+    <Terminal>memoir init test-project</Terminal>
     
     Start services (from any directory):
     
-    <Terminal>cortex start</Terminal>
+    <Terminal>memoir start</Terminal>
     
     Check status:
     
-    <Terminal>cortex status</Terminal>
+    <Terminal>memoir status</Terminal>
   </Step>
   <Step title="Verify Convex Dashboard">
     **For local development:** Open http://127.0.0.1:3210
     
     **For cloud deployment:**
     
-    <Terminal>cortex convex dashboard</Terminal>
+    <Terminal>memoir convex dashboard</Terminal>
     
     Opens your deployment in browser
   </Step>
@@ -196,23 +196,23 @@ After installation, verify everything works:
 ## Troubleshooting
 
 <Accordion>
-  <AccordionItem title="cortex: command not found" defaultOpen={true}>
+  <AccordionItem title="memoir: command not found" defaultOpen={true}>
     **Cause:** CLI not installed or not in PATH
 
     **Fix (Recommended):**
 
-    <Terminal>brew install cortex-memory/tap/cli</Terminal>
+    <Terminal>brew install memoir/tap/cli</Terminal>
 
     **Alternative (npm):**
 
-    <Terminal>npm install -g @cortexmemory/cli</Terminal>
+    <Terminal>npm install -g @memoir/cli</Terminal>
 
     If using npm, check global bin path is in your PATH:
 
     <Terminal>npm config get prefix</Terminal>
   </AccordionItem>
 
-  <AccordionItem title="cortex init fails">
+  <AccordionItem title="memoir init fails">
     **Possible causes:**
     - Node.js version &lt; 20
     - No internet connection
@@ -222,14 +222,14 @@ After installation, verify everything works:
 
     Update Node.js to v20+, then reinstall via Homebrew:
 
-    <Terminal>brew reinstall cortex-memory/tap/cli</Terminal>
+    <Terminal>brew reinstall memoir/tap/cli</Terminal>
 
     **Alternative (npm):**
 
-    <Terminal>npm cache clean --force && npm install -g @cortexmemory/cli</Terminal>
+    <Terminal>npm cache clean --force && npm install -g @memoir/cli</Terminal>
   </AccordionItem>
 
-  <AccordionItem title="Cannot find module @cortexmemory/sdk">
+  <AccordionItem title="Cannot find module @memoir/sdk">
     **Cause:** Dependencies not installed in project
 
     **Fix:**
@@ -242,11 +242,11 @@ After installation, verify everything works:
 
     **Fix:**
 
-    <Terminal>cortex start</Terminal>
+    <Terminal>memoir start</Terminal>
 
     If issues persist, restart:
 
-    <Terminal>cortex stop && cortex start</Terminal>
+    <Terminal>memoir stop && memoir start</Terminal>
   </AccordionItem>
 
   <AccordionItem title="Port Conflicts">
@@ -254,7 +254,7 @@ After installation, verify everything works:
 
     **Fix:** Use interactive dev mode:
 
-    <Terminal>cortex dev</Terminal>
+    <Terminal>memoir dev</Terminal>
 
     Press `k` to kill conflicting processes.
   </AccordionItem>
@@ -263,16 +263,16 @@ After installation, verify everything works:
 <Callout type="tip" title="Getting More Help">
 ```bash
 # General help
-cortex --help
+memoir --help
 
 # Command-specific help
-cortex <command> --help
+memoir <command> --help
 ```
 
 **Still stuck?**
-- [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions)
+- [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
 - [CLI Reference](/tools/cli-reference)
-- [GitHub Issues](https://github.com/SaintNick1214/Project-Cortex/issues)
+- [GitHub Issues](https://github.com/Anu-Code07/memoir/issues)
 </Callout>
 
 ## Upgrading
@@ -281,35 +281,35 @@ To upgrade to the latest version:
 
 <Tabs groupId="package-manager">
   <TabItem value="brew" label="Homebrew (Recommended)">
-    <Terminal>brew upgrade cortex-memory/tap/cli</Terminal>
+    <Terminal>brew upgrade memoir/tap/cli</Terminal>
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @cortexmemory/cli@latest</Terminal>
+    <Terminal>npm install -g @memoir/cli@latest</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global upgrade @cortexmemory/cli</Terminal>
+    <Terminal>yarn global upgrade @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm add -g @cortexmemory/cli@latest</Terminal>
+    <Terminal>pnpm add -g @memoir/cli@latest</Terminal>
   </TabItem>
 </Tabs>
 
 Verify new version:
 
-<Terminal>cortex --version</Terminal>
+<Terminal>memoir --version</Terminal>
 
 Update SDK and Convex in your projects:
 
-<Terminal>cortex update</Terminal>
+<Terminal>memoir update</Terminal>
 
 <Callout type="info">
-The `cortex update` command will:
-- Check for newer versions of `@cortexmemory/sdk`
+The `memoir update` command will:
+- Check for newer versions of `@memoir/sdk`
 - Check for newer versions of `convex`
 - Offer to update all projects
 - Redeploy backend if needed
 
-**Note:** The CLI stores project paths in its config, so you can run `cortex update` from any directory.
+**Note:** The CLI stores project paths in its config, so you can run `memoir update` from any directory.
 </Callout>
 
 ## Uninstalling
@@ -318,23 +318,23 @@ If you need to uninstall:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm">
-    <Terminal>npm uninstall -g @cortexmemory/cli</Terminal>
+    <Terminal>npm uninstall -g @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="yarn" label="yarn">
-    <Terminal>yarn global remove @cortexmemory/cli</Terminal>
+    <Terminal>yarn global remove @memoir/cli</Terminal>
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
-    <Terminal>pnpm remove -g @cortexmemory/cli</Terminal>
+    <Terminal>pnpm remove -g @memoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
 Remove from a project:
 
-<Terminal>cd your-project && npm uninstall @cortexmemory/sdk convex</Terminal>
+<Terminal>cd your-project && npm uninstall @memoir/sdk convex</Terminal>
 
 Clean up configuration (optional):
 
-<Terminal>rm ~/.cortexrc</Terminal>
+<Terminal>rm ~/.memoirrc</Terminal>
 
 ## Next Steps
 
@@ -346,7 +346,7 @@ Clean up configuration (optional):
   />
   <QuickNavItem 
     title="Core Concepts"
-    description="Understand how Cortex works"
+    description="Understand how Memoir works"
     href="/getting-started/core-concepts"
   />
   <QuickNavItem 

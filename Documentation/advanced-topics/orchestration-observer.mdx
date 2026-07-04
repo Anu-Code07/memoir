@@ -19,7 +19,7 @@ Real-time monitoring of the memory orchestration pipeline for building responsiv
 
 ## Overview
 
-Memory orchestration in Cortex operates in **two distinct phases**:
+Memory orchestration in Memoir operates in **two distinct phases**:
 
 1. **Recall Phase**: Retrieves context from memory layers *before* the LLM generates a response
 2. **Remember Phase**: Stores new memories *after* the LLM generates a response
@@ -41,9 +41,9 @@ The **OrchestrationObserver** API provides real-time callbacks for each phase, e
 ## Quick Start
 
 ```typescript
-import { Cortex, OrchestrationObserver } from "@cortexmemory/sdk";
+import { Memoir, OrchestrationObserver } from "@memoir/sdk";
 
-const cortex = new Cortex({ convexUrl: "..." });
+const memoir = new Memoir({ convexUrl: "..." });
 
 // Create a phase-aware observer
 const observer: OrchestrationObserver = {
@@ -70,7 +70,7 @@ const observer: OrchestrationObserver = {
 };
 
 // Pass observer to remember()
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "space-1",
   conversationId: "conv-1",
   userMessage: "I prefer dark mode",
@@ -364,7 +364,7 @@ const observer: OrchestrationObserver = {
   },
 };
 
-const result = await cortex.memory.rememberStream(
+const result = await memoir.memory.rememberStream(
   {
     memorySpaceId: "space-1",
     conversationId: "conv-1",
@@ -391,7 +391,7 @@ import type {
   OrchestrationObserver,
   RecallSummary,
   OrchestrationSummary,
-} from "@cortexmemory/sdk";
+} from "@memoir/sdk";
 
 function useOrchestrationProgress() {
   const [recallLayers, setRecallLayers] = useState<Record<string, LayerEvent>>({});
@@ -447,7 +447,7 @@ function MemoryProgress() {
   } = useOrchestrationProgress();
 
   const handleSend = async () => {
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       // ... params
       observer,
     });
@@ -491,7 +491,7 @@ For Vercel AI SDK apps, bridge events to the client via data streams:
 ```typescript
 // API Route
 import { createDataStreamResponse, streamText } from "ai";
-import type { OrchestrationObserver } from "@cortexmemory/sdk";
+import type { OrchestrationObserver } from "@memoir/sdk";
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
@@ -546,7 +546,7 @@ export async function POST(req: Request) {
 ```typescript
 // Client Component - using useLayerTracking hook
 import { useChat } from "@ai-sdk/react";
-import { useLayerTracking } from "@cortexmemory/vercel-ai-provider/react";
+import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
 
 function Chat() {
   const {
@@ -576,7 +576,7 @@ function Chat() {
 ```
 
 <Callout type="tip">
-The `useLayerTracking` hook from `@cortexmemory/vercel-ai-provider/react` provides built-in state management for phase-aware layer tracking. See [useLayerTracking Hook](/integrations/vercel-ai-sdk/api-reference#uselayertracking-hook) for full documentation.
+The `useLayerTracking` hook from `@memoir/vercel-ai-provider/react` provides built-in state management for phase-aware layer tracking. See [useLayerTracking Hook](/integrations/vercel-ai-sdk/api-reference#uselayertracking-hook) for full documentation.
 </Callout>
 
 ## Native Reasoning Panel Integration
@@ -629,8 +629,8 @@ Here's how to emit reasoning parts from your API route:
 ```typescript
 // API Route with reasoning panel integration
 import { createUIMessageStream, streamText } from "ai";
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
-import type { LayerObserver } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
+import type { LayerObserver } from "@memoir/vercel-ai-provider";
 
 export async function POST(request: Request) {
   const { messages } = await request.json();
@@ -767,9 +767,9 @@ export async function POST(request: Request) {
         },
       };
 
-      // Create Cortex memory with observer
-      const cortexMemory = await createCortexMemoryAsync({
-        convexUrl: process.env.CORTEX_CONVEX_URL!,
+      // Create Memoir memory with observer
+      const memoirMemory = await createMemoirMemoryAsync({
+        convexUrl: process.env.MEMOIR_CONVEX_URL!,
         memorySpaceId: "space-1",
         userId: "user-1",
         conversationId: "conv-1",
@@ -778,7 +778,7 @@ export async function POST(request: Request) {
 
       // Stream with memory-wrapped model
       const result = streamText({
-        model: cortexMemory(yourLanguageModel),
+        model: memoirMemory(yourLanguageModel),
         messages,
       });
 

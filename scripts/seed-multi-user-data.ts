@@ -3,10 +3,10 @@
  * Seed script for multi-user chatbot scenario
  * Creates a single memory space with 5 users, each having 20 memories
  *
- * Simulates: A chatbot using Cortex Memory with multiple users
+ * Simulates: A chatbot using Memoir with multiple users
  */
 
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 import * as dotenv from "dotenv";
 import { resolve } from "path";
 
@@ -25,9 +25,9 @@ if (!convexUrl) {
 
 console.log(`\n🌱 Seeding multi-user chatbot data to: ${convexUrl}\n`);
 
-// Use Cortex.create() for auto-configuration of graph database from env vars
-// (CORTEX_GRAPH_SYNC=true + NEO4J_URI enables automatic graph sync)
-let cortex: Cortex;
+// Use Memoir.create() for auto-configuration of graph database from env vars
+// (MEMOIR_GRAPH_SYNC=true + NEO4J_URI enables automatic graph sync)
+let memoir: Memoir;
 
 // Sample memory content for realistic simulation
 const memoryTemplates = [
@@ -173,15 +173,15 @@ const userData = [
 
 async function seedData() {
   try {
-    // Initialize Cortex with auto-configuration (graph sync from env vars)
-    cortex = await Cortex.create({ convexUrl });
+    // Initialize Memoir with auto-configuration (graph sync from env vars)
+    memoir = await Memoir.create({ convexUrl });
 
-    const graphWorker = cortex.getGraphSyncWorker();
+    const graphWorker = memoir.getGraphSyncWorker();
     if (graphWorker) {
       console.log("📊 Graph sync enabled (auto-configured from environment)\n");
     } else {
       console.log(
-        "⚠️  Graph sync not enabled (set CORTEX_GRAPH_SYNC=true and NEO4J_URI)\n",
+        "⚠️  Graph sync not enabled (set MEMOIR_GRAPH_SYNC=true and NEO4J_URI)\n",
       );
     }
 
@@ -197,7 +197,7 @@ async function seedData() {
     // Pre-register memory space and agent to avoid race conditions in parallel memory creation
     console.log(`🔧 Pre-registering shared resources...`);
     try {
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId,
         type: "custom",
         name: "Multi-User Chatbot Space",
@@ -212,7 +212,7 @@ async function seedData() {
     }
 
     try {
-      await cortex.agents.register({
+      await memoir.agents.register({
         id: agentId, // Client API uses 'id', not 'agentId'
         name: "Chatbot Assistant",
         description: "Multi-user chatbot assistant",
@@ -233,7 +233,7 @@ async function seedData() {
       console.log(`👤 Processing user: ${user.name} (${user.userId})`);
 
       // Create a conversation for this user
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: memorySpaceId,
         participants: {
@@ -255,7 +255,7 @@ async function seedData() {
 
         const agentResponse = `Got it! I've noted that ${userMessage.toLowerCase()}.`;
 
-        const memoryPromise = cortex.memory
+        const memoryPromise = memoir.memory
           .remember({
             memorySpaceId: memorySpaceId,
             conversationId: conversation.conversationId,
@@ -296,7 +296,7 @@ async function seedData() {
     console.error("❌ Seeding failed:", error);
     process.exit(1);
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 

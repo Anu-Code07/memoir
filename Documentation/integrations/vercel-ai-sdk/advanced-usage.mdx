@@ -2,7 +2,7 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-09 | **Version**: v0.29.0+ </Callout>
 
-Advanced patterns and configurations for Cortex Memory Provider with SDK v0.24.0+.
+Advanced patterns and configurations for Memoir Provider with SDK v0.24.0+.
 
 ## Graph Memory Integration (SDK v0.19.0+)
 
@@ -14,7 +14,7 @@ The simplest setup uses environment variables:
 
 ```bash
 # .env.local
-CORTEX_GRAPH_SYNC=true
+MEMOIR_GRAPH_SYNC=true
 
 # Neo4j
 NEO4J_URI=bolt://localhost:7687
@@ -28,14 +28,14 @@ NEO4J_PASSWORD=your-password
 ```
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
   agentId: "my-assistant",
 
   // Auto-configured from env vars
-  enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === "true",
+  enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === "true",
 });
 ```
 
@@ -44,7 +44,7 @@ const cortexMemory = createCortexMemory({
 For more control, pass graph configuration directly:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -65,10 +65,10 @@ const cortexMemory = createCortexMemory({
 For automatic graph database connection setup:
 
 ```typescript
-import { createCortexMemoryAsync } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
 
 // Reads graph config from env vars and validates connection
-const cortexMemory = await createCortexMemoryAsync({
+const memoirMemory = await createMemoirMemoryAsync({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -84,26 +84,26 @@ LLM-powered extraction of structured facts from conversations.
 
 ```bash
 # .env.local
-CORTEX_FACT_EXTRACTION=true
-CORTEX_FACT_EXTRACTION_MODEL=gpt-4o-mini
+MEMOIR_FACT_EXTRACTION=true
+MEMOIR_FACT_EXTRACTION_MODEL=gpt-4o-mini
 ```
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
   agentId: "my-assistant",
 
   // Auto-configured from env vars
-  enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === "true",
+  enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === "true",
 });
 ```
 
 ### Explicit Configuration
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -146,7 +146,7 @@ const factSchema = z.object({
   ),
 });
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "smart-agent",
   userId: "user-123",
@@ -189,7 +189,7 @@ Intelligently update or supersede existing facts when information changes, inste
 
 ### How It Works
 
-When a user says "I like blue" and later says "I prefer purple now", without belief revision you'd have two conflicting facts. With belief revision enabled, Cortex:
+When a user says "I like blue" and later says "I prefer purple now", without belief revision you'd have two conflicting facts. With belief revision enabled, Memoir:
 
 1. **Slot Matching**: Checks if the new fact matches an existing fact's subject-predicate structure
 2. **Semantic Matching**: Uses embeddings to find semantically similar facts
@@ -210,7 +210,7 @@ When a user says "I like blue" and later says "I prefer purple now", without bel
 ### Basic Configuration
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -290,7 +290,7 @@ layerObserver: {
 Watch memory orchestration in real-time for UI visualization.
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-agent",
   userId: "user-123",
@@ -321,7 +321,7 @@ const cortexMemory = createCortexMemory({
 });
 ```
 
-See the [quickstart demo](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider/quickstart) for a full implementation of the LayerFlowDiagram component.
+See the [quickstart demo](https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider/quickstart) for a full implementation of the LayerFlowDiagram component.
 
 ## Enhanced Streaming
 
@@ -330,7 +330,7 @@ See the [quickstart demo](https://github.com/SaintNick1214/Project-Cortex/tree/m
 Store partial responses during streaming for resumability:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -348,7 +348,7 @@ const cortexMemory = createCortexMemory({
 Monitor streaming progress in real-time:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -395,7 +395,7 @@ const cortexMemory = createCortexMemory({
 Extract facts incrementally during streaming:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -414,7 +414,7 @@ const cortexMemory = createCortexMemory({
 Handle interrupted streams:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -435,7 +435,7 @@ const cortexMemory = createCortexMemory({
 Auto-optimize based on stream characteristics:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "demo-chat",
   userId: "user-123",
@@ -458,7 +458,7 @@ const cortexMemory = createCortexMemory({
 import { embed } from "ai";
 import { openai } from "@ai-sdk/openai";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -486,7 +486,7 @@ const embedder = await pipeline(
   "Xenova/all-MiniLM-L6-v2",
 );
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "local-agent",
   userId: "user-123",
@@ -506,7 +506,7 @@ const cortexMemory = createCortexMemory({
 Control how memory context is added to prompts:
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "custom-agent",
   userId: "user-123",
@@ -534,7 +534,7 @@ ${recent.map((m) => `- ${m.content}`).join("\n")}`;
 ### Memory Search Tuning
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "fast-agent",
   userId: "user-123",
@@ -554,7 +554,7 @@ const cortexMemory = createCortexMemory({
 ### Disable Features for Speed
 
 ```typescript
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "minimal-agent",
   userId: "user-123",

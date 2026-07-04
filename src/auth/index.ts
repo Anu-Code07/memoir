@@ -1,8 +1,8 @@
 /**
- * Cortex SDK - Auth Context System
+ * Memoir SDK - Auth Context System
  *
  * Provides framework-agnostic authentication context management.
- * Developers bring their own auth provider; Cortex provides clean interfaces.
+ * Developers bring their own auth provider; Memoir provides clean interfaces.
  */
 
 export { createAuthContext, validateAuthContext } from "./context";

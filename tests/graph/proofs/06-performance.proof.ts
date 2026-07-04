@@ -13,7 +13,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -25,7 +25,7 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 interface PerformanceResult {
@@ -39,9 +39,9 @@ interface PerformanceResult {
 /**
  * Create substantial dataset for performance testing
  */
-async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
+async function createPerformanceDataset(memoir: Memoir, memorySpaceId: string) {
   console.log("  Creating memory space...");
-  const memorySpace = await cortex.memorySpaces.register({
+  const memorySpace = await memoir.memorySpaces.register({
     memorySpaceId,
     name: "Performance Test Agent",
     type: "personal",
@@ -51,7 +51,7 @@ async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
   const contexts: any[] = [];
 
   // Create root
-  const root = await cortex.contexts.create({
+  const root = await memoir.contexts.create({
     purpose: "Performance Test Root",
     memorySpaceId,
   });
@@ -62,7 +62,7 @@ async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
     const parents = contexts.filter((c) => c.depth === depth);
     for (const parent of parents) {
       for (let i = 0; i < 2; i++) {
-        const child = await cortex.contexts.create({
+        const child = await memoir.contexts.create({
           purpose: `Task at depth ${depth + 1}, child ${i + 1}`,
           memorySpaceId,
           parentId: parent.contextId,
@@ -77,7 +77,7 @@ async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
   console.log("  Creating memories (20 memories)...");
   const memories = [];
   for (let i = 0; i < 20; i++) {
-    const memory = await cortex.vector.store(memorySpaceId, {
+    const memory = await memoir.vector.store(memorySpaceId, {
       content: `Test memory ${i + 1}: Important information about the task`,
       contentType: "raw",
       source: {
@@ -101,7 +101,7 @@ async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
     const person = people[i % people.length];
     const company = companies[i % companies.length];
 
-    const fact = await cortex.facts.store({
+    const fact = await memoir.facts.store({
       memorySpaceId,
       fact: `${person} works at ${company}`,
       factType: "relationship",
@@ -123,7 +123,7 @@ async function createPerformanceDataset(cortex: Cortex, memorySpaceId: string) {
  * Measure graph-lite performance (sequential Convex queries)
  */
 async function measureGraphLiteTraversal(
-  cortex: Cortex,
+  memoir: Memoir,
   rootContextId: string,
   depth: number,
 ): Promise<number> {
@@ -139,7 +139,7 @@ async function measureGraphLiteTraversal(
       if (visited.has(contextId)) continue;
       visited.add(contextId);
 
-      const context: any = await cortex.contexts.get(contextId);
+      const context: any = await memoir.contexts.get(contextId);
       if (context && context.childIds) {
         nextLevel.push(...context.childIds);
       }
@@ -182,7 +182,7 @@ async function runPerformanceComparison(adapter: GraphAdapter, dbName: string) {
   console.log(`Performance Comparison with ${dbName}`);
   console.log(`${"=".repeat(60)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
   const timestamp = Date.now();
   const memorySpaceId = `space-perf-${timestamp}`;
 
@@ -198,7 +198,7 @@ async function runPerformanceComparison(adapter: GraphAdapter, dbName: string) {
     // Phase 2: Create Dataset
     // ============================================================================
     console.log("📦 Phase 2: Create Dataset");
-    const dataset = await createPerformanceDataset(cortex, memorySpaceId);
+    const dataset = await createPerformanceDataset(memoir, memorySpaceId);
 
     // ============================================================================
     // Phase 3: Sync to Graph
@@ -206,7 +206,7 @@ async function runPerformanceComparison(adapter: GraphAdapter, dbName: string) {
     console.log("🔄 Phase 3: Sync to Graph");
     const syncStart = Date.now();
 
-    await initialGraphSync(cortex, adapter, {
+    await initialGraphSync(memoir, adapter, {
       limits: {
         contexts: 100,
         memories: 50,
@@ -231,7 +231,7 @@ async function runPerformanceComparison(adapter: GraphAdapter, dbName: string) {
       console.log(`  Testing ${depth}-hop traversal...`);
 
       const graphLiteMs = await measureGraphLiteTraversal(
-        cortex,
+        memoir,
         rootContextId,
         depth,
       );
@@ -306,7 +306,7 @@ async function runPerformanceComparison(adapter: GraphAdapter, dbName: string) {
     console.error(`❌ Performance proof failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -317,7 +317,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Integration - Performance Comparison       ║");
+  console.log("║  Memoir Graph Integration - Performance Comparison       ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test with Neo4j

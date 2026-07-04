@@ -15,7 +15,7 @@ Complete API reference for user profile management, including multi-tenancy and 
 
 ## Overview
 
-The User Operations API (`cortex.users.*`) provides user profile management that enables **memories to follow users across tools**.
+The User Operations API (`memoir.users.*`) provides user profile management that enables **memories to follow users across tools**.
 
 <Callout type="info" title="Memory Follows the User">
 The primary purpose of user profiles is **cross-tool memory sharing**. Same `userId` = same memories, whether accessed from Cursor, Claude Desktop, custom apps, or any MCP-connected tool. This is the foundation of [Hive Mode](/core-features/hive-mode).
@@ -33,7 +33,7 @@ The primary purpose of user profiles is **cross-tool memory sharing**. Same `use
 
 ```typescript
 // In Cursor: Store a preference
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   userId: 'user-123',  // Same userId
   userMessage: 'I prefer TypeScript',
@@ -41,7 +41,7 @@ await cortex.memory.remember({
 });
 
 // In Claude Desktop: Recall the same memory
-const memories = await cortex.memory.recall({
+const memories = await memoir.memory.recall({
   memorySpaceId: 'user-123-space', 
   userId: 'user-123',  // Same userId = same memories
   query: 'programming preferences',
@@ -59,7 +59,7 @@ When a user requests data deletion (GDPR "right to be forgotten"), a single API 
 
 ```typescript
 // SDK: One call deletes from ALL stores with userId
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Automatically deletes from:
 // - User profile (immutable store, type='user')
@@ -96,7 +96,7 @@ The SDK implements cascade deletion using a three-phase approach:
 
 ```typescript
 // Example: Full cascade deletion with verification
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true, // Enable cascade across all layers
   verify: true, // Verify completeness after deletion (default)
   dryRun: false, // Preview without deleting (optional)
@@ -120,7 +120,7 @@ console.log(
 Cascade deletion includes graph nodes if you provide a graph adapter:
 
 ```typescript
-import { CypherGraphAdapter } from "@cortex-platform/sdk/graph";
+import { CypherGraphAdapter } from "@memoir-platform/sdk/graph";
 
 // Configure graph adapter (DIY in free SDK)
 const graphAdapter = new CypherGraphAdapter({
@@ -129,8 +129,8 @@ const graphAdapter = new CypherGraphAdapter({
   password: process.env.NEO4J_PASSWORD,
 });
 
-// Initialize Cortex with graph
-const cortex = new Cortex({
+// Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   graph: {
     adapter: graphAdapter,
@@ -138,7 +138,7 @@ const cortex = new Cortex({
 });
 
 // Now cascade deletion includes graph!
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 // Deletes from Convex (conversations, immutable, mutable, vector, facts) AND graph
 ```
 
@@ -150,25 +150,25 @@ Provides user-friendly syntax for user profile management:
 
 ```typescript
 // Convenience
-await cortex.users.get("user-123");
+await memoir.users.get("user-123");
 
 // vs Equivalent
-await cortex.immutable.get("user", "user-123");
+await memoir.immutable.get("user", "user-123");
 ```
 
 ### Under the Hood
 
-User profiles are stored in **`cortex.immutable.*`** with `type='user'`:
+User profiles are stored in **`memoir.immutable.*`** with `type='user'`:
 
 ```typescript
 // When you call:
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex",
   email: "alex@example.com",
 });
 
-// Cortex actually does:
-await cortex.immutable.store({
+// Memoir actually does:
+await memoir.immutable.store({
   type: "user",
   id: "user-123",
   data: { displayName: "Alex", email: "alex@example.com" },
@@ -206,7 +206,7 @@ The `users.update()` method accepts data fields directly (not wrapped in a `data
 **User Profiles vs Other Stores:**
 
 <ComparisonTable
-  headers={["Feature", "cortex.users.*", "cortex.immutable.*", "cortex.mutable.*", "cortex.vector.*"]}
+  headers={["Feature", "memoir.users.*", "memoir.immutable.*", "memoir.mutable.*", "memoir.vector.*"]}
   items={[
     { feature: "Storage", values: ["immutable (type='user')", "immutable", "mutable", "vector index"] },
     { feature: "Shared", values: ["All agents", "All agents", "All agents", "Per-agent (memorySpace)"] },
@@ -220,8 +220,8 @@ The `users.update()` method accepts data fields directly (not wrapped in a `data
 
 **Key Differences:**
 
-- **ONLY `cortex.users.*` has GDPR cascade** - deletes from ALL stores with userId
-- `cortex.users.*` is a wrapper over `cortex.immutable.*` with `type='user'`
+- **ONLY `memoir.users.*` has GDPR cascade** - deletes from ALL stores with userId
+- `memoir.users.*` is a wrapper over `memoir.immutable.*` with `type='user'`
 - All stores (conversations, immutable, mutable, vector) support **optional** `userId` field
 - `userId` links enable GDPR cascade deletion
 
@@ -233,7 +233,7 @@ User profiles support full multi-tenant isolation via `tenantId`:
 
 ```typescript
 // Create tenant-scoped user
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   tenantId: "customer-acme", // SaaS platform isolation
   data: {
     displayName: "Alex",
@@ -243,13 +243,13 @@ await cortex.users.update("user-123", {
 });
 
 // Query users within tenant
-const users = await cortex.users.list({
+const users = await memoir.users.list({
   tenantId: "customer-acme", // Only returns this tenant's users
   limit: 100,
 });
 
 // GDPR cascade respects tenant isolation
-await cortex.users.delete("user-123", {
+await memoir.users.delete("user-123", {
   cascade: true,
   // Deletes all user data across ALL stores with userId
   // Graph nodes also include tenantId for proper isolation
@@ -279,7 +279,7 @@ When cascade deleting a user with `tenantId`, all associated data across all sto
 User operations integrate with the Auth Context system:
 
 ```typescript
-import { Cortex, createAuthContext } from "@cortex-platform/sdk";
+import { Memoir, createAuthContext } from "@memoir-platform/sdk";
 
 // Create auth context from your auth provider
 const auth = createAuthContext({
@@ -289,14 +289,14 @@ const auth = createAuthContext({
   claims: { email: "alex@acme.com" },
 });
 
-// Initialize Cortex with auth
-const cortex = new Cortex({
+// Initialize Memoir with auth
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth,
 });
 
 // User operations use auth context
-const profile = await cortex.users.get("user-123");
+const profile = await memoir.users.get("user-123");
 // tenantId is automatically validated from auth context
 ```
 
@@ -313,7 +313,7 @@ Retrieve a user profile by ID.
 **Signature:**
 
 ```typescript
-cortex.users.get(
+memoir.users.get(
   userId: string
 ): Promise<UserProfile | null>
 ```
@@ -352,7 +352,7 @@ Version history is accessed via `getHistory()` and `getVersion()` methods, not r
 
 ```typescript
 // Common convention (but not required)
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   data: {
     displayName: "Alex Johnson", // Display name
     email: "alex@example.com", // Contact email
@@ -388,7 +388,7 @@ await cortex.users.update("user-123", {
 **Example:**
 
 ```typescript
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 
 if (user) {
   console.log(`Welcome back, ${user.displayName}!`);
@@ -401,7 +401,7 @@ if (user) {
 
 **Errors:**
 
-- `CortexError('INVALID_USER_ID')` - User ID is empty or invalid
+- `MemoirError('INVALID_USER_ID')` - User ID is empty or invalid
 
 **See Also:**
 
@@ -416,7 +416,7 @@ Create or update a user profile. This is an **upsert** operation with automatic 
 **Signature:**
 
 ```typescript
-cortex.users.update(
+memoir.users.update(
   userId: string,
   data: Record<string, unknown>
 ): Promise<UserProfile>
@@ -448,7 +448,7 @@ Unlike `immutable.*` which requires `type` and `id`, `users.update()` only needs
 **Example 1: Create new profile**
 
 ```typescript
-const user = await cortex.users.update("user-123", {
+const user = await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   email: "alex@example.com",
   preferences: {
@@ -468,11 +468,11 @@ console.log(user.data.displayName); // "Alex Johnson"
 
 ```typescript
 // Get current user
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 // user.data = { displayName: 'Alex', email: 'alex@example.com', preferences: { theme: 'dark' } }
 
 // Update theme (deep merges with existing, creates new version)
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   preferences: {
     theme: "light", // Only updates theme, keeps other preferences
   },
@@ -480,7 +480,7 @@ await cortex.users.update("user-123", {
 // Result: { displayName: 'Alex', email: 'alex@example.com', preferences: { theme: 'light' } }
 
 // Update last seen
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   lastSeen: new Date().toISOString(),
 });
 ```
@@ -489,7 +489,7 @@ await cortex.users.update("user-123", {
 
 ```typescript
 // Update multiple fields at once
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   preferences: {
     theme: "dark",
@@ -526,7 +526,7 @@ Delete a user profile with optional cascade to delete all associated data across
 **Signature:**
 
 ```typescript
-cortex.users.delete(
+memoir.users.delete(
   userId: string,
   options?: DeleteOptions
 ): Promise<UserDeleteResult>
@@ -585,7 +585,7 @@ If any deletion fails, the SDK automatically rolls back all changes using the ba
 
 ```typescript
 // Delete just the user profile (default behavior)
-const result = await cortex.users.delete("user-123");
+const result = await memoir.users.delete("user-123");
 
 console.log(`Deleted at: ${new Date(result.deletedAt)}`);
 console.log(`Total deleted: ${result.totalDeleted}`); // 1 (just the profile)
@@ -596,7 +596,7 @@ console.log(`Layers affected: ${result.deletedLayers}`); // ['user-profile']
 
 ```typescript
 // Delete profile + ALL data with explicit userId references
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true,
   verify: true, // Verify nothing was missed (default)
 });
@@ -631,7 +631,7 @@ if (result.verification.complete) {
 
 ```typescript
 // Preview what would be deleted without actually deleting
-const preview = await cortex.users.delete("user-123", {
+const preview = await memoir.users.delete("user-123", {
   cascade: true,
   dryRun: true, // Just preview, don't delete
 });
@@ -644,7 +644,7 @@ console.log(`Vector memories: ${preview.vectorMemoriesDeleted}`);
 console.log(`Facts: ${preview.factsDeleted}`);
 
 // User still exists after dry run
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 console.log(`User still exists: ${user !== null}`); // true
 ```
 
@@ -653,7 +653,7 @@ console.log(`User still exists: ${user !== null}`); // true
 ```typescript
 try {
   // If any deletion fails, everything is rolled back automatically
-  const result = await cortex.users.delete("user-123", {
+  const result = await memoir.users.delete("user-123", {
     cascade: true,
   });
   console.log("Deletion successful!");
@@ -662,7 +662,7 @@ try {
     console.error("Deletion failed and was rolled back:");
     console.error(error.message);
     // All deleted records have been restored
-    const user = await cortex.users.get("user-123");
+    const user = await memoir.users.get("user-123");
     console.log(`User restored: ${user !== null}`); // true
   }
 }
@@ -671,12 +671,12 @@ try {
 **Example 5: Granular Control (🚧 Planned - Cloud Mode)**
 
 <Callout type="warning">
-Granular layer control is planned for Cortex Cloud. Currently, `cascade: true` deletes from ALL layers. The options below are not yet implemented.
+Granular layer control is planned for Memoir Cloud. Currently, `cascade: true` deletes from ALL layers. The options below are not yet implemented.
 </Callout>
 
 ```typescript
-// 🚧 PLANNED - Cortex Cloud: Only delete mutable data (like sessions, cache)
-const result = await cortex.users.delete("user-123", {
+// 🚧 PLANNED - Memoir Cloud: Only delete mutable data (like sessions, cache)
+const result = await memoir.users.delete("user-123", {
   cascade: true,
   // 🚧 PLANNED OPTIONS (not yet implemented):
   // deleteFromConversations: false,  // Preserve
@@ -696,7 +696,7 @@ The SDK's cascade deletion handles all the complexity automatically:
 
 ```typescript
 // Recommended: Use cascade deletion (SDK handles all layers)
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true,
   verify: true, // Verify deletion completeness
 });
@@ -705,11 +705,11 @@ console.log(`Deleted ${result.totalDeleted} records`);
 console.log(`Layers affected: ${result.deletedLayers.join(", ")}`);
 
 // Manual approach would require calling each API separately:
-// - cortex.conversations.delete() for each conversation
-// - cortex.immutable.purge() for each record
-// - cortex.mutable.delete() for each key
-// - cortex.vector.delete() for each memory
-// - cortex.facts.delete() for each fact
+// - memoir.conversations.delete() for each conversation
+// - memoir.immutable.purge() for each record
+// - memoir.mutable.delete() for each key
+// - memoir.vector.delete() for each memory
+// - memoir.facts.delete() for each fact
 // The cascade option handles all of this automatically!
 ```
 
@@ -719,8 +719,8 @@ The SDK provides full cascade deletion with automatic verification and rollback.
 
 **Errors:**
 
-- `CortexError('USER_NOT_FOUND')` - User profile doesn't exist
-- `CortexError('DELETION_FAILED')` - Delete operation failed
+- `MemoirError('USER_NOT_FOUND')` - User profile doesn't exist
+- `MemoirError('DELETION_FAILED')` - Delete operation failed
 
 **See Also:**
 
@@ -736,7 +736,7 @@ Search user profiles with filters, sorting, and pagination.
 **Signature:**
 
 ```typescript
-cortex.users.search(
+memoir.users.search(
   filters: UserFilters
 ): Promise<UserProfile[]>
 ```
@@ -765,7 +765,7 @@ cortex.users.search(
 **Example 1: Basic search with limit**
 
 ```typescript
-const users = await cortex.users.search({ limit: 10 });
+const users = await memoir.users.search({ limit: 10 });
 
 for (const user of users) {
   console.log(`${user.id}: ${user.data.displayName || "No name"}`);
@@ -776,7 +776,7 @@ for (const user of users) {
 
 ```typescript
 // Find users created in the last 30 days
-const recentUsers = await cortex.users.search({
+const recentUsers = await memoir.users.search({
   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000,
   sortBy: "createdAt",
   sortOrder: "desc",
@@ -787,7 +787,7 @@ const recentUsers = await cortex.users.search({
 
 ```typescript
 // Find users with "alex" in their displayName
-const alexUsers = await cortex.users.search({
+const alexUsers = await memoir.users.search({
   displayName: "alex",
   limit: 50,
 });
@@ -813,7 +813,7 @@ List user profiles with filtering, sorting, and pagination metadata.
 **Signature:**
 
 ```typescript
-cortex.users.list(
+memoir.users.list(
   filters?: ListUsersFilter
 ): Promise<ListUsersResult>
 ```
@@ -851,7 +851,7 @@ interface ListUsersResult {
 
 ```typescript
 // List users with pagination metadata
-const result = await cortex.users.list({ limit: 50 });
+const result = await memoir.users.list({ limit: 50 });
 
 console.log(`Retrieved ${result.users.length} of ${result.total} users`);
 console.log(`Has more: ${result.hasMore}`);
@@ -864,8 +864,8 @@ for (const user of result.users) {
 **Example 2: Paginate through all users**
 
 ```typescript
-const page1 = await cortex.users.list({ limit: 10, offset: 0 });
-const page2 = await cortex.users.list({ limit: 10, offset: 10 });
+const page1 = await memoir.users.list({ limit: 10, offset: 0 });
+const page2 = await memoir.users.list({ limit: 10, offset: 10 });
 
 console.log(`Page 1: ${page1.users.length} users`);
 console.log(`Page 2: ${page2.users.length} users`);
@@ -876,7 +876,7 @@ console.log(`Total: ${page1.total}`);
 
 ```typescript
 // List recently updated users
-const recent = await cortex.users.list({
+const recent = await memoir.users.list({
   updatedAfter: Date.now() - 7 * 24 * 60 * 60 * 1000, // Last week
   sortBy: "updatedAt",
   sortOrder: "desc",
@@ -886,7 +886,7 @@ const recent = await cortex.users.list({
 
 **Errors:**
 
-- `CortexError('INVALID_PAGINATION')` - Invalid limit/offset
+- `MemoirError('INVALID_PAGINATION')` - Invalid limit/offset
 
 **See Also:**
 
@@ -901,7 +901,7 @@ Count user profiles with optional date filters.
 **Signature:**
 
 ```typescript
-cortex.users.count(
+memoir.users.count(
   filters?: UserFilters
 ): Promise<number>
 ```
@@ -924,7 +924,7 @@ cortex.users.count(
 **Example 1: Total count**
 
 ```typescript
-const total = await cortex.users.count();
+const total = await memoir.users.count();
 console.log(`Total users: ${total}`);
 ```
 
@@ -932,13 +932,13 @@ console.log(`Total users: ${total}`);
 
 ```typescript
 // Count users created in the last 30 days
-const recentSignups = await cortex.users.count({
+const recentSignups = await memoir.users.count({
   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000,
 });
 console.log(`New users (30 days): ${recentSignups}`);
 
 // Count users active this week
-const activeThisWeek = await cortex.users.count({
+const activeThisWeek = await memoir.users.count({
   updatedAfter: Date.now() - 7 * 24 * 60 * 60 * 1000,
 });
 console.log(`Active users (7 days): ${activeThisWeek}`);
@@ -962,14 +962,14 @@ Bulk update multiple user profiles by explicit IDs or filters.
 
 ```typescript
 // By explicit user IDs
-cortex.users.updateMany(
+memoir.users.updateMany(
   userIds: string[],
   updates: { data: Record<string, unknown> },
   options?: UpdateManyOptions
 ): Promise<UpdateManyResult>
 
 // By filters (select users matching criteria)
-cortex.users.updateMany(
+memoir.users.updateMany(
   filters: UserFilters,
   updates: { data: Record<string, unknown> },
   options?: UpdateManyOptions
@@ -999,7 +999,7 @@ interface UpdateManyResult {
 **Example 1: Update by explicit IDs**
 
 ```typescript
-const result = await cortex.users.updateMany(["user-1", "user-2", "user-3"], {
+const result = await memoir.users.updateMany(["user-1", "user-2", "user-3"], {
   data: { status: "active", lastUpdatedBy: "admin" },
 });
 
@@ -1010,7 +1010,7 @@ console.log(`Updated ${result.updated} users`);
 
 ```typescript
 // Update all users created in the last 7 days
-const result = await cortex.users.updateMany(
+const result = await memoir.users.updateMany(
   { createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000 },
   { data: { welcomeEmailSent: true } },
 );
@@ -1018,7 +1018,7 @@ const result = await cortex.users.updateMany(
 console.log(`Sent welcome emails to ${result.updated} new users`);
 
 // Update users by displayName
-const alexResult = await cortex.users.updateMany(
+const alexResult = await memoir.users.updateMany(
   { displayName: "alex" },
   { data: { verified: true } },
 );
@@ -1027,7 +1027,7 @@ const alexResult = await cortex.users.updateMany(
 **Example 3: Dry run preview**
 
 ```typescript
-const preview = await cortex.users.updateMany(
+const preview = await memoir.users.updateMany(
   { updatedBefore: Date.now() - 90 * 24 * 60 * 60 * 1000 },
   { data: { inactive: true } },
   { dryRun: true },
@@ -1053,13 +1053,13 @@ Bulk delete multiple user profiles by explicit IDs or filters.
 
 ```typescript
 // By explicit user IDs
-cortex.users.deleteMany(
+memoir.users.deleteMany(
   userIds: string[],
   options?: DeleteManyOptions
 ): Promise<DeleteManyResult>
 
 // By filters (select users matching criteria)
-cortex.users.deleteMany(
+memoir.users.deleteMany(
   filters: UserFilters,
   options?: DeleteManyOptions
 ): Promise<DeleteManyResult>
@@ -1088,7 +1088,7 @@ interface DeleteManyResult {
 
 ```typescript
 // Delete specific users
-const result = await cortex.users.deleteMany(["user-1", "user-2", "user-3"]);
+const result = await memoir.users.deleteMany(["user-1", "user-2", "user-3"]);
 
 console.log(`Deleted ${result.deleted} users`);
 console.log(`Deleted IDs: ${result.userIds.join(", ")}`);
@@ -1098,7 +1098,7 @@ console.log(`Deleted IDs: ${result.userIds.join(", ")}`);
 
 ```typescript
 // Delete inactive users (not updated in 1 year)
-const oldUsers = await cortex.users.deleteMany(
+const oldUsers = await memoir.users.deleteMany(
   { updatedBefore: Date.now() - 365 * 24 * 60 * 60 * 1000 },
   { cascade: true },
 );
@@ -1106,7 +1106,7 @@ const oldUsers = await cortex.users.deleteMany(
 console.log(`Deleted ${oldUsers.deleted} inactive users`);
 
 // Delete users by displayName pattern
-const testUsers = await cortex.users.deleteMany(
+const testUsers = await memoir.users.deleteMany(
   { displayName: "test-user" },
   { cascade: true },
 );
@@ -1115,7 +1115,7 @@ const testUsers = await cortex.users.deleteMany(
 **Example 3: Dry run preview**
 
 ```typescript
-const preview = await cortex.users.deleteMany(
+const preview = await memoir.users.deleteMany(
   { createdBefore: Date.now() - 180 * 24 * 60 * 60 * 1000 },
   { dryRun: true },
 );
@@ -1138,7 +1138,7 @@ Export user profiles to JSON or CSV format with optional related data.
 **Signature:**
 
 ```typescript
-cortex.users.export(
+memoir.users.export(
   options: ExportUsersOptions    // Required - format is mandatory
 ): Promise<string>
 ```
@@ -1167,11 +1167,11 @@ The `options` parameter is required and must include `format`.
 
 ```typescript
 // Export all users as JSON
-const jsonExport = await cortex.users.export({ format: "json" });
+const jsonExport = await memoir.users.export({ format: "json" });
 console.log(jsonExport);
 
 // Export with limit as CSV
-const csvExport = await cortex.users.export({
+const csvExport = await memoir.users.export({
   format: "csv",
   filters: { limit: 100 },
 });
@@ -1181,7 +1181,7 @@ const csvExport = await cortex.users.export({
 
 ```typescript
 // Export user data with all associated content
-const gdprExport = await cortex.users.export({
+const gdprExport = await memoir.users.export({
   format: "json",
   filters: { displayName: "alex" },
   includeVersionHistory: true,
@@ -1198,7 +1198,7 @@ writeFileSync("exports/user-gdpr-data.json", gdprExport);
 
 ```typescript
 // Export recently created users
-const recentExport = await cortex.users.export({
+const recentExport = await memoir.users.export({
   format: "json",
   filters: {
     createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000,
@@ -1217,8 +1217,8 @@ user-123,1,2025-01-01T00:00:00.000Z,2025-01-01T00:00:00.000Z,"{""displayName"":"
 
 **Errors:**
 
-- `CortexError('INVALID_FORMAT')` - Format not supported
-- `CortexError('EXPORT_FAILED')` - File write error
+- `MemoirError('INVALID_FORMAT')` - Format not supported
+- `MemoirError('EXPORT_FAILED')` - File write error
 
 **See Also:**
 
@@ -1235,7 +1235,7 @@ Get a specific version of a user profile.
 **Signature:**
 
 ```typescript
-cortex.users.getVersion(
+memoir.users.getVersion(
   userId: string,
   version: number
 ): Promise<UserVersion | null>
@@ -1267,7 +1267,7 @@ interface UserVersion {
 
 ```typescript
 // Get version 1 (original profile)
-const v1 = await cortex.users.getVersion("user-123", 1);
+const v1 = await memoir.users.getVersion("user-123", 1);
 
 if (v1) {
   console.log(`Version: ${v1.version}`);
@@ -1292,7 +1292,7 @@ Get all versions of a user profile, sorted by version descending (newest first).
 **Signature:**
 
 ```typescript
-cortex.users.getHistory(
+memoir.users.getHistory(
   userId: string
 ): Promise<UserVersion[]>
 ```
@@ -1321,7 +1321,7 @@ interface UserVersion {
 **Example:**
 
 ```typescript
-const history = await cortex.users.getHistory("user-123");
+const history = await memoir.users.getHistory("user-123");
 
 console.log(`User has ${history.length} profile versions:`);
 history.forEach((v) => {
@@ -1357,7 +1357,7 @@ Get user profile state at a specific point in time.
 **Signature:**
 
 ```typescript
-cortex.users.getAtTimestamp(
+memoir.users.getAtTimestamp(
   userId: string,
   timestamp: Date
 ): Promise<UserVersion | null>
@@ -1389,7 +1389,7 @@ interface UserVersion {
 
 ```typescript
 // What was the user's theme on August 1st?
-const augustProfile = await cortex.users.getAtTimestamp(
+const augustProfile = await memoir.users.getAtTimestamp(
   "user-123",
   new Date("2025-08-01T00:00:00Z"),
 );
@@ -1400,11 +1400,11 @@ if (augustProfile) {
 }
 
 // Track tier changes over time
-const janProfile = await cortex.users.getAtTimestamp(
+const janProfile = await memoir.users.getAtTimestamp(
   "user-123",
   new Date("2025-01-01"),
 );
-const octProfile = await cortex.users.getAtTimestamp(
+const octProfile = await memoir.users.getAtTimestamp(
   "user-123",
   new Date("2025-10-01"),
 );
@@ -1433,7 +1433,7 @@ Check if a user profile exists without retrieving it.
 **Signature:**
 
 ```typescript
-cortex.users.exists(
+memoir.users.exists(
   userId: string
 ): Promise<boolean>
 ```
@@ -1449,11 +1449,11 @@ cortex.users.exists(
 **Example:**
 
 ```typescript
-if (await cortex.users.exists("user-123")) {
+if (await memoir.users.exists("user-123")) {
   console.log("Profile exists");
 } else {
   // Create default profile
-  await cortex.users.update("user-123", {
+  await memoir.users.update("user-123", {
     displayName: "New User",
     preferences: {},
     metadata: { signupDate: new Date() },
@@ -1470,7 +1470,7 @@ Get user profile or create with defaults if doesn't exist.
 **Signature:**
 
 ```typescript
-cortex.users.getOrCreate(
+memoir.users.getOrCreate(
   userId: string,
   defaults?: Record<string, unknown>
 ): Promise<UserProfile>
@@ -1493,7 +1493,7 @@ cortex.users.getOrCreate(
 
 ```typescript
 // Get or create with defaults
-const user = await cortex.users.getOrCreate("user-123", {
+const user = await memoir.users.getOrCreate("user-123", {
   displayName: "Guest User",
   preferences: {
     theme: "light",
@@ -1522,7 +1522,7 @@ Merge partial updates with existing profile. This is an alias for `update()` wit
 **Signature:**
 
 ```typescript
-cortex.users.merge(
+memoir.users.merge(
   userId: string,
   updates: Record<string, unknown>
 ): Promise<UserProfile>
@@ -1545,11 +1545,11 @@ cortex.users.merge(
 
 ```typescript
 // Existing profile
-const existing = await cortex.users.get("user-123");
+const existing = await memoir.users.get("user-123");
 // existing.data = { displayName: 'Alex', preferences: { theme: 'dark', language: 'en' } }
 
 // Merge update (deep merges, only changes specified fields)
-await cortex.users.merge("user-123", {
+await memoir.users.merge("user-123", {
   preferences: {
     notifications: true, // Adds notifications, keeps theme and language
   },
@@ -1573,7 +1573,7 @@ Use the `memory.recall()` orchestration API to get unified context for a user:
 
 ```typescript
 // Get memories and facts for a user
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-space",
   query: "user preferences",
   userId: "user-123",
@@ -1593,10 +1593,10 @@ async function getCompleteUserContext(
   query: string,
 ) {
   // Get profile
-  const profile = await cortex.users.get(userId);
+  const profile = await memoir.users.get(userId);
 
   // Get memories using recall
-  const memoryResult = await cortex.memory.recall({
+  const memoryResult = await memoir.memory.recall({
     memorySpaceId,
     query,
     userId,
@@ -1672,7 +1672,7 @@ interface UserFilters {
 
 ```typescript
 // Filter by date range
-const recentUsers = await cortex.users.list({
+const recentUsers = await memoir.users.list({
   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000, // Last 30 days
   sortBy: "createdAt",
   sortOrder: "desc",
@@ -1680,13 +1680,13 @@ const recentUsers = await cortex.users.list({
 });
 
 // Client-side displayName filter
-const alexUsers = await cortex.users.search({
+const alexUsers = await memoir.users.search({
   displayName: "alex", // Case-insensitive contains match
   limit: 100,
 });
 
 // Bulk update with filters
-await cortex.users.updateMany(
+await memoir.users.updateMany(
   { createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000 },
   { data: { welcomeEmailSent: true } },
 );
@@ -1717,10 +1717,10 @@ interface AdvancedFilters {
 ```typescript
 async function ensureUserProfile(userId: string, message: string) {
   // Get or create
-  let user = await cortex.users.get(userId);
+  let user = await memoir.users.get(userId);
 
   if (!user) {
-    user = await cortex.users.update(userId, {
+    user = await memoir.users.update(userId, {
       displayName: userId, // Temporary
       preferences: {
         language: detectLanguage(message),
@@ -1747,14 +1747,14 @@ async function enhanceProfileFromConversation(
   userId: string,
   conversation: string,
 ) {
-  const user = await cortex.users.get(userId);
+  const user = await memoir.users.get(userId);
   const existingData = user?.data || {};
 
   // Extract insights from conversation
   const insights = await extractUserInsights(conversation);
 
   // Update profile incrementally (automatically deep merges)
-  await cortex.users.update(userId, {
+  await memoir.users.update(userId, {
     displayName: insights.name || existingData.displayName,
     email: insights.email || existingData.email,
     preferences: {
@@ -1781,7 +1781,7 @@ Adapt agent behavior to user preferences:
 
 ```typescript
 async function generatePersonalizedResponse(userId: string, message: string) {
-  const user = await cortex.users.get(userId);
+  const user = await memoir.users.get(userId);
 
   // Generate response
   let response = await yourLLM.generate(message);
@@ -1812,10 +1812,10 @@ async function generatePersonalizedResponse(userId: string, message: string) {
 Use auth context for tenant isolation:
 
 ```typescript
-import { Cortex, createAuthContext } from "@cortex-platform/sdk";
+import { Memoir, createAuthContext } from "@memoir-platform/sdk";
 
-// Initialize Cortex with tenant-scoped auth
-const cortex = new Cortex({
+// Initialize Memoir with tenant-scoped auth
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     tenantId: "tenant-abc", // All operations scoped to this tenant
@@ -1824,21 +1824,21 @@ const cortex = new Cortex({
 });
 
 // Create user (automatically tagged with tenantId)
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   role: "admin",
   permissions: ["read", "write", "admin"],
 });
 
 // List users (automatically filtered by tenant from auth context)
-const result = await cortex.users.list({ limit: 100 });
+const result = await memoir.users.list({ limit: 100 });
 console.log(`Tenant has ${result.total} users`);
 
 // Count users in tenant
-const count = await cortex.users.count();
+const count = await memoir.users.count();
 
 // Export tenant data (GDPR)
-const tenantData = await cortex.users.export({
+const tenantData = await memoir.users.export({
   format: "json",
   includeMemories: true,
   includeConversations: true,
@@ -1857,7 +1857,7 @@ async function handlePreferenceChange(
   value: unknown,
 ) {
   // Update just that preference section (deep merges automatically)
-  await cortex.users.update(userId, {
+  await memoir.users.update(userId, {
     preferences: {
       [section]: value,
     },
@@ -1881,13 +1881,13 @@ Track user engagement and behavior:
 
 ```typescript
 async function updateUserEngagement(userId: string, event: string) {
-  const user = await cortex.users.get(userId);
+  const user = await memoir.users.get(userId);
   const existingMetadata = (user?.data.metadata || {}) as Record<
     string,
     unknown
   >;
 
-  await cortex.users.update(userId, {
+  await memoir.users.update(userId, {
     metadata: {
       ...existingMetadata,
       lastSeen: new Date().toISOString(),
@@ -1923,10 +1923,10 @@ function calculateEngagement(
 The SDK supports multi-tenancy through the `tenantId` field in auth context:
 
 ```typescript
-import { Cortex, createAuthContext } from "@cortex-platform/sdk";
+import { Memoir, createAuthContext } from "@memoir-platform/sdk";
 
 // Initialize with tenant-specific auth context
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     tenantId: "tenant-acme",
@@ -1938,17 +1938,17 @@ const cortex = new Cortex({
 // Users can only see/modify data within their tenant
 
 // Create user in tenant
-await cortex.users.update("alex", {
+await memoir.users.update("alex", {
   displayName: "Alex Johnson",
   role: "admin",
 });
 
 // List users (automatically filtered by tenantId from auth context)
-const result = await cortex.users.list({ limit: 100 });
+const result = await memoir.users.list({ limit: 100 });
 console.log(`Tenant has ${result.total} users`);
 
 // Export tenant users
-const exportData = await cortex.users.export({
+const exportData = await memoir.users.export({
   format: "json",
   includeConversations: true,
   includeMemories: true,
@@ -1969,7 +1969,7 @@ The following configuration options are planned for a future release:
 
 ```typescript
 // 🚧 PLANNED - NOT YET IMPLEMENTED
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   // userProfileValidation: {
   //   requiredFields: ["displayName"],
@@ -1991,7 +1991,7 @@ Version retention configuration is planned for a future release:
 
 ```typescript
 // 🚧 PLANNED - NOT YET IMPLEMENTED
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   // userProfileVersionRetention: 20,  // Keep last 20 versions
 });
@@ -2009,12 +2009,12 @@ Only require essential information:
 
 ```typescript
 // Start minimal
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   displayName: name,
 });
 
 // Add more as you learn
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   preferences: { theme: "dark" },
 });
 ```
@@ -2031,7 +2031,7 @@ const defaultPreferences = {
   notifications: true,
 };
 
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   displayName: name,
   preferences: { ...defaultPreferences, ...customPreferences },
 });
@@ -2043,13 +2043,13 @@ Currently, every `update()` call creates a new version. Here are tips for managi
 
 ```typescript
 // Important changes - update normally (creates version)
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   preferences: { emailNotifications: false }, // User opt-out
 });
 
 // Routine updates - still creates versions but that's OK
 // Use getHistory() to review version history when needed
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   metadata: {
     lastSeen: new Date().toISOString(),
     sessionCount: ((user?.data.metadata?.sessionCount as number) || 0) + 1,
@@ -2057,7 +2057,7 @@ await cortex.users.update(userId, {
 });
 
 // Tip: Review version history periodically
-const history = await cortex.users.getHistory(userId);
+const history = await memoir.users.getHistory(userId);
 console.log(`User has ${history.length} profile versions`);
 ```
 
@@ -2071,7 +2071,7 @@ Don't store unnecessary PII:
 
 ```typescript
 // Avoid: Don't store sensitive data
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   metadata: {
     ssn: "123-45-6789", // Never!
     creditCard: "4111...", // Never!
@@ -2079,7 +2079,7 @@ await cortex.users.update(userId, {
 });
 
 // Good: Store references only
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   metadata: {
     paymentMethodId: "pm_abc123", // Stripe reference
     hasPaymentMethod: true,
@@ -2110,7 +2110,7 @@ interface MyUserData {
 
 // Type-safe wrapper function
 async function getTypedUser(userId: string): Promise<MyUserData | null> {
-  const user = await cortex.users.get(userId);
+  const user = await memoir.users.get(userId);
   if (!user) return null;
   return user.data as MyUserData;
 }
@@ -2130,7 +2130,7 @@ Always use cascade for user deletions:
 // GDPR-compliant deletion
 async function handleGDPRDeletion(userId: string) {
   // Export data first (GDPR requirement)
-  const userData = await cortex.users.export({
+  const userData = await memoir.users.export({
     format: "json",
     includeMemories: true,
     includeConversations: true,
@@ -2141,7 +2141,7 @@ async function handleGDPRDeletion(userId: string) {
   await fs.writeFile(`gdpr-export-${userId}.json`, userData);
 
   // Delete profile + all data with cascade
-  const result = await cortex.users.delete(userId, {
+  const result = await memoir.users.delete(userId, {
     cascade: true, // Delete from ALL layers
     verify: true, // Verify deletion completeness
   });
@@ -2159,7 +2159,7 @@ async function handleGDPRDeletion(userId: string) {
 
 ## Graph-Lite Capabilities
 
-Users are universal graph nodes - everything in Cortex can link to a user via the `userId` field:
+Users are universal graph nodes - everything in Memoir can link to a user via the `userId` field:
 
 **User as Graph Hub:**
 
@@ -2194,7 +2194,7 @@ User-123 (delete this node)
 **Example Result:**
 
 ```typescript
-const result = await cortex.users.delete("user-123", { cascade: true });
+const result = await memoir.users.delete("user-123", { cascade: true });
 
 // Result shows per-layer deletion counts:
 // {
@@ -2222,10 +2222,10 @@ The Users API exports two error classes for granular error handling:
 Thrown when client-side validation fails (before reaching the backend):
 
 ```typescript
-import { UserValidationError } from "@cortex-platform/sdk";
+import { UserValidationError } from "@memoir-platform/sdk";
 
 try {
-  await cortex.users.update("", { name: "Test" }); // Empty userId
+  await memoir.users.update("", { name: "Test" }); // Empty userId
 } catch (error) {
   if (error instanceof UserValidationError) {
     console.log(error.code); // "MISSING_USER_ID"
@@ -2240,10 +2240,10 @@ try {
 Thrown when cascade deletion fails (automatically rolls back):
 
 ```typescript
-import { CascadeDeletionError } from "@cortex-platform/sdk";
+import { CascadeDeletionError } from "@memoir-platform/sdk";
 
 try {
-  await cortex.users.delete("user-123", { cascade: true });
+  await memoir.users.delete("user-123", { cascade: true });
 } catch (error) {
   if (error instanceof CascadeDeletionError) {
     console.log(error.message); // Cascade deletion failed for user...
@@ -2310,4 +2310,4 @@ try {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

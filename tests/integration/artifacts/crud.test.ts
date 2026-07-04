@@ -12,7 +12,7 @@
  * Test IDs: INT-CRUD-001 through INT-CRUD-003
  */
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../../../convex-dev/_generated/api";
 import { createNamedTestRunContext } from "../../helpers/isolation";
@@ -25,7 +25,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
   // Create unique test run context for parallel-safe execution
   const ctx = createNamedTestRunContext("artifacts-crud");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
@@ -39,7 +39,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
   // Helper to create and track memory spaces
   const setupTestSpace = async (suffix: string): Promise<string> => {
     const spaceId = ctx.memorySpaceId(suffix);
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: spaceId,
       name: `Test Space ${suffix}`,
       type: "project",
@@ -59,7 +59,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
 
     // Initialize SDK with auth context for multi-tenancy
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
 
     // Direct client for storage validation
     client = new ConvexClient(CONVEX_URL);
@@ -73,7 +73,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     // Cascade cleanup all test data via memory space deletion
     for (const spaceId of createdSpaces) {
       try {
-        await cortex.memorySpaces.delete(spaceId, {
+        await memoir.memorySpaces.delete(spaceId, {
           cascade: true,
           reason: "Test cleanup",
         });
@@ -82,7 +82,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       }
     }
 
-    cortex.close();
+    memoir.close();
     await client.close();
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -95,7 +95,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should create artifact with minimal fields", async () => {
       const spaceId = await setupTestSpace("create-minimal");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Hello, World!",
@@ -129,7 +129,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       const spaceId = await setupTestSpace("create-full");
       const convId = ctx.conversationId("full");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "code",
         content: "function hello() { return 'world'; }",
@@ -157,7 +157,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       const spaceId = await setupTestSpace("create-custom-id");
       const customId = artifactId("custom-123");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         artifactId: customId,
         memorySpaceId: spaceId,
         kind: "text",
@@ -168,7 +168,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       expect(artifact.artifactId).toBe(customId);
 
       // Verify we can retrieve by custom ID
-      const retrieved = await cortex.artifacts.get(customId);
+      const retrieved = await memoir.artifacts.get(customId);
       expect(retrieved).not.toBeNull();
       expect(retrieved?.artifactId).toBe(customId);
     });
@@ -178,7 +178,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       const customId = artifactId("duplicate");
 
       // Create first artifact
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         artifactId: customId,
         memorySpaceId: spaceId,
         kind: "text",
@@ -188,7 +188,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
 
       // Attempt to create duplicate
       await expect(
-        cortex.artifacts.create({
+        memoir.artifacts.create({
           artifactId: customId,
           memorySpaceId: spaceId,
           kind: "text",
@@ -201,7 +201,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should auto-generate artifactId matching pattern", async () => {
       const spaceId = await setupTestSpace("create-autoid");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Auto-generated ID",
@@ -225,7 +225,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       ];
 
       for (const kind of kinds) {
-        const artifact = await cortex.artifacts.create({
+        const artifact = await memoir.artifacts.create({
           memorySpaceId: spaceId,
           kind,
           content: `Content for ${kind}`,
@@ -245,14 +245,14 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should create new version on content update", async () => {
       const spaceId = await setupTestSpace("update-content");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Version 1 content",
         title: "Test Document",
       });
 
-      const updated = await cortex.artifacts.update(artifact.artifactId, "Version 2 content");
+      const updated = await memoir.artifacts.update(artifact.artifactId, "Version 2 content");
 
       expect(updated.version).toBe(2);
       expect(updated.versionPointer).toBe(2);
@@ -260,7 +260,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
       expect(updated.title).toBe("Test Document"); // Title unchanged
 
       // Verify version history
-      const history = await cortex.artifacts.getHistory(artifact.artifactId);
+      const history = await memoir.artifacts.getHistory(artifact.artifactId);
       expect(history.length).toBe(2);
       expect(history[0].version).toBe(1);
       expect(history[0].content).toBe("Version 1 content");
@@ -271,14 +271,14 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should update title along with content", async () => {
       const spaceId = await setupTestSpace("update-title");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Initial content",
         title: "Original Title",
       });
 
-      const updated = await cortex.artifacts.update(artifact.artifactId, "Updated content", {
+      const updated = await memoir.artifacts.update(artifact.artifactId, "Updated content", {
         title: "New Title",
       });
 
@@ -290,39 +290,39 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should record changeSummary in version history", async () => {
       const spaceId = await setupTestSpace("update-summary");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Initial content with typos",
         title: "Change Summary Test",
       });
 
-      await cortex.artifacts.update(artifact.artifactId, "Fixed content without typos", {
+      await memoir.artifacts.update(artifact.artifactId, "Fixed content without typos", {
         changeSummary: "Fixed spelling errors",
       });
 
-      const history = await cortex.artifacts.getHistory(artifact.artifactId);
+      const history = await memoir.artifacts.getHistory(artifact.artifactId);
       expect(history[1].changeSummary).toBe("Fixed spelling errors");
     });
 
     it("should handle multiple sequential updates", async () => {
       const spaceId = await setupTestSpace("update-sequential");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "v1",
         title: "Sequential Updates Test",
       });
 
-      await cortex.artifacts.update(artifact.artifactId, "v2");
-      await cortex.artifacts.update(artifact.artifactId, "v3");
-      const final = await cortex.artifacts.update(artifact.artifactId, "v4");
+      await memoir.artifacts.update(artifact.artifactId, "v2");
+      await memoir.artifacts.update(artifact.artifactId, "v3");
+      const final = await memoir.artifacts.update(artifact.artifactId, "v4");
 
       expect(final.version).toBe(4);
       expect(final.versionPointer).toBe(4);
 
-      const history = await cortex.artifacts.getHistory(artifact.artifactId);
+      const history = await memoir.artifacts.getHistory(artifact.artifactId);
       expect(history.length).toBe(4);
       expect(history[3].content).toBe("v4");
     });
@@ -330,7 +330,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should update tags", async () => {
       const spaceId = await setupTestSpace("update-tags");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Content",
@@ -338,7 +338,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
         tags: ["initial", "draft"],
       });
 
-      const updated = await cortex.artifacts.update(artifact.artifactId, "Updated content", {
+      const updated = await memoir.artifacts.update(artifact.artifactId, "Updated content", {
         tags: ["final", "reviewed"],
       });
 
@@ -356,20 +356,20 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should soft delete artifact by default", async () => {
       const spaceId = await setupTestSpace("delete-soft");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "To be soft deleted",
         title: "Soft Delete Test",
       });
 
-      const result = await cortex.artifacts.delete(artifact.artifactId);
+      const result = await memoir.artifacts.delete(artifact.artifactId);
 
       expect(result.deleted).toBe(true);
       expect(result.versionsPurged).toBeUndefined(); // Soft delete doesn't purge versions
 
       // Verify soft delete flags in database
-      const deleted = await cortex.artifacts.get(artifact.artifactId);
+      const deleted = await memoir.artifacts.get(artifact.artifactId);
       expect(deleted).not.toBeNull();
       expect(deleted?.isDeleted).toBe(true);
       expect(deleted?.deletedAt).toBeDefined();
@@ -378,21 +378,21 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should exclude soft-deleted from list by default", async () => {
       const spaceId = await setupTestSpace("delete-list");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Will be deleted",
         title: "Delete List Test",
       });
 
-      await cortex.artifacts.delete(artifact.artifactId);
+      await memoir.artifacts.delete(artifact.artifactId);
 
       // Default list should not include deleted
-      const list = await cortex.artifacts.list({ memorySpaceId: spaceId });
+      const list = await memoir.artifacts.list({ memorySpaceId: spaceId });
       expect(list.some((a) => a.artifactId === artifact.artifactId)).toBe(false);
 
       // With includeDeleted should include
-      const listWithDeleted = await cortex.artifacts.list({
+      const listWithDeleted = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         includeDeleted: true,
       });
@@ -402,37 +402,37 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should hard delete artifact when requested", async () => {
       const spaceId = await setupTestSpace("delete-hard");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "To be permanently deleted",
         title: "Hard Delete Test",
       });
 
-      const result = await cortex.artifacts.delete(artifact.artifactId, true);
+      const result = await memoir.artifacts.delete(artifact.artifactId, true);
 
       expect(result.deleted).toBe(true);
       expect(result.versionsPurged).toBeDefined(); // Hard delete purges versions
 
       // Verify record is gone
-      const deleted = await cortex.artifacts.get(artifact.artifactId);
+      const deleted = await memoir.artifacts.get(artifact.artifactId);
       expect(deleted).toBeNull();
     });
 
     it("should prevent updates to soft-deleted artifact", async () => {
       const spaceId = await setupTestSpace("delete-update");
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Initial content",
         title: "Delete Update Test",
       });
 
-      await cortex.artifacts.delete(artifact.artifactId);
+      await memoir.artifacts.delete(artifact.artifactId);
 
       // Attempt to update should fail
-      await expect(cortex.artifacts.update(artifact.artifactId, "Updated content")).rejects.toThrow();
+      await expect(memoir.artifacts.update(artifact.artifactId, "Updated content")).rejects.toThrow();
     });
   });
 
@@ -444,52 +444,52 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should list artifacts by memorySpaceId", async () => {
       const spaceId = await setupTestSpace("list-space");
 
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Artifact 1",
         title: "List Test 1",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Artifact 2",
         title: "List Test 2",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "code",
         content: "Artifact 3",
         title: "List Test 3",
       });
 
-      const list = await cortex.artifacts.list({ memorySpaceId: spaceId });
+      const list = await memoir.artifacts.list({ memorySpaceId: spaceId });
       expect(list.length).toBe(3);
     });
 
     it("should filter list by kind", async () => {
       const spaceId = await setupTestSpace("list-kind");
 
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Text artifact",
         title: "Kind Filter Text",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "code",
         content: "Code artifact",
         title: "Kind Filter Code 1",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "code",
         content: "Another code artifact",
         title: "Kind Filter Code 2",
       });
 
-      const codeOnly = await cortex.artifacts.list({
+      const codeOnly = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         kind: "code",
       });
@@ -500,21 +500,21 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should filter list by tags", async () => {
       const spaceId = await setupTestSpace("list-tags");
 
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Important doc",
         title: "Tag Filter Important",
         tags: ["important", "doc"],
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Draft",
         title: "Tag Filter Draft",
         tags: ["draft"],
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "Important draft",
@@ -522,7 +522,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
         tags: ["important", "draft"],
       });
 
-      const importantOnly = await cortex.artifacts.list({
+      const importantOnly = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         tags: ["important"],
       });
@@ -532,29 +532,29 @@ describeWithConvex("Artifacts CRUD Integration", () => {
     it("should count artifacts correctly", async () => {
       const spaceId = await setupTestSpace("count");
 
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "A1",
         title: "Count Test 1",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "text",
         content: "A2",
         title: "Count Test 2",
       });
-      await cortex.artifacts.create({
+      await memoir.artifacts.create({
         memorySpaceId: spaceId,
         kind: "code",
         content: "A3",
         title: "Count Test 3",
       });
 
-      const totalCount = await cortex.artifacts.count({ memorySpaceId: spaceId });
+      const totalCount = await memoir.artifacts.count({ memorySpaceId: spaceId });
       expect(totalCount).toBe(3);
 
-      const textCount = await cortex.artifacts.count({
+      const textCount = await memoir.artifacts.count({
         memorySpaceId: spaceId,
         kind: "text",
       });
@@ -566,7 +566,7 @@ describeWithConvex("Artifacts CRUD Integration", () => {
 
       // Create 5 artifacts
       for (let i = 0; i < 5; i++) {
-        await cortex.artifacts.create({
+        await memoir.artifacts.create({
           memorySpaceId: spaceId,
           kind: "text",
           content: `Artifact ${i}`,
@@ -574,21 +574,21 @@ describeWithConvex("Artifacts CRUD Integration", () => {
         });
       }
 
-      const page1 = await cortex.artifacts.list({
+      const page1 = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         limit: 2,
         offset: 0,
       });
       expect(page1.length).toBe(2);
 
-      const page2 = await cortex.artifacts.list({
+      const page2 = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         limit: 2,
         offset: 2,
       });
       expect(page2.length).toBe(2);
 
-      const page3 = await cortex.artifacts.list({
+      const page3 = await memoir.artifacts.list({
         memorySpaceId: spaceId,
         limit: 2,
         offset: 4,

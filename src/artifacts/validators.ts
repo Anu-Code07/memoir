@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Artifacts API Validation
+ * Memoir SDK - Artifacts API Validation
  *
  * Client-side validation for artifact operations to catch errors before
  * they reach the backend, providing faster feedback and better error messages.

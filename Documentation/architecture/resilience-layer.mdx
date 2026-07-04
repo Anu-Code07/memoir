@@ -10,7 +10,7 @@ description: Automatic retries, circuit breaking, and fault tolerance
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
 <Callout type="info" title="Built-in Resilience">
-  All Cortex operations include automatic:
+  All Memoir operations include automatic:
   - **Rate limiting** - Smooths traffic bursts
   - **Concurrency control** - Respects Convex limits (16 concurrent on free plan)
   - **Circuit breaking** - Fast-fails when backend is unhealthy
@@ -53,15 +53,15 @@ Without protection, traffic spikes overwhelm your database:
 Resilience is enabled by default with safe settings for Convex Free plan:
 
 ```typescript
-import { Cortex } from '@cortexmemory/sdk';
+import { Memoir } from '@memoir/sdk';
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   // Resilience enabled automatically
 });
 
 // All operations automatically protected
-await cortex.memory.remember({...});
+await memoir.memory.remember({...});
 ```
 
 ### Environment Variable
@@ -75,9 +75,9 @@ CONVEX_PLAN=professional  # 256 concurrent
 ```
 
 ```typescript
-import { getPresetForPlan } from '@cortexmemory/sdk';
+import { getPresetForPlan } from '@memoir/sdk';
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   resilience: getPresetForPlan(),  // Reads CONVEX_PLAN
 });
@@ -109,7 +109,7 @@ const cortex = new Cortex({
 ### Custom Configuration
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   resilience: {
     enabled: true,
@@ -163,9 +163,9 @@ const cortex = new Cortex({
 Safe defaults for Convex Free/Starter (16 concurrent limit):
 
 ```typescript
-import { ResiliencePresets } from '@cortexmemory/sdk';
+import { ResiliencePresets } from '@memoir/sdk';
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   resilience: ResiliencePresets.default,
 });
@@ -280,7 +280,7 @@ Prevents cascading failures when backend is unhealthy:
 ## Monitoring
 
 ```typescript
-const metrics = cortex.getResilienceMetrics();
+const metrics = memoir.getResilienceMetrics();
 
 console.log(metrics);
 // {
@@ -333,10 +333,10 @@ if (metrics.queue.total > 500) {
 ## Error Handling
 
 ```typescript
-import { CircuitOpenError, QueueFullError, AcquireTimeoutError } from '@cortexmemory/sdk';
+import { CircuitOpenError, QueueFullError, AcquireTimeoutError } from '@memoir/sdk';
 
 try {
-  await cortex.memory.remember({...});
+  await memoir.memory.remember({...});
 } catch (error) {
   if (error instanceof CircuitOpenError) {
     // Backend unhealthy, circuit tripped
@@ -359,10 +359,10 @@ try {
 
 ```typescript
 // Good: Use defaults tuned for Convex Free plan
-const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
 
 // Avoid: Over-customizing without measurement
-const cortex = new Cortex({
+const memoir = new Memoir({
   resilience: { concurrency: { maxConcurrent: 100 } }  // Exceeds Convex limits!
 });
 ```
@@ -384,7 +384,7 @@ resilience: ResiliencePresets.batchProcessing
 <Callout type="warning" title="Monitor Circuit State">
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   resilience: {
     onCircuitOpen: () => console.error('Circuit OPEN'),
     onCircuitClose: () => console.log('Circuit CLOSED'),
@@ -400,11 +400,11 @@ const cortex = new Cortex({
 
 ```typescript
 // Wait for in-flight requests (with optional timeout)
-await cortex.shutdown(30000); // Default: 30s timeout
+await memoir.shutdown(30000); // Default: 30s timeout
 
 // In server shutdown handler
 process.on('SIGTERM', async () => {
-  await cortex.shutdown();
+  await memoir.shutdown();
   process.exit(0);
 });
 ```

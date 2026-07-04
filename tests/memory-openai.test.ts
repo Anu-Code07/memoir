@@ -6,7 +6,7 @@
  */
 
 import { jest } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import OpenAI from "openai";
 import { TestCleanup } from "./helpers/cleanup";
@@ -145,7 +145,7 @@ async function summarizeConversation(
 }
 
 describe("Memory OpenAI Integration", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -155,7 +155,7 @@ describe("Memory OpenAI Integration", () => {
   const TEST_AGENT_ID = ctx.agentId("openai");
 
   beforeAll(async () => {
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: CI_RESILIENCE_CONFIG,
     });
@@ -191,7 +191,7 @@ describe("Memory OpenAI Integration", () => {
         // Each test uses ctx-scoped IDs to avoid conflicts.
 
         // Create conversation
-        const conv = await cortex.conversations.create({
+        const conv = await memoir.conversations.create({
           type: "user-agent",
           memorySpaceId: TEST_MEMSPACE_ID,
           participants: {
@@ -236,7 +236,7 @@ describe("Memory OpenAI Integration", () => {
 
         // Store each with embeddings and summarization
         for (const conv of conversations) {
-          const result = await cortex.memory.remember({
+          const result = await memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId,
             userMessage: conv.user,
@@ -302,7 +302,7 @@ describe("Memory OpenAI Integration", () => {
           const embedding = await generateEmbedding(search.query);
           const results = (await withRetry(
             () =>
-              cortex.memory.search(TEST_MEMSPACE_ID, search.query, {
+              memoir.memory.search(TEST_MEMSPACE_ID, search.query, {
                 embedding,
                 userId: TEST_USER_ID,
                 limit: 10, // Get more results for debugging context
@@ -362,7 +362,7 @@ describe("Memory OpenAI Integration", () => {
         const embedding = await generateEmbedding("password credentials");
         const results = await withRetry(
           () =>
-            cortex.memory.search(TEST_MEMSPACE_ID, "password", {
+            memoir.memory.search(TEST_MEMSPACE_ID, "password", {
               embedding,
               enrichConversation: true,
               userId: TEST_USER_ID,
@@ -416,7 +416,7 @@ describe("Memory OpenAI Integration", () => {
         }
 
         // Get a summarized memory
-        const memory = await cortex.vector.get(
+        const memory = await memoir.vector.get(
           TEST_MEMSPACE_ID,
           storedMemories[0].memoryId,
         );
@@ -449,7 +449,7 @@ describe("Memory OpenAI Integration", () => {
         );
         const results = (await withRetry(
           () =>
-            cortex.memory.search(
+            memoir.memory.search(
               TEST_MEMSPACE_ID,
               "API password for production environment",
               {

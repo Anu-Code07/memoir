@@ -38,12 +38,12 @@ Enforce valid status transitions to prevent invalid state changes.
 **Current Behavior:**
 ```typescript
 // Any status transition is accepted
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed",
 });
 
 // Even invalid transitions work
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "active", // From completed → active (invalid!)
 });
 ```
@@ -51,12 +51,12 @@ await cortex.contexts.update(spaceId, contextId, {
 **Planned Behavior:**
 ```typescript
 // Valid transitions enforced
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed", // active → completed ✓
 });
 
 // Invalid transitions throw errors
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "active", // completed → active ✗
 });
 // Error: Invalid status transition (completed → active)
@@ -77,19 +77,19 @@ Automatically complete parent contexts when all children are completed.
 **Current Behavior:**
 ```typescript
 // Manual completion required
-const parent = await cortex.contexts.get(spaceId, parentId);
-const children = await cortex.contexts.getChain(spaceId, parentId);
+const parent = await memoir.contexts.get(spaceId, parentId);
+const children = await memoir.contexts.getChain(spaceId, parentId);
 
 const allComplete = children.every(c => c.status === "completed");
 if (allComplete) {
-  await cortex.contexts.update(spaceId, parentId, { status: "completed" });
+  await memoir.contexts.update(spaceId, parentId, { status: "completed" });
 }
 ```
 
 **Planned Behavior:**
 ```typescript
 // Automatic completion when all children complete
-await cortex.contexts.update(spaceId, childId, {
+await memoir.contexts.update(spaceId, childId, {
   status: "completed", // Last child
 });
 // Parent automatically marked as "completed"
@@ -97,7 +97,7 @@ await cortex.contexts.update(spaceId, childId, {
 
 **Configuration:**
 ```typescript
-await cortex.contexts.create(spaceId, {
+await memoir.contexts.create(spaceId, {
   purpose: "Multi-step workflow",
   autoComplete: true, // Enable automatic completion
 });
@@ -112,7 +112,7 @@ Children automatically access parent data without manual traversal.
 **Current Behavior:**
 ```typescript
 // Manual traversal required to merge data
-const chain = await cortex.contexts.getChain(spaceId, contextId);
+const chain = await memoir.contexts.getChain(spaceId, contextId);
 
 const mergedData = {};
 for (const ctx of chain.reverse()) {
@@ -125,7 +125,7 @@ console.log(mergedData.apiKey); // From ancestor
 **Planned Behavior:**
 ```typescript
 // Automatic data inheritance
-const context = await cortex.contexts.get(spaceId, contextId, {
+const context = await memoir.contexts.get(spaceId, contextId, {
   inheritData: true, // Merge data from ancestors
 });
 
@@ -140,19 +140,19 @@ console.log(context.data.apiKey); // Inherited from parent
 **Example:**
 ```typescript
 // Parent context
-await cortex.contexts.create(spaceId, {
+await memoir.contexts.create(spaceId, {
   purpose: "API Integration",
   data: { apiKey: "sk_...", timeout: 5000 },
 });
 
 // Child context (overrides timeout)
-const child = await cortex.contexts.addChild(spaceId, parentId, {
+const child = await memoir.contexts.addChild(spaceId, parentId, {
   purpose: "Fetch User Data",
   data: { timeout: 10000, endpoint: "/users" },
 });
 
 // Automatic merge
-const childData = await cortex.contexts.get(spaceId, child.id, { inheritData: true });
+const childData = await memoir.contexts.get(spaceId, child.id, { inheritData: true });
 console.log(childData.data);
 // {
 //   apiKey: "sk_...",      // Inherited
@@ -170,16 +170,16 @@ Add a participant to a context and all ancestors automatically.
 **Current Behavior:**
 ```typescript
 // Manual propagation required
-const chain = await cortex.contexts.getChain(spaceId, contextId);
+const chain = await memoir.contexts.getChain(spaceId, contextId);
 for (const ctx of chain) {
-  await cortex.contexts.addParticipant(spaceId, ctx.id, "user-123");
+  await memoir.contexts.addParticipant(spaceId, ctx.id, "user-123");
 }
 ```
 
 **Planned Behavior:**
 ```typescript
 // Automatic propagation to ancestors
-await cortex.contexts.addParticipant(spaceId, contextId, "user-123", {
+await memoir.contexts.addParticipant(spaceId, contextId, "user-123", {
   propagateToAncestors: true, // Add to entire chain
 });
 ```
@@ -198,7 +198,7 @@ Prevent excessively deep context chains that could cause performance issues.
 // No depth limit enforced
 let currentId = rootId;
 for (let i = 0; i < 100; i++) {
-  const child = await cortex.contexts.addChild(spaceId, currentId, {
+  const child = await memoir.contexts.addChild(spaceId, currentId, {
     purpose: `Level ${i}`,
   });
   currentId = child.id;
@@ -209,7 +209,7 @@ for (let i = 0; i < 100; i++) {
 **Planned Behavior:**
 ```typescript
 // Depth limit enforced
-const child = await cortex.contexts.addChild(spaceId, currentId, {
+const child = await memoir.contexts.addChild(spaceId, currentId, {
   purpose: "Too deep!",
 });
 // Error: Maximum context depth exceeded (limit: 10)
@@ -217,7 +217,7 @@ const child = await cortex.contexts.addChild(spaceId, currentId, {
 
 **Configuration:**
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   contextChainDepthLimit: 15, // Default: 10
 });
@@ -232,7 +232,7 @@ Delete user data from context chains when a user is deleted (Cloud Mode).
 **Planned Behavior:**
 ```typescript
 // Cloud Mode: Cascade delete user-specific contexts
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 ```
 
 **Deletion Rules:**
@@ -243,13 +243,13 @@ await cortex.users.delete("user-123", { cascade: true });
 **Example:**
 ```typescript
 // User-specific context (deleted)
-await cortex.contexts.create(spaceId, {
+await memoir.contexts.create(spaceId, {
   purpose: "User's personal task",
   userId: "user-123",
 });
 
 // Shared context (preserved)
-await cortex.contexts.create(spaceId, {
+await memoir.contexts.create(spaceId, {
   purpose: "Team workflow",
   participants: ["user-123", "user-456"],
 });
@@ -282,12 +282,12 @@ All enhancements are **opt-in** and backward compatible. Existing code will cont
 **Example:**
 ```typescript
 // Existing code (works unchanged)
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed",
 });
 
 // New features (opt-in)
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed",
   validateTransition: true, // Opt-in to validation
 });
@@ -317,19 +317,19 @@ function validateTransition(from: ContextStatus, to: ContextStatus) {
 
 // Use before updates
 validateTransition(context.status, "completed");
-await cortex.contexts.update(spaceId, contextId, { status: "completed" });
+await memoir.contexts.update(spaceId, contextId, { status: "completed" });
 ```
 
 ### Manual Auto-Completion
 
 ```typescript
 async function checkAndCompleteParent(spaceId: string, parentId: string) {
-  const chain = await cortex.contexts.getChain(spaceId, parentId);
+  const chain = await memoir.contexts.getChain(spaceId, parentId);
   const children = chain.filter(c => c.parentContextId === parentId);
   
   const allComplete = children.every(c => c.status === "completed");
   if (allComplete) {
-    await cortex.contexts.update(spaceId, parentId, { status: "completed" });
+    await memoir.contexts.update(spaceId, parentId, { status: "completed" });
   }
 }
 ```
@@ -338,7 +338,7 @@ async function checkAndCompleteParent(spaceId: string, parentId: string) {
 
 ```typescript
 async function getWithInheritedData(spaceId: string, contextId: string) {
-  const chain = await cortex.contexts.getChain(spaceId, contextId);
+  const chain = await memoir.contexts.getChain(spaceId, contextId);
   
   const mergedData = {};
   for (const ctx of chain.reverse()) {

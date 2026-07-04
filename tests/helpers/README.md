@@ -23,7 +23,7 @@ describe("My Test Suite", () => {
     const spaceId = ctx.memorySpaceId("main");
     const convId = ctx.conversationId("chat");
 
-    await cortex.users.update(userId, { name: "Test User" });
+    await memoir.users.update(userId, { name: "Test User" });
     // This data won't conflict with other parallel test runs
   });
 });
@@ -151,7 +151,7 @@ enableDebugMode({
 
 // Log test steps
 logStep(1, "Create conversation");
-const result = await cortex.conversations.create({ ... });
+const result = await memoir.conversations.create({ ... });
 
 // Pause for inspection
 await pause("Review the conversation above");
@@ -173,7 +173,7 @@ Default behavior - no cleanup between tests, runs quickly.
 describe("Conversations API", () => {
   beforeAll(async () => {
     // Initialize
-    cortex = new Cortex({ convexUrl });
+    memoir = new Memoir({ convexUrl });
     cleanup = new TestCleanup(client);
 
     // Purge before all tests
@@ -182,7 +182,7 @@ describe("Conversations API", () => {
 
   it("should create conversation", async () => {
     // Test runs fast
-    const result = await cortex.conversations.create({ ... });
+    const result = await memoir.conversations.create({ ... });
     expect(result.conversationId).toBeDefined();
   });
 });
@@ -209,7 +209,7 @@ describe("Conversations API - DEBUG", () => {
 
   it("should create conversation with inspection", async () => {
     logStep(1, "Call SDK");
-    const result = await cortex.conversations.create({ ... });
+    const result = await memoir.conversations.create({ ... });
 
     logStep(2, "Inspect storage");
     await inspector.inspectConversation(result.conversationId);
@@ -275,7 +275,7 @@ TEST_DEBUG=true npm test conversations.debug
 ### Inspect After Create
 
 ```typescript
-const conversation = await cortex.conversations.create({
+const conversation = await memoir.conversations.create({
   type: "user-agent",
   participants: { userId: "user-1", agentId: "agent-1" },
 });
@@ -287,9 +287,9 @@ await inspector.inspectConversation(conversation.conversationId);
 ### Inspect After Multiple Messages
 
 ```typescript
-await cortex.conversations.addMessage({ ... }); // Message 1
-await cortex.conversations.addMessage({ ... }); // Message 2
-await cortex.conversations.addMessage({ ... }); // Message 3
+await memoir.conversations.addMessage({ ... }); // Message 1
+await memoir.conversations.addMessage({ ... }); // Message 2
+await memoir.conversations.addMessage({ ... }); // Message 3
 
 // See all messages in storage
 await inspector.inspectConversation(conversationId);
@@ -302,7 +302,7 @@ await inspector.inspectConversation(conversationId);
 await inspector.printStats();
 // Total: 5 conversations
 
-await cortex.conversations.create({ ... });
+await memoir.conversations.create({ ... });
 
 // After
 await inspector.printStats();
@@ -328,7 +328,7 @@ beforeAll(async () => {
 });
 
 it("should work", async () => {
-  const result = await cortex.conversations.create({ ... });
+  const result = await memoir.conversations.create({ ... });
 
   // Inspect storage
   await inspector.inspectConversation(result.conversationId);

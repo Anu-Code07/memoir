@@ -10,23 +10,23 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 
 // All valid conversation types
 const ALL_CONVERSATION_TYPES = ["user-agent", "agent-agent"] as const;
 
 describe("Conversations API - Comprehensive Filter Coverage", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   const TEST_MEMSPACE_ID = `filter-conv-test-${Date.now()}`;
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup test conversations (best-effort)
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -42,7 +42,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       // Create conversation of target type
       let targetConv;
       if (convType === "user-agent") {
-        targetConv = await cortex.conversations.create({
+        targetConv = await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: {
@@ -51,7 +51,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
           },
         });
       } else {
-        targetConv = await cortex.conversations.create({
+        targetConv = await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -63,7 +63,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
 
       // Create conversation of different type as noise
       if (convType === "user-agent") {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -72,7 +72,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
           },
         });
       } else {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: { userId: "noise-user", agentId: "noise-agent" },
@@ -80,7 +80,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: List with type filter
-      const results = await cortex.conversations.list({
+      const results = await memoir.conversations.list({
         type: convType,
         memorySpaceId: spaceId,
       });
@@ -101,18 +101,18 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
 
       // Create 2 conversations of target type
       if (convType === "user-agent") {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: { userId: "count-user-1", agentId: "count-agent-1" },
         });
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: { userId: "count-user-2", agentId: "count-agent-2" },
         });
       } else {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -120,7 +120,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
             memorySpaceIds: ["a1", "a2"],
           },
         });
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -132,7 +132,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
 
       // Create different type as noise
       if (convType === "user-agent") {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -141,7 +141,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
           },
         });
       } else {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: { userId: "noise-user", agentId: "noise-agent" },
@@ -149,7 +149,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       }
 
       // Execute: Count with type filter
-      const count = await cortex.conversations.count({ type: convType });
+      const count = await memoir.conversations.count({ type: convType });
 
       // Validate
       expect(count).toBeGreaterThanOrEqual(2);
@@ -162,13 +162,13 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       // Create conversation with searchable message
       let targetConv;
       if (convType === "user-agent") {
-        targetConv = await cortex.conversations.create({
+        targetConv = await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: { userId: "search-user", agentId: "search-agent" },
         });
       } else {
-        targetConv = await cortex.conversations.create({
+        targetConv = await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -179,7 +179,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       }
 
       // Add message with search term
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: targetConv.conversationId,
         message: {
           content: `${searchTerm} message content`,
@@ -188,7 +188,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       });
 
       // Execute: Search with type filter
-      const results = await cortex.conversations.search({
+      const results = await memoir.conversations.search({
         query: searchTerm,
         filters: { type: convType, memorySpaceId: spaceId },
       });
@@ -206,14 +206,14 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-empty`;
 
       // Create only user-agent conversations
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId: "only-user", agentId: "only-agent" },
       });
 
       // Query for agent-agent type
-      const results = await cortex.conversations.list({
+      const results = await memoir.conversations.list({
         type: "agent-agent",
         memorySpaceId: spaceId,
       });
@@ -226,21 +226,21 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       const spaceId = `${TEST_MEMSPACE_ID}-both-types`;
 
       // Create user-agent conversation
-      const uaConv = await cortex.conversations.create({
+      const uaConv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId: "both-user", agentId: "both-agent" },
       });
 
       // Create agent-agent conversation
-      const aaConv = await cortex.conversations.create({
+      const aaConv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "agent-agent",
         participants: { participantId: "both-a", memorySpaceIds: ["b1", "b2"] },
       });
 
       // List user-agent
-      const uaResults = await cortex.conversations.list({
+      const uaResults = await memoir.conversations.list({
         type: "user-agent",
         memorySpaceId: spaceId,
       });
@@ -255,7 +255,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       ).toBe(true);
 
       // List agent-agent
-      const aaResults = await cortex.conversations.list({
+      const aaResults = await memoir.conversations.list({
         type: "agent-agent",
         memorySpaceId: spaceId,
       });
@@ -275,21 +275,21 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       const targetUser = "combine-user";
 
       // Create user-agent conversation with target user
-      const _targetConv = await cortex.conversations.create({
+      const _targetConv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId: targetUser, agentId: "target-agent" },
       });
 
       // Create user-agent conversation with different user
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId: "different-user", agentId: "different-agent" },
       });
 
       // Create agent-agent conversation (wrong type)
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "agent-agent",
         participants: {
@@ -299,7 +299,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       });
 
       // Execute: Combine type + userId filters
-      const results = await cortex.conversations.list({
+      const results = await memoir.conversations.list({
         type: "user-agent",
         userId: targetUser,
         memorySpaceId: spaceId,
@@ -319,7 +319,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
 
       // Create 3 user-agent
       for (let i = 0; i < 3; i++) {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "user-agent",
           participants: {
@@ -331,7 +331,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
 
       // Create 2 agent-agent
       for (let i = 0; i < 2; i++) {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           memorySpaceId: spaceId,
           type: "agent-agent",
           participants: {
@@ -342,19 +342,19 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       }
 
       // Count user-agent only
-      const uaCount = await cortex.conversations.count({
+      const uaCount = await memoir.conversations.count({
         type: "user-agent",
       });
       expect(uaCount).toBeGreaterThanOrEqual(3);
 
       // Count agent-agent only
-      const aaCount = await cortex.conversations.count({
+      const aaCount = await memoir.conversations.count({
         type: "agent-agent",
       });
       expect(aaCount).toBeGreaterThanOrEqual(2);
 
       // Count all (no filter)
-      const totalCount = await cortex.conversations.count({});
+      const totalCount = await memoir.conversations.count({});
       expect(totalCount).toBeGreaterThanOrEqual(5);
     });
 
@@ -363,13 +363,13 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       const searchTerm = "unique";
 
       // Create only user-agent conversations
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: spaceId,
         type: "user-agent",
         participants: { userId: "unique-user", agentId: "unique-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           content: `${searchTerm} message`,
@@ -378,7 +378,7 @@ describe("Conversations API - Comprehensive Filter Coverage", () => {
       });
 
       // Search for agent-agent type (should be empty)
-      const results = await cortex.conversations.search({
+      const results = await memoir.conversations.search({
         query: searchTerm,
         filters: { type: "agent-agent", memorySpaceId: spaceId },
       });

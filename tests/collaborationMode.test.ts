@@ -8,12 +8,12 @@
  * - Access control
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 
 describe("Collaboration Mode", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let cleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -26,12 +26,12 @@ describe("Collaboration Mode", () => {
   const ORG_B_SPACE = ctx.memorySpaceId("org-b");
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     cleanup = new ScopedCleanup(client, ctx);
 
     // Register two separate organizations with test-specific IDs
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: ORG_A_SPACE,
       name: "Organization A",
       type: "team",
@@ -41,7 +41,7 @@ describe("Collaboration Mode", () => {
       ],
     });
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: ORG_B_SPACE,
       name: "Organization B",
       type: "team",
@@ -61,7 +61,7 @@ describe("Collaboration Mode", () => {
   describe("Memory Space Isolation", () => {
     it("each organization has separate data by default", async () => {
       // Org A stores data
-      await cortex.vector.store(ORG_A_SPACE, {
+      await memoir.vector.store(ORG_A_SPACE, {
         content: "Organization A confidential information",
         contentType: "raw",
         source: { type: "system" },
@@ -69,7 +69,7 @@ describe("Collaboration Mode", () => {
       });
 
       // Org B stores data
-      await cortex.vector.store(ORG_B_SPACE, {
+      await memoir.vector.store(ORG_B_SPACE, {
         content: "Organization B confidential information",
         contentType: "raw",
         source: { type: "system" },
@@ -77,7 +77,7 @@ describe("Collaboration Mode", () => {
       });
 
       // Org A only sees their data
-      const orgAMemories = await cortex.vector.list({
+      const orgAMemories = await memoir.vector.list({
         memorySpaceId: ORG_A_SPACE,
       });
 
@@ -86,7 +86,7 @@ describe("Collaboration Mode", () => {
       );
 
       // Org B only sees their data
-      const orgBMemories = await cortex.vector.list({
+      const orgBMemories = await memoir.vector.list({
         memorySpaceId: ORG_B_SPACE,
       });
 
@@ -107,7 +107,7 @@ describe("Collaboration Mode", () => {
   describe("Cross-Space Context Sharing", () => {
     it("shares workflow context across organizations", async () => {
       // Org A creates context for joint project
-      const sharedContext = await cortex.contexts.create({
+      const sharedContext = await memoir.contexts.create({
         purpose: "Joint marketing campaign",
         memorySpaceId: ORG_A_SPACE,
         data: {
@@ -118,7 +118,7 @@ describe("Collaboration Mode", () => {
       });
 
       // Org A grants access to Org B
-      const updated = await cortex.contexts.grantAccess(
+      const updated = await memoir.contexts.grantAccess(
         sharedContext.contextId,
         ORG_B_SPACE,
         "read-only",
@@ -130,7 +130,7 @@ describe("Collaboration Mode", () => {
       ).toBe(true);
 
       // Both orgs can see the context
-      const orgAView = await cortex.contexts.get(sharedContext.contextId);
+      const orgAView = await memoir.contexts.get(sharedContext.contextId);
       expect(orgAView).not.toBeNull();
 
       // Org B can also see (via granted access)
@@ -144,20 +144,20 @@ describe("Collaboration Mode", () => {
 
     it("creates child contexts in different spaces", async () => {
       // Org A creates root
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Partnership project root",
         memorySpaceId: ORG_A_SPACE,
       });
 
       // Org A creates their task
-      const orgATask = await cortex.contexts.create({
+      const orgATask = await memoir.contexts.create({
         purpose: "Org A handles marketing materials",
         memorySpaceId: ORG_A_SPACE,
         parentId: root.contextId,
       });
 
       // Org B creates their task (child of A's root - cross-space)
-      const orgBTask = await cortex.contexts.create({
+      const orgBTask = await memoir.contexts.create({
         purpose: "Org B handles distribution",
         memorySpaceId: ORG_B_SPACE,
         parentId: root.contextId,
@@ -173,7 +173,7 @@ describe("Collaboration Mode", () => {
 
   describe("Access Control", () => {
     it("contexts can grant selective access", async () => {
-      const privateContext = await cortex.contexts.create({
+      const privateContext = await memoir.contexts.create({
         purpose: "Internal Org A workflow",
         memorySpaceId: ORG_A_SPACE,
         data: { confidential: true },
@@ -183,7 +183,7 @@ describe("Collaboration Mode", () => {
       expect(privateContext.grantedAccess).toEqual([]);
 
       // Grant read-only access to Org B
-      const updated = await cortex.contexts.grantAccess(
+      const updated = await memoir.contexts.grantAccess(
         privateContext.contextId,
         ORG_B_SPACE,
         "read-only",
@@ -196,20 +196,20 @@ describe("Collaboration Mode", () => {
     it("can grant different scopes", async () => {
       const partnerSpace = ctx.memorySpaceId("partner");
 
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Multi-scope test",
         memorySpaceId: ORG_A_SPACE,
       });
 
       // Grant read-only to Org B
-      await cortex.contexts.grantAccess(
+      await memoir.contexts.grantAccess(
         context.contextId,
         ORG_B_SPACE,
         "read-only",
       );
 
       // Later: Could grant full access to another space
-      const updated = await cortex.contexts.grantAccess(
+      const updated = await memoir.contexts.grantAccess(
         context.contextId,
         partnerSpace,
         "full-access",
@@ -226,7 +226,7 @@ describe("Collaboration Mode", () => {
       // But share workflow context for coordination
 
       // 1. Company A creates campaign context
-      const campaign = await cortex.contexts.create({
+      const campaign = await memoir.contexts.create({
         purpose: "Q4 Joint Marketing Campaign",
         memorySpaceId: ORG_A_SPACE,
         data: {
@@ -238,14 +238,14 @@ describe("Collaboration Mode", () => {
       });
 
       // 2. Company A grants access to Company B
-      await cortex.contexts.grantAccess(
+      await memoir.contexts.grantAccess(
         campaign.contextId,
         ORG_B_SPACE,
         "collaborate",
       );
 
       // 3. Company A adds their internal task
-      const orgATask = await cortex.contexts.create({
+      const orgATask = await memoir.contexts.create({
         purpose: "Create marketing content",
         memorySpaceId: ORG_A_SPACE,
         parentId: campaign.contextId,
@@ -253,7 +253,7 @@ describe("Collaboration Mode", () => {
 
       // Store facts in their own space - use unique content for this test
       const orgAFactContent = `Company A will handle social media content creation - ${ctx.runId}`;
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: ORG_A_SPACE,
         participantId: ctx.agentId("agent-a"),
         fact: orgAFactContent,
@@ -264,7 +264,7 @@ describe("Collaboration Mode", () => {
       });
 
       // 4. Company B adds their task
-      const orgBTask = await cortex.contexts.create({
+      const orgBTask = await memoir.contexts.create({
         purpose: "Manage ad distribution",
         memorySpaceId: ORG_B_SPACE,
         parentId: campaign.contextId,
@@ -272,7 +272,7 @@ describe("Collaboration Mode", () => {
 
       // Store facts in their own space - use unique content for this test
       const orgBFactContent = `Company B will handle ad platform distribution - ${ctx.runId}`;
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: ORG_B_SPACE,
         participantId: ctx.agentId("agent-b"),
         fact: orgBFactContent,
@@ -283,8 +283,8 @@ describe("Collaboration Mode", () => {
       });
 
       // 5. Both can see shared context chain
-      const chainA = await cortex.contexts.getChain(orgATask.contextId);
-      const chainB = await cortex.contexts.getChain(orgBTask.contextId);
+      const chainA = await memoir.contexts.getChain(orgATask.contextId);
+      const chainB = await memoir.contexts.getChain(orgBTask.contextId);
 
       expect(chainA.root.contextId).toBe(campaign.contextId);
       expect(chainB.root.contextId).toBe(campaign.contextId);
@@ -292,11 +292,11 @@ describe("Collaboration Mode", () => {
       expect(chainB.siblings).toHaveLength(1); // Org A's task
 
       // 6. But each org's facts stay private - filter by tag to get only this test's facts
-      const orgAFacts = await cortex.facts.list({
+      const orgAFacts = await memoir.facts.list({
         memorySpaceId: ORG_A_SPACE,
         tags: [ctx.runId],
       });
-      const orgBFacts = await cortex.facts.list({
+      const orgBFacts = await memoir.facts.list({
         memorySpaceId: ORG_B_SPACE,
         tags: [ctx.runId],
       });
@@ -318,7 +318,7 @@ describe("Collaboration Mode", () => {
       // HIVE MODE: All tools in ONE space (no data silos)
       const hiveSpace = ctx.memorySpaceId("hive-demo");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: hiveSpace,
         name: "Hive: Single User's Tools",
         type: "personal",
@@ -331,7 +331,7 @@ describe("Collaboration Mode", () => {
       });
 
       // All tools store in SAME space with unique tags
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: hiveSpace,
         participantId: ctx.agentId("tool-1"),
         fact: `Fact from tool 1 - ${ctx.runId}`,
@@ -341,7 +341,7 @@ describe("Collaboration Mode", () => {
         tags: ["demo", ctx.runId],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: hiveSpace,
         participantId: ctx.agentId("tool-2"),
         fact: `Fact from tool 2 - ${ctx.runId}`,
@@ -352,7 +352,7 @@ describe("Collaboration Mode", () => {
       });
 
       // Single query gets both - filter by tag to get only this test's facts
-      const hiveFacts = await cortex.facts.list({
+      const hiveFacts = await memoir.facts.list({
         memorySpaceId: hiveSpace,
         tags: [ctx.runId],
       });
@@ -363,14 +363,14 @@ describe("Collaboration Mode", () => {
       const companyX = ctx.memorySpaceId("company-x");
       const companyY = ctx.memorySpaceId("company-y");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: companyX,
         name: "Company X",
         type: "team",
         participants: [{ id: ctx.userId("user-x"), type: "user" }],
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: companyY,
         name: "Company Y",
         type: "team",
@@ -378,7 +378,7 @@ describe("Collaboration Mode", () => {
       });
 
       // Each stores in their own space with unique tags
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyX,
         fact: `Company X confidential data - ${ctx.runId}`,
         factType: "knowledge",
@@ -387,7 +387,7 @@ describe("Collaboration Mode", () => {
         tags: ["confidential", ctx.runId],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyY,
         fact: `Company Y confidential data - ${ctx.runId}`,
         factType: "knowledge",
@@ -397,23 +397,23 @@ describe("Collaboration Mode", () => {
       });
 
       // Create shared context for collaboration
-      const sharedProject = await cortex.contexts.create({
+      const sharedProject = await memoir.contexts.create({
         purpose: "Joint venture project",
         memorySpaceId: companyX,
       });
 
-      await cortex.contexts.grantAccess(
+      await memoir.contexts.grantAccess(
         sharedProject.contextId,
         companyY,
         "collaborate",
       );
 
       // Facts stay isolated - filter by tag to get only this test's facts
-      const xFacts = await cortex.facts.list({
+      const xFacts = await memoir.facts.list({
         memorySpaceId: companyX,
         tags: [ctx.runId],
       });
-      const yFacts = await cortex.facts.list({
+      const yFacts = await memoir.facts.list({
         memorySpaceId: companyY,
         tags: [ctx.runId],
       });
@@ -422,7 +422,7 @@ describe("Collaboration Mode", () => {
       expect(yFacts.some((f) => f.fact.includes("Company X"))).toBe(false);
 
       // But context is shared
-      const context = await cortex.contexts.get(sharedProject.contextId);
+      const context = await memoir.contexts.get(sharedProject.contextId);
 
       expect((context as any).grantedAccess).toBeDefined();
       expect(
@@ -436,28 +436,28 @@ describe("Collaboration Mode", () => {
   describe("Cross-Space Workflow", () => {
     it("coordinates tasks across organizations", async () => {
       // Root context in Org A
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Partnership deal workflow",
         memorySpaceId: ORG_A_SPACE,
         data: { dealValue: 500000 },
       });
 
       // Grant access to Org B
-      await cortex.contexts.grantAccess(
+      await memoir.contexts.grantAccess(
         root.contextId,
         ORG_B_SPACE,
         "collaborate",
       );
 
       // Org A creates their task
-      const orgATask = await cortex.contexts.create({
+      const orgATask = await memoir.contexts.create({
         purpose: "Org A legal review",
         memorySpaceId: ORG_A_SPACE,
         parentId: root.contextId,
       });
 
       // Org B creates their task (child of A's root - cross-space!)
-      const orgBTask = await cortex.contexts.create({
+      const orgBTask = await memoir.contexts.create({
         purpose: "Org B financial review",
         memorySpaceId: ORG_B_SPACE,
         parentId: root.contextId,
@@ -468,7 +468,7 @@ describe("Collaboration Mode", () => {
       expect(orgBTask.rootId).toBe(root.contextId);
 
       // Can see each other as siblings
-      const chainA = await cortex.contexts.getChain(orgATask.contextId);
+      const chainA = await memoir.contexts.getChain(orgATask.contextId);
 
       expect(
         chainA.siblings.some((s) => s.contextId === orgBTask.contextId),
@@ -479,7 +479,7 @@ describe("Collaboration Mode", () => {
   describe("Secure Data Sharing", () => {
     it("shares only context, not underlying data", async () => {
       // Org A stores sensitive facts with unique tag
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: ORG_A_SPACE,
         fact: `Org A revenue: $10M - ${ctx.runId}`,
         factType: "knowledge",
@@ -489,25 +489,25 @@ describe("Collaboration Mode", () => {
       });
 
       // Create context and share it
-      const context = await cortex.contexts.create({
+      const context = await memoir.contexts.create({
         purpose: "Shared project planning",
         memorySpaceId: ORG_A_SPACE,
         data: { projectName: "Joint Initiative" },
       });
 
-      await cortex.contexts.grantAccess(
+      await memoir.contexts.grantAccess(
         context.contextId,
         ORG_B_SPACE,
         "read-only",
       );
 
       // Org B can see context
-      const sharedCtx = await cortex.contexts.get(context.contextId);
+      const sharedCtx = await memoir.contexts.get(context.contextId);
 
       expect((sharedCtx as any).data.projectName).toBe("Joint Initiative");
 
       // But Org B CANNOT see Org A's facts - filter by tag for this test's facts
-      const orgBFactView = await cortex.facts.list({
+      const orgBFactView = await memoir.facts.list({
         memorySpaceId: ORG_B_SPACE,
         tags: [ctx.runId],
       });

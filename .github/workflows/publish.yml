@@ -114,7 +114,7 @@ jobs:
           echo "📦 SDK version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @cortexmemory/sdk version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @memoir/sdk version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -135,7 +135,7 @@ jobs:
           echo "📦 Vercel AI Provider version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @cortexmemory/vercel-ai-provider version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @memoir/vercel-ai-provider version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -152,11 +152,11 @@ jobs:
         id: check-cli
         run: |
           # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./packages/cortex-cli/package.json').version")
+          CURRENT_VERSION=$(node -p "require('./packages/memoir-cli/package.json').version")
           echo "📦 CLI version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @cortexmemory/cli version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @memoir/cli version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -173,13 +173,13 @@ jobs:
         id: check-python
         run: |
           # Get current version from pyproject.toml
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           CURRENT_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           echo "📦 Python SDK version: $CURRENT_VERSION"
 
           # Get published version from PyPI (or 0.0.0 if not published yet)
           pip install --upgrade pip > /dev/null 2>&1
-          PYPI_VERSION=$(pip index versions cortex-memory 2>/dev/null | grep "cortex-memory" | head -1 | sed 's/.*(\(.*\))/\1/' || echo "0.0.0")
+          PYPI_VERSION=$(pip index versions memoir 2>/dev/null | grep "memoir" | head -1 | sed 's/.*(\(.*\))/\1/' || echo "0.0.0")
           echo "📚 PyPI version: $PYPI_VERSION"
 
           # Compare versions (create tag if pyproject.toml > PyPI)
@@ -266,16 +266,16 @@ jobs:
             --title "v$VERSION" \
             --notes "## Release v$VERSION
 
-          See [CHANGELOG.md](https://github.com/SaintNick1214/Project-Cortex/blob/main/CHANGELOG.md) for details.
+          See [CHANGELOG.md](https://github.com/Anu-Code07/memoir/blob/main/CHANGELOG.md) for details.
 
           ### Quick Start
           \`\`\`bash
-          npx @cortexmemory/cli init
+          npx @memoir/cli init
           \`\`\`
 
           ### Install SDK Only
           \`\`\`bash
-          npm install @cortexmemory/sdk@$VERSION
+          npm install @memoir/sdk@$VERSION
           \`\`\`"
 
       - name: Verify npm publish
@@ -283,7 +283,7 @@ jobs:
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @cortexmemory/sdk version 2>/dev/null; then
+            if npm view @memoir/sdk version 2>/dev/null; then
               echo "✅ SDK published successfully!"
               exit 0
             fi
@@ -300,9 +300,9 @@ jobs:
           echo "  ✅ SDK PUBLISHED!"
           echo "════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @cortexmemory/sdk@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@cortexmemory/sdk"
-          echo "🐙 GitHub: https://github.com/SaintNick1214/Project-Cortex/releases/tag/v$VERSION"
+          echo "📦 Package: @memoir/sdk@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@memoir/sdk"
+          echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/v$VERSION"
           echo ""
 
   publish-vercel-ai-provider:
@@ -348,10 +348,10 @@ jobs:
         run: npm run build
 
       - name: Build package
-        run: npm run build --workspace=@cortexmemory/vercel-ai-provider
+        run: npm run build --workspace=@memoir/vercel-ai-provider
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@cortexmemory/vercel-ai-provider
+        run: npm pack --dry-run --workspace=@memoir/vercel-ai-provider
 
       - name: Debug OIDC environment
         run: |
@@ -386,38 +386,38 @@ jobs:
 
           ### Installation
           \`\`\`bash
-          npm install @cortexmemory/vercel-ai-provider @cortexmemory/sdk ai convex
+          npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
           \`\`\`
 
           ### Quick Start
           \`\`\`typescript
-          import { createCortexMemory } from '@cortexmemory/vercel-ai-provider';
+          import { createMemoirMemory } from '@memoir/vercel-ai-provider';
           import { openai } from '@ai-sdk/openai';
           import { streamText } from 'ai';
 
-          const cortexMemory = createCortexMemory({
+          const memoirMemory = createMemoirMemory({
             convexUrl: process.env.CONVEX_URL!,
             memorySpaceId: 'my-chatbot',
             userId: 'user-123'
           });
 
           const result = await streamText({
-            model: cortexMemory(openai('gpt-4.1-nano')),
+            model: memoirMemory(openai('gpt-4.1-nano')),
             messages
           });
           \`\`\`
 
           ### Documentation
-          - [Getting Started](https://github.com/SaintNick1214/Project-Cortex/tree/main/Documentation/08-integrations/vercel-ai-sdk/getting-started.md)
-          - [API Reference](https://github.com/SaintNick1214/Project-Cortex/tree/main/Documentation/08-integrations/vercel-ai-sdk/api-reference.md)
-          - [Examples](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/vercel-ai-provider/examples)"
+          - [Getting Started](https://github.com/Anu-Code07/memoir/tree/main/Documentation/08-integrations/vercel-ai-sdk/getting-started.md)
+          - [API Reference](https://github.com/Anu-Code07/memoir/tree/main/Documentation/08-integrations/vercel-ai-sdk/api-reference.md)
+          - [Examples](https://github.com/Anu-Code07/memoir/tree/main/packages/vercel-ai-provider/examples)"
 
       - name: Verify npm publish
         run: |
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @cortexmemory/vercel-ai-provider version 2>/dev/null; then
+            if npm view @memoir/vercel-ai-provider version 2>/dev/null; then
               echo "✅ Vercel AI Provider published successfully!"
               exit 0
             fi
@@ -434,11 +434,11 @@ jobs:
           echo "  ✅ VERCEL AI PROVIDER PUBLISHED!"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @cortexmemory/vercel-ai-provider@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@cortexmemory/vercel-ai-provider"
-          echo "🐙 GitHub: https://github.com/SaintNick1214/Project-Cortex/releases/tag/vercel-ai-provider-v$VERSION"
+          echo "📦 Package: @memoir/vercel-ai-provider@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@memoir/vercel-ai-provider"
+          echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/vercel-ai-provider-v$VERSION"
           echo ""
-          echo "🚀 Install: npm install @cortexmemory/vercel-ai-provider"
+          echo "🚀 Install: npm install @memoir/vercel-ai-provider"
           echo ""
 
   publish-cli:
@@ -482,13 +482,13 @@ jobs:
         run: npm run build
 
       - name: Sync quickstart template
-        run: node packages/cortex-cli/scripts/sync-quickstart-template.js
+        run: node packages/memoir-cli/scripts/sync-quickstart-template.js
 
       - name: Build package
-        run: npm run build --workspace=@cortexmemory/cli
+        run: npm run build --workspace=@memoir/cli
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@cortexmemory/cli
+        run: npm pack --dry-run --workspace=@memoir/cli
 
       - name: Debug OIDC environment
         run: |
@@ -505,7 +505,7 @@ jobs:
 
       - name: Publish to npm
         run: |
-          cd packages/cortex-cli
+          cd packages/memoir-cli
           npm publish --access public --ignore-scripts
         # Provenance is automatic with trusted publishing (OIDC)
 
@@ -523,48 +523,48 @@ jobs:
           VERSION: ${{ needs.check-version.outputs.cli-new-version }}
         run: |
           gh release create "cli-v$VERSION" \
-            --title "Cortex CLI v$VERSION" \
-            --notes "## Cortex CLI v$VERSION
+            --title "Memoir CLI v$VERSION" \
+            --notes "## Memoir CLI v$VERSION
 
-          Administrative CLI for managing Cortex Memory deployments.
+          Administrative CLI for managing Memoir deployments.
 
           ### Installation
 
           **Via Homebrew (macOS/Linux):**
           \`\`\`bash
-          brew install cortex-memory/tap/cli
+          brew install memoir/tap/cli
           \`\`\`
 
           **Via npm:**
           \`\`\`bash
-          npm install -g @cortexmemory/cli
+          npm install -g @memoir/cli
           \`\`\`
 
           ### Quick Start
           \`\`\`bash
           # Setup
-          cortex setup
+          memoir setup
 
           # List memory spaces
-          cortex spaces list
+          memoir spaces list
 
           # View database statistics
-          cortex db stats
+          memoir db stats
 
           # Manage users
-          cortex users list
+          memoir users list
           \`\`\`
 
           ### Documentation
-          - [README](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/cortex-cli/README.md)
-          - [Changelog](https://github.com/SaintNick1214/Project-Cortex/tree/main/packages/cortex-cli/CHANGELOG.md)"
+          - [README](https://github.com/Anu-Code07/memoir/tree/main/packages/memoir-cli/README.md)
+          - [Changelog](https://github.com/Anu-Code07/memoir/tree/main/packages/memoir-cli/CHANGELOG.md)"
 
       - name: Verify npm publish
         run: |
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @cortexmemory/cli version 2>/dev/null; then
+            if npm view @memoir/cli version 2>/dev/null; then
               echo "✅ CLI published successfully!"
               exit 0
             fi
@@ -581,12 +581,12 @@ jobs:
           echo "  ✅ CLI PUBLISHED!"
           echo "════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @cortexmemory/cli@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@cortexmemory/cli"
-          echo "🐙 GitHub: https://github.com/SaintNick1214/Project-Cortex/releases/tag/cli-v$VERSION"
+          echo "📦 Package: @memoir/cli@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@memoir/cli"
+          echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/cli-v$VERSION"
           echo ""
-          echo "🚀 Install via npm:      npm install -g @cortexmemory/cli"
-          echo "🍺 Install via Homebrew: brew install cortex-memory/tap/cli"
+          echo "🚀 Install via npm:      npm install -g @memoir/cli"
+          echo "🍺 Install via Homebrew: brew install memoir/tap/cli"
           echo ""
 
       - name: Update Homebrew tap formula
@@ -598,7 +598,7 @@ jobs:
           echo "  Updating Homebrew Tap Formula"
           echo "════════════════════════════════════════════════════════════"
 
-          TARBALL_URL="https://registry.npmjs.org/@cortexmemory/cli/-/cli-${VERSION}.tgz"
+          TARBALL_URL="https://registry.npmjs.org/@memoir/cli/-/cli-${VERSION}.tgz"
           TARBALL_FILE=$(mktemp)
 
           echo "📦 Version: ${VERSION}"
@@ -662,14 +662,14 @@ jobs:
 
           # Get current formula content to build updated version
           echo "📥 Fetching current formula from GitHub..."
-          CURRENT_CONTENT=$(gh api repos/Cortex-Memory/homebrew-tap/contents/Formula/cli.rb --jq '.content' | base64 -d)
+          CURRENT_CONTENT=$(gh api repos/Memoir-Memory/homebrew-tap/contents/Formula/cli.rb --jq '.content' | base64 -d)
           
           # Get current HEAD commit OID for the branch (needed for GraphQL mutation)
-          HEAD_OID=$(gh api repos/Cortex-Memory/homebrew-tap/git/ref/heads/main --jq '.object.sha')
+          HEAD_OID=$(gh api repos/Memoir-Memory/homebrew-tap/git/ref/heads/main --jq '.object.sha')
 
           # Update formula content using sed
           UPDATED_CONTENT=$(echo "$CURRENT_CONTENT" | \
-            sed "s|url \"https://registry.npmjs.org/@cortexmemory/cli/-/cli-[0-9.]*\.tgz\"|url \"https://registry.npmjs.org/@cortexmemory/cli/-/cli-${VERSION}.tgz\"|" | \
+            sed "s|url \"https://registry.npmjs.org/@memoir/cli/-/cli-[0-9.]*\.tgz\"|url \"https://registry.npmjs.org/@memoir/cli/-/cli-${VERSION}.tgz\"|" | \
             sed "s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA256}\"|")
 
           echo "✅ Formula updated locally"
@@ -713,7 +713,7 @@ jobs:
               }
             }
           ' \
-            -f nwo="Cortex-Memory/homebrew-tap" \
+            -f nwo="Memoir-Memory/homebrew-tap" \
             -f branch="main" \
             -f oid="$HEAD_OID" \
             -f message="chore: update cli formula to v${VERSION}" \
@@ -744,24 +744,24 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           python -m pip install --upgrade pip
           pip install build twine
 
       - name: Build package
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           python -m build
 
       - name: Check distribution
         run: |
-          cd cortex-sdk-python
+          cd memoir-sdk-python
           twine check dist/*
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: cortex-sdk-python/dist/
+          packages-dir: memoir-sdk-python/dist/
           skip-existing: true
           verbose: true
 
@@ -780,9 +780,9 @@ jobs:
           echo "  ✅ PYTHON SDK PUBLISHED!"
           echo "════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: cortex-memory@$VERSION"
-          echo "📚 PyPI: https://pypi.org/project/cortex-memory/"
+          echo "📦 Package: memoir@$VERSION"
+          echo "📚 PyPI: https://pypi.org/project/memoir/"
           echo "🏷️  Tag: py-v$VERSION"
           echo ""
-          echo "🚀 Try it: pip install cortex-memory"
+          echo "🚀 Try it: pip install memoir"
           echo ""

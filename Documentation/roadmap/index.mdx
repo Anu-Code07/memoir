@@ -2,12 +2,12 @@
 id: roadmap-overview
 title: Roadmap Overview
 sidebar_position: 0
-description: Overview of planned features and enhancements for Cortex
+description: Overview of planned features and enhancements for Memoir
 ---
 
 # Roadmap Overview
 
-This section documents planned features and enhancements for Cortex. These pages help you understand future capabilities and plan your integrations accordingly.
+This section documents planned features and enhancements for Memoir. These pages help you understand future capabilities and plan your integrations accordingly.
 
 <Callout type="info" title="Disclaimer">
   All features listed in this roadmap are **planned** but not yet implemented. Availability, specifications, and timelines are subject to change. We recommend using current features (see [Core Features](/core-features)) for production applications.
@@ -36,7 +36,7 @@ This section documents planned features and enhancements for Cortex. These pages
   />
 </FeatureGrid>
 
-**Cloud Mode** provides enterprise-ready managed services including automatic embeddings, GDPR-compliant cascade deletion, managed pub/sub infrastructure, analytics dashboards, and automatic governance enforcement. Your data stays in your Convex instance while Cortex Cloud handles operational complexity.
+**Cloud Mode** provides enterprise-ready managed services including automatic embeddings, GDPR-compliant cascade deletion, managed pub/sub infrastructure, analytics dashboards, and automatic governance enforcement. Your data stays in your Convex instance while Memoir Cloud handles operational complexity.
 
 **MCP Server** enables memory sharing across AI tools like Cursor, Claude Desktop, and custom applications. Tell one tool something, all tools remember it.
 
@@ -100,7 +100,7 @@ This section documents planned features and enhancements for Cortex. These pages
 
 **Governance** enhancements include automatic policy enforcement on every storage operation, automatic version purging, sessions policy enforcement, scheduled enforcement jobs, enforcement hooks, policy validation, and enforcement metrics.
 
-**Access Analytics** provides the full `cortex.analytics.*` API with visual dashboards for memory growth, search performance, access heat maps, predictive analytics, cost tracking, and automated alerts.
+**Access Analytics** provides the full `memoir.analytics.*` API with visual dashboards for memory growth, search performance, access heat maps, predictive analytics, cost tracking, and automated alerts.
 
 ---
 
@@ -145,14 +145,14 @@ All planned features are designed to be **backward compatible**. Existing code w
 
 ```typescript
 // Before (Direct Mode)
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
 });
 
 // After (Cloud Mode) - just add API key
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
-  apiKey: "cortex_sk_...",
+  apiKey: "memoir_sk_...",
   mode: "cloud",
   autoEmbed: true, // Optional: automatic embeddings
 });
@@ -162,12 +162,12 @@ const cortex = new Cortex({
 
 ```typescript
 // Existing code (works unchanged)
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed",
 });
 
 // New features (opt-in)
-await cortex.contexts.update(spaceId, contextId, {
+await memoir.contexts.update(spaceId, contextId, {
   status: "completed",
   validateTransition: true, // Opt-in to status validation
 });
@@ -212,7 +212,7 @@ Until planned features are available, current workarounds are documented in each
 For the latest updates on feature development:
 
 - **What's New:** [View recent releases](/whats-new)
-- **GitHub:** [github.com/CortexMind/Project-Cortex](https://github.com/CortexMind/Project-Cortex)
+- **GitHub:** [github.com/Anu-Code07/memoir](https://github.com/Anu-Code07/memoir)
 - **Documentation:** This roadmap section is updated as features are planned/implemented
 
 ---

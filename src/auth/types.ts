@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Auth Context Types
+ * Memoir SDK - Auth Context Types
  *
  * Fully extensible authentication context for multi-tenant applications.
  */
@@ -10,14 +10,14 @@
 export type AuthMethod = "oauth" | "api_key" | "jwt" | "session" | "custom";
 
 /**
- * Authentication context for Cortex operations.
+ * Authentication context for Memoir operations.
  *
  * This is the fully-resolved auth context that gets auto-injected
- * into all Cortex operations when provided to the Cortex constructor.
+ * into all Memoir operations when provided to the Memoir constructor.
  *
  * @example
  * ```typescript
- * const cortex = new Cortex({
+ * const memoir = new Memoir({
  *   convexUrl: process.env.CONVEX_URL!,
  *   auth: createAuthContext({
  *     userId: 'user-123',
@@ -27,7 +27,7 @@ export type AuthMethod = "oauth" | "api_key" | "jwt" | "session" | "custom";
  * });
  *
  * // All operations auto-scoped to auth context
- * await cortex.memory.remember({ ... }); // userId, tenantId auto-injected
+ * await memoir.memory.remember({ ... }); // userId, tenantId auto-injected
  * ```
  */
 export interface AuthContext {
@@ -69,7 +69,7 @@ export interface AuthContext {
    * Current session identifier.
    *
    * If provided, operations are associated with this session.
-   * Can be managed via cortex.sessions.* API.
+   * Can be managed via memoir.sessions.* API.
    */
   sessionId?: string;
 
@@ -120,7 +120,7 @@ export interface AuthContext {
    * Arbitrary developer-defined metadata.
    *
    * Use this for any custom data you need to associate with the
-   * auth context. This is NOT stored in Cortex; it's only used
+   * auth context. This is NOT stored in Memoir; it's only used
    * for runtime context injection.
    *
    * @example

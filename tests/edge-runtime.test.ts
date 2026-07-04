@@ -1,11 +1,11 @@
 /**
  * Edge Runtime Compatibility Tests
  *
- * Verifies that Cortex SDK works in edge runtime environments like Vercel Edge Functions.
+ * Verifies that Memoir SDK works in edge runtime environments like Vercel Edge Functions.
  * Tests ensure no Node.js-specific APIs are used in core SDK code.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -18,46 +18,46 @@ describe("Edge Runtime Compatibility", () => {
 
   describe("Simulated Edge Environment", () => {
     it("should not use Node.js-specific globals", () => {
-      // Cortex should be instantiable without Node.js-specific APIs
+      // Memoir should be instantiable without Node.js-specific APIs
       // Edge runtimes don't have process.cwd, __dirname, __filename, fs, path, etc.
-      expect(() => new Cortex({ convexUrl: CONVEX_URL })).not.toThrow();
+      expect(() => new Memoir({ convexUrl: CONVEX_URL })).not.toThrow();
 
       // Verify the SDK exports are available
-      expect(Cortex).toBeDefined();
-      expect(typeof Cortex).toBe("function");
+      expect(Memoir).toBeDefined();
+      expect(typeof Memoir).toBe("function");
     });
 
     it("should work without Node.js fs module", () => {
       // Edge runtimes don't have fs
-      // Cortex should not require fs for basic operations
-      const cortex = new Cortex({ convexUrl: CONVEX_URL });
-      expect(cortex).toBeDefined();
-      expect(cortex.memory).toBeDefined();
-      expect(cortex.conversations).toBeDefined();
+      // Memoir should not require fs for basic operations
+      const memoir = new Memoir({ convexUrl: CONVEX_URL });
+      expect(memoir).toBeDefined();
+      expect(memoir.memory).toBeDefined();
+      expect(memoir.conversations).toBeDefined();
     });
 
     it("should work without Node.js path module", () => {
       // Edge runtimes don't have path
-      // Cortex should not require path for basic operations
-      const cortex = new Cortex({ convexUrl: CONVEX_URL });
-      expect(cortex).toBeDefined();
+      // Memoir should not require path for basic operations
+      const memoir = new Memoir({ convexUrl: CONVEX_URL });
+      expect(memoir).toBeDefined();
     });
 
     it("should work without Node.js crypto module", () => {
       // Edge runtimes use Web Crypto API instead
-      // Cortex should use standard Web APIs
-      const cortex = new Cortex({ convexUrl: CONVEX_URL });
-      expect(cortex).toBeDefined();
+      // Memoir should use standard Web APIs
+      const memoir = new Memoir({ convexUrl: CONVEX_URL });
+      expect(memoir).toBeDefined();
     });
   });
 
   describe("Convex Client in Edge Context", () => {
-    let cortex: Cortex;
+    let memoir: Memoir;
     let client: ConvexClient;
     let _cleanup: TestCleanup;
 
     beforeAll(async () => {
-      cortex = new Cortex({ convexUrl: CONVEX_URL });
+      memoir = new Memoir({ convexUrl: CONVEX_URL });
       client = new ConvexClient(CONVEX_URL);
       _cleanup = new TestCleanup(client);
       // NOTE: Removed purgeAll() for parallel execution compatibility.
@@ -71,13 +71,13 @@ describe("Edge Runtime Compatibility", () => {
     it("should initialize Convex client in edge-like environment", () => {
       // ConvexClient from convex/browser should be edge-compatible
       // Test that SDK initialized successfully (client is private)
-      expect(cortex).toBeDefined();
-      expect(cortex.memory).toBeDefined();
-      expect(cortex.conversations).toBeDefined();
+      expect(memoir).toBeDefined();
+      expect(memoir.memory).toBeDefined();
+      expect(memoir.conversations).toBeDefined();
     });
 
     it("should create memory spaces without Node.js APIs", async () => {
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: ctx.memorySpaceId("edge-test"),
         name: "Edge Test Space",
         type: "custom",
@@ -88,7 +88,7 @@ describe("Edge Runtime Compatibility", () => {
     });
 
     it("should perform memory operations without Node.js APIs", async () => {
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: ctx.memorySpaceId("edge-test"),
         conversationId: "edge-conv-1",
         userMessage: "Test in edge runtime",
@@ -104,7 +104,7 @@ describe("Edge Runtime Compatibility", () => {
     });
 
     it("should search memories without Node.js APIs", async () => {
-      const memories = await cortex.memory.search(
+      const memories = await memoir.memory.search(
         ctx.memorySpaceId("edge-test"),
         "edge runtime",
       );
@@ -115,17 +115,17 @@ describe("Edge Runtime Compatibility", () => {
   });
 
   describe("Streaming in Edge Context", () => {
-    let cortex: Cortex;
+    let memoir: Memoir;
     let client: ConvexClient;
     let _cleanup: TestCleanup;
 
     beforeAll(async () => {
-      cortex = new Cortex({ convexUrl: CONVEX_URL });
+      memoir = new Memoir({ convexUrl: CONVEX_URL });
       client = new ConvexClient(CONVEX_URL);
       _cleanup = new TestCleanup(client);
       // NOTE: Removed purgeAll() for parallel execution compatibility.
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: ctx.memorySpaceId("edge-stream"),
         name: "Edge Stream Space",
         type: "custom",
@@ -148,7 +148,7 @@ describe("Edge Runtime Compatibility", () => {
         },
       });
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: ctx.memorySpaceId("edge-stream"),
         conversationId: "edge-stream-conv",
         userMessage: "Test edge streaming",
@@ -170,7 +170,7 @@ describe("Edge Runtime Compatibility", () => {
         yield "edge";
       }
 
-      const result = await cortex.memory.rememberStream({
+      const result = await memoir.memory.rememberStream({
         memorySpaceId: ctx.memorySpaceId("edge-stream"),
         conversationId: "edge-async-conv",
         userMessage: "Test async iterable",
@@ -186,16 +186,16 @@ describe("Edge Runtime Compatibility", () => {
   });
 
   describe("Error Handling in Edge Context", () => {
-    let cortex: Cortex;
+    let memoir: Memoir;
 
     beforeAll(() => {
-      cortex = new Cortex({ convexUrl: CONVEX_URL });
+      memoir = new Memoir({ convexUrl: CONVEX_URL });
     });
 
     it("should produce edge-compatible error messages", async () => {
       // Errors should not reference Node.js-specific paths or stack traces
       try {
-        await cortex.memory.remember({
+        await memoir.memory.remember({
           memorySpaceId: "non-existent-space",
           conversationId: "error-conv",
           userMessage: "Test",
@@ -223,7 +223,7 @@ describe("Edge Runtime Compatibility", () => {
       });
 
       await expect(
-        cortex.memory.rememberStream({
+        memoir.memory.rememberStream({
           memorySpaceId: ctx.memorySpaceId("edge-stream"),
           conversationId: "error-stream-conv",
           userMessage: "Test",
@@ -287,12 +287,12 @@ describe("Edge Runtime Compatibility", () => {
   });
 
   describe("Convex Queries in Edge Context", () => {
-    let cortex: Cortex;
+    let memoir: Memoir;
     let client: ConvexClient;
     let _cleanup: TestCleanup;
 
     beforeAll(async () => {
-      cortex = new Cortex({ convexUrl: CONVEX_URL });
+      memoir = new Memoir({ convexUrl: CONVEX_URL });
       client = new ConvexClient(CONVEX_URL);
       _cleanup = new TestCleanup(client);
       // NOTE: Removed purgeAll() for parallel execution compatibility.
@@ -305,14 +305,14 @@ describe("Edge Runtime Compatibility", () => {
 
     it("should execute queries without Node.js dependencies", async () => {
       // Test basic query operations
-      const spaces = await cortex.memorySpaces.list();
+      const spaces = await memoir.memorySpaces.list();
       expect(Array.isArray(spaces.spaces)).toBe(true);
     });
 
     it("should execute mutations without Node.js dependencies", async () => {
       // Test basic mutation operations
       const spaceId = ctx.memorySpaceId("edge-mutation-test");
-      const result = await cortex.memorySpaces.register({
+      const result = await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Edge Mutation Test",
         type: "custom",
@@ -326,17 +326,17 @@ describe("Edge Runtime Compatibility", () => {
 
 describe("Edge Runtime: Real-world Scenarios", () => {
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() for parallel execution compatibility.
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: ctx.memorySpaceId("edge-real-world"),
       name: "Edge Real World",
       type: "custom",
@@ -356,7 +356,7 @@ describe("Edge Runtime: Real-world Scenarios", () => {
     const userMessage = "What is the capital of France?";
 
     // 2. Search for relevant memories
-    const memories = await cortex.memory.search(EDGE_SPACE, userMessage, {
+    const memories = await memoir.memory.search(EDGE_SPACE, userMessage, {
       limit: 5,
     });
     expect(Array.isArray(memories)).toBe(true);
@@ -371,7 +371,7 @@ describe("Edge Runtime: Real-world Scenarios", () => {
     }
 
     // 4. Store the conversation with streaming
-    const result = await cortex.memory.rememberStream({
+    const result = await memoir.memory.rememberStream({
       memorySpaceId: EDGE_SPACE,
       conversationId: "edge-workflow-conv",
       userMessage: userMessage,
@@ -386,7 +386,7 @@ describe("Edge Runtime: Real-world Scenarios", () => {
     expect(result.memories).toHaveLength(2);
 
     // 6. Verify can retrieve the memory
-    const retrievedMemories = await cortex.memory.search(
+    const retrievedMemories = await memoir.memory.search(
       EDGE_SPACE,
       "capital France",
     );
@@ -395,11 +395,11 @@ describe("Edge Runtime: Real-world Scenarios", () => {
 
   it("should handle concurrent requests (edge function behavior)", async () => {
     // Edge functions often handle concurrent requests
-    // Test that Cortex can handle parallel operations
+    // Test that Memoir can handle parallel operations
     const CONCURRENT_AGENT = ctx.agentId("concurrent");
 
     // Pre-register agent to avoid race condition in concurrent requests
-    await cortex.agents.register({
+    await memoir.agents.register({
       id: CONCURRENT_AGENT,
       name: "Concurrent Test Agent",
     });
@@ -411,7 +411,7 @@ describe("Edge Runtime: Real-world Scenarios", () => {
 
     const results = await Promise.all(
       requests.map((req, i) =>
-        cortex.memory.remember({
+        memoir.memory.remember({
           memorySpaceId: ctx.memorySpaceId("edge-real-world"),
           conversationId: `concurrent-conv-${i}`,
           userMessage: req.userMessage,

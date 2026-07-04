@@ -2,7 +2,7 @@
 id: graph-operations
 title: Graph Operations API
 sidebar_position: 6
-description: Complete API reference for graph database integration, multi-hop queries, and knowledge graph operations in Cortex.
+description: Complete API reference for graph database integration, multi-hop queries, and knowledge graph operations in Memoir.
 ---
 
 # Graph Operations API
@@ -15,7 +15,7 @@ Complete API reference for graph database integration, multi-hop queries, and kn
 
 ## Overview
 
-The Graph Operations API (`@cortexmemory/sdk/graph`) provides advanced graph database capabilities for Cortex, enabling multi-hop relationship queries, knowledge discovery, and cross-layer context enrichment.
+The Graph Operations API (`@memoir/sdk/graph`) provides advanced graph database capabilities for Memoir, enabling multi-hop relationship queries, knowledge discovery, and cross-layer context enrichment.
 
 **Key Characteristics:**
 
@@ -59,11 +59,11 @@ See [Graph Database Integration Guide](/advanced-topics/graph-database-integrati
 ### Configuration
 
 ```typescript
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // 1. Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
@@ -76,8 +76,8 @@ await graphAdapter.connect({
 // 2. Initialize schema (one-time)
 await initializeGraphSchema(graphAdapter);
 
-// 3. Initialize Cortex with graph
-const cortex = new Cortex({
+// 3. Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -410,19 +410,19 @@ await adapter.clearDatabase();
 
 ### Automatic Graph Sync (v0.29.0+)
 
-**Important:** As of v0.29.0, graph synchronization is **automatic** when `CORTEX_GRAPH_SYNC=true` is set in your environment variables.
+**Important:** As of v0.29.0, graph synchronization is **automatic** when `MEMOIR_GRAPH_SYNC=true` is set in your environment variables.
 
 The `syncToGraph` option has been removed from all APIs. Graph sync is now controlled entirely by:
-1. Setting `CORTEX_GRAPH_SYNC=true` in your environment
+1. Setting `MEMOIR_GRAPH_SYNC=true` in your environment
 2. Providing valid graph credentials (e.g., `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`)
 
 #### Automatic Sync Behavior
 
 ```typescript
-// All operations auto-sync to graph when CORTEX_GRAPH_SYNC=true
+// All operations auto-sync to graph when MEMOIR_GRAPH_SYNC=true
 
 // Facts are automatically synced including Entity nodes
-await cortex.facts.store({
+await memoir.facts.store({
   memorySpaceId: "agent-1",
   fact: "Alice works at Acme Corp",
   factType: "relationship",
@@ -437,24 +437,24 @@ await cortex.facts.store({
 // Fact node + Entity nodes + MENTIONS relationships created automatically!
 
 // Memories are automatically synced
-await cortex.vector.store(memorySpaceId, data);
+await memoir.vector.store(memorySpaceId, data);
 // Memory node synced automatically!
 
 // Conversations are automatically synced
-await cortex.conversations.create(input);
+await memoir.conversations.create(input);
 // Conversation node synced automatically!
 ```
 
 #### Disabling Graph Sync
 
-To disable graph sync, simply don't set `CORTEX_GRAPH_SYNC` or set it to `false`:
+To disable graph sync, simply don't set `MEMOIR_GRAPH_SYNC` or set it to `false`:
 
 ```bash
 # Disable graph sync (default)
-CORTEX_GRAPH_SYNC=false
+MEMOIR_GRAPH_SYNC=false
 
 # Or simply don't set the variable
-# CORTEX_GRAPH_SYNC=...
+# MEMOIR_GRAPH_SYNC=...
 ```
 
 <Note>
@@ -478,10 +478,10 @@ import {
   syncContextRelationships,
   syncConversationRelationships,
   syncA2ARelationships,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 
 // Manual sync workflow
-const memory = await cortex.vector.store(memorySpaceId, data);
+const memory = await memoir.vector.store(memorySpaceId, data);
 const nodeId = await syncMemoryToGraph(memory, adapter);
 await syncMemoryRelationships(memory, nodeId, adapter);
 ```
@@ -501,7 +501,7 @@ async function syncContextToGraph(
 **Example:**
 
 ```typescript
-const context = await cortex.contexts.get(contextId);
+const context = await memoir.contexts.get(contextId);
 const nodeId = await syncContextToGraph(context, adapter, "tenant-acme");
 await syncContextRelationships(context, nodeId, adapter);
 ```
@@ -521,7 +521,7 @@ async function syncConversationToGraph(
 **Example:**
 
 ```typescript
-const conversation = await cortex.conversations.get(conversationId);
+const conversation = await memoir.conversations.get(conversationId);
 const nodeId = await syncConversationToGraph(conversation, adapter);
 await syncConversationRelationships(conversation, nodeId, adapter);
 ```
@@ -541,7 +541,7 @@ async function syncMemoryToGraph(
 **Example:**
 
 ```typescript
-const memory = await cortex.vector.get(memorySpaceId, memoryId);
+const memory = await memoir.vector.get(memorySpaceId, memoryId);
 const nodeId = await syncMemoryToGraph(memory, adapter, "tenant-acme");
 await syncMemoryRelationships(memory, nodeId, adapter);
 
@@ -566,7 +566,7 @@ async function syncFactToGraph(
 **Example:**
 
 ```typescript
-const fact = await cortex.facts.get(memorySpaceId, factId);
+const fact = await memoir.facts.get(memorySpaceId, factId);
 const nodeId = await syncFactToGraph(fact, adapter);
 await syncFactRelationships(fact, nodeId, adapter);
 ```
@@ -586,7 +586,7 @@ async function syncMemorySpaceToGraph(
 **Example:**
 
 ```typescript
-const memorySpace = await cortex.memorySpaces.get(memorySpaceId);
+const memorySpace = await memoir.memorySpaces.get(memorySpaceId);
 const nodeId = await syncMemorySpaceToGraph(memorySpace, adapter);
 // MemorySpace nodes don't have additional relationships to sync
 ```
@@ -629,14 +629,14 @@ Utility functions for managing graph nodes and lookups.
 
 #### findGraphNodeId()
 
-Find a graph node ID by Cortex entity ID.
+Find a graph node ID by Memoir entity ID.
 
 ```typescript
-import { findGraphNodeId } from "@cortexmemory/sdk/graph";
+import { findGraphNodeId } from "@memoir/sdk/graph";
 
 async function findGraphNodeId(
   label: string, // 'Context', 'Conversation', 'Memory', 'Fact', 'MemorySpace', 'User', 'Agent', 'Participant'
-  cortexId: string, // The Cortex entity ID (e.g., memoryId, factId)
+  memoirId: string, // The Memoir entity ID (e.g., memoryId, factId)
   adapter: GraphAdapter,
 ): Promise<string | null>; // Returns graph node ID or null if not found
 ```
@@ -660,7 +660,7 @@ const factNodeId = await findGraphNodeId("Fact", "fact-456", adapter);
 Create or get a User node using MERGE semantics (idempotent).
 
 ```typescript
-import { ensureUserNode } from "@cortexmemory/sdk/graph";
+import { ensureUserNode } from "@memoir/sdk/graph";
 
 async function ensureUserNode(
   userId: string,
@@ -681,7 +681,7 @@ const userNodeId = await ensureUserNode("user-123", adapter, "tenant-acme");
 Create or get an Agent node using MERGE semantics (idempotent).
 
 ```typescript
-import { ensureAgentNode } from "@cortexmemory/sdk/graph";
+import { ensureAgentNode } from "@memoir/sdk/graph";
 
 async function ensureAgentNode(
   agentId: string,
@@ -702,7 +702,7 @@ const agentNodeId = await ensureAgentNode("assistant-v1", adapter);
 Create or get a Participant node for Hive Mode using MERGE semantics.
 
 ```typescript
-import { ensureParticipantNode } from "@cortexmemory/sdk/graph";
+import { ensureParticipantNode } from "@memoir/sdk/graph";
 
 async function ensureParticipantNode(
   participantId: string,
@@ -726,7 +726,7 @@ const participantNodeId = await ensureParticipantNode(
 Create or get an Entity node using MERGE semantics. Used for fact subject/object entities.
 
 ```typescript
-import { ensureEntityNode } from "@cortexmemory/sdk/graph";
+import { ensureEntityNode } from "@memoir/sdk/graph";
 
 async function ensureEntityNode(
   entityName: string, // Entity name (e.g., "Alice", "Acme Corp")
@@ -757,7 +757,7 @@ await adapter.createEdge({
 Create or get an enriched Entity node with additional metadata from bullet-proof extraction.
 
 ```typescript
-import { ensureEnrichedEntityNode } from "@cortexmemory/sdk/graph";
+import { ensureEnrichedEntityNode } from "@memoir/sdk/graph";
 
 async function ensureEnrichedEntityNode(
   entityName: string, // Entity name (e.g., "Alex")
@@ -790,7 +790,7 @@ Automatic synchronization using Convex reactive queries.
 ### Configuration
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: "...",
   graph: {
     adapter: graphAdapter,
@@ -808,7 +808,7 @@ const cortex = new Cortex({
 
 ```typescript
 // Get worker instance
-const worker = cortex.getGraphSyncWorker();
+const worker = memoir.getGraphSyncWorker();
 
 if (worker) {
   // Get health metrics
@@ -827,14 +827,14 @@ if (worker) {
   */
 }
 
-// Worker stops automatically when cortex.close() is called
-cortex.close();
+// Worker stops automatically when memoir.close() is called
+memoir.close();
 ```
 
 ### Manual Worker Control
 
 ```typescript
-import { GraphSyncWorker } from "@cortexmemory/sdk/graph";
+import { GraphSyncWorker } from "@memoir/sdk/graph";
 
 // Create worker manually
 const worker = new GraphSyncWorker(client, graphAdapter, {
@@ -846,8 +846,8 @@ const worker = new GraphSyncWorker(client, graphAdapter, {
 await worker.start();
 console.log("Worker started, subscribing to sync queue...");
 
-// Use Cortex normally
-await cortex.memory.remember(params);
+// Use Memoir normally
+await memoir.memory.remember(params);
 // Worker processes in background reactively!
 
 // Monitor
@@ -872,8 +872,8 @@ All delete operations support sophisticated orphan cleanup:
 
 ```typescript
 // Delete memory - checks if conversation becomes orphaned
-// Graph cleanup is automatic when CORTEX_GRAPH_SYNC=true (v0.29.0+)
-await cortex.memory.forget("agent-1", "mem-123", {
+// Graph cleanup is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
+await memoir.memory.forget("agent-1", "mem-123", {
   deleteConversation: true,
 });
 
@@ -898,7 +898,7 @@ import {
   deleteContextFromGraph,
   deleteConversationFromGraph,
   deleteMemorySpaceFromGraph,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 #### deleteMemoryFromGraph()
@@ -973,7 +973,7 @@ const result = await deleteMemorySpaceFromGraph(
 Delete an immutable record from the graph. For facts, uses `deleteFactFromGraph` internally.
 
 ```typescript
-import { deleteImmutableFromGraph } from "@cortexmemory/sdk/graph";
+import { deleteImmutableFromGraph } from "@memoir/sdk/graph";
 
 async function deleteImmutableFromGraph(
   immutableType: string, // Type of immutable record (e.g., "fact")
@@ -1003,7 +1003,7 @@ const result2 = await deleteImmutableFromGraph("document", "doc-456", adapter);
 Delete a mutable record from the graph. Simple delete with no cascading.
 
 ```typescript
-import { deleteMutableFromGraph } from "@cortexmemory/sdk/graph";
+import { deleteMutableFromGraph } from "@memoir/sdk/graph";
 
 async function deleteMutableFromGraph(
   namespace: string, // Mutable namespace
@@ -1076,7 +1076,7 @@ import {
   deleteWithOrphanCleanup,
   detectOrphan,
   canRunOrphanCleanup,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 #### ORPHAN_RULES
@@ -1180,7 +1180,7 @@ Functions for managing fact versioning and supersession in the graph database. T
 Sync a fact supersession to the graph database. Creates a SUPERSEDES relationship from the new fact to the old fact.
 
 ```typescript
-import { syncFactSupersession } from "@cortexmemory/sdk/graph";
+import { syncFactSupersession } from "@memoir/sdk/graph";
 
 async function syncFactSupersession(
   oldFact: FactRecord, // The fact being superseded
@@ -1216,7 +1216,7 @@ console.log(`Fact ${newFact.factId} supersedes ${oldFact.factId}`);
 Update the status of a fact node in the graph.
 
 ```typescript
-import { updateFactGraphStatus } from "@cortexmemory/sdk/graph";
+import { updateFactGraphStatus } from "@memoir/sdk/graph";
 
 async function updateFactGraphStatus(
   factId: string,
@@ -1240,7 +1240,7 @@ await updateFactGraphStatus("fact-456", "deleted", adapter);
 Sync an in-place fact update to the graph. Used for UPDATE action in belief revision (content refinement without supersession).
 
 ```typescript
-import { syncFactUpdateInPlace } from "@cortexmemory/sdk/graph";
+import { syncFactUpdateInPlace } from "@memoir/sdk/graph";
 
 async function syncFactUpdateInPlace(
   fact: FactRecord, // The updated fact
@@ -1262,7 +1262,7 @@ const nodeId = await syncFactUpdateInPlace(updatedFact, adapter);
 Create a REVISED_FROM relationship between facts. Used when a fact is refined (content updated) rather than superseded.
 
 ```typescript
-import { syncFactRevision } from "@cortexmemory/sdk/graph";
+import { syncFactRevision } from "@memoir/sdk/graph";
 
 async function syncFactRevision(
   originalFact: FactRecord, // The original fact
@@ -1295,7 +1295,7 @@ const result = await syncFactRevision(
 Get the complete supersession chain for a fact from the graph.
 
 ```typescript
-import { getFactSupersessionChainFromGraph } from "@cortexmemory/sdk/graph";
+import { getFactSupersessionChainFromGraph } from "@memoir/sdk/graph";
 
 async function getFactSupersessionChainFromGraph(
   factId: string,
@@ -1328,7 +1328,7 @@ for (const item of chain) {
 Remove supersession relationships for a fact. Used when undoing a supersession or during cleanup.
 
 ```typescript
-import { removeFactSupersessionRelationships } from "@cortexmemory/sdk/graph";
+import { removeFactSupersessionRelationships } from "@memoir/sdk/graph";
 
 async function removeFactSupersessionRelationships(
   factId: string,
@@ -1353,7 +1353,7 @@ console.log(`Removed ${deleted} supersession relationships`);
 Create constraints and indexes (one-time setup).
 
 ```typescript
-import { initializeGraphSchema } from "@cortexmemory/sdk/graph";
+import { initializeGraphSchema } from "@memoir/sdk/graph";
 
 await initializeGraphSchema(adapter);
 // Creates:
@@ -1366,7 +1366,7 @@ await initializeGraphSchema(adapter);
 Check if schema is properly initialized.
 
 ```typescript
-import { verifyGraphSchema } from "@cortexmemory/sdk/graph";
+import { verifyGraphSchema } from "@memoir/sdk/graph";
 
 const status = await verifyGraphSchema(adapter);
 console.log("Schema valid:", status.valid);
@@ -1399,7 +1399,7 @@ Remove all constraints and indexes (testing/reset).
 </Callout>
 
 ```typescript
-import { dropGraphSchema } from "@cortexmemory/sdk/graph";
+import { dropGraphSchema } from "@memoir/sdk/graph";
 
 await dropGraphSchema(adapter);
 ```
@@ -1412,7 +1412,7 @@ await dropGraphSchema(adapter);
 
 ```typescript
 // Get memory
-const memory = await cortex.vector.get(memorySpaceId, memoryId);
+const memory = await memoir.vector.get(memorySpaceId, memoryId);
 
 // Find related facts via conversation
 const relatedFacts = await adapter.query(
@@ -1689,65 +1689,65 @@ const query = `
 
 <Note>
 **Breaking Change in v0.29.0:** The `syncToGraph` option has been removed from all APIs.
-Graph synchronization is now automatic when `CORTEX_GRAPH_SYNC=true` is set.
+Graph synchronization is now automatic when `MEMOIR_GRAPH_SYNC=true` is set.
 </Note>
 
-All Cortex APIs automatically sync to the graph database when:
-1. `CORTEX_GRAPH_SYNC=true` is set in environment variables
+All Memoir APIs automatically sync to the graph database when:
+1. `MEMOIR_GRAPH_SYNC=true` is set in environment variables
 2. Valid graph credentials are configured
 
 ### Conversations API
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
-await cortex.conversations.create(input);
-await cortex.conversations.addMessage(input);
-await cortex.conversations.delete(id);
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
+await memoir.conversations.create(input);
+await memoir.conversations.addMessage(input);
+await memoir.conversations.delete(id);
 ```
 
 ### Vector API
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
-await cortex.vector.store(memorySpaceId, input);
-await cortex.vector.update(memorySpaceId, memoryId, updates);
-await cortex.vector.delete(memorySpaceId, memoryId);
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
+await memoir.vector.store(memorySpaceId, input);
+await memoir.vector.update(memorySpaceId, memoryId, updates);
+await memoir.vector.delete(memorySpaceId, memoryId);
 ```
 
 ### Facts API
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
 // Includes Entity nodes and MENTIONS relationships
-await cortex.facts.store(params);
-await cortex.facts.update(memorySpaceId, factId, updates);
-await cortex.facts.delete(memorySpaceId, factId);
+await memoir.facts.store(params);
+await memoir.facts.update(memorySpaceId, factId, updates);
+await memoir.facts.delete(memorySpaceId, factId);
 ```
 
 ### Contexts API
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
-await cortex.contexts.create(params);
-await cortex.contexts.update(contextId, updates);
-await cortex.contexts.delete(contextId);
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
+await memoir.contexts.create(params);
+await memoir.contexts.update(contextId, updates);
+await memoir.contexts.delete(contextId);
 ```
 
 ### Memory Spaces API
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
-await cortex.memorySpaces.register(params);
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
+await memoir.memorySpaces.register(params);
 ```
 
 ### Memory API (Convenience)
 
 ```typescript
-// Automatically syncs when CORTEX_GRAPH_SYNC=true
-await cortex.memory.remember(params);
+// Automatically syncs when MEMOIR_GRAPH_SYNC=true
+await memoir.memory.remember(params);
 
 // Forget with cascade (graph orphan cleanup is automatic)
-await cortex.memory.forget(memorySpaceId, memoryId, {
+await memoir.memory.forget(memorySpaceId, memoryId, {
   deleteConversation: true,
 });
 ```
@@ -1759,9 +1759,9 @@ await cortex.memory.forget(memorySpaceId, memoryId, {
 For initial sync or large data imports:
 
 ```typescript
-import { initialGraphSync } from "@cortexmemory/sdk/graph";
+import { initialGraphSync } from "@memoir/sdk/graph";
 
-const result = await initialGraphSync(cortex, adapter, {
+const result = await initialGraphSync(memoir, adapter, {
   limits: {
     memorySpaces: 1000,
     contexts: 5000,
@@ -1831,8 +1831,8 @@ try {
 
 ```typescript
 // Sync failures log warnings but don't throw (v0.29.0+)
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true
-await cortex.vector.store(data);
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.vector.store(data);
 // If graph sync fails: Logs warning, continues
 // Convex remains source of truth
 ```
@@ -1857,8 +1857,8 @@ try {
 
 ```typescript
 // Recommended: Always write to Convex first (v0.29.0+)
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true
-await cortex.memory.remember(params);
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.memory.remember(params);
 // Convex write succeeds → then auto-syncs to graph
 
 // Avoid: Writing to graph first
@@ -1869,12 +1869,12 @@ await adapter.createNode({ ... }); // Graph could succeed but Convex fail
 
 ```typescript
 // Recommended: Enable auto-sync, use convenience APIs
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: "...",
   graph: { adapter, autoSync: true },
 });
 
-await cortex.memory.remember(params);
+await memoir.memory.remember(params);
 // Syncs automatically in background!
 ```
 
@@ -1882,7 +1882,7 @@ await cortex.memory.remember(params);
 
 ```typescript
 // Check worker periodically
-const worker = cortex.getGraphSyncWorker();
+const worker = memoir.getGraphSyncWorker();
 if (worker) {
   const metrics = worker.getMetrics();
 
@@ -1907,7 +1907,7 @@ const related = await adapter.query(`
 
 // Good: Fetch full data from Convex
 for (const record of related.records) {
-  const fullFact = await cortex.facts.get(
+  const fullFact = await memoir.facts.get(
     memorySpaceId,
     record.f.properties.factId,
   );
@@ -1955,7 +1955,7 @@ import type {
   DeletionContext,
   DeleteResult,
   OrphanCheckResult,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 ### Sync Functions
@@ -2010,7 +2010,7 @@ import {
 
   // Batch Sync
   initialGraphSync,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 ### GraphNode
@@ -2224,7 +2224,7 @@ import type {
   DeletionContext,
   DeleteResult,
   OrphanCheckResult,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 ### Error Classes
@@ -2236,7 +2236,7 @@ import {
   GraphAuthenticationError,
   GraphQueryError,
   GraphNotFoundError,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 ### OrphanRule
@@ -2328,7 +2328,7 @@ import {
   GraphAuthenticationError,
   GraphQueryError,
   GraphNotFoundError,
-} from "@cortexmemory/sdk/graph";
+} from "@memoir/sdk/graph";
 ```
 
 - **GraphDatabaseError** - Base error for graph operations
@@ -2410,7 +2410,7 @@ Complete examples in:
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).
 
 <QuickNav>
 

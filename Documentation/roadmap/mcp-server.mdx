@@ -12,7 +12,7 @@ description: Cross-application memory via Model Context Protocol (Planned)
 </Callout>
 
 <Callout type="info" title="What is MCP?">
-  The **Model Context Protocol** (MCP) is a standard for AI tools to share context. Cortex will provide an MCP server that enables tools like Cursor, Claude Desktop, and custom apps to share memory.
+  The **Model Context Protocol** (MCP) is a standard for AI tools to share context. Memoir will provide an MCP server that enables tools like Cursor, Claude Desktop, and custom apps to share memory.
   
   **Result:** Tell one tool something, all tools remember it!
 </Callout>
@@ -36,20 +36,20 @@ description: Cross-application memory via Model Context Protocol (Planned)
   <TabItem value="cursor" label="Cursor">
 
 <Steps>
-  <Step title="Install Cortex CLI">
+  <Step title="Install Memoir CLI">
 
 <Tabs groupId="install-method">
   <TabItem value="brew" label="Homebrew (Recommended)">
-    <Terminal>brew install cortex-memory/tap/cli</Terminal>
+    <Terminal>brew install memoir/tap/cli</Terminal>
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @cortexmemory/cli</Terminal>
+    <Terminal>npm install -g @memoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
   </Step>
   <Step title="Start MCP server">
-    <Terminal>cortex mcp start</Terminal>
+    <Terminal>memoir mcp start</Terminal>
   </Step>
   <Step title="Configure Cursor">
 
@@ -58,8 +58,8 @@ Add to `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "cortex": {
-      "command": "cortex",
+    "memoir": {
+      "command": "memoir",
       "args": ["mcp", "serve"]
     }
   }
@@ -76,14 +76,14 @@ Add to `~/.cursor/mcp.json`:
   <TabItem value="claude" label="Claude Desktop">
 
 <Steps>
-  <Step title="Install Cortex CLI">
+  <Step title="Install Memoir CLI">
 
 <Tabs groupId="install-method">
   <TabItem value="brew" label="Homebrew (Recommended)">
-    <Terminal>brew install cortex-memory/tap/cli</Terminal>
+    <Terminal>brew install memoir/tap/cli</Terminal>
   </TabItem>
   <TabItem value="npm" label="npm">
-    <Terminal>npm install -g @cortexmemory/cli</Terminal>
+    <Terminal>npm install -g @memoir/cli</Terminal>
   </TabItem>
 </Tabs>
 
@@ -95,8 +95,8 @@ Add to Claude Desktop config:
 ```json
 {
   "mcpServers": {
-    "cortex": {
-      "command": "cortex",
+    "memoir": {
+      "command": "memoir",
       "args": ["mcp", "serve"]
     }
   }
@@ -160,7 +160,7 @@ async function search(query: string) {
   <FlowNode 
     id="mcp-server" 
     icon="server" 
-    title="Cortex MCP Server" 
+    title="Memoir MCP Server" 
     description="Routes memory operations"
   />
   <FlowNode 
@@ -188,10 +188,10 @@ async function search(query: string) {
 <DataTable
   headers={["Endpoint", "Method", "Description"]}
   rows={[
-    ["cortex_remember / /add_memories", "POST", "Store a memory"],
-    ["cortex_search / /search_memory", "POST", "Search memories"],
-    ["cortex_recall / /list_memories", "GET", "Get context for LLM"],
-    ["cortex_get_facts / /get_memory", "GET", "Retrieve extracted facts"],
+    ["memoir_remember / /add_memories", "POST", "Store a memory"],
+    ["memoir_search / /search_memory", "POST", "Search memories"],
+    ["memoir_recall / /list_memories", "GET", "Get context for LLM"],
+    ["memoir_get_facts / /get_memory", "GET", "Retrieve extracted facts"],
     ["/delete_all_memories", "POST", "Clear user memories"],
   ]}
 />
@@ -227,7 +227,7 @@ POST /search_memory
 
 Run MCP server locally on your machine:
 
-<Terminal>cortex mcp start</Terminal>
+<Terminal>memoir mcp start</Terminal>
 
 <Callout type="tip">
   Free, data stays local, requires server running.
@@ -249,11 +249,11 @@ Cloud-hosted MCP endpoint—no local server needed:
 ```json
 {
   "mcpServers": {
-    "cortex-cloud": {
-      "url": "https://mcp.cortex.cloud/v1",
+    "memoir-cloud": {
+      "url": "https://mcp.memoir.cloud/v1",
       "auth": {
         "type": "bearer",
-        "token": "cortex_sk_your_api_key"
+        "token": "memoir_sk_your_api_key"
       }
     }
   }

@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Vector Memory API
+ * Memoir SDK - Vector Memory API
  *
  * Layer 2: Searchable agent-private memories with embeddings
  */
@@ -87,7 +87,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const memory = await cortex.vector.store('agent-1', {
+   * const memory = await memoir.vector.store('agent-1', {
    *   content: 'User prefers dark mode',
    *   contentType: 'raw',
    *   embedding: await embed('User prefers dark mode'),
@@ -99,7 +99,7 @@ export class VectorAPI {
    * });
    *
    * // With graph sync
-   * const memory = await cortex.vector.store('agent-1', data, {
+   * const memory = await memoir.vector.store('agent-1', data, {
    *   syncToGraph: true
    * });
    * ```
@@ -165,7 +165,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const memory = await cortex.vector.get('agent-1', 'mem-abc123');
+   * const memory = await memoir.vector.get('agent-1', 'mem-abc123');
    * ```
    */
   async get(
@@ -198,7 +198,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const results = await cortex.vector.search('agent-1', 'user preferences', {
+   * const results = await memoir.vector.search('agent-1', 'user preferences', {
    *   embedding: await embed('user preferences'),
    *   limit: 10,
    *   // For bullet-proof retrieval (v0.21.0+)
@@ -242,10 +242,10 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * await cortex.vector.delete('agent-1', 'mem-abc123');
+   * await memoir.vector.delete('agent-1', 'mem-abc123');
    *
    * // With graph sync and orphan cleanup
-   * await cortex.vector.delete('agent-1', 'mem-abc123', {
+   * await memoir.vector.delete('agent-1', 'mem-abc123', {
    *   syncToGraph: true
    * });
    * ```
@@ -290,7 +290,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const memories = await cortex.vector.list({
+   * const memories = await memoir.vector.list({
    *   agentId: 'agent-1',
    *   userId: 'user-123',
    *   limit: 50,
@@ -320,7 +320,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.vector.count({
+   * const count = await memoir.vector.count({
    *   agentId: 'agent-1',
    *   userId: 'user-123',
    * });
@@ -348,7 +348,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * await cortex.vector.update('agent-1', 'mem-123', {
+   * await memoir.vector.update('agent-1', 'mem-123', {
    *   content: 'Updated content',
    *   importance: 90,
    * });
@@ -390,7 +390,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const v1 = await cortex.vector.getVersion('agent-1', 'mem-123', 1);
+   * const v1 = await memoir.vector.getVersion('agent-1', 'mem-123', 1);
    * ```
    */
   async getVersion(
@@ -433,7 +433,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const history = await cortex.vector.getHistory('agent-1', 'mem-123');
+   * const history = await memoir.vector.getHistory('agent-1', 'mem-123');
    * ```
    */
   async getHistory(
@@ -475,7 +475,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * await cortex.vector.deleteMany({
+   * await memoir.vector.deleteMany({
    *   agentId: 'agent-1',
    *   sourceType: 'system',
    * });
@@ -507,7 +507,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const exported = await cortex.vector.export({
+   * const exported = await memoir.vector.export({
    *   agentId: 'agent-1',
    *   format: 'json',
    * });
@@ -551,7 +551,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * await cortex.vector.updateMany({
+   * await memoir.vector.updateMany({
    *   agentId: 'agent-1',
    *   sourceType: 'system',
    * }, {
@@ -593,7 +593,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * await cortex.vector.archive('agent-1', 'mem-123');
+   * await memoir.vector.archive('agent-1', 'mem-123');
    * ```
    */
   async archive(
@@ -625,7 +625,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const result = await cortex.vector.restoreFromArchive('agent-1', 'mem-123');
+   * const result = await memoir.vector.restoreFromArchive('agent-1', 'mem-123');
    * console.log(result.restored); // true
    * console.log(result.memory); // MemoryEntry
    * ```
@@ -659,7 +659,7 @@ export class VectorAPI {
    *
    * @example
    * ```typescript
-   * const memory = await cortex.vector.getAtTimestamp('agent-1', 'mem-123', Date.parse('2025-01-01'));
+   * const memory = await memoir.vector.getAtTimestamp('agent-1', 'mem-123', Date.parse('2025-01-01'));
    * ```
    */
   async getAtTimestamp(

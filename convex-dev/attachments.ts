@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Attachments API
+ * Memoir SDK - Attachments API
  *
  * Multi-modal file storage for images, PDFs, audio, video, and generic files.
  * Memory space-scoped with multi-tenancy support.
@@ -81,14 +81,14 @@ async function lookupAttachment(
  *
  * @example
  * ```typescript
- * const { uploadUrl } = await cortex.attachments.generateUploadUrl();
+ * const { uploadUrl } = await memoir.attachments.generateUploadUrl();
  *
  * // Client uploads file to uploadUrl via POST
  * const response = await fetch(uploadUrl, { method: 'POST', body: file });
  * const { storageId } = await response.json();
  *
  * // Then register the attachment
- * await cortex.attachments.attach({ storageId, ... });
+ * await memoir.attachments.attach({ storageId, ... });
  * ```
  */
 export const generateUploadUrl = mutation({

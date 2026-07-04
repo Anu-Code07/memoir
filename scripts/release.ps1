@@ -1,4 +1,4 @@
-# Quick Release Script for Cortex SDK
+# Quick Release Script for Memoir SDK
 # Usage: .\scripts\release.ps1 [version]
 # Example: .\scripts\release.ps1 0.2.0
 
@@ -74,14 +74,14 @@ Write-Host "✅ GitHub release created!`n" -ForegroundColor Green
 
 # Step 8: Verify
 Write-Host "🔍 Step 8: Verifying release..." -ForegroundColor Yellow
-Write-Host "npm view @cortexmemory/sdk version" -ForegroundColor Cyan
-npm view @cortexmemory/sdk version
+Write-Host "npm view @memoir/sdk version" -ForegroundColor Cyan
+npm view @memoir/sdk version
 Write-Host ""
 
 Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Green
 Write-Host "  ✅ RELEASE COMPLETE!" -ForegroundColor Green
 Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Green
-Write-Host "`n📦 Package: @cortexmemory/sdk@$Version" -ForegroundColor Cyan
-Write-Host "📚 npm: https://www.npmjs.com/package/@cortexmemory/sdk" -ForegroundColor Cyan
-Write-Host "🐙 GitHub: https://github.com/SaintNick1214/Project-Cortex/releases/tag/v$Version`n" -ForegroundColor Cyan
+Write-Host "`n📦 Package: @memoir/sdk@$Version" -ForegroundColor Cyan
+Write-Host "📚 npm: https://www.npmjs.com/package/@memoir/sdk" -ForegroundColor Cyan
+Write-Host "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/v$Version`n" -ForegroundColor Cyan
 

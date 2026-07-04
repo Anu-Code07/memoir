@@ -2,19 +2,19 @@
  * E2E Tests: AI SDK v6 Routes
  *
  * Tests the v6 API routes with different message formats and the
- * v6 compatibility helpers (createCortexCallOptionsSchema, createMemoryPrepareCall).
+ * v6 compatibility helpers (createMemoirCallOptionsSchema, createMemoryPrepareCall).
  *
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { Cortex } from "@cortexmemory/sdk";
+import { Memoir } from "@memoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,
   createTestConversationId,
 } from "../helpers/test-utils";
 import {
-  createCortexCallOptionsSchema,
+  createMemoirCallOptionsSchema,
   createMemoryPrepareCall,
   isV6Available,
 } from "../../src/v6-compat";
@@ -28,7 +28,7 @@ const SKIP_NO_OPENAI = !process.env.OPENAI_API_KEY;
 describe("AI SDK v6 Routes E2E", () => {
   let memorySpaceId: string;
   let userId: string;
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   beforeAll(() => {
     if (SKIP_E2E) {
@@ -46,12 +46,12 @@ describe("AI SDK v6 Routes E2E", () => {
 
     memorySpaceId = createTestMemorySpaceId("e2e-v6");
     userId = createTestUserId();
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterEach(async () => {
-    if (cortex) {
-      cortex.close();
+    if (memoir) {
+      memoir.close();
     }
   });
 
@@ -72,9 +72,9 @@ describe("AI SDK v6 Routes E2E", () => {
   // Call Options Schema
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("createCortexCallOptionsSchema", () => {
+  describe("createMemoirCallOptionsSchema", () => {
     it("should create a valid zod schema for call options", () => {
-      const schema = createCortexCallOptionsSchema();
+      const schema = createMemoirCallOptionsSchema();
       expect(schema).toBeDefined();
       expect(typeof schema.parse).toBe("function");
 
@@ -91,7 +91,7 @@ describe("AI SDK v6 Routes E2E", () => {
     });
 
     it("should allow optional fields", () => {
-      const schema = createCortexCallOptionsSchema();
+      const schema = createMemoirCallOptionsSchema();
 
       // Test with only required fields
       const minimalOptions = {
@@ -105,7 +105,7 @@ describe("AI SDK v6 Routes E2E", () => {
     });
 
     it("should reject invalid input", () => {
-      const schema = createCortexCallOptionsSchema();
+      const schema = createMemoirCallOptionsSchema();
 
       // Test missing required fields
       expect(() => schema.parse({})).toThrow();

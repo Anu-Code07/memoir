@@ -2,7 +2,7 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-Multi-tenancy and isolation with Cortex Memory Spaces.
+Multi-tenancy and isolation with Memoir Spaces.
 
 ## Overview
 
@@ -13,9 +13,9 @@ Memory Spaces provide isolated memory contexts for different users, teams, or pr
 ### 1. Per-User Isolation
 
 ```typescript
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: `user-${currentUser.id}`,
   userId: currentUser.id,
@@ -26,9 +26,9 @@ const cortexMemory = createCortexMemory({
 ### 2. Team Workspaces
 
 ```typescript
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: `team-${currentTeam.id}`,
   userId: currentUser.id,
@@ -39,9 +39,9 @@ const cortexMemory = createCortexMemory({
 ### 3. Project-Based
 
 ```typescript
-import { createCortexMemory } from "@cortexmemory/vercel-ai-provider";
+import { createMemoirMemory } from "@memoir/vercel-ai-provider";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: `project-${projectId}`,
   userId: currentUser.id,
@@ -80,7 +80,7 @@ const cortexMemory = createCortexMemory({
 
 ## Managing Memory Spaces
 
-For advanced usage, you can explicitly manage memory spaces using the Cortex SDK. Memory spaces can be registered, queried, updated, and deleted through the [Memory Space Operations API](/api-reference/memory-space-operations). This includes capabilities like:
+For advanced usage, you can explicitly manage memory spaces using the Memoir SDK. Memory spaces can be registered, queried, updated, and deleted through the [Memory Space Operations API](/api-reference/memory-space-operations). This includes capabilities like:
 
 - Explicitly registering memory spaces with metadata
 - Querying memory space details and statistics

@@ -8,7 +8,7 @@
  * - Tenant-scoped analytics and reporting
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { createTestRunContext } from "../helpers/isolation";
 import {
   generateTenantId,
@@ -46,7 +46,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       tenantId: acmeId,
       userId: acmeUserId,
       memorySpaceId: acmeSpaceId,
-      cortex: new Cortex({
+      memoir: new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: acmeAuth,
       }),
@@ -66,7 +66,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       tenantId: globexId,
       userId: globexUserId,
       memorySpaceId: globexSpaceId,
-      cortex: new Cortex({
+      memoir: new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: globexAuth,
       }),
@@ -86,7 +86,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       tenantId: initechId,
       userId: initechUserId,
       memorySpaceId: initechSpaceId,
-      cortex: new Cortex({
+      memoir: new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: initechAuth,
       }),
@@ -94,19 +94,19 @@ describeWithConvex("Multi-Tenancy E2E", () => {
     };
 
     // Register memory spaces for all tenants
-    await tenants.acmeCorp.cortex.memorySpaces.register({
+    await tenants.acmeCorp.memoir.memorySpaces.register({
       memorySpaceId: tenants.acmeCorp.memorySpaceId,
       name: "Acme Corp Main Space",
       type: "team",
     });
 
-    await tenants.globexInc.cortex.memorySpaces.register({
+    await tenants.globexInc.memoir.memorySpaces.register({
       memorySpaceId: tenants.globexInc.memorySpaceId,
       name: "Globex Inc Main Space",
       type: "team",
     });
 
-    await tenants.initech.cortex.memorySpaces.register({
+    await tenants.initech.memoir.memorySpaces.register({
       memorySpaceId: tenants.initech.memorySpaceId,
       name: "Initech Main Space",
       type: "team",
@@ -117,7 +117,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
     // Cleanup all tenant spaces
     for (const tenant of Object.values(tenants)) {
       try {
-        await tenant.cortex.memorySpaces.delete(tenant.memorySpaceId, {
+        await tenant.memoir.memorySpaces.delete(tenant.memorySpaceId, {
           cascade: true,
           reason: "Test cleanup",
         });
@@ -136,7 +136,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       // All tenants perform operations simultaneously
       const results = await Promise.all([
         // Acme Corp creates a conversation
-        tenants.acmeCorp.cortex.conversations.create({
+        tenants.acmeCorp.memoir.conversations.create({
           memorySpaceId: tenants.acmeCorp.memorySpaceId,
           type: "user-agent",
           participants: {
@@ -146,7 +146,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         }),
 
         // Globex creates a conversation
-        tenants.globexInc.cortex.conversations.create({
+        tenants.globexInc.memoir.conversations.create({
           memorySpaceId: tenants.globexInc.memorySpaceId,
           type: "user-agent",
           participants: {
@@ -156,7 +156,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         }),
 
         // Initech creates a conversation
-        tenants.initech.cortex.conversations.create({
+        tenants.initech.memoir.conversations.create({
           memorySpaceId: tenants.initech.memorySpaceId,
           type: "user-agent",
           participants: {
@@ -172,13 +172,13 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       expect(results[2].tenantId).toBe(tenants.initech.tenantId);
 
       // Cleanup
-      await tenants.acmeCorp.cortex.conversations.delete(
+      await tenants.acmeCorp.memoir.conversations.delete(
         results[0].conversationId,
       );
-      await tenants.globexInc.cortex.conversations.delete(
+      await tenants.globexInc.memoir.conversations.delete(
         results[1].conversationId,
       );
-      await tenants.initech.cortex.conversations.delete(
+      await tenants.initech.memoir.conversations.delete(
         results[2].conversationId,
       );
     });
@@ -191,7 +191,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
   describe("Scenario 2: Tenant-Specific Data Storage", () => {
     it("should store and retrieve tenant-specific facts", async () => {
       // Each tenant stores sensitive business data
-      const acmeFact = await tenants.acmeCorp.cortex.facts.store({
+      const acmeFact = await tenants.acmeCorp.memoir.facts.store({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         fact: "Acme Corp's Q4 revenue target: $10M",
         factType: "knowledge",
@@ -201,7 +201,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         metadata: { category: "financial", confidential: true },
       });
 
-      const globexFact = await tenants.globexInc.cortex.facts.store({
+      const globexFact = await tenants.globexInc.memoir.facts.store({
         memorySpaceId: tenants.globexInc.memorySpaceId,
         fact: "Globex Inc's new product launch: March 2025",
         factType: "knowledge",
@@ -211,7 +211,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         metadata: { category: "product", confidential: true },
       });
 
-      const initechFact = await tenants.initech.cortex.facts.store({
+      const initechFact = await tenants.initech.memoir.facts.store({
         memorySpaceId: tenants.initech.memorySpaceId,
         fact: "Initech's hiring plan: 20 engineers in Q1",
         factType: "knowledge",
@@ -222,7 +222,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       });
 
       // Verify each tenant can only see their own data
-      const acmeSearch = await tenants.acmeCorp.cortex.facts.search(
+      const acmeSearch = await tenants.acmeCorp.memoir.facts.search(
         tenants.acmeCorp.memorySpaceId,
         "revenue product hiring",
         { limit: 100 },
@@ -246,15 +246,15 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       ).toBe(false);
 
       // Cleanup
-      await tenants.acmeCorp.cortex.facts.delete(
+      await tenants.acmeCorp.memoir.facts.delete(
         tenants.acmeCorp.memorySpaceId,
         acmeFact.factId,
       );
-      await tenants.globexInc.cortex.facts.delete(
+      await tenants.globexInc.memoir.facts.delete(
         tenants.globexInc.memorySpaceId,
         globexFact.factId,
       );
-      await tenants.initech.cortex.facts.delete(
+      await tenants.initech.memoir.facts.delete(
         tenants.initech.memorySpaceId,
         initechFact.factId,
       );
@@ -272,7 +272,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       const _acmeUser3Id = generateTenantUserId(tenants.acmeCorp.tenantId);
 
       // User 1 creates a memory
-      const conv = await tenants.acmeCorp.cortex.conversations.create({
+      const conv = await tenants.acmeCorp.memoir.conversations.create({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         type: "user-agent",
         participants: {
@@ -281,7 +281,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         },
       });
 
-      await tenants.acmeCorp.cortex.memory.remember({
+      await tenants.acmeCorp.memoir.memory.remember({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "User 1's conversation about project Alpha",
@@ -292,7 +292,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       });
 
       // User 2 creates a memory
-      const conv2 = await tenants.acmeCorp.cortex.conversations.create({
+      const conv2 = await tenants.acmeCorp.memoir.conversations.create({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         type: "user-agent",
         participants: {
@@ -301,7 +301,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
         },
       });
 
-      await tenants.acmeCorp.cortex.memory.remember({
+      await tenants.acmeCorp.memoir.memory.remember({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         conversationId: conv2.conversationId,
         userMessage: "User 2's conversation about project Beta",
@@ -312,7 +312,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       });
 
       // Recall within tenant should find both users' data
-      const recall = await tenants.acmeCorp.cortex.memory.recall({
+      const recall = await tenants.acmeCorp.memoir.memory.recall({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         query: "project",
         limit: 100,
@@ -321,7 +321,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       expect(recall.items.length).toBeGreaterThanOrEqual(2);
 
       // But other tenants should not see any of it
-      const globexRecall = await tenants.globexInc.cortex.memory.recall({
+      const globexRecall = await tenants.globexInc.memoir.memory.recall({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         query: "project Alpha Beta",
         limit: 100,
@@ -330,8 +330,8 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       expect(globexRecall.items.length).toBe(0);
 
       // Cleanup
-      await tenants.acmeCorp.cortex.conversations.delete(conv.conversationId);
-      await tenants.acmeCorp.cortex.conversations.delete(conv2.conversationId);
+      await tenants.acmeCorp.memoir.conversations.delete(conv.conversationId);
+      await tenants.acmeCorp.memoir.conversations.delete(conv2.conversationId);
     });
   });
 
@@ -345,7 +345,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
 
     beforeAll(async () => {
       // Create data in Acme Corp
-      const conv = await tenants.acmeCorp.cortex.conversations.create({
+      const conv = await tenants.acmeCorp.memoir.conversations.create({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         type: "user-agent",
         participants: {
@@ -355,7 +355,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       });
       acmeConversationId = conv.conversationId;
 
-      const fact = await tenants.acmeCorp.cortex.facts.store({
+      const fact = await tenants.acmeCorp.memoir.facts.store({
         memorySpaceId: tenants.acmeCorp.memorySpaceId,
         fact: "Acme's secret: password is hunter2",
         factType: "knowledge",
@@ -367,8 +367,8 @@ describeWithConvex("Multi-Tenancy E2E", () => {
     });
 
     afterAll(async () => {
-      await tenants.acmeCorp.cortex.conversations.delete(acmeConversationId);
-      await tenants.acmeCorp.cortex.facts.delete(
+      await tenants.acmeCorp.memoir.conversations.delete(acmeConversationId);
+      await tenants.acmeCorp.memoir.facts.delete(
         tenants.acmeCorp.memorySpaceId,
         acmeFactId,
       );
@@ -376,13 +376,13 @@ describeWithConvex("Multi-Tenancy E2E", () => {
 
     it("should prevent Globex from accessing Acme conversation", async () => {
       const result =
-        await tenants.globexInc.cortex.conversations.get(acmeConversationId);
+        await tenants.globexInc.memoir.conversations.get(acmeConversationId);
 
       expect(result).toBeNull();
     });
 
     it("should prevent Initech from accessing Acme facts", async () => {
-      const result = await tenants.initech.cortex.facts.get(
+      const result = await tenants.initech.memoir.facts.get(
         tenants.acmeCorp.memorySpaceId,
         acmeFactId,
       );
@@ -393,7 +393,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
     it("should prevent cross-tenant fact deletion", async () => {
       // Globex tries to delete Acme's fact
       try {
-        await tenants.globexInc.cortex.facts.delete(
+        await tenants.globexInc.memoir.facts.delete(
           tenants.acmeCorp.memorySpaceId,
           acmeFactId,
         );
@@ -402,7 +402,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       }
 
       // Verify fact still exists for Acme
-      const fact = await tenants.acmeCorp.cortex.facts.get(
+      const fact = await tenants.acmeCorp.memoir.facts.get(
         tenants.acmeCorp.memorySpaceId,
         acmeFactId,
       );
@@ -417,22 +417,22 @@ describeWithConvex("Multi-Tenancy E2E", () => {
   describe("Scenario 5: Tenant Session Management", () => {
     it("should isolate sessions by tenant", async () => {
       // Create sessions in each tenant
-      const acmeSession = await tenants.acmeCorp.cortex.sessions.create({
+      const acmeSession = await tenants.acmeCorp.memoir.sessions.create({
         userId: tenants.acmeCorp.userId,
         tenantId: tenants.acmeCorp.tenantId,
       });
 
-      const globexSession = await tenants.globexInc.cortex.sessions.create({
+      const globexSession = await tenants.globexInc.memoir.sessions.create({
         userId: tenants.globexInc.userId,
         tenantId: tenants.globexInc.tenantId,
       });
 
       // Each tenant should only see their own sessions
-      const acmeSessions = await tenants.acmeCorp.cortex.sessions.list({
+      const acmeSessions = await tenants.acmeCorp.memoir.sessions.list({
         tenantId: tenants.acmeCorp.tenantId,
       });
 
-      const globexSessions = await tenants.globexInc.cortex.sessions.list({
+      const globexSessions = await tenants.globexInc.memoir.sessions.list({
         tenantId: tenants.globexInc.tenantId,
       });
 
@@ -452,8 +452,8 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       ).toBe(false);
 
       // Cleanup
-      await tenants.acmeCorp.cortex.sessions.end(acmeSession.sessionId);
-      await tenants.globexInc.cortex.sessions.end(globexSession.sessionId);
+      await tenants.acmeCorp.memoir.sessions.end(acmeSession.sessionId);
+      await tenants.globexInc.memoir.sessions.end(globexSession.sessionId);
     });
 
     it("should isolate endAll by tenant when same userId exists in multiple tenants", async () => {
@@ -461,26 +461,26 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       const sharedUserId = `admin-${Date.now()}`;
 
       // Create sessions with same userId in both tenants
-      const acmeSession1 = await tenants.acmeCorp.cortex.sessions.create({
+      const acmeSession1 = await tenants.acmeCorp.memoir.sessions.create({
         userId: sharedUserId,
         tenantId: tenants.acmeCorp.tenantId,
       });
-      const acmeSession2 = await tenants.acmeCorp.cortex.sessions.create({
+      const acmeSession2 = await tenants.acmeCorp.memoir.sessions.create({
         userId: sharedUserId,
         tenantId: tenants.acmeCorp.tenantId,
       });
 
-      const globexSession1 = await tenants.globexInc.cortex.sessions.create({
+      const globexSession1 = await tenants.globexInc.memoir.sessions.create({
         userId: sharedUserId,
         tenantId: tenants.globexInc.tenantId,
       });
-      const globexSession2 = await tenants.globexInc.cortex.sessions.create({
+      const globexSession2 = await tenants.globexInc.memoir.sessions.create({
         userId: sharedUserId,
         tenantId: tenants.globexInc.tenantId,
       });
 
       // End all sessions for this user ONLY in Acme tenant
-      const result = await tenants.acmeCorp.cortex.sessions.endAll(
+      const result = await tenants.acmeCorp.memoir.sessions.endAll(
         sharedUserId,
         { tenantId: tenants.acmeCorp.tenantId },
       );
@@ -491,27 +491,27 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       expect(result.sessionIds).toContain(acmeSession2.sessionId);
 
       // Verify Acme sessions are ended
-      const acmeSession1After = await tenants.acmeCorp.cortex.sessions.get(
+      const acmeSession1After = await tenants.acmeCorp.memoir.sessions.get(
         acmeSession1.sessionId,
       );
-      const acmeSession2After = await tenants.acmeCorp.cortex.sessions.get(
+      const acmeSession2After = await tenants.acmeCorp.memoir.sessions.get(
         acmeSession2.sessionId,
       );
       expect(acmeSession1After?.status).toBe("ended");
       expect(acmeSession2After?.status).toBe("ended");
 
       // Verify Globex sessions are STILL ACTIVE (tenant isolation working!)
-      const globexSession1After = await tenants.globexInc.cortex.sessions.get(
+      const globexSession1After = await tenants.globexInc.memoir.sessions.get(
         globexSession1.sessionId,
       );
-      const globexSession2After = await tenants.globexInc.cortex.sessions.get(
+      const globexSession2After = await tenants.globexInc.memoir.sessions.get(
         globexSession2.sessionId,
       );
       expect(globexSession1After?.status).toBe("active");
       expect(globexSession2After?.status).toBe("active");
 
       // Cleanup Globex sessions
-      await tenants.globexInc.cortex.sessions.endAll(sharedUserId, {
+      await tenants.globexInc.memoir.sessions.endAll(sharedUserId, {
         tenantId: tenants.globexInc.tenantId,
       });
     });
@@ -524,18 +524,18 @@ describeWithConvex("Multi-Tenancy E2E", () => {
   describe("Scenario 6: Tenant Data Export", () => {
     it("should export only tenant-specific user data", async () => {
       // Create user profiles in each tenant
-      await tenants.acmeCorp.cortex.users.update(tenants.acmeCorp.userId, {
+      await tenants.acmeCorp.memoir.users.update(tenants.acmeCorp.userId, {
         displayName: "Alice from Acme",
         email: "alice@acme.com",
       });
 
-      await tenants.globexInc.cortex.users.update(tenants.globexInc.userId, {
+      await tenants.globexInc.memoir.users.update(tenants.globexInc.userId, {
         displayName: "Bob from Globex",
         email: "bob@globex.com",
       });
 
       // Export Acme's users
-      const acmeResult = await tenants.acmeCorp.cortex.users.list({
+      const acmeResult = await tenants.acmeCorp.memoir.users.list({
         limit: 100,
       });
 
@@ -567,10 +567,10 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       ).toBe(false);
 
       // Cleanup
-      await tenants.acmeCorp.cortex.users.delete(tenants.acmeCorp.userId, {
+      await tenants.acmeCorp.memoir.users.delete(tenants.acmeCorp.userId, {
         cascade: false,
       });
-      await tenants.globexInc.cortex.users.delete(tenants.globexInc.userId, {
+      await tenants.globexInc.memoir.users.delete(tenants.globexInc.userId, {
         cascade: false,
       });
     });
@@ -588,26 +588,26 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       const newSpaceId = generateTenantMemorySpaceId(newTenantId);
 
       const newTenantAuth = createTenantAuthContext(newTenantId, newUserId);
-      const newTenantCortex = new Cortex({
+      const newTenantMemoir = new Memoir({
         convexUrl: process.env.CONVEX_URL!,
         auth: newTenantAuth,
       });
 
       // Onboard tenant - create memory space
-      await newTenantCortex.memorySpaces.register({
+      await newTenantMemoir.memorySpaces.register({
         memorySpaceId: newSpaceId,
         name: "New Customer Space",
         type: "team",
       });
 
       // Create initial user profile
-      await newTenantCortex.users.update(newUserId, {
+      await newTenantMemoir.users.update(newUserId, {
         displayName: "New Customer Admin",
         email: "admin@newcustomer.com",
       });
 
       // Create initial session
-      const session = await newTenantCortex.sessions.create({
+      const session = await newTenantMemoir.sessions.create({
         userId: newUserId,
         tenantId: newTenantId,
       });
@@ -616,7 +616,7 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       expect(session.tenantId).toBe(newTenantId);
 
       // Verify isolation from existing tenants
-      const acmeList = await tenants.acmeCorp.cortex.memorySpaces.list({
+      const acmeList = await tenants.acmeCorp.memoir.memorySpaces.list({
         limit: 100,
       });
       expect(
@@ -626,9 +626,9 @@ describeWithConvex("Multi-Tenancy E2E", () => {
       ).toBe(false);
 
       // Cleanup (simulating offboarding)
-      await newTenantCortex.sessions.end(session.sessionId);
-      await newTenantCortex.users.delete(newUserId, { cascade: false });
-      await newTenantCortex.memorySpaces.delete(newSpaceId, {
+      await newTenantMemoir.sessions.end(session.sessionId);
+      await newTenantMemoir.users.delete(newUserId, { cascade: false });
+      await newTenantMemoir.memorySpaces.delete(newSpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });

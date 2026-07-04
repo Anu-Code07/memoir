@@ -13,7 +13,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -27,17 +27,17 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 /**
  * Create a deep context hierarchy
  */
-async function createDeepHierarchy(cortex: Cortex, memorySpaceId: string) {
+async function createDeepHierarchy(memoir: Memoir, memorySpaceId: string) {
   const contexts: any[] = [];
 
   // Create root context
-  const root = await cortex.contexts.create({
+  const root = await memoir.contexts.create({
     purpose: "Customer Support Ticket #12345",
     memorySpaceId,
     userId: "user-customer-001",
@@ -57,7 +57,7 @@ async function createDeepHierarchy(cortex: Cortex, memorySpaceId: string) {
   ];
 
   for (let i = 0; i < 6; i++) {
-    const child = await cortex.contexts.create({
+    const child = await memoir.contexts.create({
       purpose: purposes[i],
       memorySpaceId,
       parentId: parent.contextId,
@@ -74,20 +74,20 @@ async function createDeepHierarchy(cortex: Cortex, memorySpaceId: string) {
  * Traverse context chain using Graph-Lite (Convex sequential queries)
  */
 async function traverseWithGraphLite(
-  cortex: Cortex,
+  memoir: Memoir,
   rootContextId: string,
 ): Promise<{ contexts: any[]; timeMs: number }> {
   const startTime = Date.now();
   const contexts: any[] = [];
 
   // Get root
-  let current: any = await cortex.contexts.get(rootContextId);
+  let current: any = await memoir.contexts.get(rootContextId);
   contexts.push(current);
 
   // Traverse down the chain manually
   while (current.childIds && current.childIds.length > 0) {
     const childId = current.childIds[0];
-    current = await cortex.contexts.get(childId);
+    current = await memoir.contexts.get(childId);
     contexts.push(current);
   }
 
@@ -130,7 +130,7 @@ async function runContextChainsProof(adapter: GraphAdapter, dbName: string) {
   console.log(`Testing Context Chains with ${dbName}`);
   console.log(`${"=".repeat(60)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
   const timestamp = Date.now();
   const memorySpaceId = `space-chains-${timestamp}`;
 
@@ -143,19 +143,19 @@ async function runContextChainsProof(adapter: GraphAdapter, dbName: string) {
     console.log("  ✓ Schema ready\n");
 
     // ============================================================================
-    // Phase 2: Create Deep Context Hierarchy in Cortex
+    // Phase 2: Create Deep Context Hierarchy in Memoir
     // ============================================================================
     console.log("📝 Phase 2: Create Deep Context Hierarchy (7 levels)");
 
     // Register memory space
-    const memorySpace = await cortex.memorySpaces.register({
+    const memorySpace = await memoir.memorySpaces.register({
       memorySpaceId,
       name: "Customer Support Agent",
       type: "personal",
     });
     console.log(`  ✓ Memory Space: ${memorySpace.memorySpaceId}`);
 
-    const contexts = await createDeepHierarchy(cortex, memorySpaceId);
+    const contexts = await createDeepHierarchy(memoir, memorySpaceId);
     console.log(
       `  ✓ Created ${contexts.length} contexts (depth 0-${contexts.length - 1})\n`,
     );
@@ -188,7 +188,7 @@ async function runContextChainsProof(adapter: GraphAdapter, dbName: string) {
     // Graph-Lite traversal (sequential Convex queries)
     console.log("\n  📊 Graph-Lite Traversal (Convex):");
     const graphLiteResult = await traverseWithGraphLite(
-      cortex,
+      memoir,
       contexts[0].contextId,
     );
     console.log(`    ✓ Found ${graphLiteResult.contexts.length} contexts`);
@@ -247,7 +247,7 @@ async function runContextChainsProof(adapter: GraphAdapter, dbName: string) {
     console.error(`❌ Context chains proof failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -258,7 +258,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Integration - Context Chains Proof         ║");
+  console.log("║  Memoir Graph Integration - Context Chains Proof         ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test with Neo4j

@@ -2,21 +2,21 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-25 | **Version**: v0.35.1+ </Callout>
 
-Complete API documentation for @cortexmemory/vercel-ai-provider (SDK v0.21.0+)
+Complete API documentation for @memoir/vercel-ai-provider (SDK v0.21.0+)
 
-## createCortexMemory(config)
+## createMemoirMemory(config)
 
 Creates a memory-augmented model factory with manual memory control methods.
 
 ### Signature
 
 ```typescript
-function createCortexMemory(config: CortexMemoryConfig): CortexMemoryModel;
+function createMemoirMemory(config: MemoirMemoryConfig): MemoirMemoryModel;
 ```
 
 ### Parameters
 
-#### CortexMemoryConfig
+#### MemoirMemoryConfig
 
 <APITable parameters={[
   { name: "convexUrl", type: "string", required: true, description: "Convex deployment URL" },
@@ -153,12 +153,12 @@ layerObserver?: {
 
 ### Returns
 
-#### CortexMemoryModel
+#### MemoirMemoryModel
 
 A function that wraps language models + manual memory methods:
 
 ```typescript
-interface CortexMemoryModel {
+interface MemoirMemoryModel {
   // Model wrapping
   (model: LanguageModelV1): LanguageModelV1;
 
@@ -171,27 +171,27 @@ interface CortexMemoryModel {
   ): Promise<void>;
   getMemories(options?: { limit?: number }): Promise<MemoryEntry[]>;
   clearMemories(options?: ClearOptions): Promise<number>;
-  getConfig(): Readonly<CortexMemoryConfig>;
+  getConfig(): Readonly<MemoirMemoryConfig>;
 }
 ```
 
-## createCortexMemoryAsync(config)
+## createMemoirMemoryAsync(config)
 
 Async version for automatic graph database configuration from environment variables.
 
 ### Signature
 
 ```typescript
-async function createCortexMemoryAsync(
-  config: CortexMemoryConfig,
-): Promise<CortexMemoryModel>;
+async function createMemoirMemoryAsync(
+  config: MemoirMemoryConfig,
+): Promise<MemoirMemoryModel>;
 ```
 
 ### Example
 
 ```typescript
 // Reads graph config from NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
-const cortexMemory = await createCortexMemoryAsync({
+const memoirMemory = await createMemoirMemoryAsync({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "smart-agent",
   userId: "user-123",
@@ -204,7 +204,7 @@ const cortexMemory = await createCortexMemoryAsync({
 ### Syntax
 
 ```typescript
-const wrappedModel = cortexMemory(underlyingModel);
+const wrappedModel = memoirMemory(underlyingModel);
 ```
 
 ### Examples
@@ -214,7 +214,7 @@ import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 
-const cortexMemory = createCortexMemory({
+const memoirMemory = createMemoirMemory({
   convexUrl: process.env.CONVEX_URL!,
   memorySpaceId: "my-agent",
   userId: "user-123",
@@ -222,9 +222,9 @@ const cortexMemory = createCortexMemory({
 });
 
 // Wrap any AI SDK provider
-const gpt4 = cortexMemory(openai("gpt-4o-mini"));
-const claude = cortexMemory(anthropic("claude-3-opus"));
-const gemini = cortexMemory(google("gemini-pro"));
+const gpt4 = memoirMemory(openai("gpt-4o-mini"));
+const claude = memoirMemory(anthropic("claude-3-opus"));
+const gemini = memoirMemory(google("gemini-pro"));
 
 // Use with AI SDK functions
 await streamText({ model: gpt4, messages });
@@ -256,7 +256,7 @@ async search(
 **Example:**
 
 ```typescript
-const memories = await cortexMemory.search("user preferences", {
+const memories = await memoirMemory.search("user preferences", {
   limit: 10,
   minScore: 0.8,
   tags: ["important"],
@@ -278,7 +278,7 @@ async remember(
     conversationId?: string;
     generateEmbedding?: (text: string) => Promise<number[]>;
     extractFacts?: (userMsg: string, agentResp: string) => Promise<Fact[]>;
-    // Note: syncToGraph removed in v0.29.0+ - sync is automatic when CORTEX_GRAPH_SYNC=true
+    // Note: syncToGraph removed in v0.29.0+ - sync is automatic when MEMOIR_GRAPH_SYNC=true
   }
 ): Promise<void>
 ```
@@ -286,8 +286,8 @@ async remember(
 **Example:**
 
 ```typescript
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true (v0.29.0+)
-await cortexMemory.remember(
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
+await memoirMemory.remember(
   "My favorite color is blue",
   "I will remember that!",
   {
@@ -312,7 +312,7 @@ async getMemories(
 **Example:**
 
 ```typescript
-const all = await cortexMemory.getMemories({ limit: 100 });
+const all = await memoirMemory.getMemories({ limit: 100 });
 console.log(`Total memories: ${all.length}`);
 ```
 
@@ -334,11 +334,11 @@ async clearMemories(
 
 ```typescript
 // Clear all memories
-const deleted = await cortexMemory.clearMemories({ confirm: true });
+const deleted = await memoirMemory.clearMemories({ confirm: true });
 console.log(`Deleted ${deleted} memories`);
 
 // Clear specific user's memories
-await cortexMemory.clearMemories({
+await memoirMemory.clearMemories({
   confirm: true,
   userId: "user-123",
 });
@@ -349,13 +349,13 @@ await cortexMemory.clearMemories({
 Get current configuration (read-only).
 
 ```typescript
-getConfig(): Readonly<CortexMemoryConfig>
+getConfig(): Readonly<MemoirMemoryConfig>
 ```
 
 **Example:**
 
 ```typescript
-const config = cortexMemory.getConfig();
+const config = memoirMemory.getConfig();
 console.log(`Memory Space: ${config.memorySpaceId}`);
 console.log(`Agent: ${config.agentId}`);
 ```
@@ -473,7 +473,7 @@ interface OrchestrationSummary {
 **NEW in v0.35.1** - React hook for phase-aware layer tracking.
 
 ```typescript
-import { useLayerTracking } from "@cortexmemory/vercel-ai-provider/react";
+import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
 ```
 
 ### Returns
@@ -511,7 +511,7 @@ interface UseLayerTrackingResult {
 ### Example Usage
 
 ```typescript
-import { useLayerTracking } from "@cortexmemory/vercel-ai-provider/react";
+import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
 import { useChat } from "@ai-sdk/react";
 
 function ChatComponent() {
@@ -567,8 +567,8 @@ export const REMEMBER_LAYERS: MemoryLayer[] = [
 
 ```typescript
 export type {
-  CortexMemoryConfig,
-  CortexMemoryModel,
+  MemoirMemoryConfig,
+  MemoirMemoryModel,
   ManualMemorySearchOptions,
   ManualRememberOptions,
   ManualClearOptions,
@@ -582,18 +582,18 @@ export type {
   RecallSummary,           // NEW in v0.35.1
   OrchestrationPhase,      // NEW in v0.35.1
   RevisionAction,
-} from "@cortexmemory/vercel-ai-provider";
+} from "@memoir/vercel-ai-provider";
 
 // React hook exports
 export {
   useLayerTracking,        // NEW in v0.35.1
   RECALL_LAYERS,           // NEW in v0.35.1
   REMEMBER_LAYERS,         // NEW in v0.35.1
-} from "@cortexmemory/vercel-ai-provider/react";
+} from "@memoir/vercel-ai-provider/react";
 ```
 
 <Callout type="info">
-AI SDK v6 compatibility layer APIs (including `isV6Available`, `createMemoryPrepareCall`, `CortexCallOptions`, etc.) are supported. The Vercel AI Provider is compatible with AI SDK versions 3, 4, 5, and 6.
+AI SDK v6 compatibility layer APIs (including `isV6Available`, `createMemoryPrepareCall`, `MemoirCallOptions`, etc.) are supported. The Vercel AI Provider is compatible with AI SDK versions 3, 4, 5, and 6.
 </Callout>
 
 ## Next Steps

@@ -1,13 +1,13 @@
 /**
- * Cortex Memory Provider for Vercel AI SDK
+ * Memoir Provider for Vercel AI SDK
  *
  * @example
  * ```typescript
- * import { createCortexMemory } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoirMemory } from '@memoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *
- * const cortexMemory = createCortexMemory({
+ * const memoirMemory = createMemoirMemory({
  *   convexUrl: process.env.CONVEX_URL!,
  *   memorySpaceId: 'my-agent',
  *   userId: 'user-123',
@@ -17,26 +17,26 @@
  *
  * // Use the augmented model
  * const result = await streamText({
- *   model: cortexMemory(openai('gpt-4o-mini')),
+ *   model: memoirMemory(openai('gpt-4o-mini')),
  *   messages: [{ role: 'user', content: 'What did I tell you about my name?' }],
  * });
  *
  * // Manual memory control
- * const memories = await cortexMemory.search('my preferences');
+ * const memories = await memoirMemory.search('my preferences');
  * ```
  */
 
 // Types handled dynamically to support all AI SDK versions
-import type { MemoryEntry } from "@cortexmemory/sdk";
-import { Cortex } from "@cortexmemory/sdk";
+import type { MemoryEntry } from "@memoir/sdk";
+import { Memoir } from "@memoir/sdk";
 import type {
-  CortexMemoryConfig,
-  CortexMemoryModel,
+  MemoirMemoryConfig,
+  MemoirMemoryModel,
   ManualMemorySearchOptions,
   ManualRememberOptions,
   ManualClearOptions,
 } from "./types";
-import { CortexMemoryProvider } from "./provider";
+import { MemoirMemoryProvider } from "./provider";
 import {
   validateConfig,
   resolveUserId,
@@ -45,18 +45,18 @@ import {
 import { createLogger } from "./types";
 
 /**
- * Create a Cortex Memory-augmented model factory
+ * Create a Memoir-augmented model factory
  *
- * @param config - Cortex memory configuration
+ * @param config - Memoir memory configuration
  * @returns Model factory function with manual memory control methods
  *
  * @example
  * ```typescript
- * import { createCortexMemory } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoirMemory } from '@memoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *
- * const cortexMemory = createCortexMemory({
+ * const memoirMemory = createMemoirMemory({
  *   convexUrl: process.env.CONVEX_URL!,
  *   memorySpaceId: 'my-chatbot',
  *   userId: () => getCurrentUserId(), // Can be async function
@@ -75,44 +75,44 @@ import { createLogger } from "./types";
  *   },
  *
  *   // Optional: Enable graph memory sync
- *   enableGraphMemory: process.env.CORTEX_GRAPH_SYNC === 'true',
+ *   enableGraphMemory: process.env.MEMOIR_GRAPH_SYNC === 'true',
  *
  *   // Optional: Enable fact extraction
- *   enableFactExtraction: process.env.CORTEX_FACT_EXTRACTION === 'true',
+ *   enableFactExtraction: process.env.MEMOIR_FACT_EXTRACTION === 'true',
  * });
  *
  * // Use with streamText
  * const result = await streamText({
- *   model: cortexMemory(openai('gpt-4o-mini')),
+ *   model: memoirMemory(openai('gpt-4o-mini')),
  *   messages,
  * });
  *
  * // Or manually control memory
- * const memories = await cortexMemory.search('user preferences');
- * await cortexMemory.remember('My name is Alice', 'Nice to meet you!');
+ * const memories = await memoirMemory.search('user preferences');
+ * await memoirMemory.remember('My name is Alice', 'Nice to meet you!');
  * ```
  */
-export function createCortexMemory(
-  config: CortexMemoryConfig,
-): CortexMemoryModel {
+export function createMemoirMemory(
+  config: MemoirMemoryConfig,
+): MemoirMemoryModel {
   // Validate configuration
   validateConfig(config);
 
   const logger = config.logger || createLogger(config.debug || false);
-  logger.debug("Creating Cortex Memory provider");
+  logger.debug("Creating Memoir provider");
 
-  // Initialize Cortex SDK (shared instance)
-  const cortex = new Cortex({ convexUrl: config.convexUrl });
+  // Initialize Memoir SDK (shared instance)
+  const memoir = new Memoir({ convexUrl: config.convexUrl });
 
   /**
    * Main function: Wrap a language model with memory
    */
-  const cortexMemory: CortexMemoryModel = Object.assign(
+  const memoirMemory: MemoirMemoryModel = Object.assign(
     (underlyingModel: any, settings?: Record<string, unknown>): any => {
       logger.debug(`Wrapping model: ${underlyingModel.modelId}`);
 
       // Create memory-augmented provider
-      return new CortexMemoryProvider(underlyingModel, config);
+      return new MemoirMemoryProvider(underlyingModel, config);
     },
     {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -134,7 +134,7 @@ export function createCortexMemory(
             embedding = await config.embeddingProvider.generate(query);
           }
 
-          const memories = await cortex.memory.search(
+          const memories = await memoir.memory.search(
             config.memorySpaceId,
             query,
             {
@@ -174,7 +174,7 @@ export function createCortexMemory(
 
           const extractFacts = options?.extractFacts || config.extractFacts;
 
-          await cortex.memory.remember(
+          await memoir.memory.remember(
             {
               memorySpaceId: config.memorySpaceId,
               conversationId,
@@ -207,7 +207,7 @@ export function createCortexMemory(
         logger.debug("Getting all memories");
 
         try {
-          const memories = await cortex.memory.list({
+          const memories = await memoir.memory.list({
             memorySpaceId: config.memorySpaceId,
             limit: options?.limit || 100,
           });
@@ -230,7 +230,7 @@ export function createCortexMemory(
         }
 
         try {
-          const result = await cortex.memory.deleteMany({
+          const result = await memoir.memory.deleteMany({
             memorySpaceId: config.memorySpaceId,
             userId: options.userId,
             sourceType: options.sourceType,
@@ -244,30 +244,30 @@ export function createCortexMemory(
         }
       },
 
-      getConfig: (): Readonly<CortexMemoryConfig> => {
+      getConfig: (): Readonly<MemoirMemoryConfig> => {
         return Object.freeze({ ...config });
       },
     },
   );
 
-  return cortexMemory;
+  return memoirMemory;
 }
 
 /**
- * Create a Cortex Memory-augmented model factory with async initialization
+ * Create a Memoir-augmented model factory with async initialization
  *
  * Use this when you want automatic graph database configuration from environment variables.
  * The async factory allows for connection setup before returning the model factory.
  *
- * @param config - Cortex memory configuration
+ * @param config - Memoir memory configuration
  * @returns Promise of model factory function with manual memory control methods
  *
  * @example
  * ```typescript
- * import { createCortexMemoryAsync } from '@cortexmemory/vercel-ai-provider';
+ * import { createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
  *
- * // With env vars: CORTEX_GRAPH_SYNC=true, NEO4J_URI=bolt://localhost:7687
- * const cortexMemory = await createCortexMemoryAsync({
+ * // With env vars: MEMOIR_GRAPH_SYNC=true, NEO4J_URI=bolt://localhost:7687
+ * const memoirMemory = await createMemoirMemoryAsync({
  *   convexUrl: process.env.CONVEX_URL!,
  *   memorySpaceId: 'my-chatbot',
  *   userId: 'user-123',
@@ -279,30 +279,30 @@ export function createCortexMemory(
  * // Graph is automatically configured from env vars!
  * ```
  */
-export async function createCortexMemoryAsync(
-  config: CortexMemoryConfig,
-): Promise<CortexMemoryModel> {
+export async function createMemoirMemoryAsync(
+  config: MemoirMemoryConfig,
+): Promise<MemoirMemoryModel> {
   // Validate configuration
   validateConfig(config);
 
   const logger = config.logger || createLogger(config.debug || false);
-  logger.debug("Creating Cortex Memory provider (async)");
+  logger.debug("Creating Memoir provider (async)");
 
-  // Use Cortex.create() for async initialization with auto-graph config
+  // Use Memoir.create() for async initialization with auto-graph config
   // This handles graph adapter creation/connection from env vars
-  const cortex = await Cortex.create({ convexUrl: config.convexUrl });
+  const memoir = await Memoir.create({ convexUrl: config.convexUrl });
 
   logger.debug(
-    "Cortex SDK initialized" +
+    "Memoir SDK initialized" +
       (config.enableGraphMemory ? " (graph support requested)" : ""),
   );
 
-  // Return the model factory that creates providers with the shared Cortex instance
-  const cortexMemory: CortexMemoryModel = Object.assign(
+  // Return the model factory that creates providers with the shared Memoir instance
+  const memoirMemory: MemoirMemoryModel = Object.assign(
     (underlyingModel: any, settings?: Record<string, unknown>): any => {
       logger.debug(`Wrapping model: ${underlyingModel.modelId}`);
-      // Create provider with the pre-initialized Cortex instance (includes graph adapter)
-      return new CortexMemoryProvider(underlyingModel, config, cortex);
+      // Create provider with the pre-initialized Memoir instance (includes graph adapter)
+      return new MemoirMemoryProvider(underlyingModel, config, memoir);
     },
     {
       search: async (
@@ -319,7 +319,7 @@ export async function createCortexMemoryAsync(
             embedding = await config.embeddingProvider.generate(query);
           }
 
-          const memories = await cortex.memory.search(
+          const memories = await memoir.memory.search(
             config.memorySpaceId,
             query,
             {
@@ -354,7 +354,7 @@ export async function createCortexMemoryAsync(
             options?.conversationId ||
             (await resolveConversationId(config, logger));
 
-          await cortex.memory.remember(
+          await memoir.memory.remember(
             {
               memorySpaceId: config.memorySpaceId,
               conversationId,
@@ -390,7 +390,7 @@ export async function createCortexMemoryAsync(
         logger.debug("Getting all memories");
 
         try {
-          const memories = await cortex.memory.list({
+          const memories = await memoir.memory.list({
             memorySpaceId: config.memorySpaceId,
             limit: options?.limit || 100,
           });
@@ -413,7 +413,7 @@ export async function createCortexMemoryAsync(
         }
 
         try {
-          const result = await cortex.memory.deleteMany({
+          const result = await memoir.memory.deleteMany({
             memorySpaceId: config.memorySpaceId,
             userId: options.userId,
             sourceType: options.sourceType,
@@ -427,19 +427,19 @@ export async function createCortexMemoryAsync(
         }
       },
 
-      getConfig: (): Readonly<CortexMemoryConfig> => {
+      getConfig: (): Readonly<MemoirMemoryConfig> => {
         return Object.freeze({ ...config });
       },
     },
   );
 
-  return cortexMemory;
+  return memoirMemory;
 }
 
 // Re-export types for convenience
 export type {
-  CortexMemoryConfig,
-  CortexMemoryModel,
+  MemoirMemoryConfig,
+  MemoirMemoryModel,
   ManualMemorySearchOptions,
   ManualRememberOptions,
   ManualClearOptions,
@@ -455,7 +455,7 @@ export type {
   RevisionAction,
 } from "./types";
 
-export { CortexMemoryProvider } from "./provider";
+export { MemoirMemoryProvider } from "./provider";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Streaming Helpers for Layer Visualization
@@ -495,21 +495,21 @@ export {
   // v6 feature detection
   isV6Available,
   // Call options for ToolLoopAgent
-  createCortexCallOptionsSchema,
+  createMemoirCallOptionsSchema,
   // Memory injection helpers
   createMemoryPrepareCall,
   defaultMemoryContextFormatter,
   // API route helpers
-  createCortexAgentStreamResponse,
+  createMemoirAgentStreamResponse,
 } from "./v6-compat";
 
 export type {
   // Types for v6 integration
-  CortexCallOptions,
-  CortexMessageMetadata,
+  MemoirCallOptions,
+  MemoirMessageMetadata,
   InferAgentUIMessage,
   MemoryInjectionConfig,
-  CortexAgentStreamOptions,
+  MemoirAgentStreamOptions,
 } from "./v6-compat";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -520,7 +520,7 @@ export {
   // Zod Schemas
   ArtifactKindSchema,
   StreamingStateSchema,
-  CortexArtifactSchema,
+  MemoirArtifactSchema,
   CreateArtifactInputSchema,
   UpdateArtifactInputSchema,
   AppendToArtifactInputSchema,
@@ -540,7 +540,7 @@ export type {
   ArtifactKind,
   StreamingState,
   KindConfig,
-  CortexArtifact,
+  MemoirArtifact,
   // Input types
   CreateArtifactInput,
   UpdateArtifactInput,

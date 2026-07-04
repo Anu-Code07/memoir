@@ -2,7 +2,7 @@
  * Memory-Enabled Agent (AI SDK v6)
  *
  * This file demonstrates how to create a reusable agent with
- * Cortex Memory integration using AI SDK v6's ToolLoopAgent.
+ * Memoir integration using AI SDK v6's ToolLoopAgent.
  *
  * The agent:
  * - Automatically injects relevant memories into context
@@ -25,16 +25,16 @@ import { ToolLoopAgent, tool, stepCountIs } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import {
-  createCortexCallOptionsSchema,
+  createMemoirCallOptionsSchema,
   createMemoryPrepareCall,
-  type CortexCallOptions,
-} from "@cortexmemory/vercel-ai-provider";
+  type MemoirCallOptions,
+} from "@memoir/vercel-ai-provider";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Agent Configuration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Cortex.
+const SYSTEM_PROMPT = `You are a helpful AI assistant with long-term memory powered by Memoir.
 
 Your capabilities:
 - You remember everything users tell you across conversations
@@ -56,7 +56,7 @@ Behavior guidelines:
  *
  * This agent demonstrates:
  * - callOptionsSchema for type-safe runtime config (userId, memorySpaceId, etc.)
- * - prepareCall for automatic memory context injection via Cortex's recall() API
+ * - prepareCall for automatic memory context injection via Memoir's recall() API
  * - Built-in tools for memory operations (optional)
  *
  * The callOptionsSchema ensures TypeScript type safety when calling the agent:
@@ -66,7 +66,7 @@ Behavior guidelines:
  * - agentId: optional agent identifier
  */
 export const memoryAgent = new ToolLoopAgent({
-  id: "cortex-memory-agent",
+  id: "memoir-agent",
   model: openai("gpt-4o-mini"),
   instructions: SYSTEM_PROMPT,
 
@@ -82,14 +82,14 @@ export const memoryAgent = new ToolLoopAgent({
   // │     options: { userId: 'u1', memorySpaceId: 'app1' }, // typed!│
   // │   });                                                          │
   // └─────────────────────────────────────────────────────────────────┘
-  callOptionsSchema: createCortexCallOptionsSchema(),
+  callOptionsSchema: createMemoirCallOptionsSchema(),
 
   // ┌─────────────────────────────────────────────────────────────────┐
   // │ prepareCall: Memory Context Injection                          │
   // │                                                                 │
   // │ Called before each agent invocation. This hook:                │
   // │ 1. Extracts the user's query from messages                     │
-  // │ 2. Calls Cortex memory.recall() with userId + memorySpaceId    │
+  // │ 2. Calls Memoir memory.recall() with userId + memorySpaceId    │
   // │ 3. Injects the returned context into instructions              │
   // │                                                                 │
   // │ The recall() API orchestrates all memory layers:               │
@@ -119,9 +119,9 @@ export const memoryAgent = new ToolLoopAgent({
         query: z.string().describe('What to search for in memory'),
       }),
       execute: async ({ query }, { options }) => {
-        const { Cortex } = await import('@cortexmemory/sdk');
-        const cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
-        const result = await cortex.memory.recall({
+        const { Memoir } = await import('@memoir/sdk');
+        const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
+        const result = await memoir.memory.recall({
           memorySpaceId: options.memorySpaceId,
           query,
           userId: options.userId,
@@ -163,4 +163,4 @@ export type MemoryAgentUIMessage = {
 /**
  * Re-export call options type for convenience.
  */
-export type { CortexCallOptions };
+export type { MemoirCallOptions };

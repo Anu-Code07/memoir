@@ -5,18 +5,18 @@
  * Uses mocked SDK but tests real component interactions
  */
 
-import { CortexMemoryProvider } from "../../src/provider";
+import { MemoirMemoryProvider } from "../../src/provider";
 import {
   createTestConfig,
   createMockLLM,
   createMockMemories,
 } from "../helpers/test-utils";
 
-// Mock Cortex SDK with stateful behavior for integration tests
+// Mock Memoir SDK with stateful behavior for integration tests
 let storedMemories: any[] = [];
 let storedConversations: any[] = [];
 
-const mockCortex = {
+const mockMemoir = {
   memory: {
     search: jest.fn().mockImplementation(() => storedMemories),
     remember: jest.fn().mockImplementation(async (params: any) => {
@@ -68,8 +68,8 @@ const mockCortex = {
   close: jest.fn(),
 };
 
-jest.mock("@cortexmemory/sdk", () => ({
-  Cortex: jest.fn().mockImplementation(() => mockCortex),
+jest.mock("@memoir/sdk", () => ({
+  Memoir: jest.fn().mockImplementation(() => mockMemoir),
   CypherGraphAdapter: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
@@ -97,7 +97,7 @@ describe("Memory Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       // Execute doGenerate
       const result = await provider.doGenerate({
@@ -111,7 +111,7 @@ describe("Memory Flow Integration", () => {
       });
 
       // Verify recall was called
-      expect(mockCortex.memory.recall).toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).toHaveBeenCalled();
 
       // Verify LLM was called with augmented prompt
       expect(mockLLM.doGenerate).toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe("Memory Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify storage was called
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
     });
 
     it("should skip recall when memory search disabled", async () => {
@@ -137,14 +137,14 @@ describe("Memory Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
         mode: { type: "regular" },
       });
 
-      expect(mockCortex.memory.recall).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).not.toHaveBeenCalled();
     });
 
     it("should skip storage when memory storage disabled", async () => {
@@ -153,7 +153,7 @@ describe("Memory Flow Integration", () => {
         enableMemoryStorage: false,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -161,11 +161,11 @@ describe("Memory Flow Integration", () => {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 100));
-      expect(mockCortex.memory.remember).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.remember).not.toHaveBeenCalled();
     });
 
     it("should handle recall failure and continue with generation", async () => {
-      mockCortex.memory.recall.mockRejectedValueOnce(
+      mockMemoir.memory.recall.mockRejectedValueOnce(
         new Error("Recall service unavailable"),
       );
 
@@ -174,7 +174,7 @@ describe("Memory Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       // Should not throw
       const result = await provider.doGenerate({
@@ -188,7 +188,7 @@ describe("Memory Flow Integration", () => {
     });
 
     it("should handle storage failure gracefully", async () => {
-      mockCortex.memory.remember.mockRejectedValueOnce(
+      mockMemoir.memory.remember.mockRejectedValueOnce(
         new Error("Storage unavailable"),
       );
 
@@ -197,7 +197,7 @@ describe("Memory Flow Integration", () => {
         enableMemoryStorage: true,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       // Should not throw
       const result = await provider.doGenerate({
@@ -216,7 +216,7 @@ describe("Memory Flow Integration", () => {
   describe("context injection strategies", () => {
     it("should inject into existing system message with system strategy", async () => {
       storedMemories = [{ memoryId: "mem-1", content: "User likes coffee" }];
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "User likes coffee",
         totalResults: 1,
         queryTimeMs: 10,
@@ -232,7 +232,7 @@ describe("Memory Flow Integration", () => {
         contextInjectionStrategy: "system",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [
@@ -248,7 +248,7 @@ describe("Memory Flow Integration", () => {
     });
 
     it("should create new system message when none exists", async () => {
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "Previous context",
         totalResults: 1,
         queryTimeMs: 10,
@@ -264,7 +264,7 @@ describe("Memory Flow Integration", () => {
         contextInjectionStrategy: "system",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -291,7 +291,7 @@ describe("Memory Flow Integration", () => {
         embeddingProvider: { generate: generateMock },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [
@@ -313,7 +313,7 @@ describe("Memory Flow Integration", () => {
         embeddingProvider: { generate: generateMock },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       // Should not throw
       await provider.doGenerate({
@@ -321,7 +321,7 @@ describe("Memory Flow Integration", () => {
         mode: { type: "regular" },
       });
 
-      expect(mockCortex.memory.recall).toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).toHaveBeenCalled();
     });
   });
 
@@ -342,7 +342,7 @@ describe("Memory Flow Integration", () => {
         layerObserver,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -351,7 +351,7 @@ describe("Memory Flow Integration", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const rememberCall = mockCortex.memory.remember.mock.calls[0][0];
+      const rememberCall = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberCall.observer).toBe(layerObserver);
     });
   });
@@ -367,7 +367,7 @@ describe("Memory Flow Integration", () => {
         beliefRevision: { enabled: true, slotMatching: true },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -376,7 +376,7 @@ describe("Memory Flow Integration", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const rememberOptions = mockCortex.memory.remember.mock.calls[0][1];
+      const rememberOptions = mockMemoir.memory.remember.mock.calls[0][1];
       expect(rememberOptions.beliefRevision).toBeDefined();
     });
 
@@ -386,7 +386,7 @@ describe("Memory Flow Integration", () => {
         beliefRevision: false,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -395,7 +395,7 @@ describe("Memory Flow Integration", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const rememberOptions = mockCortex.memory.remember.mock.calls[0][1];
+      const rememberOptions = mockMemoir.memory.remember.mock.calls[0][1];
       expect(rememberOptions.beliefRevision).toBeUndefined();
     });
   });
@@ -411,7 +411,7 @@ describe("Memory Flow Integration", () => {
         conversationId: "explicit-conv-123",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -421,8 +421,8 @@ describe("Memory Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify remember was called with the explicit conversationId
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
-      const rememberParams = mockCortex.memory.remember.mock.calls[0][0];
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
+      const rememberParams = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberParams.conversationId).toBe("explicit-conv-123");
     });
 
@@ -434,7 +434,7 @@ describe("Memory Flow Integration", () => {
       delete (config as any).conversationId;
 
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -444,8 +444,8 @@ describe("Memory Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify remember was called with an auto-generated conversationId
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
-      const rememberParams = mockCortex.memory.remember.mock.calls[0][0];
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
+      const rememberParams = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberParams.conversationId).toBeDefined();
       expect(rememberParams.conversationId).toMatch(/^conv-\d+-[a-z0-9]+$/);
     });
@@ -459,7 +459,7 @@ describe("Memory Flow Integration", () => {
         conversationId: "persistent-conv-456",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [
@@ -474,15 +474,15 @@ describe("Memory Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify recall was called (conversationId is not passed to recall API)
-      expect(mockCortex.memory.recall).toHaveBeenCalled();
-      const recallParams = mockCortex.memory.recall.mock.calls[0][0];
+      expect(mockMemoir.memory.recall).toHaveBeenCalled();
+      const recallParams = mockMemoir.memory.recall.mock.calls[0][0];
       // recall() doesn't filter by conversationId - it retrieves user's full context
       expect(recallParams.userId).toBeDefined();
       expect(recallParams.memorySpaceId).toBeDefined();
 
       // Verify remember was called with the conversationId for storage
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
-      const rememberParams = mockCortex.memory.remember.mock.calls[0][0];
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
+      const rememberParams = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberParams.conversationId).toBe("persistent-conv-456");
     });
 
@@ -496,7 +496,7 @@ describe("Memory Flow Integration", () => {
         },
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -506,8 +506,8 @@ describe("Memory Flow Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify remember was called with dynamically generated conversationId
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
-      const rememberParams = mockCortex.memory.remember.mock.calls[0][0];
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
+      const rememberParams = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberParams.conversationId).toMatch(/^dynamic-conv-\d+$/);
     });
 
@@ -517,7 +517,7 @@ describe("Memory Flow Integration", () => {
         conversationId: "tracked-conv-789",
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],

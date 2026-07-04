@@ -33,7 +33,7 @@ describeIfEnabled("Neo4j URI Schemes", () => {
     it("should connect with bolt:// URI", async () => {
       const uri = process.env.NEO4J_URI || "bolt://localhost:7687";
       const username = process.env.NEO4J_USERNAME || "neo4j";
-      const password = process.env.NEO4J_PASSWORD || "cortex-dev-password";
+      const password = process.env.NEO4J_PASSWORD || "memoir-dev-password";
 
       await adapter.connect({ uri, username, password });
 
@@ -68,7 +68,7 @@ describeIfEnabled("Neo4j URI Schemes", () => {
       // Neo4j driver accepts neo4j:// even for single instances
       const uri = "neo4j://localhost:7687";
       const username = process.env.NEO4J_USERNAME || "neo4j";
-      const password = process.env.NEO4J_PASSWORD || "cortex-dev-password";
+      const password = process.env.NEO4J_PASSWORD || "memoir-dev-password";
 
       await adapter.connect({ uri, username, password });
 
@@ -98,7 +98,7 @@ describeIfEnabled("Neo4j URI Schemes", () => {
       // bolt+ssc:// tells the driver to accept self-signed certificates
       const uri = "bolt+ssc://localhost:7687";
       const username = process.env.NEO4J_USERNAME || "neo4j";
-      const password = process.env.NEO4J_PASSWORD || "cortex-dev-password";
+      const password = process.env.NEO4J_PASSWORD || "memoir-dev-password";
 
       await adapter.connect({ uri, username, password });
 
@@ -130,7 +130,7 @@ describeIfEnabled("Neo4j URI Schemes", () => {
       // neo4j+ssc:// uses routing protocol with self-signed cert acceptance
       const uri = "neo4j+ssc://localhost:7687";
       const username = process.env.NEO4J_USERNAME || "neo4j";
-      const password = process.env.NEO4J_PASSWORD || "cortex-dev-password";
+      const password = process.env.NEO4J_PASSWORD || "memoir-dev-password";
 
       await adapter.connect({ uri, username, password });
 

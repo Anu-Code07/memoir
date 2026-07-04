@@ -6,24 +6,24 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext } from "../helpers";
 import type { FactRecord } from "../../src/types";
 
 describe("Belief Revision Workflow E2E", () => {
   const ctx = createNamedTestRunContext("e2e-belief-revision");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   const TEST_MEMSPACE_ID = ctx.memorySpaceId("test");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
 
     // Create test memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
       name: "Belief Revision E2E Test Space",
@@ -32,7 +32,7 @@ describe("Belief Revision Workflow E2E", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "e2e test cleanup",
       });
@@ -54,7 +54,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Step 1: Initial preference extraction", async () => {
       // Simulate extracting a fact from conversation
-      pref1Fact = await cortex.facts.store({
+      pref1Fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User prefers dark mode for all applications",
@@ -74,7 +74,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Step 2: User mentions related preference", async () => {
       // User mentions a more specific preference
-      _pref2Fact = await cortex.facts.store({
+      _pref2Fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User uses OLED dark mode to save battery",
@@ -88,7 +88,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Both facts should coexist (different aspects)
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         tags: ["dark-mode"],
@@ -99,7 +99,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Step 3: User changes preference entirely", async () => {
       // User now prefers light mode
-      pref3Fact = await cortex.facts.store({
+      pref3Fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User now prefers light mode",
@@ -113,7 +113,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Supersede the original dark mode preference
-      await cortex.facts.supersede({
+      await memoir.facts.supersede({
         memorySpaceId: TEST_MEMSPACE_ID,
         oldFactId: pref1Fact.factId,
         newFactId: pref3Fact.factId,
@@ -121,7 +121,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Verify old fact is superseded
-      const oldFact = await cortex.facts.get(
+      const oldFact = await memoir.facts.get(
         TEST_MEMSPACE_ID,
         pref1Fact.factId,
       );
@@ -133,7 +133,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Step 4: Query only current valid preferences", async () => {
       // Query without superseded facts
-      const validFacts = await cortex.facts.list({
+      const validFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         includeSuperseded: false,
@@ -147,11 +147,11 @@ describe("Belief Revision Workflow E2E", () => {
     });
 
     it("Step 5: History shows preference evolution", async () => {
-      const history = await cortex.facts.history(pref1Fact.factId);
+      const history = await memoir.facts.history(pref1Fact.factId);
       expect(Array.isArray(history)).toBe(true);
 
       // Check activity summary
-      const summary = await cortex.facts.getActivitySummary(
+      const summary = await memoir.facts.getActivitySummary(
         TEST_MEMSPACE_ID,
         24,
       );
@@ -168,7 +168,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Complete flow: Location updates over time", async () => {
       // First mention: User lives in NYC
-      const location1 = await cortex.facts.store({
+      const location1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User lives in New York City",
@@ -185,7 +185,7 @@ describe("Belief Revision Workflow E2E", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Second mention: User moved to SF
-      const location2 = await cortex.facts.store({
+      const location2 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User recently moved to San Francisco",
@@ -199,7 +199,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Supersede old location
-      await cortex.facts.supersede({
+      await memoir.facts.supersede({
         memorySpaceId: TEST_MEMSPACE_ID,
         oldFactId: location1.factId,
         newFactId: location2.factId,
@@ -207,18 +207,18 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Verify supersession chain
-      const chain = await cortex.facts.getSupersessionChain(location2.factId);
+      const chain = await memoir.facts.getSupersessionChain(location2.factId);
       expect(chain.length).toBeGreaterThanOrEqual(1);
 
       // Verify the old fact is now superseded (has validUntil set)
-      const oldFact = await cortex.facts.get(
+      const oldFact = await memoir.facts.get(
         TEST_MEMSPACE_ID,
         location1.factId,
       );
       expect(oldFact?.validUntil).toBeDefined();
 
       // Query current location - should only get SF (the non-superseded one)
-      const currentFacts = await cortex.facts.list({
+      const currentFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         tags: ["location"],
@@ -248,7 +248,7 @@ describe("Belief Revision Workflow E2E", () => {
 
     it("Complete flow: Facts become more specific over time", async () => {
       // General fact: User has a pet
-      const petGeneral = await cortex.facts.store({
+      const petGeneral = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User has a pet",
@@ -262,7 +262,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // More specific: It's a dog
-      const petDog = await cortex.facts.store({
+      const petDog = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User has a dog",
@@ -276,7 +276,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Most specific: Dog's name is Max
-      const petSpecific = await cortex.facts.store({
+      const petSpecific = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         fact: "User has a golden retriever named Max",
@@ -290,14 +290,14 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Supersede the chain: general -> specific -> most specific
-      await cortex.facts.supersede({
+      await memoir.facts.supersede({
         memorySpaceId: TEST_MEMSPACE_ID,
         oldFactId: petGeneral.factId,
         newFactId: petDog.factId,
         reason: "More specific information obtained",
       });
 
-      await cortex.facts.supersede({
+      await memoir.facts.supersede({
         memorySpaceId: TEST_MEMSPACE_ID,
         oldFactId: petDog.factId,
         newFactId: petSpecific.factId,
@@ -305,7 +305,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Query pet facts - should only get the most specific
-      const petFacts = await cortex.facts.list({
+      const petFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId,
         tags: ["pet"],
@@ -332,7 +332,7 @@ describe("Belief Revision Workflow E2E", () => {
       const participant2 = ctx.agentId("participant-2");
 
       // Participant 1 extracts a fact
-      const p1Career = await cortex.facts.store({
+      const p1Career = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: participant1,
         fact: `${subjectUser} mentioned working in tech`,
@@ -346,7 +346,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Participant 2 extracts a more specific fact
-      const p2Career = await cortex.facts.store({
+      const p2Career = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: participant2,
         fact: `${subjectUser} is a software engineer at Google`,
@@ -360,7 +360,7 @@ describe("Belief Revision Workflow E2E", () => {
       });
 
       // Both facts should exist (different participants' observations)
-      const allCareerFacts = await cortex.facts.list({
+      const allCareerFacts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         tags: ["career"],
       });
@@ -368,12 +368,12 @@ describe("Belief Revision Workflow E2E", () => {
       expect(allCareerFacts.length).toBeGreaterThanOrEqual(2);
 
       // Can filter by participant
-      const p1Facts = await cortex.facts.list({
+      const p1Facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: participant1,
       });
 
-      const p2Facts = await cortex.facts.list({
+      const p2Facts = await memoir.facts.list({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: participant2,
       });
@@ -393,7 +393,7 @@ describe("Belief Revision Workflow E2E", () => {
 
   describe("Activity Summary", () => {
     it("should accurately count activities", async () => {
-      const summary = await cortex.facts.getActivitySummary(
+      const summary = await memoir.facts.getActivitySummary(
         TEST_MEMSPACE_ID,
         24,
       );

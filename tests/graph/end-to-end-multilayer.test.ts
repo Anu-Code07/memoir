@@ -13,7 +13,7 @@
  * Uses long, complex, realistic input to stress-test the entire stack.
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter, initializeGraphSchema } from "../../src/graph";
 import type { GraphAdapter } from "../../src";
 
@@ -25,11 +25,11 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("End-to-End Multi-Layer Integration with Graph", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let graphAdapter: GraphAdapter;
   const timestamp = Date.now();
   const memorySpaceId = `e2e-test-${timestamp}`;
@@ -111,9 +111,9 @@ What specific aspects would you like to dive deeper into?
     await graphAdapter.clearDatabase();
     await initializeGraphSchema(graphAdapter);
 
-    // Setup Cortex WITH GRAPH
+    // Setup Memoir WITH GRAPH
     // Graph sync is automatic when graphAdapter is configured (v0.29.0+)
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       graph: {
         adapter: graphAdapter,
@@ -123,14 +123,14 @@ What specific aspects would you like to dive deeper into?
     });
 
     // Register memory space (graph sync is automatic when adapter is configured)
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       name: "E2E Test Space",
       type: "personal",
     });
 
     // Create conversation (graph sync is automatic when adapter is configured)
-    await cortex.conversations.create({
+    await memoir.conversations.create({
       memorySpaceId,
       conversationId,
       type: "user-agent",
@@ -148,7 +148,7 @@ What specific aspects would you like to dive deeper into?
   afterAll(async () => {
     await graphAdapter.clearDatabase();
     await graphAdapter.disconnect();
-    cortex.close();
+    memoir.close();
   });
 
   describe("Complete Multi-Layer Cascade", () => {
@@ -157,7 +157,7 @@ What specific aspects would you like to dive deeper into?
 
     it("should store complex conversation through memory.remember()", async () => {
       // This tests the ENTIRE cascade through all layers
-      rememberResult = await cortex.memory.remember({
+      rememberResult = await memoir.memory.remember({
         memorySpaceId,
         conversationId,
         userMessage: COMPLEX_USER_MESSAGE,
@@ -176,7 +176,7 @@ What specific aspects would you like to dive deeper into?
     });
 
     it("should have stored in L1a (Conversations - ACID)", async () => {
-      const conversation = await cortex.conversations.get(conversationId);
+      const conversation = await memoir.conversations.get(conversationId);
 
       // CHECKPOINT 2: L1a storage validated
       expect(conversation).not.toBeNull();
@@ -196,7 +196,7 @@ What specific aspects would you like to dive deeper into?
     });
 
     it("should have stored in L2 (Vector Memory)", async () => {
-      const memories = await cortex.vector.list({
+      const memories = await memoir.vector.list({
         memorySpaceId,
         limit: 10,
       });
@@ -224,7 +224,7 @@ What specific aspects would you like to dive deeper into?
       // In a real system, this might be automatic, but we'll do it manually for testing
 
       // Fact 1: Sarah's identity
-      const fact1 = await cortex.facts.store(
+      const fact1 = await memoir.facts.store(
         {
           memorySpaceId,
           fact: "Dr. Sarah Chen is the lead AI researcher at QuantumLeap Technologies",
@@ -245,7 +245,7 @@ What specific aspects would you like to dive deeper into?
       extractedFacts.push(fact1);
 
       // Fact 2: Location
-      const fact2 = await cortex.facts.store(
+      const fact2 = await memoir.facts.store(
         {
           memorySpaceId,
           fact: "QuantumLeap Technologies is located in San Francisco",
@@ -266,7 +266,7 @@ What specific aspects would you like to dive deeper into?
       extractedFacts.push(fact2);
 
       // Fact 3: Technology usage
-      const fact3 = await cortex.facts.store(
+      const fact3 = await memoir.facts.store(
         {
           memorySpaceId,
           fact: "QuantumLeap Technologies uses TypeScript",
@@ -287,7 +287,7 @@ What specific aspects would you like to dive deeper into?
       extractedFacts.push(fact3);
 
       // Fact 4: Team member
-      const fact4 = await cortex.facts.store(
+      const fact4 = await memoir.facts.store(
         {
           memorySpaceId,
           fact: "Marcus Rodriguez is the backend lead at QuantumLeap Technologies",
@@ -308,7 +308,7 @@ What specific aspects would you like to dive deeper into?
       extractedFacts.push(fact4);
 
       // Fact 5: Marcus's tech preference
-      const fact5 = await cortex.facts.store(
+      const fact5 = await memoir.facts.store(
         {
           memorySpaceId,
           fact: "Marcus Rodriguez loves PostgreSQL",
@@ -331,7 +331,7 @@ What specific aspects would you like to dive deeper into?
       // CHECKPOINT 4: L3 storage validated
       expect(extractedFacts.length).toBe(5);
 
-      const allFacts = await cortex.facts.list({
+      const allFacts = await memoir.facts.list({
         memorySpaceId,
         limit: 20,
       });
@@ -341,7 +341,7 @@ What specific aspects would you like to dive deeper into?
 
     it("should create context chain in L4 (Context Chains)", async () => {
       // Create context for this interaction
-      const rootContext = await cortex.contexts.create(
+      const rootContext = await memoir.contexts.create(
         {
           purpose: "Discuss medical AI system architecture with Dr. Chen",
           memorySpaceId,
@@ -354,7 +354,7 @@ What specific aspects would you like to dive deeper into?
       // Graph sync is automatic when graphAdapter is configured
 
       // Create child context for specific topic
-      const childContext = await cortex.contexts.create(
+      const childContext = await memoir.contexts.create(
         {
           purpose: "Knowledge graph scalability for medical entities",
           memorySpaceId,
@@ -440,7 +440,7 @@ What specific aspects would you like to dive deeper into?
 
     it("should traverse context chain via graph", async () => {
       // Find root context
-      const contexts = await cortex.contexts.list({
+      const contexts = await memoir.contexts.list({
         memorySpaceId,
         limit: 10,
       });
@@ -466,7 +466,7 @@ What specific aspects would you like to dive deeper into?
 
     it("should retrieve enriched context (L2 + L3 + Graph)", async () => {
       // Search for "medical AI" in memories
-      const memories = await cortex.vector.list({
+      const memories = await memoir.vector.list({
         memorySpaceId,
         limit: 10,
       });
@@ -551,10 +551,10 @@ What specific aspects would you like to dive deeper into?
       const memory = rememberResult.memories[0];
 
       // Get conversation from L1a
-      const conversation = await cortex.conversations.get(conversationId);
+      const conversation = await memoir.conversations.get(conversationId);
 
       // Get facts from L3
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId,
         limit: 20,
       });
@@ -586,7 +586,7 @@ What specific aspects would you like to dive deeper into?
       console.log("📥 WHAT WAS STORED:\n");
 
       // L1a: Conversations
-      const storedConv = await cortex.conversations.get(conversationId);
+      const storedConv = await memoir.conversations.get(conversationId);
       console.log("  L1a (Conversations - ACID):");
       console.log(`    - Conversation ID: ${storedConv?.conversationId}`);
       console.log(`    - Message count: ${storedConv?.messageCount}`);
@@ -598,7 +598,7 @@ What specific aspects would you like to dive deeper into?
       );
 
       // L2: Vector
-      const storedMemories = await cortex.vector.list({
+      const storedMemories = await memoir.vector.list({
         memorySpaceId,
         limit: 10,
       });
@@ -617,7 +617,7 @@ What specific aspects would you like to dive deeper into?
       }
 
       // L3: Facts
-      const storedFacts = await cortex.facts.list({ memorySpaceId, limit: 20 });
+      const storedFacts = await memoir.facts.list({ memorySpaceId, limit: 20 });
       console.log("\n  L3 (Facts):");
       console.log(`    - Fact count: ${storedFacts.length}`);
       for (let i = 0; i < Math.min(storedFacts.length, 5); i++) {
@@ -631,7 +631,7 @@ What specific aspects would you like to dive deeper into?
       }
 
       // L4: Contexts
-      const storedContexts = await cortex.contexts.list({
+      const storedContexts = await memoir.contexts.list({
         memorySpaceId,
         limit: 10,
       });
@@ -670,7 +670,7 @@ What specific aspects would you like to dive deeper into?
       console.log("📤 WHAT WAS RETRIEVED:\n");
 
       // Retrieve from L1a
-      const retrievedConv = await cortex.conversations.get(conversationId);
+      const retrievedConv = await memoir.conversations.get(conversationId);
       console.log("  FROM L1a (Conversations):");
       console.log(
         `    ✓ Retrieved conversation: ${retrievedConv?.conversationId}`,
@@ -681,7 +681,7 @@ What specific aspects would you like to dive deeper into?
       );
 
       // Retrieve from L2
-      const retrievedMemories = await cortex.vector.list({
+      const retrievedMemories = await memoir.vector.list({
         memorySpaceId,
         limit: 10,
       });
@@ -698,7 +698,7 @@ What specific aspects would you like to dive deeper into?
       );
 
       // Retrieve from L3
-      const retrievedFacts = await cortex.facts.list({
+      const retrievedFacts = await memoir.facts.list({
         memorySpaceId,
         limit: 20,
       });
@@ -713,7 +713,7 @@ What specific aspects would you like to dive deeper into?
       );
 
       // Retrieve from L4
-      const retrievedContexts = await cortex.contexts.list({
+      const retrievedContexts = await memoir.contexts.list({
         memorySpaceId,
         limit: 10,
       });
@@ -869,7 +869,7 @@ What specific aspects would you like to dive deeper into?
       const startTime = Date.now();
 
       // L1a validation
-      const conv = await cortex.conversations.get(conversationId);
+      const conv = await memoir.conversations.get(conversationId);
       checklist.l1a_conversations.stored = conv !== null;
       checklist.l1a_conversations.messageCount = conv?.messageCount || 0;
       checklist.l1a_conversations.hasUserMessage =
@@ -878,7 +878,7 @@ What specific aspects would you like to dive deeper into?
         conv?.messages.some((m) => m.role === "agent") || false;
 
       // L2 validation
-      const memories = await cortex.vector.list({ memorySpaceId, limit: 10 });
+      const memories = await memoir.vector.list({ memorySpaceId, limit: 10 });
       checklist.l2_vector.stored = memories.length > 0;
       checklist.l2_vector.memoryCount = memories.length;
       checklist.l2_vector.hasConversationRef = memories.some(
@@ -890,7 +890,7 @@ What specific aspects would you like to dive deeper into?
       checklist.l2_vector.hasTags = memories.some((m) => m.tags.length > 0);
 
       // L3 validation
-      const facts = await cortex.facts.list({ memorySpaceId, limit: 20 });
+      const facts = await memoir.facts.list({ memorySpaceId, limit: 20 });
       checklist.l3_facts.stored = facts.length > 0;
       checklist.l3_facts.factCount = facts.length;
       checklist.l3_facts.hasSubjectPredicateObject = facts.some(
@@ -902,7 +902,7 @@ What specific aspects would you like to dive deeper into?
       checklist.l3_facts.hasConfidence = facts.every((f) => f.confidence > 0);
 
       // L4 validation
-      const contexts = await cortex.contexts.list({ memorySpaceId, limit: 10 });
+      const contexts = await memoir.contexts.list({ memorySpaceId, limit: 10 });
       checklist.l4_contexts.stored = contexts.length > 0;
       checklist.l4_contexts.contextCount = contexts.length;
       checklist.l4_contexts.hasHierarchy = contexts.some((c) => c.depth > 0);

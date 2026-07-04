@@ -1,11 +1,11 @@
 /**
- * Unit Tests: CortexMemoryProvider Class
+ * Unit Tests: MemoirMemoryProvider Class
  *
  * Tests the provider with mocked dependencies
  */
 
-import { CortexMemoryProvider } from "../../src/provider";
-import type { CortexMemoryConfig } from "../../src/types";
+import { MemoirMemoryProvider } from "../../src/provider";
+import type { MemoirMemoryConfig } from "../../src/types";
 import {
   createTestConfig,
   createMockLLM,
@@ -24,8 +24,8 @@ type StreamChunk = {
   text?: string;
 };
 
-// Mock Cortex SDK
-const mockCortex = {
+// Mock Memoir SDK
+const mockMemoir = {
   memory: {
     search: jest.fn().mockResolvedValue([]),
     remember: jest.fn().mockResolvedValue({
@@ -57,16 +57,16 @@ const mockCortex = {
   close: jest.fn(),
 };
 
-jest.mock("@cortexmemory/sdk", () => ({
-  Cortex: jest.fn().mockImplementation(() => mockCortex),
+jest.mock("@memoir/sdk", () => ({
+  Memoir: jest.fn().mockImplementation(() => mockMemoir),
   CypherGraphAdapter: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
-describe("CortexMemoryProvider", () => {
-  let mockConfig: CortexMemoryConfig;
+describe("MemoirMemoryProvider", () => {
+  let mockConfig: MemoirMemoryConfig;
   let mockLLM: MockLanguageModel;
 
   beforeEach(() => {
@@ -81,7 +81,7 @@ describe("CortexMemoryProvider", () => {
 
   describe("constructor", () => {
     it("should initialize with correct properties", () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       expect(provider.specificationVersion).toBe("v1");
       expect(provider.provider).toBe("openai");
@@ -89,7 +89,7 @@ describe("CortexMemoryProvider", () => {
     });
 
     it("should delegate defaultObjectGenerationMode from underlying model", () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
       expect(provider.defaultObjectGenerationMode).toBe("json");
     });
 
@@ -97,19 +97,19 @@ describe("CortexMemoryProvider", () => {
       const llmWithoutMode = createMockLLM();
       delete (llmWithoutMode as any).defaultObjectGenerationMode;
 
-      const provider = new CortexMemoryProvider(llmWithoutMode, mockConfig);
+      const provider = new MemoirMemoryProvider(llmWithoutMode, mockConfig);
       expect(provider.defaultObjectGenerationMode).toBeUndefined();
     });
 
-    it("should accept pre-initialized Cortex instance", () => {
-      const customCortex = { ...mockCortex };
-      const provider = new CortexMemoryProvider(
+    it("should accept pre-initialized Memoir instance", () => {
+      const customMemoir = { ...mockMemoir };
+      const provider = new MemoirMemoryProvider(
         mockLLM,
         mockConfig,
-        customCortex as any,
+        customMemoir as any,
       );
 
-      // Should use the provided instance (no new Cortex created)
+      // Should use the provided instance (no new Memoir created)
       expect(provider).toBeDefined();
     });
   });
@@ -131,9 +131,9 @@ describe("CortexMemoryProvider", () => {
 
     it("should create provider without graph when not enabled", async () => {
       const config = createTestConfig({ enableGraphMemory: false });
-      const provider = await CortexMemoryProvider.create(mockLLM, config);
+      const provider = await MemoirMemoryProvider.create(mockLLM, config);
 
-      expect(provider).toBeInstanceOf(CortexMemoryProvider);
+      expect(provider).toBeInstanceOf(MemoirMemoryProvider);
       expect(provider.modelId).toBe("gpt-4o-mini");
     });
 
@@ -143,9 +143,9 @@ describe("CortexMemoryProvider", () => {
       process.env.NEO4J_PASSWORD = "password";
 
       const config = createTestConfig({ enableGraphMemory: true });
-      const provider = await CortexMemoryProvider.create(mockLLM, config);
+      const provider = await MemoirMemoryProvider.create(mockLLM, config);
 
-      expect(provider).toBeInstanceOf(CortexMemoryProvider);
+      expect(provider).toBeInstanceOf(MemoirMemoryProvider);
     });
 
     it("should use graphConfig over env vars when both provided", async () => {
@@ -160,8 +160,8 @@ describe("CortexMemoryProvider", () => {
         },
       });
 
-      const provider = await CortexMemoryProvider.create(mockLLM, config);
-      expect(provider).toBeInstanceOf(CortexMemoryProvider);
+      const provider = await MemoirMemoryProvider.create(mockLLM, config);
+      expect(provider).toBeInstanceOf(MemoirMemoryProvider);
     });
 
     it("should warn when graph enabled but no URI configured", async () => {
@@ -169,10 +169,10 @@ describe("CortexMemoryProvider", () => {
       delete process.env.MEMGRAPH_URI;
 
       const config = createTestConfig({ enableGraphMemory: true });
-      const provider = await CortexMemoryProvider.create(mockLLM, config);
+      const provider = await MemoirMemoryProvider.create(mockLLM, config);
 
       // Should still create provider (graph adapter will be undefined)
-      expect(provider).toBeInstanceOf(CortexMemoryProvider);
+      expect(provider).toBeInstanceOf(MemoirMemoryProvider);
     });
   });
 
@@ -182,7 +182,7 @@ describe("CortexMemoryProvider", () => {
 
   describe("doGenerate", () => {
     it("should call underlying model doGenerate", async () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -194,7 +194,7 @@ describe("CortexMemoryProvider", () => {
     });
 
     it("should search memories when enabled", async () => {
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "User likes coffee",
         totalResults: 1,
         queryTimeMs: 50,
@@ -206,31 +206,31 @@ describe("CortexMemoryProvider", () => {
       });
 
       const config = createTestConfig({ enableMemorySearch: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
         mode: { type: "regular" },
       });
 
-      expect(mockCortex.memory.recall).toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).toHaveBeenCalled();
     });
 
     it("should skip memory search when disabled", async () => {
       const config = createTestConfig({ enableMemorySearch: false });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
         mode: { type: "regular" },
       });
 
-      expect(mockCortex.memory.recall).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.recall).not.toHaveBeenCalled();
     });
 
     it("should store memory after generation when enabled", async () => {
       const config = createTestConfig({ enableMemoryStorage: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -240,12 +240,12 @@ describe("CortexMemoryProvider", () => {
       // Storage is async, wait a bit
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(mockCortex.memory.remember).toHaveBeenCalled();
+      expect(mockMemoir.memory.remember).toHaveBeenCalled();
     });
 
     it("should skip memory storage when disabled", async () => {
       const config = createTestConfig({ enableMemoryStorage: false });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -254,11 +254,11 @@ describe("CortexMemoryProvider", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(mockCortex.memory.remember).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.remember).not.toHaveBeenCalled();
     });
 
     it("should inject recall context into prompt when available", async () => {
-      mockCortex.memory.recall.mockResolvedValueOnce({
+      mockMemoir.memory.recall.mockResolvedValueOnce({
         context: "Previous context: User prefers dark mode",
         totalResults: 1,
         queryTimeMs: 50,
@@ -270,7 +270,7 @@ describe("CortexMemoryProvider", () => {
       });
 
       const config = createTestConfig({ enableMemorySearch: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -284,12 +284,12 @@ describe("CortexMemoryProvider", () => {
     });
 
     it("should handle recall failure gracefully", async () => {
-      mockCortex.memory.recall.mockRejectedValueOnce(
+      mockMemoir.memory.recall.mockRejectedValueOnce(
         new Error("Recall failed"),
       );
 
       const config = createTestConfig({ enableMemorySearch: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       // Should not throw
       const result = await provider.doGenerate({
@@ -311,7 +311,7 @@ describe("CortexMemoryProvider", () => {
         enableMemoryStorage: true,
         layerObserver,
       });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       await provider.doGenerate({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -320,7 +320,7 @@ describe("CortexMemoryProvider", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      const rememberCall = mockCortex.memory.remember.mock.calls[0][0];
+      const rememberCall = mockMemoir.memory.remember.mock.calls[0][0];
       expect(rememberCall.observer).toBe(layerObserver);
     });
   });
@@ -331,7 +331,7 @@ describe("CortexMemoryProvider", () => {
 
   describe("doStream", () => {
     it("should call underlying model doStream", async () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -343,7 +343,7 @@ describe("CortexMemoryProvider", () => {
     });
 
     it("should wrap stream and forward all chunks", async () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -361,7 +361,7 @@ describe("CortexMemoryProvider", () => {
         rawCall: { rawPrompt: null, rawSettings: {} },
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
@@ -379,7 +379,7 @@ describe("CortexMemoryProvider", () => {
         rawCall: { rawPrompt: null, rawSettings: {} },
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
@@ -396,7 +396,7 @@ describe("CortexMemoryProvider", () => {
         rawCall: { rawPrompt: null, rawSettings: {} },
       });
 
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
@@ -409,7 +409,7 @@ describe("CortexMemoryProvider", () => {
 
     it("should call rememberStream when storage enabled", async () => {
       const config = createTestConfig({ enableMemoryStorage: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -422,12 +422,12 @@ describe("CortexMemoryProvider", () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockCortex.memory.rememberStream).toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).toHaveBeenCalled();
     });
 
     it("should skip storage when disabled", async () => {
       const config = createTestConfig({ enableMemoryStorage: false });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -437,16 +437,16 @@ describe("CortexMemoryProvider", () => {
       await consumeStream(result.stream);
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(mockCortex.memory.rememberStream).not.toHaveBeenCalled();
+      expect(mockMemoir.memory.rememberStream).not.toHaveBeenCalled();
     });
 
     it("should handle rememberStream failure gracefully", async () => {
-      mockCortex.memory.rememberStream.mockRejectedValueOnce(
+      mockMemoir.memory.rememberStream.mockRejectedValueOnce(
         new Error("Storage failed"),
       );
 
       const config = createTestConfig({ enableMemoryStorage: true });
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
@@ -465,7 +465,7 @@ describe("CortexMemoryProvider", () => {
 
   describe("getConfig", () => {
     it("should return frozen copy of config", () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
       const config = provider.getConfig();
 
       expect(config.memorySpaceId).toBe(mockConfig.memorySpaceId);
@@ -473,7 +473,7 @@ describe("CortexMemoryProvider", () => {
     });
 
     it("should not allow modification of returned config", () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
       const config = provider.getConfig();
 
       expect(() => {
@@ -489,27 +489,27 @@ describe("CortexMemoryProvider", () => {
   describe("capability delegation", () => {
     it("should delegate supportsStructuredOutputs", () => {
       const llm = createMockLLM({ supportsStructuredOutputs: true });
-      const provider = new CortexMemoryProvider(llm, mockConfig);
+      const provider = new MemoirMemoryProvider(llm, mockConfig);
       expect(provider.supportsStructuredOutputs).toBe(true);
     });
 
     it("should default supportsStructuredOutputs to false", () => {
       const llm = createMockLLM();
       delete (llm as any).supportsStructuredOutputs;
-      const provider = new CortexMemoryProvider(llm, mockConfig);
+      const provider = new MemoirMemoryProvider(llm, mockConfig);
       expect(provider.supportsStructuredOutputs).toBe(false);
     });
 
     it("should delegate supportsImageUrls", () => {
       const llm = createMockLLM({ supportsImageUrls: true });
-      const provider = new CortexMemoryProvider(llm, mockConfig);
+      const provider = new MemoirMemoryProvider(llm, mockConfig);
       expect(provider.supportsImageUrls).toBe(true);
     });
 
     it("should default supportsImageUrls to false", () => {
       const llm = createMockLLM();
       delete (llm as any).supportsImageUrls;
-      const provider = new CortexMemoryProvider(llm, mockConfig);
+      const provider = new MemoirMemoryProvider(llm, mockConfig);
       expect(provider.supportsImageUrls).toBe(false);
     });
   });
@@ -519,11 +519,11 @@ describe("CortexMemoryProvider", () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   describe("close", () => {
-    it("should close Cortex connection", async () => {
-      const provider = new CortexMemoryProvider(mockLLM, mockConfig);
+    it("should close Memoir connection", async () => {
+      const provider = new MemoirMemoryProvider(mockLLM, mockConfig);
       await provider.close();
 
-      expect(mockCortex.close).toHaveBeenCalled();
+      expect(mockMemoir.close).toHaveBeenCalled();
     });
 
     it("should disconnect graph adapter when present", async () => {
@@ -532,17 +532,17 @@ describe("CortexMemoryProvider", () => {
         disconnect: jest.fn().mockResolvedValue(undefined),
       };
 
-      const provider = new CortexMemoryProvider(
+      const provider = new MemoirMemoryProvider(
         mockLLM,
         mockConfig,
-        mockCortex as any,
+        mockMemoir as any,
         mockGraphAdapter as any,
       );
 
       await provider.close();
 
       expect(mockGraphAdapter.disconnect).toHaveBeenCalled();
-      expect(mockCortex.close).toHaveBeenCalled();
+      expect(mockMemoir.close).toHaveBeenCalled();
     });
 
     it("should handle graph adapter disconnect failure gracefully", async () => {
@@ -551,16 +551,16 @@ describe("CortexMemoryProvider", () => {
         disconnect: jest.fn().mockRejectedValue(new Error("Disconnect failed")),
       };
 
-      const provider = new CortexMemoryProvider(
+      const provider = new MemoirMemoryProvider(
         mockLLM,
         mockConfig,
-        mockCortex as any,
+        mockMemoir as any,
         mockGraphAdapter as any,
       );
 
       // Should not throw
       await provider.close();
-      expect(mockCortex.close).toHaveBeenCalled();
+      expect(mockMemoir.close).toHaveBeenCalled();
     });
   });
 });

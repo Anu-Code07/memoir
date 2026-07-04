@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import type { FactRecord } from "../src/types";
@@ -58,7 +58,7 @@ function logFactState(
 
 describe("Fact Supersession Behavior", () => {
   const ctx = createNamedTestRunContext("supersession-behavior");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -71,12 +71,12 @@ describe("Fact Supersession Behavior", () => {
       `\n🧪 Fact Supersession Behavior Tests - Run ID: ${ctx.runId}\n`,
     );
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
     // Create test memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
     });
@@ -95,7 +95,7 @@ describe("Fact Supersession Behavior", () => {
    * Helper to get active facts (excludes superseded)
    */
   async function getActiveFacts(): Promise<FactRecord[]> {
-    return cortex.facts.list({
+    return memoir.facts.list({
       memorySpaceId: TEST_MEMSPACE_ID,
       predicate: "favorite color",
     });
@@ -105,7 +105,7 @@ describe("Fact Supersession Behavior", () => {
    * Helper to get ALL facts including superseded ones
    */
   async function getAllFacts(): Promise<FactRecord[]> {
-    return cortex.facts.list({
+    return memoir.facts.list({
       memorySpaceId: TEST_MEMSPACE_ID,
       predicate: "favorite color",
       includeSuperseded: true,
@@ -126,7 +126,7 @@ describe("Fact Supersession Behavior", () => {
 
       for (let i = 1; i <= 5; i++) {
         // State the same fact
-        const result = await cortex.facts.revise({
+        const result = await memoir.facts.revise({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: {
             fact: "User likes the color blue",
@@ -230,7 +230,7 @@ describe("Fact Supersession Behavior", () => {
       console.log(`Blue fact ID: ${blueFact.factId}`);
 
       // State the NEW preference
-      const result = await cortex.facts.revise({
+      const result = await memoir.facts.revise({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: {
           fact: "User prefers purple",

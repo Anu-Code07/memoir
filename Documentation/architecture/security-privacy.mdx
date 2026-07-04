@@ -6,7 +6,7 @@ Data protection, access control, memory space isolation, GDPR compliance, and se
 
 ## Overview
 
-Cortex is designed with **privacy-first architecture** and **security by default**. All data is isolated by memory space, access is controlled, and GDPR compliance is built-in.
+Memoir is designed with **privacy-first architecture** and **security by default**. All data is isolated by memory space, access is controlled, and GDPR compliance is built-in.
 
 **Core Security Principles:**
 
@@ -28,13 +28,13 @@ Cortex is designed with **privacy-first architecture** and **security by default
 
 ```typescript
 // Space 1's memories
-await cortex.memory.store('user-123-personal', {
+await memoir.memory.store('user-123-personal', {
   content: 'Secret data in personal space',
   ...
 });
 
 // Space 2 CANNOT access (different isolation boundary)
-const memories = await cortex.memory.search('team-alpha-shared', 'secret');
+const memories = await memoir.memory.search('team-alpha-shared', 'secret');
 // Returns: [] (empty - different memory space) ✓
 
 // Convex query automatically filters
@@ -58,14 +58,14 @@ await ctx.db
 
 ```typescript
 // Supervisor space creates context
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Approve budget",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
 });
 
 // Grant access to finance space
-await cortex.contexts.grantAccess(
+await memoir.contexts.grantAccess(
   context.contextId,
   "finance-space", // targetMemorySpaceId
   "context-only", // scope: Only context data, not all memories
@@ -74,7 +74,7 @@ await cortex.contexts.grantAccess(
 // Finance space can access context
 // Note: Cross-space access verification must be implemented at the application layer.
 // The grantedAccess array is stored but not automatically verified by contexts.get()
-const ctx = await cortex.contexts.get(context.contextId, {
+const ctx = await memoir.contexts.get(context.contextId, {
   includeChain: true, // Optional: include context chain
 });
 // Note: Application must verify grantedAccess before allowing access
@@ -86,19 +86,19 @@ const ctx = await cortex.contexts.get(context.contextId, {
 
 ```typescript
 // Tenant A's data
-await cortex.memory.store('space-1', {
+await memoir.memory.store('space-1', {
   content: 'Tenant A data',
   tenantId: 'tenant-a',
   ...
 });
 
 // Tenant B CANNOT access
-const cortexB = new Cortex({
+const memoirB = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   auth: { tenantId: 'tenant-b' },
 });
 
-const memories = await cortexB.memory.search('space-1', 'data');
+const memories = await memoirB.memory.search('space-1', 'data');
 // Returns: [] (empty - different tenant) ✓
 
 // All queries auto-scoped by tenantId
@@ -115,21 +115,21 @@ await ctx.db
 
 ```typescript
 // User A's data in shared memory space
-await cortex.memory.store('team-shared', {
+await memoir.memory.store('team-shared', {
   content: 'User A prefers dark mode',
   userId: 'user-a',
   ...
 });
 
 // User B's data in same memory space
-await cortex.memory.store('team-shared', {
+await memoir.memory.store('team-shared', {
   content: 'User B prefers light mode',
   userId: 'user-b',
   ...
 });
 
 // Query with userId filter
-const userAMemories = await cortex.memory.search('team-shared', 'preferences', {
+const userAMemories = await memoir.memory.search('team-shared', 'preferences', {
   userId: 'user-a',  // ← Only user-a's data
 });
 
@@ -144,8 +144,8 @@ const userAMemories = await cortex.memory.search('team-shared', 'preferences', {
 ### SDK-Level Enforcement
 
 ```typescript
-// Cortex SDK enforces ownership
-class Cortex {
+// Memoir SDK enforces ownership
+class Memoir {
   async get(memorySpaceId: string, memoryId: string) {
     const memory = await this.client.query(api.memories.get, {
       memorySpaceId,
@@ -154,7 +154,7 @@ class Cortex {
 
     // Server verifies ownership
     if (memory.memorySpaceId !== memorySpaceId) {
-      throw new CortexError("PERMISSION_DENIED");
+      throw new MemoirError("PERMISSION_DENIED");
     }
 
     return memory;
@@ -209,7 +209,7 @@ async function storeMemoryWithAuth(
   }
 
   // Proceed
-  return await cortex.memory.store(memorySpaceId, data);
+  return await memoir.memory.store(memorySpaceId, data);
 }
 ```
 
@@ -223,7 +223,7 @@ async function storeMemoryWithAuth(
 
 ```typescript
 // Avoid: Don't store unnecessary PII
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   data: {
     ssn: "123-45-6789", // Never store
     creditCard: "4111...", // Never store
@@ -232,7 +232,7 @@ await cortex.users.update("user-123", {
 });
 
 // Good: Store minimal PII
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   data: {
     displayName: "Alex", // Minimal
     email: "alex@example.com", // If needed
@@ -241,7 +241,7 @@ await cortex.users.update("user-123", {
 });
 
 // Good: Store references, not raw data
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   data: {
     paymentMethodId: "pm_abc123", // Stripe reference
     addressId: "addr_xyz", // Reference to separate system
@@ -253,7 +253,7 @@ await cortex.users.update("user-123", {
 
 ```typescript
 // Export all user data (GDPR Article 15)
-const userData = await cortex.users.export({
+const userData = await memoir.users.export({
   filters: { email: "alex@example.com" }, // Filter users by email
   format: "json",
   includeMemories: true, // All memories across all memory spaces
@@ -268,7 +268,7 @@ const userData = await cortex.users.export({
 
 ```typescript
 // Cloud Mode (planned): One-click deletion
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true, // Delete from ALL stores
   auditReason: "GDPR right to be forgotten request",
 });
@@ -285,7 +285,7 @@ console.log(`Deleted ${result.totalDeleted} records`);
 ```typescript
 // GDPR: Don't keep data longer than necessary
 // All sections (conversations, immutable, mutable, vector) are required
-await cortex.governance.setPolicy({
+await memoir.governance.setPolicy({
   conversations: {
     retention: {
       deleteAfter: "7y", // GDPR typical maximum
@@ -352,13 +352,13 @@ await cortex.governance.setPolicy({
 
 ```typescript
 // Avoid: Plaintext secrets in content
-await cortex.memory.store('memory-space-1', {
+await memoir.memory.store('memory-space-1', {
   content: 'User password is: MySecret123',  // Never!
   ...
 });
 
 // Good: Store references only
-await cortex.memory.store('memory-space-1', {
+await memoir.memory.store('memory-space-1', {
   content: 'User updated password on 2025-10-25',  // Event only
   metadata: {
     passwordUpdated: true,
@@ -370,7 +370,7 @@ await cortex.memory.store('memory-space-1', {
 // Good: Hash if you must store
 import { hash } from 'bcrypt';
 
-await cortex.memory.store('memory-space-1', {
+await memoir.memory.store('memory-space-1', {
   content: 'User password set',
   metadata: {
     passwordHash: await hash('MySecret123', 10),  // Hashed
@@ -381,14 +381,14 @@ await cortex.memory.store('memory-space-1', {
 ### Separate Sensitive Data
 
 ```typescript
-// Good: Store sensitive data in secure vault (not Cortex)
+// Good: Store sensitive data in secure vault (not Memoir)
 await vault.store("user-123-credentials", {
   password: encrypted,
   apiKeys: encrypted,
 });
 
-// Store reference in Cortex
-await cortex.memory.store("memory-space-1", {
+// Store reference in Memoir
+await memoir.memory.store("memory-space-1", {
   content: "User credentials stored in vault",
   metadata: {
     vaultRef: "user-123-credentials", // Reference only
@@ -435,7 +435,7 @@ await cortex.memory.store("memory-space-1", {
 import { encrypt, decrypt } from "./crypto";
 
 // Store encrypted content
-await cortex.memory.store("memory-space-1", {
+await memoir.memory.store("memory-space-1", {
   content: await encrypt("Sensitive information"), // ← Encrypted
   metadata: {
     encrypted: true,
@@ -444,7 +444,7 @@ await cortex.memory.store("memory-space-1", {
 });
 
 // Decrypt on retrieval
-const memory = await cortex.memory.get("memory-space-1", memoryId);
+const memory = await memoir.memory.get("memory-space-1", memoryId);
 const decrypted = memory.metadata.encrypted
   ? await decrypt(memory.content)
   : memory.content;
@@ -465,7 +465,7 @@ const decrypted = memory.metadata.encrypted
 
 ```typescript
 // Every conversation is an immutable audit log
-const conversation = await cortex.conversations.get("conv-123");
+const conversation = await memoir.conversations.get("conv-123");
 
 console.log("Complete audit trail:");
 conversation.messages.forEach((msg) => {
@@ -483,7 +483,7 @@ conversation.messages.forEach((msg) => {
 
 ```typescript
 // Track how information changed
-const memory = await cortex.memory.get("memory-space-1", memoryId);
+const memory = await memoir.memory.get("memory-space-1", memoryId);
 
 console.log("Audit trail:");
 console.log(`Current (v${memory.version}): ${memory.content}`);
@@ -541,7 +541,7 @@ export const deleteWithAudit = mutation({
 // Include tenant in userId
 const userId = `${tenantId}:${userLocalId}`;
 
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   data: {
     displayName: "Alex",
     tenantId, // ← Explicit tenant
@@ -549,12 +549,12 @@ await cortex.users.update(userId, {
 });
 
 // Query by tenant
-const tenantUsers = await cortex.users.search({
+const tenantUsers = await memoir.users.search({
   "data.tenantId": tenantId,
 });
 
 // GDPR cascade respects tenant boundaries
-await cortex.users.delete(userId, { cascade: true });
+await memoir.users.delete(userId, { cascade: true });
 // Only deletes data for this tenant's user ✓
 ```
 
@@ -578,7 +578,7 @@ async function getUserMemories(
   }
 
   // Proceed
-  return await cortex.memory.search(memorySpaceId, "*", {
+  return await memoir.memory.search(memorySpaceId, "*", {
     userId: targetUserId,
   });
 }
@@ -590,10 +590,10 @@ async function getUserMemories(
 
 ### GDPR (General Data Protection Regulation)
 
-**Cortex provides:**
+**Memoir provides:**
 
-- **Right to Access** - `cortex.users.export()`  
-- **Right to Be Forgotten** - `cortex.users.delete({ cascade: true })` (Cloud Mode - planned)  
+- **Right to Access** - `memoir.users.export()`  
+- **Right to Be Forgotten** - `memoir.users.delete({ cascade: true })` (Cloud Mode - planned)  
 - **Data Minimization** - Flexible schemas, store only what's needed  
 - **Data Portability** - JSON/CSV export  
 - **Audit Trail** - Immutable conversation history  
@@ -602,7 +602,7 @@ async function getUserMemories(
 
 ### HIPAA (Healthcare)
 
-**Cortex supports:**
+**Memoir supports:**
 
 - **Encryption** - At-rest (Convex) + in-transit (TLS)  
 - **Access Logs** - Audit trail in ACID conversations  
@@ -618,7 +618,7 @@ async function getUserMemories(
 
 ### SOC 2
 
-**Cortex helps with:**
+**Memoir helps with:**
 
 - **Availability** - Convex uptime SLAs  
 - **Security** - Encryption, access control  
@@ -759,7 +759,7 @@ async function crossAgentSearch(
     throw new Error("PERMISSION_DENIED");
   }
 
-  return await cortex.memory.search(targetAgent, query);
+  return await memoir.memory.search(targetAgent, query);
 }
 ```
 
@@ -854,7 +854,7 @@ export const query = query({
 });
 
 // This would be rejected:
-await cortex.memory.search("memory-space-1", query, {
+await memoir.memory.search("memory-space-1", query, {
   filters: {
     importance: { $gt: 0, $lt: { $evil: "injection" } }, // Rejected by v.number()
   },
@@ -865,15 +865,15 @@ await cortex.memory.search("memory-space-1", query, {
 
 ```typescript
 // Implement rate limiting for API calls
-// Note: Cortex has a built-in resilience layer with rate limiting capabilities.
+// Note: Memoir has a built-in resilience layer with rate limiting capabilities.
 // This example shows application-level rate limiting pattern.
 
-// Example: Using Cortex's resilience layer (if available)
+// Example: Using Memoir's resilience layer (if available)
 // The SDK automatically handles rate limiting via the resilience layer
 async function rateLimitedSearch(userId: string, ...args) {
-  // Cortex SDK handles rate limiting internally via resilience layer
+  // Memoir SDK handles rate limiting internally via resilience layer
   // For custom rate limiting, implement at application layer
-  return await cortex.memory.search(...args);
+  return await memoir.memory.search(...args);
 }
 
 // Alternative: Application-level rate limiting
@@ -894,7 +894,7 @@ async function getRelevantContext(
   query: string,
 ) {
   // Only get user's data for this memory space
-  return await cortex.memory.search(memorySpaceId, query, {
+  return await memoir.memory.search(memorySpaceId, query, {
     userId, // ← Limit to user's data
     minImportance: 50, // ← Skip trivial
     limit: 5, // ← Only what's needed
@@ -905,7 +905,7 @@ async function getRelevantContext(
 ### 2. Validate All Inputs
 
 ```typescript
-// Validate before calling Cortex
+// Validate before calling Memoir
 function validateMemoryInput(data: MemoryInput) {
   if (!data.content || typeof data.content !== "string") {
     throw new Error("Invalid content");
@@ -924,7 +924,7 @@ function validateMemoryInput(data: MemoryInput) {
 
 // Use before storing
 validateMemoryInput(data);
-await cortex.memory.store("memory-space-1", data);
+await memoir.memory.store("memory-space-1", data);
 ```
 
 ### 3. Log Security Events
@@ -942,7 +942,7 @@ async function deleteUserData(userId: string, requestedBy: string) {
   });
 
   // Execute
-  const result = await cortex.users.delete(userId, { cascade: true });
+  const result = await memoir.users.delete(userId, { cascade: true });
 
   // Log result
   await auditLog.record({
@@ -982,7 +982,7 @@ async function storeMemoryWithACL(
   }
 
   // Proceed
-  return await cortex.memory.store(memorySpaceId, data);
+  return await memoir.memory.store(memorySpaceId, data);
 }
 ```
 
@@ -994,7 +994,7 @@ async function securityAudit() {
   const issues = [];
 
   // Check for memories without userId (should have for user data)
-  const noUserId = await cortex.memory.count("memory-space-1", {
+  const noUserId = await memoir.memory.count("memory-space-1", {
     "source.type": "conversation",
     userId: null, // Missing userId
   });
@@ -1004,7 +1004,7 @@ async function securityAudit() {
   }
 
   // Check for high-importance data without encryption
-  const unencrypted = await cortex.memory.count("memory-space-1", {
+  const unencrypted = await memoir.memory.count("memory-space-1", {
     importance: { $gte: 90 },
     "metadata.encrypted": { $ne: true },
   });
@@ -1064,4 +1064,4 @@ async function securityAudit() {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

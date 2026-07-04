@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Fact History API
+ * Memoir SDK - Fact History API
  *
  * Audit trail for belief revision operations.
  * Records CREATE, UPDATE, SUPERSEDE, and DELETE actions on facts.

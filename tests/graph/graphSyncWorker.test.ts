@@ -5,7 +5,7 @@
  * Convex reactive queries (client.onUpdate) for automatic syncing.
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import {
   CypherGraphAdapter,
   GraphSyncWorker,
@@ -21,11 +21,11 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("Graph Sync Worker", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let graphAdapter: GraphAdapter;
   let worker: GraphSyncWorker;
   const timestamp = Date.now();
@@ -38,7 +38,7 @@ describeIfEnabled("Graph Sync Worker", () => {
     await graphAdapter.clearDatabase();
     await initializeGraphSchema(graphAdapter);
 
-    // Note: We'll initialize Cortex in individual tests
+    // Note: We'll initialize Memoir in individual tests
   });
 
   afterAll(async () => {
@@ -49,14 +49,14 @@ describeIfEnabled("Graph Sync Worker", () => {
   describe("Worker Lifecycle", () => {
     afterEach(() => {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (cortex) {
-        cortex.close();
+      if (memoir) {
+        memoir.close();
       }
     });
 
     it("should start and stop worker", async () => {
-      // Initialize Cortex with autoSync
-      cortex = new Cortex({
+      // Initialize Memoir with autoSync
+      memoir = new Memoir({
         convexUrl: CONVEX_URL,
         graph: {
           adapter: graphAdapter,
@@ -72,21 +72,21 @@ describeIfEnabled("Graph Sync Worker", () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Worker should be running
-      const worker = cortex.getGraphSyncWorker();
+      const worker = memoir.getGraphSyncWorker();
       expect(worker).toBeDefined();
 
       const metrics = worker!.getMetrics();
       expect(metrics.isRunning).toBe(true);
 
       // Stop worker
-      cortex.close();
+      memoir.close();
 
       const finalMetrics = worker!.getMetrics();
       expect(finalMetrics.isRunning).toBe(false);
     });
 
     it("should not start worker if autoSync is false", async () => {
-      cortex = new Cortex({
+      memoir = new Memoir({
         convexUrl: CONVEX_URL,
         graph: {
           adapter: graphAdapter,
@@ -94,17 +94,17 @@ describeIfEnabled("Graph Sync Worker", () => {
         },
       });
 
-      const worker = cortex.getGraphSyncWorker();
+      const worker = memoir.getGraphSyncWorker();
       expect(worker).toBeUndefined();
     });
 
     it("should not start worker if graph not configured", async () => {
-      cortex = new Cortex({
+      memoir = new Memoir({
         convexUrl: CONVEX_URL,
         // No graph config
       });
 
-      const worker = cortex.getGraphSyncWorker();
+      const worker = memoir.getGraphSyncWorker();
       expect(worker).toBeUndefined();
     });
   });
@@ -120,7 +120,7 @@ describeIfEnabled("Graph Sync Worker", () => {
       // This test would require mocking adapter.createNode to fail temporarily
       // For now, we'll just verify the retry mechanism exists
 
-      worker = new GraphSyncWorker(cortex["client"], graphAdapter, {
+      worker = new GraphSyncWorker(memoir["client"], graphAdapter, {
         batchSize: 10,
         retryAttempts: 3,
       });
@@ -130,7 +130,7 @@ describeIfEnabled("Graph Sync Worker", () => {
     });
 
     it("should track failed items in metrics", async () => {
-      worker = new GraphSyncWorker(cortex["client"], graphAdapter);
+      worker = new GraphSyncWorker(memoir["client"], graphAdapter);
       const metrics = worker.getMetrics();
 
       // Initially no failures

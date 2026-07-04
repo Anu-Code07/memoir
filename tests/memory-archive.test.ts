@@ -5,7 +5,7 @@
  * Split from memory.test.ts for parallel execution
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -14,13 +14,13 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Archive Operations", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -44,7 +44,7 @@ describe("Memory Archive Operations", () => {
       const agentId = ctx.agentId("archive-test");
 
       // Create and archive a memory
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId,
         type: "user-agent",
         participants: {
@@ -54,7 +54,7 @@ describe("Memory Archive Operations", () => {
         },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "Important information",
@@ -68,16 +68,16 @@ describe("Memory Archive Operations", () => {
       const memoryId = result.memories[0].memoryId;
 
       // Archive it
-      const archived = await cortex.memory.archive(memorySpaceId, memoryId);
+      const archived = await memoir.memory.archive(memorySpaceId, memoryId);
       expect(archived.archived).toBe(true);
 
       // Verify it's archived
-      const archivedMemory = await cortex.vector.get(memorySpaceId, memoryId);
+      const archivedMemory = await memoir.vector.get(memorySpaceId, memoryId);
       expect(archivedMemory?.tags).toContain("archived");
       expect(archivedMemory?.importance).toBeLessThanOrEqual(10);
 
       // Restore from archive
-      const restored = await cortex.memory.restoreFromArchive(
+      const restored = await memoir.memory.restoreFromArchive(
         memorySpaceId,
         memoryId,
       );
@@ -86,7 +86,7 @@ describe("Memory Archive Operations", () => {
       expect(restored.memoryId).toBe(memoryId);
 
       // Verify restoration
-      const restoredMemory = await cortex.vector.get(memorySpaceId, memoryId);
+      const restoredMemory = await memoir.vector.get(memorySpaceId, memoryId);
       expect(restoredMemory?.tags).not.toContain("archived");
       expect(restoredMemory?.importance).toBeGreaterThanOrEqual(50);
     });
@@ -96,7 +96,7 @@ describe("Memory Archive Operations", () => {
       const userId = ctx.userId("restore-error");
       const agentId = ctx.agentId("restore-error");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId,
         type: "user-agent",
         participants: {
@@ -106,7 +106,7 @@ describe("Memory Archive Operations", () => {
         },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "Not archived",
@@ -121,7 +121,7 @@ describe("Memory Archive Operations", () => {
       // Try to restore without archiving first
       // Backend validation: archive status check
       await expect(
-        cortex.memory.restoreFromArchive(memorySpaceId, memoryId),
+        memoir.memory.restoreFromArchive(memorySpaceId, memoryId),
       ).rejects.toThrow();
     });
   });

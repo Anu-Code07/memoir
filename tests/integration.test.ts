@@ -9,7 +9,7 @@
  * - Hive Mode + Collaboration Mode simultaneously
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup, waitForCondition } from "./helpers";
 import { createTestRunContext } from "./helpers/isolation";
@@ -18,7 +18,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Complex Integration Tests", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -28,7 +28,7 @@ describe("Complex Integration Tests", () => {
     const ready = await waitForCondition(
       async () => {
         try {
-          const result = await cortex.contexts.get(contextId);
+          const result = await memoir.contexts.get(contextId);
           return result !== null;
         } catch {
           return false;
@@ -79,7 +79,7 @@ describe("Complex Integration Tests", () => {
   };
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -103,7 +103,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // SETUP: Register memory spaces
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SUPPORT_SPACE,
         name: "Support Agent",
         type: "team",
@@ -113,14 +113,14 @@ describe("Complex Integration Tests", () => {
         ],
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: FINANCE_SPACE,
         name: "Finance Agent",
         type: "team",
         participants: [{ id: "agent-finance", type: "agent" }],
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: CRM_SPACE,
         name: "CRM Agent",
         type: "team",
@@ -130,7 +130,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 1: User initiates conversation
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: SUPPORT_SPACE,
         type: "user-agent",
         participants: {
@@ -140,7 +140,7 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      const userMessage = await cortex.conversations.addMessage({
+      const userMessage = await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "user",
@@ -149,7 +149,7 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      const agentResponse = await cortex.conversations.addMessage({
+      const agentResponse = await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "agent",
@@ -162,7 +162,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 2: Agent stores searchable memories
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      await cortex.vector.store(SUPPORT_SPACE, {
+      await memoir.vector.store(SUPPORT_SPACE, {
         content: "VIP customer requested refund due to product issues",
         contentType: "summarized",
         source: { type: "conversation", userId: "user-vip-123" },
@@ -183,7 +183,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 3: Extract structured facts
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: SUPPORT_SPACE,
         participantId: "agent-support",
         fact: "User has been customer for 3 years",
@@ -200,7 +200,7 @@ describe("Complex Integration Tests", () => {
         tags: ["customer", "tenure"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: SUPPORT_SPACE,
         participantId: "agent-support",
         fact: "User experiencing product quality issues",
@@ -218,7 +218,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 4: Create workflow context
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const rootContext = await cortex.contexts.create({
+      const rootContext = await memoir.contexts.create({
         purpose: "Process VIP refund request",
         memorySpaceId: SUPPORT_SPACE,
         userId: "user-vip-123",
@@ -244,7 +244,7 @@ describe("Complex Integration Tests", () => {
       // contexts.get() and contexts.create() internal parent lookup
       const financeContext = await retryOnNotFound(
         () =>
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Approve $299.99 refund for VIP customer",
             memorySpaceId: FINANCE_SPACE,
             parentId: rootContext.contextId,
@@ -262,7 +262,7 @@ describe("Complex Integration Tests", () => {
       // Delegate to CRM agent
       const crmContext = await retryOnNotFound(
         () =>
-          cortex.contexts.create({
+          memoir.contexts.create({
             purpose: "Update customer record with refund issue",
             memorySpaceId: CRM_SPACE,
             parentId: rootContext.contextId,
@@ -280,13 +280,13 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // 1. Conversation exists
-      const conv = await cortex.conversations.get(conversation.conversationId);
+      const conv = await memoir.conversations.get(conversation.conversationId);
 
       expect(conv).not.toBeNull();
       expect(conv!.messageCount).toBe(2);
 
       // 2. Memories reference conversation
-      const memories = await cortex.vector.list({
+      const memories = await memoir.vector.list({
         memorySpaceId: SUPPORT_SPACE,
       });
       const refundMemory = memories.find((m) => m.content.includes("refund"));
@@ -298,7 +298,7 @@ describe("Complex Integration Tests", () => {
       );
 
       // 3. Facts reference conversation and have high confidence
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId: SUPPORT_SPACE,
       });
 
@@ -309,7 +309,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // 4. Context chain coordinates workflow
-      const chain = await cortex.contexts.getChain(financeContext.contextId);
+      const chain = await memoir.contexts.getChain(financeContext.contextId);
 
       expect(chain.root.contextId).toBe(rootContext.contextId);
       expect(chain.siblings).toHaveLength(1);
@@ -342,7 +342,7 @@ describe("Complex Integration Tests", () => {
       const companyB = ctx.memorySpaceId("company-beta-hive");
 
       // Company A Hive (multiple tools share one space)
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: companyA,
         name: "Acme Corp Hive",
         type: "team",
@@ -355,7 +355,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Company B Hive (different tools, separate space)
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: companyB,
         name: "Beta Inc Hive",
         type: "team",
@@ -372,7 +372,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // Multiple tools contribute to same hive
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyA,
         participantId: "tool-acme-calendar",
         fact: "Project kickoff scheduled for Nov 1",
@@ -383,7 +383,7 @@ describe("Complex Integration Tests", () => {
         tags: ["schedule", "project"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyA,
         participantId: "tool-acme-docs",
         fact: "Technical spec document created for joint API",
@@ -394,7 +394,7 @@ describe("Complex Integration Tests", () => {
         tags: ["documentation", "project"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyA,
         participantId: "agent-acme-pm",
         fact: "Acme Corp will develop authentication module",
@@ -411,7 +411,7 @@ describe("Complex Integration Tests", () => {
       // STEP 2: Create shared context for collaboration
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      const projectContext = await cortex.contexts.create({
+      const projectContext = await memoir.contexts.create({
         purpose: "Joint API Development Project",
         memorySpaceId: companyA,
         data: {
@@ -431,7 +431,7 @@ describe("Complex Integration Tests", () => {
       // contexts.get() and contexts.grantAccess() internal context lookup
       await retryOnNotFound(
         () =>
-          cortex.contexts.grantAccess(
+          memoir.contexts.grantAccess(
             projectContext.contextId,
             companyB,
             "collaborate",
@@ -444,7 +444,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // Company B's tools contribute to their own hive
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyB,
         participantId: "tool-beta-code",
         fact: "Beta Inc will develop data processing module",
@@ -457,7 +457,7 @@ describe("Complex Integration Tests", () => {
         tags: ["responsibility", "project"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: companyB,
         participantId: "tool-beta-test",
         fact: "Beta Inc testing infrastructure ready for integration",
@@ -469,7 +469,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Company B creates child context (cross-space hierarchy)
-      const betaContext = await cortex.contexts.create({
+      const betaContext = await memoir.contexts.create({
         purpose: "Beta Inc: Develop data processing module",
         memorySpaceId: companyB,
         parentId: projectContext.contextId,
@@ -484,8 +484,8 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // V1: Hive Mode - All tools in each company share data
-      const acmeFacts = await cortex.facts.list({ memorySpaceId: companyA });
-      const betaFacts = await cortex.facts.list({ memorySpaceId: companyB });
+      const acmeFacts = await memoir.facts.list({ memorySpaceId: companyA });
+      const betaFacts = await memoir.facts.list({ memorySpaceId: companyB });
 
       expect(acmeFacts.length).toBeGreaterThanOrEqual(3);
       expect(betaFacts.length).toBeGreaterThanOrEqual(2);
@@ -502,7 +502,7 @@ describe("Complex Integration Tests", () => {
       expect(betaParticipants.size).toBeGreaterThanOrEqual(2);
 
       // V2: Collaboration Mode - Shared context, isolated data
-      const chain = await cortex.contexts.getChain(betaContext.contextId);
+      const chain = await memoir.contexts.getChain(betaContext.contextId);
 
       // Beta can see shared context
       expect(chain.root.contextId).toBe(projectContext.contextId);
@@ -514,7 +514,7 @@ describe("Complex Integration Tests", () => {
       expect(betaFacts.some((f) => f.fact.includes("Acme Corp"))).toBe(false);
 
       // V3: Context grants allow coordination
-      const rootCtx = await cortex.contexts.get(projectContext.contextId);
+      const rootCtx = await memoir.contexts.get(projectContext.contextId);
 
       expect((rootCtx as any).grantedAccess).toBeDefined();
       expect(
@@ -524,7 +524,7 @@ describe("Complex Integration Tests", () => {
       ).toBe(true);
 
       // V4: Facts support graph queries
-      const acmeResponsibilities = await cortex.facts.queryByRelationship({
+      const acmeResponsibilities = await memoir.facts.queryByRelationship({
         memorySpaceId: companyA,
         subject: "project-joint-api",
         predicate: "responsible_for",
@@ -533,7 +533,7 @@ describe("Complex Integration Tests", () => {
       expect(acmeResponsibilities.length).toBeGreaterThanOrEqual(1);
       expect(acmeResponsibilities[0].object).toBe("authentication-module");
 
-      const betaResponsibilities = await cortex.facts.queryByRelationship({
+      const betaResponsibilities = await memoir.facts.queryByRelationship({
         memorySpaceId: companyB,
         subject: "project-joint-api",
         predicate: "responsible_for",
@@ -557,7 +557,7 @@ describe("Complex Integration Tests", () => {
 
       const LARGE_HIVE = ctx.memorySpaceId("infinite-context-demo");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: LARGE_HIVE,
         name: "Infinite Context Demo",
         type: "personal",
@@ -568,7 +568,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Create conversation with many messages
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: LARGE_HIVE,
         type: "user-agent",
         participants: {
@@ -593,13 +593,13 @@ describe("Complex Integration Tests", () => {
       ];
 
       for (const topic of messageTopics) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv.conversationId,
           message: { role: "user", content: topic },
         });
 
         // Extract fact for each
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: LARGE_HIVE,
           participantId: "agent-assistant",
           fact: topic,
@@ -617,13 +617,13 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // Search facts (much faster than searching 10K+ messages)
-      const colorFacts = await cortex.facts.search(LARGE_HIVE, "color");
+      const colorFacts = await memoir.facts.search(LARGE_HIVE, "color");
 
       expect(colorFacts.length).toBeGreaterThanOrEqual(1);
       expect(colorFacts[0].fact).toContain("blue");
 
       // Query by subject (entity-centric)
-      const userProfile = await cortex.facts.queryBySubject({
+      const userProfile = await memoir.facts.queryBySubject({
         memorySpaceId: LARGE_HIVE,
         subject: "user-demo",
       });
@@ -639,7 +639,7 @@ describe("Complex Integration Tests", () => {
       );
 
       // Can retrieve full conversation if needed
-      const fullConv = await cortex.conversations.get(conv.conversationId);
+      const fullConv = await memoir.conversations.get(conv.conversationId);
 
       expect(fullConv!.messageCount).toBeGreaterThanOrEqual(10);
 
@@ -655,14 +655,14 @@ describe("Complex Integration Tests", () => {
       // Use ctx for unique userId to prevent parallel test interference
       const TARGET_USER = ctx.userId("gdpr-delete");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: GDPR_SPACE,
         type: "personal",
         participants: [{ id: TARGET_USER, type: "user" }],
       });
 
       // Layer 1: Create conversations
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: GDPR_SPACE,
         type: "user-agent",
         participants: {
@@ -672,13 +672,13 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "My personal information" },
       });
 
       // Layer 2: Store memories
-      await cortex.vector.store(GDPR_SPACE, {
+      await memoir.vector.store(GDPR_SPACE, {
         content: "User's personal data",
         contentType: "raw",
         source: { type: "conversation" },
@@ -687,7 +687,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Layer 3: Store facts
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         fact: "User's personal preference",
         factType: "preference",
@@ -698,31 +698,31 @@ describe("Complex Integration Tests", () => {
       });
 
       // Layer 4: Create context
-      const testContext = await cortex.contexts.create({
+      const testContext = await memoir.contexts.create({
         purpose: "Handle user request",
         memorySpaceId: GDPR_SPACE,
         userId: TARGET_USER,
       });
 
       // Verify context was created before proceeding
-      const contextVerify = await cortex.contexts.get(testContext.contextId);
+      const contextVerify = await memoir.contexts.get(testContext.contextId);
       expect(contextVerify).not.toBeNull();
 
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // GDPR DELETE: Simulate cascade deletion
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      // In production: cortex.users.delete(TARGET_USER, { cascade: true })
+      // In production: memoir.users.delete(TARGET_USER, { cascade: true })
       // For test: Manually verify user filtering works
 
-      const userConvs = await cortex.conversations.list({
+      const userConvs = await memoir.conversations.list({
         userId: TARGET_USER,
       });
-      const userMemories = await cortex.vector.list({
+      const userMemories = await memoir.vector.list({
         memorySpaceId: GDPR_SPACE,
         userId: TARGET_USER,
       });
-      const userContexts = await cortex.contexts.list({ userId: TARGET_USER });
+      const userContexts = await memoir.contexts.list({ userId: TARGET_USER });
 
       expect(userConvs.conversations.length).toBeGreaterThanOrEqual(1);
       expect(userMemories.length).toBeGreaterThanOrEqual(1);
@@ -736,14 +736,14 @@ describe("Complex Integration Tests", () => {
     it("tracks changes across conversations, memories, facts, contexts", async () => {
       const VERSION_SPACE = ctx.memorySpaceId("version-test-space");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: VERSION_SPACE,
         type: "personal",
         participants: [],
       });
 
       // Initial state
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: VERSION_SPACE,
         fact: "User prefers email notifications",
         factType: "preference",
@@ -756,7 +756,7 @@ describe("Complex Integration Tests", () => {
       expect(fact1.version).toBe(1);
 
       // Update fact (v2)
-      const fact2 = await cortex.facts.update(VERSION_SPACE, fact1.factId, {
+      const fact2 = await memoir.facts.update(VERSION_SPACE, fact1.factId, {
         fact: "User prefers SMS notifications",
         confidence: 90,
       });
@@ -765,7 +765,7 @@ describe("Complex Integration Tests", () => {
       expect(fact2.supersedes).toBe(fact1.factId);
 
       // Get history
-      const history = await cortex.facts.getHistory(
+      const history = await memoir.facts.getHistory(
         VERSION_SPACE,
         fact1.factId,
       );
@@ -775,17 +775,17 @@ describe("Complex Integration Tests", () => {
       expect(history.some((f) => f.fact.includes("SMS"))).toBe(true);
 
       // Contexts also track changes in metadata
-      const _context = await cortex.contexts.create({
+      const _context = await memoir.contexts.create({
         purpose: "Track preference changes",
         memorySpaceId: VERSION_SPACE,
         data: { notification: "email" },
       });
 
-      await cortex.contexts.update(_context.contextId, {
+      await memoir.contexts.update(_context.contextId, {
         data: { notification: "sms", updatedReason: "user changed preference" },
       });
 
-      const updatedContext = await cortex.contexts.get(_context.contextId);
+      const updatedContext = await memoir.contexts.get(_context.contextId);
 
       expect((updatedContext as any).data.notification).toBe("sms");
 
@@ -799,7 +799,7 @@ describe("Complex Integration Tests", () => {
       // Use ctx for unique userId to prevent parallel test interference
       const SEARCH_USER = ctx.userId("search-test");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SEARCH_SPACE,
         type: "personal",
         participants: [{ id: SEARCH_USER, type: "user" }],
@@ -808,7 +808,7 @@ describe("Complex Integration Tests", () => {
       const keyword = `SEARCH_${ctx.runId.slice(0, 8)}`;
 
       // Store in conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: SEARCH_SPACE,
         type: "user-agent",
         participants: {
@@ -818,13 +818,13 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: `This message contains ${keyword}` },
       });
 
       // Store in memory
-      await cortex.vector.store(SEARCH_SPACE, {
+      await memoir.vector.store(SEARCH_SPACE, {
         content: `Memory with ${keyword}`,
         contentType: "raw",
         source: { type: "system" },
@@ -833,7 +833,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Store in facts
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: SEARCH_SPACE,
         fact: `Fact containing ${keyword}`,
         factType: "knowledge",
@@ -843,14 +843,14 @@ describe("Complex Integration Tests", () => {
       });
 
       // Store in context with userId for proper isolation
-      const searchContext = await cortex.contexts.create({
+      const searchContext = await memoir.contexts.create({
         purpose: `Context with ${keyword}`,
         memorySpaceId: SEARCH_SPACE,
         userId: SEARCH_USER,
       });
 
       // Verify context was created before searching
-      const contextVerify = await cortex.contexts.get(searchContext.contextId);
+      const contextVerify = await memoir.contexts.get(searchContext.contextId);
       expect(contextVerify).not.toBeNull();
 
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -858,7 +858,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // Conversations - filter by memorySpaceId for efficiency and reliability
-      const convResults = await cortex.conversations.search({
+      const convResults = await memoir.conversations.search({
         query: keyword,
         filters: { memorySpaceId: SEARCH_SPACE },
       });
@@ -870,17 +870,17 @@ describe("Complex Integration Tests", () => {
       ).toBe(true);
 
       // Memories
-      const memResults = await cortex.vector.search(SEARCH_SPACE, keyword);
+      const memResults = await memoir.vector.search(SEARCH_SPACE, keyword);
 
       expect(memResults.length).toBeGreaterThanOrEqual(1);
 
       // Facts
-      const factResults = await cortex.facts.search(SEARCH_SPACE, keyword);
+      const factResults = await memoir.facts.search(SEARCH_SPACE, keyword);
 
       expect(factResults.length).toBeGreaterThanOrEqual(1);
 
       // Contexts
-      const contextResults = await cortex.contexts.list({
+      const contextResults = await memoir.contexts.list({
         memorySpaceId: SEARCH_SPACE,
       });
 
@@ -896,7 +896,7 @@ describe("Complex Integration Tests", () => {
     it("aggregates stats from all layers", async () => {
       const STATS_SPACE = ctx.memorySpaceId("stats-dashboard-space");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: STATS_SPACE,
         name: "Stats Dashboard",
         type: "team",
@@ -907,7 +907,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Add data across layers
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: STATS_SPACE,
         type: "user-agent",
         participants: {
@@ -918,20 +918,20 @@ describe("Complex Integration Tests", () => {
       });
 
       for (let i = 0; i < 5; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv.conversationId,
           message: { role: "user", content: `Message ${i}` },
         });
       }
 
-      await cortex.vector.store(STATS_SPACE, {
+      await memoir.vector.store(STATS_SPACE, {
         content: "Test memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 70, tags: [] },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: STATS_SPACE,
         fact: "Test fact",
         factType: "knowledge",
@@ -941,7 +941,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Get comprehensive stats
-      const stats = await cortex.memorySpaces.getStats(STATS_SPACE);
+      const stats = await memoir.memorySpaces.getStats(STATS_SPACE);
 
       expect(stats.totalConversations).toBeGreaterThanOrEqual(1);
       expect(stats.totalMessages).toBeGreaterThanOrEqual(5);
@@ -967,14 +967,14 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // SETUP: Apply SOC2 compliance policy
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const soc2Policy = await cortex.governance.getTemplate("SOC2");
-      await cortex.governance.setPolicy({
+      const soc2Policy = await memoir.governance.getTemplate("SOC2");
+      await memoir.governance.setPolicy({
         ...soc2Policy,
         organizationId: ENTERPRISE_ORG,
       });
 
       // Register enterprise memory space
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: ENTERPRISE_SPACE,
         name: "Enterprise Operations",
         type: "team",
@@ -987,7 +987,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 1: Create compliance-tracked conversation
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const conversation = await cortex.conversations.create({
+      const conversation = await memoir.conversations.create({
         memorySpaceId: ENTERPRISE_SPACE,
         type: "user-agent",
         participants: {
@@ -1000,7 +1000,7 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "user",
@@ -1008,7 +1008,7 @@ describe("Complex Integration Tests", () => {
         },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conversation.conversationId,
         message: {
           role: "agent",
@@ -1021,7 +1021,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 2: Store compliance-aware memory
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      await cortex.vector.store(ENTERPRISE_SPACE, {
+      await memoir.vector.store(ENTERPRISE_SPACE, {
         content: "High-value customer data processing initiated",
         contentType: "summarized",
         userId: USER_ID,
@@ -1039,7 +1039,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // LAYER 3: Extract compliance facts
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: ENTERPRISE_SPACE,
         userId: USER_ID,
         fact: "User initiated sensitive data request under SOC2 compliance",
@@ -1058,7 +1058,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // GOVERNANCE: Enforce policy across all layers
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const enforceResult = await cortex.governance.enforce({
+      const enforceResult = await memoir.governance.enforce({
         layers: ["conversations", "immutable", "mutable", "vector"],
         rules: ["retention", "purging"],
         scope: { organizationId: ENTERPRISE_ORG },
@@ -1071,7 +1071,7 @@ describe("Complex Integration Tests", () => {
       // VERIFY: Compliance report reflects operations
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const now = Date.now();
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: ENTERPRISE_ORG,
         period: {
           start: new Date(now - 7 * 24 * 60 * 60 * 1000),
@@ -1093,7 +1093,7 @@ describe("Complex Integration Tests", () => {
       const SIM_SPACE = ctx.memorySpaceId(`simulation-${ts}`);
 
       // Setup: Create test data
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SIM_SPACE,
         name: "Simulation Test",
         type: "personal",
@@ -1101,7 +1101,7 @@ describe("Complex Integration Tests", () => {
 
       // Create multiple memories with varying importance
       for (let i = 0; i < 5; i++) {
-        await cortex.vector.store(SIM_SPACE, {
+        await memoir.vector.store(SIM_SPACE, {
           content: `Test memory ${i} for simulation`,
           contentType: "raw",
           source: { type: "system" },
@@ -1115,7 +1115,7 @@ describe("Complex Integration Tests", () => {
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // SIMULATE: Test aggressive retention policy
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      const simulation = await cortex.governance.simulate({
+      const simulation = await memoir.governance.simulate({
         organizationId: SIM_ORG,
         vector: {
           retention: {
@@ -1149,14 +1149,14 @@ describe("Complex Integration Tests", () => {
       const TEMP_SPACE = ctx.memorySpaceId(`temp-space-${ts}`);
 
       // Setup: Apply GDPR org-wide policy
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: OVERRIDE_ORG,
       });
 
       // Override for audit space: unlimited retention
-      await cortex.governance.setAgentOverride(AUDIT_SPACE, {
+      await memoir.governance.setAgentOverride(AUDIT_SPACE, {
         vector: {
           retention: {
             defaultVersions: -1, // Unlimited
@@ -1181,7 +1181,7 @@ describe("Complex Integration Tests", () => {
       });
 
       // Override for temp space: aggressive cleanup
-      await cortex.governance.setAgentOverride(TEMP_SPACE, {
+      await memoir.governance.setAgentOverride(TEMP_SPACE, {
         vector: {
           retention: {
             defaultVersions: 1,
@@ -1205,21 +1205,21 @@ describe("Complex Integration Tests", () => {
       });
 
       // Verify: Audit space has unlimited retention
-      const auditPolicy = await cortex.governance.getPolicy({
+      const auditPolicy = await memoir.governance.getPolicy({
         memorySpaceId: AUDIT_SPACE,
       });
       expect(auditPolicy.vector.retention.defaultVersions).toBe(-1);
       expect(auditPolicy.immutable.retention.defaultVersions).toBe(-1);
 
       // Verify: Temp space has aggressive cleanup
-      const tempPolicy = await cortex.governance.getPolicy({
+      const tempPolicy = await memoir.governance.getPolicy({
         memorySpaceId: TEMP_SPACE,
       });
       expect(tempPolicy.vector.retention.defaultVersions).toBe(1);
       expect(tempPolicy.conversations.retention.deleteAfter).toBe("7d");
 
       // Verify: Org-level policy still returns GDPR defaults
-      const orgPolicy = await cortex.governance.getPolicy({
+      const orgPolicy = await memoir.governance.getPolicy({
         organizationId: OVERRIDE_ORG,
       });
       expect(orgPolicy.compliance.mode).toBe("GDPR");

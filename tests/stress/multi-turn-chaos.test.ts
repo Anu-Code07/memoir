@@ -1,7 +1,7 @@
 /**
  * Extreme Multi-Turn Conversation Stress Tests
  *
- * Ultimate stress tests for the Cortex memory system that simulate
+ * Ultimate stress tests for the Memoir memory system that simulate
  * chaotic, real-world conversation patterns:
  *
  * 1. Forgetful User: 50+ repeated questions, testing deduplication
@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, jest } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext } from "../helpers/isolation";
 import {
@@ -163,7 +163,7 @@ function createMockLLMClient() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function processTurn(
-  cortex: Cortex,
+  memoir: Memoir,
   memorySpaceId: string,
   userId: string,
   turn: ConversationTurn,
@@ -182,7 +182,7 @@ async function processTurn(
         embedding = result ?? undefined;
       }
 
-      return cortex.memory.recall({
+      return memoir.memory.recall({
         memorySpaceId,
         query: turn.userMessage,
         embedding,
@@ -217,7 +217,7 @@ async function processTurn(
       const result = await metrics.timeOperation(
         "revise",
         async () => {
-          return cortex.facts.revise({
+          return memoir.facts.revise({
             memorySpaceId,
             userId,
             fact: {
@@ -253,23 +253,23 @@ async function processTurn(
 
 describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
   const ctx = createNamedTestRunContext("stress-forgetful");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const memorySpaceId = ctx.memorySpaceId("forgetful");
   const userId = ctx.userId("forgetful");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: STRESS_TEST_RESILIENCE,
     });
 
     // Configure belief revision
-    cortex.facts.configureBeliefRevision(createMockLLMClient());
+    memoir.facts.configureBeliefRevision(createMockLLMClient());
 
     // Create memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       type: "personal",
     });
@@ -277,7 +277,7 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(memorySpaceId, {
+      await memoir.memorySpaces.delete(memorySpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -301,7 +301,7 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
         console.log(`   Processing turn ${i + 1}/${turns.length}...`);
       }
 
-      await processTurn(cortex, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
+      await processTurn(memoir, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
     }
 
     // Final metrics
@@ -310,11 +310,11 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
     console.log(formatTestReport(finalMetrics));
 
     // Validation: No duplicates
-    const duplicateCheck = await verifyNoDuplicates(cortex, memorySpaceId, userId);
+    const duplicateCheck = await verifyNoDuplicates(memoir, memorySpaceId, userId);
     expect(duplicateCheck.passed).toBe(true);
 
     // Validation: Expected number of facts (one per topic)
-    const allFacts = await cortex.facts.list({
+    const allFacts = await memoir.facts.list({
       memorySpaceId,
       subject: userId,
       includeSuperseded: false,
@@ -327,7 +327,7 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
       expectedState[TOPIC_CONFIGS[topic].predicate] = TOPIC_CONFIGS[topic].variations[0];
     });
 
-    const stateCheck = await verifyExactFactState(cortex, memorySpaceId, userId, expectedState);
+    const stateCheck = await verifyExactFactState(memoir, memorySpaceId, userId, expectedState);
     expect(stateCheck.passed).toBe(true);
   });
 
@@ -342,7 +342,7 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
       const embedding = await generateRealEmbedding("What is my favorite color?");
 
       const result = await metrics.timeOperation("recall", async () => {
-        return cortex.memory.recall({
+        return memoir.memory.recall({
           memorySpaceId,
           query: "What is my favorite color?",
           embedding,
@@ -374,20 +374,20 @@ describeWithOpenAI("Stress Tests - Forgetful User (50+ turns)", () => {
 
 describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", () => {
   const ctx = createNamedTestRunContext("stress-indecisive");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const memorySpaceId = ctx.memorySpaceId("indecisive");
   const userId = ctx.userId("indecisive");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: STRESS_TEST_RESILIENCE,
     });
-    cortex.facts.configureBeliefRevision(createMockLLMClient());
+    memoir.facts.configureBeliefRevision(createMockLLMClient());
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       type: "personal",
     });
@@ -395,7 +395,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(memorySpaceId, {
+      await memoir.memorySpaces.delete(memorySpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -419,7 +419,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
         console.log(`   Processing turn ${i + 1}/${turns.length}...`);
       }
 
-      await processTurn(cortex, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
+      await processTurn(memoir, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
 
       // Track the last value for verification
       if (turn.extractFacts && !turn.isRetrieval) {
@@ -435,7 +435,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
     console.log(formatTestReport(finalMetrics));
 
     // Validation: Only ONE current color preference
-    const currentFacts = await cortex.facts.list({
+    const currentFacts = await memoir.facts.list({
       memorySpaceId,
       subject: userId,
       predicate: "favorite color",
@@ -448,7 +448,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
 
     // Validation: Supersession chain is valid
     const chainResult = await validateSupersessionChain(
-      cortex,
+      memoir,
       memorySpaceId,
       userId,
       "favorite color",
@@ -482,7 +482,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
         console.log(`   Processing turn ${i + 1}/${shuffledTurns.length}...`);
       }
 
-      await processTurn(cortex, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
+      await processTurn(memoir, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
     }
 
     const finalMetrics = metrics.finalize();
@@ -490,7 +490,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
     console.log(formatTestReport(finalMetrics));
 
     // Validation: All supersession chains valid
-    const chainResults = await validateAllSupersessionChains(cortex, memorySpaceId, userId);
+    const chainResults = await validateAllSupersessionChains(memoir, memorySpaceId, userId);
     expect(chainResults.invalidChains).toBe(0);
 
     console.log(`   Total chains validated: ${chainResults.totalChains}`);
@@ -498,7 +498,7 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
 
     // Validation: Recall excludes superseded
     const recallCheck = await verifyRecallExcludesSuperseded(
-      cortex,
+      memoir,
       memorySpaceId,
       "What are my preferences?",
       userId,
@@ -513,20 +513,20 @@ describeWithOpenAI("Stress Tests - Indecisive User (30+ preference changes)", ()
 
 describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () => {
   const ctx = createNamedTestRunContext("stress-flooder");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const memorySpaceId = ctx.memorySpaceId("flooder");
   const userId = ctx.userId("flooder");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: STRESS_TEST_RESILIENCE,
     });
-    cortex.facts.configureBeliefRevision(createMockLLMClient());
+    memoir.facts.configureBeliefRevision(createMockLLMClient());
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       type: "personal",
     });
@@ -534,7 +534,7 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(memorySpaceId, {
+      await memoir.memorySpaces.delete(memorySpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -556,7 +556,7 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
         console.log(`   Processing turn ${i + 1}/${turns.length}...`);
       }
 
-      await processTurn(cortex, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
+      await processTurn(memoir, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
     }
 
     const finalMetrics = metrics.finalize();
@@ -565,7 +565,7 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
 
     // Validation: Semantic search finds relevant facts
     const embedding = await generateRealEmbedding("What colors does the user like?");
-    const recallResult = await cortex.memory.recall({
+    const recallResult = await memoir.memory.recall({
       memorySpaceId,
       query: "What colors does the user like?",
       embedding,
@@ -600,7 +600,7 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
         console.log(`   Processing turn ${i + 1}/${allTurns.length}...`);
       }
 
-      await processTurn(cortex, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
+      await processTurn(memoir, memorySpaceId, userId, turn, metrics, generateRealEmbedding);
     }
 
     const finalMetrics = metrics.finalize();
@@ -612,7 +612,7 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
       const config = TOPIC_CONFIGS[topic];
       const embedding = await generateRealEmbedding(`What is the user's ${config.name}?`);
 
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId,
         query: `What is the user's ${config.name}?`,
         embedding,
@@ -637,20 +637,20 @@ describeWithOpenAI("Stress Tests - Topic Flooder (100+ similar memories)", () =>
 
 describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", () => {
   const ctx = createNamedTestRunContext("stress-chaos");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const memorySpaceId = ctx.memorySpaceId("chaos");
   const userId = ctx.userId("chaos");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: STRESS_TEST_RESILIENCE,
     });
-    cortex.facts.configureBeliefRevision(createMockLLMClient());
+    memoir.facts.configureBeliefRevision(createMockLLMClient());
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       type: "personal",
     });
@@ -658,7 +658,7 @@ describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", ()
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(memorySpaceId, {
+      await memoir.memorySpaces.delete(memorySpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -699,7 +699,7 @@ describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", ()
       }
 
       const result = await processTurn(
-        cortex,
+        memoir,
         memorySpaceId,
         userId,
         turn,
@@ -723,18 +723,18 @@ describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", ()
     console.log(`   NONE: ${decisionsCount.NONE}`);
 
     // Validation: No duplicates after all the chaos
-    const duplicateCheck = await verifyNoDuplicates(cortex, memorySpaceId, userId);
+    const duplicateCheck = await verifyNoDuplicates(memoir, memorySpaceId, userId);
     console.log(`\n✅ Duplicate check: ${duplicateCheck.message}`);
     expect(duplicateCheck.passed).toBe(true);
 
     // Validation: All supersession chains valid
-    const chainResults = await validateAllSupersessionChains(cortex, memorySpaceId, userId);
+    const chainResults = await validateAllSupersessionChains(memoir, memorySpaceId, userId);
     console.log(`✅ Chain validation: ${chainResults.validChains}/${chainResults.totalChains} valid`);
     expect(chainResults.invalidChains).toBe(0);
 
     // Validation: Recall excludes superseded facts
     const recallCheck = await verifyRecallExcludesSuperseded(
-      cortex,
+      memoir,
       memorySpaceId,
       "Tell me everything about the user",
       userId,
@@ -747,7 +747,7 @@ describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", ()
     const metrics = new MetricsCollector("CombinedChaos-Integrity");
 
     // Get all current facts
-    const allFacts = await cortex.facts.list({
+    const allFacts = await memoir.facts.list({
       memorySpaceId,
       subject: userId,
       includeSuperseded: true,
@@ -780,20 +780,20 @@ describeWithOpenAI("Stress Tests - Combined Chaos (100+ turn ultimate test)", ()
 
 describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
   const ctx = createNamedTestRunContext("stress-parallel");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const memorySpaceId = ctx.memorySpaceId("parallel");
   const userIds = Array.from({ length: 5 }, (_, i) => ctx.userId(`user-${i}`));
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       resilience: STRESS_TEST_RESILIENCE,
     });
-    cortex.facts.configureBeliefRevision(createMockLLMClient());
+    memoir.facts.configureBeliefRevision(createMockLLMClient());
 
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId,
       type: "team", // Use "team" for shared memory space
     });
@@ -801,7 +801,7 @@ describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(memorySpaceId, {
+      await memoir.memorySpaces.delete(memorySpaceId, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -826,7 +826,7 @@ describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
 
       for (const turn of userTurns) {
         await processTurn(
-          cortex,
+          memoir,
           memorySpaceId,
           userId,
           turn,
@@ -850,7 +850,7 @@ describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
     console.log(formatTestReport(finalMetrics));
 
     // Validation: User isolation
-    const isolationCheck = await verifyUserIsolation(cortex, memorySpaceId, userIds);
+    const isolationCheck = await verifyUserIsolation(memoir, memorySpaceId, userIds);
     console.log(`\n✅ User isolation check: ${isolationCheck.passed ? "PASSED" : "FAILED"}`);
     if (!isolationCheck.passed) {
       console.log(`   Violations: ${isolationCheck.violations.length}`);
@@ -867,7 +867,7 @@ describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
       const otherUserIds = userIds.filter((id) => id !== userId);
 
       const isolationResult = await verifyRecallIsolation(
-        cortex,
+        memoir,
         memorySpaceId,
         userId,
         "What are my preferences?",
@@ -887,7 +887,7 @@ describeWithOpenAI("Stress Tests - Parallel Chaos (5 concurrent users)", () => {
     for (let i = 0; i < userIds.length; i++) {
       const userId = userIds[i];
 
-      const facts = await cortex.facts.list({
+      const facts = await memoir.facts.list({
         memorySpaceId,
         subject: userId,
         includeSuperseded: false,

@@ -5,23 +5,23 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext } from "./helpers";
 
 describe("Fact History Service", () => {
   const ctx = createNamedTestRunContext("fact-history");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   const TEST_MEMSPACE_ID = ctx.memorySpaceId("test");
 
   beforeAll(async () => {
     client = new ConvexClient(CONVEX_URL);
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
 
     // Create test memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
     });
@@ -29,7 +29,7 @@ describe("Fact History Service", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -42,7 +42,7 @@ describe("Fact History Service", () => {
   describe("Basic Operations", () => {
     it("should store a fact and track CREATE in history", async () => {
       // Store a fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User likes blue",
         factType: "preference",
@@ -58,13 +58,13 @@ describe("Fact History Service", () => {
 
       // History should be available (may not have events until belief revision is used)
       // This test verifies the history method works without errors
-      const history = await cortex.facts.history(fact.factId);
+      const history = await memoir.facts.history(fact.factId);
       expect(Array.isArray(history)).toBe(true);
     });
 
     it("should track multiple changes to a fact", async () => {
       // Create fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User lives in NYC",
         factType: "knowledge",
@@ -76,12 +76,12 @@ describe("Fact History Service", () => {
       });
 
       // Update fact
-      await cortex.facts.update(TEST_MEMSPACE_ID, fact.factId, {
+      await memoir.facts.update(TEST_MEMSPACE_ID, fact.factId, {
         confidence: 95,
       });
 
       // Get history
-      const history = await cortex.facts.history(fact.factId);
+      const history = await memoir.facts.history(fact.factId);
       expect(Array.isArray(history)).toBe(true);
     });
   });
@@ -91,7 +91,7 @@ describe("Fact History Service", () => {
       const beforeTime = new Date();
 
       // Create fact
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Test time filter fact",
         factType: "custom",
@@ -102,7 +102,7 @@ describe("Fact History Service", () => {
       const afterTime = new Date();
 
       // Query with time range
-      const changes = await cortex.facts.getChanges({
+      const changes = await memoir.facts.getChanges({
         memorySpaceId: TEST_MEMSPACE_ID,
         after: beforeTime,
         before: afterTime,
@@ -114,7 +114,7 @@ describe("Fact History Service", () => {
     it("should limit results", async () => {
       // Create multiple facts
       for (let i = 0; i < 5; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: TEST_MEMSPACE_ID,
           fact: `Limit test fact ${i}`,
           factType: "custom",
@@ -124,7 +124,7 @@ describe("Fact History Service", () => {
       }
 
       // Query with limit
-      const changes = await cortex.facts.getChanges({
+      const changes = await memoir.facts.getChanges({
         memorySpaceId: TEST_MEMSPACE_ID,
         limit: 3,
       });
@@ -135,7 +135,7 @@ describe("Fact History Service", () => {
 
   describe("Activity Summary", () => {
     it("should return activity summary for memory space", async () => {
-      const summary = await cortex.facts.getActivitySummary(
+      const summary = await memoir.facts.getActivitySummary(
         TEST_MEMSPACE_ID,
         24,
       );
@@ -151,11 +151,11 @@ describe("Fact History Service", () => {
     });
 
     it("should allow different time ranges", async () => {
-      const summary1h = await cortex.facts.getActivitySummary(
+      const summary1h = await memoir.facts.getActivitySummary(
         TEST_MEMSPACE_ID,
         1,
       );
-      const summary24h = await cortex.facts.getActivitySummary(
+      const summary24h = await memoir.facts.getActivitySummary(
         TEST_MEMSPACE_ID,
         24,
       );
@@ -168,7 +168,7 @@ describe("Fact History Service", () => {
   describe("Supersession Chain", () => {
     it("should return supersession chain for a fact", async () => {
       // Create a fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Chain test fact",
         factType: "custom",
@@ -177,7 +177,7 @@ describe("Fact History Service", () => {
       });
 
       // Get chain
-      const chain = await cortex.facts.getSupersessionChain(fact.factId);
+      const chain = await memoir.facts.getSupersessionChain(fact.factId);
 
       expect(Array.isArray(chain)).toBe(true);
     });
@@ -186,7 +186,7 @@ describe("Fact History Service", () => {
   describe("Manual Supersession", () => {
     it("should supersede a fact manually", async () => {
       // Create old fact
-      const oldFact = await cortex.facts.store({
+      const oldFact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User likes blue",
         factType: "preference",
@@ -198,7 +198,7 @@ describe("Fact History Service", () => {
       });
 
       // Create new fact
-      const newFact = await cortex.facts.store({
+      const newFact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User likes purple",
         factType: "preference",
@@ -210,7 +210,7 @@ describe("Fact History Service", () => {
       });
 
       // Supersede
-      const result = await cortex.facts.supersede({
+      const result = await memoir.facts.supersede({
         memorySpaceId: TEST_MEMSPACE_ID,
         oldFactId: oldFact.factId,
         newFactId: newFact.factId,
@@ -222,7 +222,7 @@ describe("Fact History Service", () => {
       expect(result.newFactId).toBe(newFact.factId);
 
       // Verify old fact is marked as superseded
-      const retrievedOldFact = await cortex.facts.get(
+      const retrievedOldFact = await memoir.facts.get(
         TEST_MEMSPACE_ID,
         oldFact.factId,
       );
@@ -231,7 +231,7 @@ describe("Fact History Service", () => {
 
     it("should throw when superseding non-existent fact", async () => {
       // Create a new fact to supersede with
-      const newFact = await cortex.facts.store({
+      const newFact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "New supersede test fact",
         factType: "custom",
@@ -240,7 +240,7 @@ describe("Fact History Service", () => {
       });
 
       await expect(
-        cortex.facts.supersede({
+        memoir.facts.supersede({
           memorySpaceId: TEST_MEMSPACE_ID,
           oldFactId: "non-existent-old",
           newFactId: newFact.factId,
@@ -252,11 +252,11 @@ describe("Fact History Service", () => {
 
   describe("Error Handling", () => {
     it("should handle invalid factId format", async () => {
-      await expect(cortex.facts.history("invalid")).rejects.toThrow();
+      await expect(memoir.facts.history("invalid")).rejects.toThrow();
     });
 
     it("should handle empty memory space ID", async () => {
-      await expect(cortex.facts.getActivitySummary("", 24)).rejects.toThrow();
+      await expect(memoir.facts.getActivitySummary("", 24)).rejects.toThrow();
     });
   });
 });

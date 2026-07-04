@@ -6,7 +6,7 @@
  */
 
 import { jest } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex-dev/_generated/api";
 import { TestCleanup } from "./helpers/cleanup";
@@ -16,7 +16,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory Validation", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -27,7 +27,7 @@ describe("Memory Validation", () => {
   const TEST_USER_NAME = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
 
@@ -46,7 +46,7 @@ describe("Memory Validation", () => {
 
   describe("Cross-Layer Validation", () => {
     it("remember() creates data in both ACID and Vector", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -65,7 +65,7 @@ describe("Memory Validation", () => {
         memorySpaceId: TEST_MEMSPACE_ID,
       });
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "Test",
@@ -89,7 +89,7 @@ describe("Memory Validation", () => {
     });
 
     it("delete() removes from Vector only, preserves ACID", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -99,7 +99,7 @@ describe("Memory Validation", () => {
         },
       });
 
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userMessage: "Delete test",
@@ -109,13 +109,13 @@ describe("Memory Validation", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      await cortex.memory.delete(
+      await memoir.memory.delete(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
       );
 
       // Vector deleted
-      const vectorMemory = await cortex.vector.get(
+      const vectorMemory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         remembered.memories[0].memoryId,
       );
@@ -123,7 +123,7 @@ describe("Memory Validation", () => {
       expect(vectorMemory).toBeNull();
 
       // ACID preserved
-      const acidConv = await cortex.conversations.get(conv.conversationId);
+      const acidConv = await memoir.conversations.get(conv.conversationId);
 
       expect(acidConv).not.toBeNull();
       expect(acidConv!.messages.length).toBeGreaterThanOrEqual(2);
@@ -135,7 +135,7 @@ describe("Memory Validation", () => {
 
       const PARTICIPANT = "tool-calendar-test";
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -145,7 +145,7 @@ describe("Memory Validation", () => {
         },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         participantId: PARTICIPANT, // ← Hive Mode: specify participant
         conversationId: conv.conversationId,
@@ -159,7 +159,7 @@ describe("Memory Validation", () => {
       });
 
       // ✅ CRITICAL: Verify participantId propagated to BOTH vector memories
-      const userMemory = await cortex.vector.get(
+      const userMemory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
@@ -170,7 +170,7 @@ describe("Memory Validation", () => {
       expect(userMemory!.importance).toBe(85);
       expect(userMemory!.tags).toContain("hive-test");
 
-      const agentMemory = await cortex.vector.get(
+      const agentMemory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -180,7 +180,7 @@ describe("Memory Validation", () => {
       expect(agentMemory!.memorySpaceId).toBe(TEST_MEMSPACE_ID);
 
       // ✅ VERIFY: Can filter memories by participant
-      const allMemories = await cortex.vector.list({
+      const allMemories = await memoir.vector.list({
         memorySpaceId: TEST_MEMSPACE_ID,
       });
 
@@ -202,7 +202,7 @@ describe("Memory Validation", () => {
     let testConversationId: string;
 
     beforeAll(async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: {
@@ -222,7 +222,7 @@ describe("Memory Validation", () => {
           .mockImplementation(() => {});
 
         // Should succeed (not throw) when memorySpaceId is not provided
-        const result = await cortex.memory.remember({
+        const result = await memoir.memory.remember({
           memorySpaceId: undefined as any,
           conversationId: testConversationId,
           userMessage: "Test default memorySpace",
@@ -246,7 +246,7 @@ describe("Memory Validation", () => {
 
       it("throws on empty memorySpaceId (whitespace)", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: "   ",
             conversationId: testConversationId,
             userMessage: "Test",
@@ -260,7 +260,7 @@ describe("Memory Validation", () => {
 
       it("throws on missing conversationId", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: undefined as any,
             userMessage: "Test",
@@ -274,7 +274,7 @@ describe("Memory Validation", () => {
 
       it("throws on missing userMessage", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: undefined as any,
@@ -288,7 +288,7 @@ describe("Memory Validation", () => {
 
       it("throws on empty userMessage", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "   ",
@@ -302,7 +302,7 @@ describe("Memory Validation", () => {
 
       it("throws on missing agentResponse", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -316,7 +316,7 @@ describe("Memory Validation", () => {
 
       it("throws on missing owner (neither userId nor agentId)", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -329,7 +329,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid importance (< 0)", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -344,7 +344,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid importance (> 100)", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -359,7 +359,7 @@ describe("Memory Validation", () => {
 
       it("throws on tags with empty strings", async () => {
         await expect(
-          cortex.memory.remember({
+          memoir.memory.remember({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -376,7 +376,7 @@ describe("Memory Validation", () => {
     describe("rememberStream() validation", () => {
       it("throws on invalid stream object", async () => {
         await expect(
-          cortex.memory.rememberStream({
+          memoir.memory.rememberStream({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -390,7 +390,7 @@ describe("Memory Validation", () => {
 
       it("throws on null stream", async () => {
         await expect(
-          cortex.memory.rememberStream({
+          memoir.memory.rememberStream({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -409,7 +409,7 @@ describe("Memory Validation", () => {
         })();
 
         await expect(
-          cortex.memory.rememberStream({
+          memoir.memory.rememberStream({
             memorySpaceId: "",
             conversationId: testConversationId,
             userMessage: "Test",
@@ -428,7 +428,7 @@ describe("Memory Validation", () => {
         })();
 
         await expect(
-          cortex.memory.rememberStream({
+          memoir.memory.rememberStream({
             memorySpaceId: TEST_MEMSPACE_ID,
             conversationId: testConversationId,
             userMessage: "Test",
@@ -441,27 +441,27 @@ describe("Memory Validation", () => {
 
     describe("forget() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.forget("", "mem-123")).rejects.toThrow(
+        await expect(memoir.memory.forget("", "mem-123")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.forget(TEST_MEMSPACE_ID, "   "),
+          memoir.memory.forget(TEST_MEMSPACE_ID, "   "),
         ).rejects.toThrow("memoryId cannot be empty");
       });
     });
 
     describe("get() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.get("", "mem-123")).rejects.toThrow(
+        await expect(memoir.memory.get("", "mem-123")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty memoryId", async () => {
-        await expect(cortex.memory.get(TEST_MEMSPACE_ID, "")).rejects.toThrow(
+        await expect(memoir.memory.get(TEST_MEMSPACE_ID, "")).rejects.toThrow(
           "memoryId cannot be empty",
         );
       });
@@ -469,20 +469,20 @@ describe("Memory Validation", () => {
 
     describe("search() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.search("", "query")).rejects.toThrow(
+        await expect(memoir.memory.search("", "query")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty query", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "   "),
+          memoir.memory.search(TEST_MEMSPACE_ID, "   "),
         ).rejects.toThrow("query cannot be empty");
       });
 
       it("throws on invalid embedding (empty array)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             embedding: [],
           }),
         ).rejects.toThrow("embedding cannot be empty");
@@ -490,7 +490,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid embedding (NaN values)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             embedding: [0.1, NaN, 0.3],
           }),
         ).rejects.toThrow("must be a finite number");
@@ -498,7 +498,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid minScore (< 0)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             minScore: -0.5,
           }),
         ).rejects.toThrow("minScore must be between 0 and 1");
@@ -506,7 +506,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid minScore (> 1)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             minScore: 1.5,
           }),
         ).rejects.toThrow("minScore must be between 0 and 1");
@@ -514,7 +514,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid limit (0)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             limit: 0,
           }),
         ).rejects.toThrow("limit must be a positive integer");
@@ -522,7 +522,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid limit (negative)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             limit: -10,
           }),
         ).rejects.toThrow("limit must be a positive integer");
@@ -530,7 +530,7 @@ describe("Memory Validation", () => {
 
       it("throws on tags with empty strings", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             tags: ["valid", ""],
           }),
         ).rejects.toThrow("must be a non-empty string");
@@ -538,7 +538,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid minImportance (> 100)", async () => {
         await expect(
-          cortex.memory.search(TEST_MEMSPACE_ID, "query", {
+          memoir.memory.search(TEST_MEMSPACE_ID, "query", {
             minImportance: 150,
           }),
         ).rejects.toThrow("minImportance must be between 0 and 100");
@@ -548,7 +548,7 @@ describe("Memory Validation", () => {
     describe("store() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.store("", {
+          memoir.memory.store("", {
             content: "Test",
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -559,7 +559,7 @@ describe("Memory Validation", () => {
 
       it("throws on empty content", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "   ",
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -570,7 +570,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid contentType", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "unknown" as any,
             source: { type: "system", timestamp: Date.now() },
@@ -581,7 +581,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid sourceType", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "raw",
             source: { type: "invalid" as any, timestamp: Date.now() },
@@ -592,7 +592,7 @@ describe("Memory Validation", () => {
 
       it("throws when conversationRef missing for conversation source", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "raw",
             source: { type: "conversation", timestamp: Date.now() },
@@ -605,7 +605,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid embedding", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -617,7 +617,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid importance", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -628,7 +628,7 @@ describe("Memory Validation", () => {
 
       it("throws on tags with empty strings", async () => {
         await expect(
-          cortex.memory.store(TEST_MEMSPACE_ID, {
+          memoir.memory.store(TEST_MEMSPACE_ID, {
             content: "Test",
             contentType: "raw",
             source: { type: "system", timestamp: Date.now() },
@@ -641,25 +641,25 @@ describe("Memory Validation", () => {
     describe("update() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.update("", "mem-123", { content: "Updated" }),
+          memoir.memory.update("", "mem-123", { content: "Updated" }),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, "", { content: "Updated" }),
+          memoir.memory.update(TEST_MEMSPACE_ID, "", { content: "Updated" }),
         ).rejects.toThrow("memoryId cannot be empty");
       });
 
       it("throws when no update fields provided", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, "mem-123", {}),
+          memoir.memory.update(TEST_MEMSPACE_ID, "mem-123", {}),
         ).rejects.toThrow("At least one update field must be provided");
       });
 
       it("throws on invalid importance", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, "mem-123", {
+          memoir.memory.update(TEST_MEMSPACE_ID, "mem-123", {
             importance: -5,
           }),
         ).rejects.toThrow("importance must be between 0 and 100");
@@ -667,7 +667,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid embedding", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, "mem-123", {
+          memoir.memory.update(TEST_MEMSPACE_ID, "mem-123", {
             embedding: [],
           }),
         ).rejects.toThrow("embedding cannot be empty");
@@ -675,7 +675,7 @@ describe("Memory Validation", () => {
 
       it("throws on tags with empty strings", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, "mem-123", {
+          memoir.memory.update(TEST_MEMSPACE_ID, "mem-123", {
             tags: ["", "valid"],
           }),
         ).rejects.toThrow("must be a non-empty string");
@@ -684,28 +684,28 @@ describe("Memory Validation", () => {
 
     describe("delete() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.delete("", "mem-123")).rejects.toThrow(
+        await expect(memoir.memory.delete("", "mem-123")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.delete(TEST_MEMSPACE_ID, ""),
+          memoir.memory.delete(TEST_MEMSPACE_ID, ""),
         ).rejects.toThrow("memoryId cannot be empty");
       });
     });
 
     describe("list() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.list({ memorySpaceId: "" })).rejects.toThrow(
+        await expect(memoir.memory.list({ memorySpaceId: "" })).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on invalid sourceType", async () => {
         await expect(
-          cortex.memory.list({
+          memoir.memory.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             sourceType: "invalid" as any,
           }),
@@ -714,7 +714,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid limit (negative)", async () => {
         await expect(
-          cortex.memory.list({
+          memoir.memory.list({
             memorySpaceId: TEST_MEMSPACE_ID,
             limit: -5,
           }),
@@ -725,13 +725,13 @@ describe("Memory Validation", () => {
     describe("count() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.count({ memorySpaceId: "" }),
+          memoir.memory.count({ memorySpaceId: "" }),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on invalid sourceType", async () => {
         await expect(
-          cortex.memory.count({
+          memoir.memory.count({
             memorySpaceId: TEST_MEMSPACE_ID,
             sourceType: "invalid" as any,
           }),
@@ -742,19 +742,19 @@ describe("Memory Validation", () => {
     describe("updateMany() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.updateMany({ memorySpaceId: "" }, { importance: 80 }),
+          memoir.memory.updateMany({ memorySpaceId: "" }, { importance: 80 }),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws when no update fields provided", async () => {
         await expect(
-          cortex.memory.updateMany({ memorySpaceId: TEST_MEMSPACE_ID }, {}),
+          memoir.memory.updateMany({ memorySpaceId: TEST_MEMSPACE_ID }, {}),
         ).rejects.toThrow("At least one update field must be provided");
       });
 
       it("throws on invalid importance", async () => {
         await expect(
-          cortex.memory.updateMany(
+          memoir.memory.updateMany(
             { memorySpaceId: TEST_MEMSPACE_ID },
             { importance: 200 },
           ),
@@ -763,7 +763,7 @@ describe("Memory Validation", () => {
 
       it("throws on tags with empty strings", async () => {
         await expect(
-          cortex.memory.updateMany(
+          memoir.memory.updateMany(
             { memorySpaceId: TEST_MEMSPACE_ID },
             { tags: ["valid", ""] },
           ),
@@ -774,19 +774,19 @@ describe("Memory Validation", () => {
     describe("deleteMany() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.deleteMany({ memorySpaceId: "" }),
+          memoir.memory.deleteMany({ memorySpaceId: "" }),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on completely empty filter (prevents mass delete)", async () => {
         await expect(
-          cortex.memory.deleteMany({ memorySpaceId: TEST_MEMSPACE_ID }),
+          memoir.memory.deleteMany({ memorySpaceId: TEST_MEMSPACE_ID }),
         ).rejects.toThrow("Filter must include at least one criterion");
       });
 
       it("throws on invalid sourceType", async () => {
         await expect(
-          cortex.memory.deleteMany({
+          memoir.memory.deleteMany({
             memorySpaceId: TEST_MEMSPACE_ID,
             sourceType: "invalid" as any,
           }),
@@ -797,7 +797,7 @@ describe("Memory Validation", () => {
     describe("export() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.export({
+          memoir.memory.export({
             memorySpaceId: "",
             format: "json",
           }),
@@ -806,7 +806,7 @@ describe("Memory Validation", () => {
 
       it("throws on invalid format", async () => {
         await expect(
-          cortex.memory.export({
+          memoir.memory.export({
             memorySpaceId: TEST_MEMSPACE_ID,
             format: "xml" as any,
           }),
@@ -816,14 +816,14 @@ describe("Memory Validation", () => {
 
     describe("archive() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.archive("", "mem-123")).rejects.toThrow(
+        await expect(memoir.memory.archive("", "mem-123")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.archive(TEST_MEMSPACE_ID, ""),
+          memoir.memory.archive(TEST_MEMSPACE_ID, ""),
         ).rejects.toThrow("memoryId cannot be empty");
       });
     });
@@ -831,13 +831,13 @@ describe("Memory Validation", () => {
     describe("restoreFromArchive() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.restoreFromArchive("", "mem-123"),
+          memoir.memory.restoreFromArchive("", "mem-123"),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.restoreFromArchive(TEST_MEMSPACE_ID, ""),
+          memoir.memory.restoreFromArchive(TEST_MEMSPACE_ID, ""),
         ).rejects.toThrow("memoryId cannot be empty");
       });
     });
@@ -845,39 +845,39 @@ describe("Memory Validation", () => {
     describe("getVersion() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.getVersion("", "mem-123", 1),
+          memoir.memory.getVersion("", "mem-123", 1),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.getVersion(TEST_MEMSPACE_ID, "", 1),
+          memoir.memory.getVersion(TEST_MEMSPACE_ID, "", 1),
         ).rejects.toThrow("memoryId cannot be empty");
       });
 
       it("throws on invalid version (0)", async () => {
         await expect(
-          cortex.memory.getVersion(TEST_MEMSPACE_ID, "mem-123", 0),
+          memoir.memory.getVersion(TEST_MEMSPACE_ID, "mem-123", 0),
         ).rejects.toThrow("version must be a positive integer");
       });
 
       it("throws on negative version", async () => {
         await expect(
-          cortex.memory.getVersion(TEST_MEMSPACE_ID, "mem-123", -1),
+          memoir.memory.getVersion(TEST_MEMSPACE_ID, "mem-123", -1),
         ).rejects.toThrow("version must be a positive integer");
       });
     });
 
     describe("getHistory() validation", () => {
       it("throws on empty memorySpaceId", async () => {
-        await expect(cortex.memory.getHistory("", "mem-123")).rejects.toThrow(
+        await expect(memoir.memory.getHistory("", "mem-123")).rejects.toThrow(
           "memorySpaceId cannot be empty",
         );
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.getHistory(TEST_MEMSPACE_ID, ""),
+          memoir.memory.getHistory(TEST_MEMSPACE_ID, ""),
         ).rejects.toThrow("memoryId cannot be empty");
       });
     });
@@ -885,25 +885,25 @@ describe("Memory Validation", () => {
     describe("getAtTimestamp() validation", () => {
       it("throws on empty memorySpaceId", async () => {
         await expect(
-          cortex.memory.getAtTimestamp("", "mem-123", Date.now()),
+          memoir.memory.getAtTimestamp("", "mem-123", Date.now()),
         ).rejects.toThrow("memorySpaceId cannot be empty");
       });
 
       it("throws on empty memoryId", async () => {
         await expect(
-          cortex.memory.getAtTimestamp(TEST_MEMSPACE_ID, "", Date.now()),
+          memoir.memory.getAtTimestamp(TEST_MEMSPACE_ID, "", Date.now()),
         ).rejects.toThrow("memoryId cannot be empty");
       });
 
       it("throws on invalid timestamp (NaN)", async () => {
         await expect(
-          cortex.memory.getAtTimestamp(TEST_MEMSPACE_ID, "mem-123", NaN),
+          memoir.memory.getAtTimestamp(TEST_MEMSPACE_ID, "mem-123", NaN),
         ).rejects.toThrow("timestamp must be a valid timestamp");
       });
 
       it("throws on negative timestamp", async () => {
         await expect(
-          cortex.memory.getAtTimestamp(TEST_MEMSPACE_ID, "mem-123", -1000),
+          memoir.memory.getAtTimestamp(TEST_MEMSPACE_ID, "mem-123", -1000),
         ).rejects.toThrow("timestamp cannot be negative");
       });
     });
@@ -920,7 +920,7 @@ describe("Memory Validation", () => {
 
     beforeAll(async () => {
       // Create a memory in Space A
-      const memory = await cortex.vector.store(SPACE_A, {
+      const memory = await memoir.vector.store(SPACE_A, {
         content: "Memory in Space A for permission tests",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -932,12 +932,12 @@ describe("Memory Validation", () => {
     describe("get() cross-space access", () => {
       it("should return null when accessing memory from wrong space (silent permission denial)", async () => {
         // Attempting to get a memory from Space A using Space B's ID
-        const result = await cortex.memory.get(SPACE_B, memoryInSpaceA);
+        const result = await memoir.memory.get(SPACE_B, memoryInSpaceA);
         expect(result).toBeNull();
       });
 
       it("should return memory when accessed from correct space", async () => {
-        const result = await cortex.memory.get(SPACE_A, memoryInSpaceA);
+        const result = await memoir.memory.get(SPACE_A, memoryInSpaceA);
         expect(result).not.toBeNull();
         expect(
           (result as any).memoryId || (result as any).memory?.memoryId,
@@ -948,7 +948,7 @@ describe("Memory Validation", () => {
     describe("update() cross-space access", () => {
       it("should throw PERMISSION_DENIED when memorySpaceId doesn't match", async () => {
         await expect(
-          cortex.memory.update(SPACE_B, memoryInSpaceA, {
+          memoir.memory.update(SPACE_B, memoryInSpaceA, {
             content: "Attempted update from wrong space",
           }),
         ).rejects.toThrow(/PERMISSION_DENIED|not found/i);
@@ -958,7 +958,7 @@ describe("Memory Validation", () => {
     describe("delete() cross-space access", () => {
       it("should throw PERMISSION_DENIED when memorySpaceId doesn't match", async () => {
         await expect(
-          cortex.memory.delete(SPACE_B, memoryInSpaceA),
+          memoir.memory.delete(SPACE_B, memoryInSpaceA),
         ).rejects.toThrow(/PERMISSION_DENIED|MEMORY_NOT_FOUND|not found/i);
       });
     });
@@ -966,7 +966,7 @@ describe("Memory Validation", () => {
     describe("forget() cross-space access", () => {
       it("should throw error when memorySpaceId doesn't own memory", async () => {
         await expect(
-          cortex.memory.forget(SPACE_B, memoryInSpaceA),
+          memoir.memory.forget(SPACE_B, memoryInSpaceA),
         ).rejects.toThrow(/PERMISSION_DENIED|MEMORY_NOT_FOUND|not found/i);
       });
     });
@@ -974,14 +974,14 @@ describe("Memory Validation", () => {
     describe("archive() cross-space access", () => {
       it("should throw PERMISSION_DENIED when memorySpaceId doesn't match", async () => {
         await expect(
-          cortex.memory.archive(SPACE_B, memoryInSpaceA),
+          memoir.memory.archive(SPACE_B, memoryInSpaceA),
         ).rejects.toThrow(/PERMISSION_DENIED|MEMORY_NOT_FOUND|not found/i);
       });
     });
 
     describe("getVersion() cross-space access", () => {
       it("should return null when accessing version from wrong space", async () => {
-        const result = await cortex.memory.getVersion(
+        const result = await memoir.memory.getVersion(
           SPACE_B,
           memoryInSpaceA,
           1,
@@ -992,14 +992,14 @@ describe("Memory Validation", () => {
 
     describe("getHistory() cross-space access", () => {
       it("should return empty array when accessing history from wrong space", async () => {
-        const result = await cortex.memory.getHistory(SPACE_B, memoryInSpaceA);
+        const result = await memoir.memory.getHistory(SPACE_B, memoryInSpaceA);
         expect(result).toEqual([]);
       });
     });
 
     describe("getAtTimestamp() cross-space access", () => {
       it("should return null when accessing from wrong space", async () => {
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           SPACE_B,
           memoryInSpaceA,
           Date.now(),
@@ -1019,7 +1019,7 @@ describe("Memory Validation", () => {
     describe("update() not found", () => {
       it("should throw MEMORY_NOT_FOUND when memory does not exist", async () => {
         await expect(
-          cortex.memory.update(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID, {
+          memoir.memory.update(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID, {
             content: "Updated content",
           }),
         ).rejects.toThrow(/MEMORY_NOT_FOUND|not found/i);
@@ -1029,7 +1029,7 @@ describe("Memory Validation", () => {
     describe("delete() not found", () => {
       it("should throw MEMORY_NOT_FOUND when memory does not exist", async () => {
         await expect(
-          cortex.memory.delete(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID),
+          memoir.memory.delete(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID),
         ).rejects.toThrow(/MEMORY_NOT_FOUND|not found/i);
       });
     });
@@ -1037,7 +1037,7 @@ describe("Memory Validation", () => {
     describe("archive() not found", () => {
       it("should throw MEMORY_NOT_FOUND when memory does not exist", async () => {
         await expect(
-          cortex.memory.archive(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID),
+          memoir.memory.archive(TEST_MEMSPACE_ID, NONEXISTENT_MEMORY_ID),
         ).rejects.toThrow(/MEMORY_NOT_FOUND|not found/i);
       });
     });
@@ -1045,7 +1045,7 @@ describe("Memory Validation", () => {
     describe("restoreFromArchive() not found", () => {
       it("should throw MEMORY_NOT_FOUND when memory does not exist", async () => {
         await expect(
-          cortex.memory.restoreFromArchive(
+          memoir.memory.restoreFromArchive(
             TEST_MEMSPACE_ID,
             NONEXISTENT_MEMORY_ID,
           ),
@@ -1054,7 +1054,7 @@ describe("Memory Validation", () => {
 
       it("should throw MEMORY_NOT_ARCHIVED when memory is not archived", async () => {
         // Create a non-archived memory
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Non-archived memory for restore test",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -1062,14 +1062,14 @@ describe("Memory Validation", () => {
         });
 
         await expect(
-          cortex.memory.restoreFromArchive(TEST_MEMSPACE_ID, memory.memoryId),
+          memoir.memory.restoreFromArchive(TEST_MEMSPACE_ID, memory.memoryId),
         ).rejects.toThrow(/MEMORY_NOT_ARCHIVED|not archived/i);
       });
     });
 
     describe("getVersion() not found", () => {
       it("should return null when memory does not exist", async () => {
-        const result = await cortex.memory.getVersion(
+        const result = await memoir.memory.getVersion(
           TEST_MEMSPACE_ID,
           NONEXISTENT_MEMORY_ID,
           1,
@@ -1079,7 +1079,7 @@ describe("Memory Validation", () => {
 
       it("should return null when version does not exist", async () => {
         // Create a memory with only v1
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Single version memory",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -1087,7 +1087,7 @@ describe("Memory Validation", () => {
         });
 
         // Try to get non-existent version 99
-        const result = await cortex.memory.getVersion(
+        const result = await memoir.memory.getVersion(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           99,
@@ -1098,7 +1098,7 @@ describe("Memory Validation", () => {
 
     describe("getHistory() not found", () => {
       it("should return empty array when memory does not exist", async () => {
-        const result = await cortex.memory.getHistory(
+        const result = await memoir.memory.getHistory(
           TEST_MEMSPACE_ID,
           NONEXISTENT_MEMORY_ID,
         );
@@ -1108,7 +1108,7 @@ describe("Memory Validation", () => {
 
     describe("getAtTimestamp() not found", () => {
       it("should return null when memory does not exist", async () => {
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           NONEXISTENT_MEMORY_ID,
           Date.now(),
@@ -1118,7 +1118,7 @@ describe("Memory Validation", () => {
 
       it("should return null when timestamp is before memory creation", async () => {
         // Create memory now
-        const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+        const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
           content: "Temporal test memory",
           contentType: "raw",
           source: { type: "system", timestamp: Date.now() },
@@ -1127,7 +1127,7 @@ describe("Memory Validation", () => {
 
         // Query for timestamp way before creation (1 year ago)
         const pastTimestamp = Date.now() - 365 * 24 * 60 * 60 * 1000;
-        const result = await cortex.memory.getAtTimestamp(
+        const result = await memoir.memory.getAtTimestamp(
           TEST_MEMSPACE_ID,
           memory.memoryId,
           pastTimestamp,

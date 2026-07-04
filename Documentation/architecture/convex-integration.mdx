@@ -2,11 +2,11 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-08 </Callout>
 
-How Cortex leverages Convex features for persistent memory, vector search, and real-time updates.
+How Memoir leverages Convex features for persistent memory, vector search, and real-time updates.
 
 ## Overview
 
-Cortex is built **natively on Convex** - not as a wrapper, but as a first-class Convex application. We use Convex's features directly:
+Memoir is built **natively on Convex** - not as a wrapper, but as a first-class Convex application. We use Convex's features directly:
 
 - **Queries** - Read operations (reactive, cacheable)
 - **Mutations** - Write operations (ACID transactions)
@@ -244,7 +244,7 @@ export const publishA2ANotification = action({
 
 ---
 
-## How Cortex Uses Each Type
+## How Memoir Uses Each Type
 
 ### Queries (Read Path)
 
@@ -252,7 +252,7 @@ All read operations use Convex queries:
 
 ```typescript
 // SDK call
-const memory = await cortex.memory.get("agent-1", "mem_abc");
+const memory = await memoir.memory.get("agent-1", "mem_abc");
 
 // Becomes Convex query
 await client.query(api.memories.get, {
@@ -268,7 +268,7 @@ const { data: memory } = useQuery(api.memories.get, {
 // ↑ Auto-updates when memory changes!
 ```
 
-**Cortex queries:**
+**Memoir queries:**
 
 - `memories.get` - Get single memory
 - `memories.search` - Semantic or keyword search
@@ -287,7 +287,7 @@ All write operations use Convex mutations:
 
 ```typescript
 // SDK call
-await cortex.memory.store("agent-1", data);
+await memoir.memory.store("agent-1", data);
 
 // Becomes Convex mutation
 await client.mutation(api.memories.store, {
@@ -296,7 +296,7 @@ await client.mutation(api.memories.store, {
 });
 ```
 
-**Cortex mutations:**
+**Memoir mutations:**
 
 - `memories.store` - Create memory
 - `memories.update` - Update memory (creates version)
@@ -317,10 +317,10 @@ Actions handle non-deterministic operations:
 ```typescript
 // Direct Mode: Developer calls embedding API
 const embedding = await openai.embeddings.create({ ... });
-await cortex.memory.store('agent-1', { content, embedding });
+await memoir.memory.store('agent-1', { content, embedding });
 
-// Cloud Mode (planned): Cortex action calls embedding API
-await cortex.memory.store('agent-1', {
+// Cloud Mode (planned): Memoir action calls embedding API
+await memoir.memory.store('agent-1', {
   content,
   autoEmbed: true,  // ← Triggers action
 });
@@ -341,7 +341,7 @@ export const storeWithAutoEmbed = action({
 });
 ```
 
-**Cortex actions:**
+**Memoir actions:**
 
 - `memories.storeWithAutoEmbed` - Cloud Mode auto-embeddings (planned)
 - `a2a.publishNotification` - Pub/sub integration
@@ -647,7 +647,7 @@ client.onUpdate(api.memories.list, { memorySpaceId: "agent-1" }, (memories) => {
 });
 ```
 
-**Cortex usage:**
+**Memoir usage:**
 
 - Real-time dashboards (Cloud Mode - planned)
 - Live collaboration features
@@ -663,7 +663,7 @@ The `remember()` helper is an **SDK method** that orchestrates multiple Convex m
 
 ```typescript
 // SDK call
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-personal',
   participantId: 'my-assistant',  // NEW: Hive Mode tracking
   conversationId: 'conv-123',
@@ -1074,11 +1074,11 @@ await client.query(api.memories.get, {
 ### SDK Type Wrappers
 
 ```typescript
-// Cortex SDK wraps Convex types
-import { MemoryEntry } from "@cortex-platform/sdk";
+// Memoir SDK wraps Convex types
+import { MemoryEntry } from "@memoir-platform/sdk";
 
-// Convex Doc<"memories"> → Cortex MemoryEntry
-class CortexSDK {
+// Convex Doc<"memories"> → MemoirEntry
+class MemoirSDK {
   async get(
     memorySpaceId: string,
     memoryId: string,
@@ -1188,13 +1188,13 @@ export const store = mutation({
 ### SDK Error Transformation
 
 ```typescript
-// Cortex SDK catches Convex errors
+// Memoir SDK catches Convex errors
 try {
-  await cortex.memory.store("agent-1", data);
+  await memoir.memory.store("agent-1", data);
 } catch (error) {
-  // Transform Convex error to Cortex error
+  // Transform Convex error to Memoir error
   if (error.data?.code) {
-    throw new CortexError(
+    throw new MemoirError(
       error.data.code,
       error.data.message,
       error.data.details,
@@ -1218,33 +1218,33 @@ export const search = query({ ... });
 
 // Your app
 import { ConvexClient } from "convex/browser";
-import { Cortex } from "@cortex-platform/sdk";
+import { Memoir } from "@memoir-platform/sdk";
 
 const convexClient = new ConvexClient(process.env.CONVEX_URL);
 
-// Cortex SDK uses your Convex client
-const cortex = new Cortex({
+// Memoir SDK uses your Convex client
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   // OR provide client directly
   client: convexClient,
 });
 ```
 
-### Cloud Mode (Cortex-Managed Functions) - Planned
+### Cloud Mode (Memoir-Managed Functions) - Planned
 
 ```typescript
 // Your Convex instance (just storage)
-// No custom functions needed - Cortex Cloud provides them
+// No custom functions needed - Memoir Cloud provides them
 
 // Your app (planned)
-const cortex = new Cortex({
+const memoir = new Memoir({
   mode: "cloud",
-  apiKey: process.env.CORTEX_CLOUD_KEY,
+  apiKey: process.env.MEMOIR_CLOUD_KEY,
 });
 
-// Cortex Cloud API (planned):
+// Memoir Cloud API (planned):
 // - Deploys functions to your Convex
-// - OR uses Cortex-hosted functions
+// - OR uses Memoir-hosted functions
 // - Manages credentials securely
 ```
 
@@ -1259,4 +1259,4 @@ const cortex = new Cortex({
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

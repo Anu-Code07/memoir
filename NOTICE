@@ -1,4 +1,4 @@
-Cortex - Persistent Memory for AI Agents
+Memoir - Persistent Memory for AI Agents
 Copyright 2025 Nicholas Geil / Saint Nick LLC
 
 This product includes software developed by Saint Nick LLC.
@@ -14,14 +14,14 @@ This project was inspired by concepts pioneered in Project Constellation,
 an enterprise AI agent platform developed by Nicholas Geil / Saint Nick LLC.
 
 Special thanks to:
-- The Convex team for creating the reactive backend platform that powers Cortex
+- The Convex team for creating the reactive backend platform that powers Memoir
 - The open source AI and developer community for their contributions and feedback
 
 ---
 
 THIRD-PARTY DEPENDENCIES
 
-Cortex uses the following third-party software:
+Memoir uses the following third-party software:
 
 Convex
   License: FSL-1.1-Apache-2.0

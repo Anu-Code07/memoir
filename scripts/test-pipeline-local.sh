@@ -77,7 +77,7 @@ else
     echo -e "   ${YELLOW}⊘${NC} TypeScript SDK unchanged"
 fi
 
-if git diff --name-only $BASE | grep -qE '^cortex-sdk-python/'; then
+if git diff --name-only $BASE | grep -qE '^memoir-sdk-python/'; then
     CHANGED_PYTHON=true
     echo -e "   ${GREEN}✓${NC} Python SDK changed"
 else
@@ -98,11 +98,11 @@ else
     echo -e "   ${YELLOW}⊘${NC} Vercel AI Provider unchanged"
 fi
 
-if git diff --name-only $BASE | grep -qE '^packages/cortex-cli/'; then
+if git diff --name-only $BASE | grep -qE '^packages/memoir-cli/'; then
     CHANGED_CLI=true
-    echo -e "   ${GREEN}✓${NC} Cortex CLI changed"
+    echo -e "   ${GREEN}✓${NC} Memoir CLI changed"
 else
-    echo -e "   ${YELLOW}⊘${NC} Cortex CLI unchanged"
+    echo -e "   ${YELLOW}⊘${NC} Memoir CLI unchanged"
 fi
 
 echo ""
@@ -183,7 +183,7 @@ fi
 if [ "$CHANGED_PYTHON" == "true" ]; then
     echo -e "${CYAN}🐍 Python SDK Tests (current version only)${NC}"
     (
-        cd cortex-sdk-python
+        cd memoir-sdk-python
         CONVEX_URL=$LOCAL_CONVEX_URL CONVEX_TEST_MODE=local pytest tests/ -v > "$LOGS_DIR/python-tests.log" 2>&1
         echo $? > "$LOGS_DIR/python-tests.exit"
     ) &
@@ -224,18 +224,18 @@ if [ "$CHANGED_VERCEL_AI" == "true" ] || [ "$CHANGED_TYPESCRIPT" == "true" ]; th
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Cortex CLI Tests (unit + integration - integration hits DB!)
+# Memoir CLI Tests (unit + integration - integration hits DB!)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 if [ "$CHANGED_CLI" == "true" ] || [ "$CHANGED_TYPESCRIPT" == "true" ]; then
-    echo -e "${CYAN}🔧 Cortex CLI Tests${NC}"
+    echo -e "${CYAN}🔧 Memoir CLI Tests${NC}"
     (
         {
             # Build main SDK first (CLI depends on it)
             npm run build 2>&1
             
             # Install and test CLI
-            cd packages/cortex-cli
+            cd packages/memoir-cli
             npm install 2>&1
             
             # Run unit tests (pure unit tests)
@@ -252,7 +252,7 @@ if [ "$CHANGED_CLI" == "true" ] || [ "$CHANGED_TYPESCRIPT" == "true" ]; then
         echo $? > "$LOGS_DIR/cli-tests.exit"
     ) &
     PIDS+=($!)
-    JOB_NAMES+=("Cortex CLI")
+    JOB_NAMES+=("Memoir CLI")
     JOB_IDS+=("cli-tests")
     echo "   Started (PID: $!)"
     echo -e "   ${YELLOW}⚠ Integration tests hit DB${NC}"
@@ -276,10 +276,10 @@ if [ "$CHANGED_TYPESCRIPT" == "true" ] || [ "$CHANGED_PYTHON" == "true" ]; then
             
             if [ "$CHANGED_PYTHON" == "true" ]; then
                 echo "Running mypy..."
-                cd cortex-sdk-python
-                mypy cortex --ignore-missing-imports 2>&1
+                cd memoir-sdk-python
+                mypy memoir --ignore-missing-imports 2>&1
                 echo "Running ruff..."
-                ruff check cortex/ 2>&1
+                ruff check memoir/ 2>&1
             fi
         } > "$LOGS_DIR/code-quality.log" 2>&1
         echo $? > "$LOGS_DIR/code-quality.exit"

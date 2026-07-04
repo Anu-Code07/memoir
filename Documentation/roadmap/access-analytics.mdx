@@ -8,7 +8,7 @@ description: Track memory access patterns and usage analytics (Planned)
 # Access Analytics
 
 <Callout type="warning" title="Planned Feature">
-  The full `cortex.analytics.*` API is planned for a future release. Currently, basic access tracking is built-in to all memories (`accessCount`, `lastAccessed`), and memory space statistics are available via `cortex.memorySpaces.getStats()`. See the [Memory Space Operations API](/api-reference/memory-space-operations) for available methods.
+  The full `memoir.analytics.*` API is planned for a future release. Currently, basic access tracking is built-in to all memories (`accessCount`, `lastAccessed`), and memory space statistics are available via `memoir.memorySpaces.getStats()`. See the [Memory Space Operations API](/api-reference/memory-space-operations) for available methods.
 </Callout>
 
 ---
@@ -24,7 +24,7 @@ description: Track memory access patterns and usage analytics (Planned)
 </Callout>
 
 ```typescript
-const memory = await cortex.memory.get(spaceId, memoryId);
+const memory = await memoir.memory.get(spaceId, memoryId);
 
 console.log(memory.accessCount);   // 47
 console.log(memory.lastAccessed);  // 1735689600000 (Unix ms)
@@ -39,7 +39,7 @@ console.log(memory.lastAccessed);  // 1735689600000 (Unix ms)
 
 ```typescript
 // Find frequently accessed memories
-const popular = await cortex.memory.search(spaceId, "*", {
+const popular = await memoir.memory.search(spaceId, "*", {
   sortBy: "accessCount",
   sortOrder: "desc",
   limit: 10,
@@ -55,7 +55,7 @@ popular.forEach(m => {
 
 ```typescript
 // Find memories never accessed in 30+ days
-const unused = await cortex.memory.list({
+const unused = await memoir.memory.list({
   memorySpaceId: spaceId,
   accessCount: { $lte: 1 },
   createdBefore: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
@@ -69,7 +69,7 @@ console.log(`${unused.length} potentially stale memories`);
 
 ```typescript
 // Find memories accessed this week
-const recentlyUsed = await cortex.memory.list({
+const recentlyUsed = await memoir.memory.list({
   memorySpaceId: spaceId,
   lastAccessedAfter: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
   sortBy: "lastAccessed",
@@ -85,7 +85,7 @@ const recentlyUsed = await cortex.memory.list({
 ## Memory Space Statistics
 
 ```typescript
-const stats = await cortex.memorySpaces.getStats(spaceId);
+const stats = await memoir.memorySpaces.getStats(spaceId);
 
 console.log(stats);
 // {
@@ -117,7 +117,7 @@ console.log(stats);
   Use access patterns to improve search relevance:
   
 ```typescript
-const results = await cortex.memory.search(spaceId, query, {
+const results = await memoir.memory.search(spaceId, query, {
   embedding: await embed(query),
   boostPopular: true,   // Boost frequently accessed
   boostRecent: true,    // Boost recently accessed
@@ -128,7 +128,7 @@ const results = await cortex.memory.search(spaceId, query, {
 
 ### Full Analytics API
 
-The planned `cortex.analytics.*` API will provide:
+The planned `memoir.analytics.*` API will provide:
 
 - **Visual Dashboard**: Charts for memory growth, search performance, access heat maps
 - **Predictive Analytics**: Growth forecasts, performance predictions
@@ -145,7 +145,7 @@ Until the full analytics API is available, you can implement these patterns your
 
 ```typescript
 async function findDuplicateCandidates(spaceId: string) {
-  const all = await cortex.memory.list({ memorySpaceId: spaceId, limit: 1000 });
+  const all = await memoir.memory.list({ memorySpaceId: spaceId, limit: 1000 });
   
   const duplicates = [];
   for (let i = 0; i < all.length; i++) {
@@ -165,7 +165,7 @@ async function findDuplicateCandidates(spaceId: string) {
 
 ```typescript
 async function cleanupUnused(spaceId: string) {
-  const unused = await cortex.memory.list({
+  const unused = await memoir.memory.list({
     memorySpaceId: spaceId,
     accessCount: 0,
     createdBefore: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
@@ -177,7 +177,7 @@ async function cleanupUnused(spaceId: string) {
   );
 
   for (const memory of safeToDelete) {
-    await cortex.memory.delete(spaceId, memory.id);
+    await memoir.memory.delete(spaceId, memory.id);
   }
 
   console.log(`Cleaned up ${safeToDelete.length} unused memories`);
@@ -188,7 +188,7 @@ async function cleanupUnused(spaceId: string) {
 
 ```typescript
 async function checkAgentHealth(spaceId: string) {
-  const stats = await cortex.memorySpaces.getStats(spaceId);
+  const stats = await memoir.memorySpaces.getStats(spaceId);
 
   const issues = [];
 

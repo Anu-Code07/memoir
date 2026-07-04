@@ -620,7 +620,7 @@ describe("ResiliencePresets", () => {
 // SDK Integration Tests
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { createTestRunContext } from "./helpers/isolation";
 
 describe("SDK Resilience Integration", () => {
@@ -628,36 +628,36 @@ describe("SDK Resilience Integration", () => {
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 
   describe("SDK methods use resilience layer", () => {
-    let cortexWithResilience: Cortex;
-    let cortexWithoutResilience: Cortex;
+    let memoirWithResilience: Memoir;
+    let memoirWithoutResilience: Memoir;
 
     beforeAll(() => {
-      cortexWithResilience = new Cortex({
+      memoirWithResilience = new Memoir({
         convexUrl: CONVEX_URL,
         resilience: ResiliencePresets.default,
       });
 
-      cortexWithoutResilience = new Cortex({
+      memoirWithoutResilience = new Memoir({
         convexUrl: CONVEX_URL,
         resilience: ResiliencePresets.disabled,
       });
     });
 
     afterAll(() => {
-      cortexWithResilience.close();
-      cortexWithoutResilience.close();
+      memoirWithResilience.close();
+      memoirWithoutResilience.close();
     });
 
     test("SDK should accept resilience config", () => {
-      expect(cortexWithResilience).toBeDefined();
-      expect(cortexWithoutResilience).toBeDefined();
+      expect(memoirWithResilience).toBeDefined();
+      expect(memoirWithoutResilience).toBeDefined();
     });
 
     test("users API should work with resilience enabled", async () => {
       const userId = ctx.userId("resilience-test");
 
       // This will auto-create the user via getOrCreate internally
-      const user = await cortexWithResilience.users.update(userId, {
+      const user = await memoirWithResilience.users.update(userId, {
         displayName: "Resilience Test User",
         metadata: { test: true },
       });
@@ -669,7 +669,7 @@ describe("SDK Resilience Integration", () => {
     test("memorySpaces API should work with resilience enabled", async () => {
       const spaceId = ctx.memorySpaceId("resilience-test");
 
-      const space = await cortexWithResilience.memorySpaces.register({
+      const space = await memoirWithResilience.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Resilience Test Space",
         type: "custom",
@@ -684,13 +684,13 @@ describe("SDK Resilience Integration", () => {
       const convId = ctx.conversationId("resilience-test");
 
       // Setup memory space first
-      await cortexWithResilience.memorySpaces.register({
+      await memoirWithResilience.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Conv Test Space",
         type: "custom",
       });
 
-      const conv = await cortexWithResilience.conversations.create({
+      const conv = await memoirWithResilience.conversations.create({
         memorySpaceId: spaceId,
         conversationId: convId,
         type: "user-agent",
@@ -708,13 +708,13 @@ describe("SDK Resilience Integration", () => {
       const spaceId = ctx.memorySpaceId("vector-resilience");
 
       // Setup memory space first
-      await cortexWithResilience.memorySpaces.register({
+      await memoirWithResilience.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Vector Test Space",
         type: "custom",
       });
 
-      const memory = await cortexWithResilience.vector.store(spaceId, {
+      const memory = await memoirWithResilience.vector.store(spaceId, {
         content: "Test memory for resilience",
         contentType: "raw",
         source: { type: "system", timestamp: Date.now() },
@@ -729,13 +729,13 @@ describe("SDK Resilience Integration", () => {
       const spaceId = ctx.memorySpaceId("facts-resilience");
 
       // Setup memory space first
-      await cortexWithResilience.memorySpaces.register({
+      await memoirWithResilience.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Facts Test Space",
         type: "custom",
       });
 
-      const fact = await cortexWithResilience.facts.store({
+      const fact = await memoirWithResilience.facts.store({
         memorySpaceId: spaceId,
         fact: "User prefers dark mode",
         factType: "preference",
@@ -752,7 +752,7 @@ describe("SDK Resilience Integration", () => {
       const entryType = ctx.immutableType("resilience");
       const entryId = ctx.immutableId("test");
 
-      const entry = await cortexWithResilience.immutable.store({
+      const entry = await memoirWithResilience.immutable.store({
         type: entryType,
         id: entryId,
         data: { test: true },
@@ -766,7 +766,7 @@ describe("SDK Resilience Integration", () => {
       const namespace = ctx.mutableNamespace("resilience");
       const key = ctx.mutableKey("test");
 
-      const record = await cortexWithResilience.mutable.set(namespace, key, {
+      const record = await memoirWithResilience.mutable.set(namespace, key, {
         value: "test",
       });
 
@@ -778,13 +778,13 @@ describe("SDK Resilience Integration", () => {
       const spaceId = ctx.memorySpaceId("ctx-resilience");
 
       // Setup memory space first
-      await cortexWithResilience.memorySpaces.register({
+      await memoirWithResilience.memorySpaces.register({
         memorySpaceId: spaceId,
         name: "Contexts Test Space",
         type: "custom",
       });
 
-      const context = await cortexWithResilience.contexts.create({
+      const context = await memoirWithResilience.contexts.create({
         memorySpaceId: spaceId,
         purpose: "Resilience test context",
       });
@@ -795,7 +795,7 @@ describe("SDK Resilience Integration", () => {
   });
 
   describe("Resilience layer rate limiting", () => {
-    let cortex: Cortex;
+    let memoir: Memoir;
     let resilience: ResilienceLayer;
 
     beforeAll(() => {
@@ -811,7 +811,7 @@ describe("SDK Resilience Integration", () => {
         },
       });
 
-      cortex = new Cortex({
+      memoir = new Memoir({
         convexUrl: CONVEX_URL,
         resilience: {
           enabled: true,
@@ -828,7 +828,7 @@ describe("SDK Resilience Integration", () => {
 
     afterAll(() => {
       resilience.stopQueueProcessor();
-      cortex.close();
+      memoir.close();
     });
 
     test("resilience layer executes operations successfully", async () => {

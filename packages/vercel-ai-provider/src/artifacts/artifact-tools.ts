@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { createArtifactTools } from '@cortexmemory/vercel-ai-provider';
+ * import { createArtifactTools } from '@memoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  *
  * const result = streamText({
@@ -27,7 +27,7 @@ import {
   GetArtifactInputSchema,
   ListArtifactsInputSchema,
   ARTIFACT_STREAM_EVENTS,
-  type CortexArtifact,
+  type MemoirArtifact,
   type ArtifactConfig,
   type CreateArtifactResult,
   type UpdateArtifactResult,
@@ -45,7 +45,7 @@ import type { StreamWriter } from "../streaming-helpers";
  * Storage interface for artifact operations
  *
  * Implement this interface to provide custom storage backends for artifacts.
- * The default implementation uses Cortex Memory.
+ * The default implementation uses Memoir.
  */
 export interface ArtifactStorageInterface {
   create(input: {
@@ -57,7 +57,7 @@ export interface ArtifactStorageInterface {
     mimeType?: string;
     tags?: string[];
     metadata?: Record<string, unknown>;
-  }): Promise<CortexArtifact>;
+  }): Promise<MemoirArtifact>;
 
   update(input: {
     artifactId: string;
@@ -66,20 +66,20 @@ export interface ArtifactStorageInterface {
     description?: string;
     metadata?: Record<string, unknown>;
     tags?: string[];
-  }): Promise<CortexArtifact>;
+  }): Promise<MemoirArtifact>;
 
   append(input: {
     artifactId: string;
     content: string;
     position?: "start" | "end";
-  }): Promise<CortexArtifact>;
+  }): Promise<MemoirArtifact>;
 
-  get(artifactId: string): Promise<CortexArtifact | null>;
+  get(artifactId: string): Promise<MemoirArtifact | null>;
 
   list(options?: {
     kind?: string;
     limit?: number;
-  }): Promise<CortexArtifact[]>;
+  }): Promise<MemoirArtifact[]>;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -92,10 +92,10 @@ export interface ArtifactStorageInterface {
 export class ArtifactStreamer {
   private writer: StreamWriter | null = null;
   private artifactId: string;
-  private artifact: Partial<CortexArtifact>;
+  private artifact: Partial<MemoirArtifact>;
   private contentBuffer: string = "";
 
-  constructor(artifactId: string, initial: Partial<CortexArtifact>) {
+  constructor(artifactId: string, initial: Partial<MemoirArtifact>) {
     this.artifactId = artifactId;
     this.artifact = {
       ...initial,
@@ -166,7 +166,7 @@ export class ArtifactStreamer {
   /**
    * Update artifact metadata/title
    */
-  update(updates: Partial<CortexArtifact>): void {
+  update(updates: Partial<MemoirArtifact>): void {
     this.artifact = { ...this.artifact, ...updates, updatedAt: Date.now() };
 
     this.writer?.write({
@@ -181,17 +181,17 @@ export class ArtifactStreamer {
   /**
    * Mark artifact as complete
    */
-  complete(finalContent?: string): CortexArtifact {
+  complete(finalContent?: string): MemoirArtifact {
     if (finalContent !== undefined) {
       this.contentBuffer = finalContent;
     }
 
-    const completed: CortexArtifact = {
+    const completed: MemoirArtifact = {
       ...this.artifact,
       content: this.contentBuffer,
       streamingState: "final",
       updatedAt: Date.now(),
-    } as CortexArtifact;
+    } as MemoirArtifact;
 
     this.writer?.write({
       type: ARTIFACT_STREAM_EVENTS.COMPLETE,
@@ -228,7 +228,7 @@ export class ArtifactStreamer {
   /**
    * Get current artifact state
    */
-  get current(): Partial<CortexArtifact> {
+  get current(): Partial<MemoirArtifact> {
     return { ...this.artifact, content: this.contentBuffer };
   }
 }
@@ -249,7 +249,7 @@ function generateArtifactId(): string {
  */
 export function createArtifactStreamer(
   input: Pick<
-    CortexArtifact,
+    MemoirArtifact,
     "kind" | "title" | "language" | "metadata" | "memorySpaceId"
   >
 ): ArtifactStreamer {
@@ -322,7 +322,7 @@ function chunkContent(content: string, chunkSize: number): string[] {
  *
  * @example
  * ```typescript
- * import { createArtifactTools } from '@cortexmemory/vercel-ai-provider';
+ * import { createArtifactTools } from '@memoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *
@@ -364,7 +364,7 @@ export function createArtifactTools(options: CreateArtifactToolsOptions) {
         input: z.infer<typeof CreateArtifactInputSchema>
       ): Promise<CreateArtifactResult> => {
         try {
-          let completed: CortexArtifact;
+          let completed: MemoirArtifact;
 
           if (enableStreaming && writer && setStreamer) {
             // Create streamer for real-time updates

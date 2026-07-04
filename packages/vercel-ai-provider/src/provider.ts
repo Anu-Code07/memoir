@@ -1,12 +1,12 @@
 /**
- * Cortex Memory Provider for Vercel AI SDK
+ * Memoir Provider for Vercel AI SDK
  *
  * Wraps language models with automatic memory retrieval and storage
  */
 
-import { Cortex, CypherGraphAdapter } from "@cortexmemory/sdk";
-import type { RecallResult, GraphAdapter } from "@cortexmemory/sdk";
-import type { CortexMemoryConfig, Logger } from "./types";
+import { Memoir, CypherGraphAdapter } from "@memoir/sdk";
+import type { RecallResult, GraphAdapter } from "@memoir/sdk";
+import type { MemoirMemoryConfig, Logger } from "./types";
 import {
   resolveUserId,
   resolveConversationId,
@@ -18,11 +18,11 @@ import { createLogger } from "./types";
 import { createCompletionStream } from "./streaming";
 
 /**
- * Cortex Memory Provider
+ * Memoir Provider
  *
  * Wraps an existing language model with automatic memory capabilities
  */
-export class CortexMemoryProvider {
+export class MemoirMemoryProvider {
   public readonly specificationVersion: string;
   public readonly provider: string;
   public readonly modelId: string;
@@ -32,8 +32,8 @@ export class CortexMemoryProvider {
     | PromiseLike<Record<string, RegExp[]>>
     | Record<string, RegExp[]>;
 
-  private cortex: Cortex;
-  private config: CortexMemoryConfig;
+  private memoir: Memoir;
+  private config: MemoirMemoryConfig;
   private logger: Logger;
   private underlyingModel: any;
   private agentId: string;
@@ -41,19 +41,19 @@ export class CortexMemoryProvider {
   private graphAdapter?: GraphAdapter;
 
   /**
-   * Create a CortexMemoryProvider with async initialization (graph support)
+   * Create a MemoirMemoryProvider with async initialization (graph support)
    *
    * Use this factory method when enabling graph memory to ensure the graph
    * adapter is properly connected before use.
    *
    * @param underlyingModel - Language model to wrap
-   * @param config - Cortex memory configuration
-   * @returns Promise resolving to initialized CortexMemoryProvider
+   * @param config - Memoir memory configuration
+   * @returns Promise resolving to initialized MemoirMemoryProvider
    */
   static async create(
     underlyingModel: any,
-    config: CortexMemoryConfig,
-  ): Promise<CortexMemoryProvider> {
+    config: MemoirMemoryConfig,
+  ): Promise<MemoirMemoryProvider> {
     const logger = config.logger || createLogger(config.debug || false);
 
     // Initialize graph adapter if enabled
@@ -88,25 +88,25 @@ export class CortexMemoryProvider {
       }
     }
 
-    // Initialize Cortex with graph adapter
-    const cortex = new Cortex({
+    // Initialize Memoir with graph adapter
+    const memoir = new Memoir({
       convexUrl: config.convexUrl,
       graph: graphAdapter ? { adapter: graphAdapter } : undefined,
     });
 
-    // Create provider with pre-initialized Cortex
-    return new CortexMemoryProvider(
+    // Create provider with pre-initialized Memoir
+    return new MemoirMemoryProvider(
       underlyingModel,
       config,
-      cortex,
+      memoir,
       graphAdapter,
     );
   }
 
   constructor(
     underlyingModel: any,
-    config: CortexMemoryConfig,
-    cortexInstance?: Cortex,
+    config: MemoirMemoryConfig,
+    memoirInstance?: Memoir,
     graphAdapter?: GraphAdapter,
   ) {
     this.underlyingModel = underlyingModel;
@@ -125,11 +125,11 @@ export class CortexMemoryProvider {
     this.agentId = resolveAgentId(config);
     this.agentName = resolveAgentName(config);
 
-    // Use provided Cortex instance or create new one (without graph support)
-    this.cortex = cortexInstance || new Cortex({ convexUrl: config.convexUrl });
+    // Use provided Memoir instance or create new one (without graph support)
+    this.memoir = memoirInstance || new Memoir({ convexUrl: config.convexUrl });
 
     this.logger.debug(
-      `Initialized CortexMemoryProvider for model: ${this.modelId}, agent: ${this.agentId}` +
+      `Initialized MemoirMemoryProvider for model: ${this.modelId}, agent: ${this.agentId}` +
         (this.graphAdapter ? " (with graph support)" : ""),
     );
   }
@@ -181,7 +181,7 @@ export class CortexMemoryProvider {
 
         // Use remember() for non-streaming responses
         // The core SDK now handles orchestration events via the observer parameter
-        this.cortex.memory
+        this.memoir.memory
           .remember(
             {
               memorySpaceId: this.config.memorySpaceId,
@@ -281,7 +281,7 @@ export class CortexMemoryProvider {
   /**
    * Recall context using the unified recall() API
    *
-   * This uses cortex.memory.recall() which orchestrates retrieval across all layers:
+   * This uses memoir.memory.recall() which orchestrates retrieval across all layers:
    * - Vector memories (Layer 2)
    * - Facts (Layer 3) - searched directly, not just as enrichment
    * - Graph relationships (Layer 4) - if configured
@@ -317,7 +317,7 @@ export class CortexMemoryProvider {
       const observer = this.config.recallObserver || this.config.layerObserver;
 
       // Use recall() for full orchestrated retrieval across all layers
-      const result = await this.cortex.memory.recall({
+      const result = await this.memoir.memory.recall({
         memorySpaceId: this.config.memorySpaceId,
         query,
         embedding,
@@ -485,7 +485,7 @@ export class CortexMemoryProvider {
         // Call rememberStream and await it to ensure it completes before stream ends
         // The core SDK now handles orchestration events via the observer parameter
         try {
-          const result = await this.cortex.memory.rememberStream(
+          const result = await this.memoir.memory.rememberStream(
             {
               memorySpaceId: this.config.memorySpaceId,
               conversationId,
@@ -546,12 +546,12 @@ export class CortexMemoryProvider {
   /**
    * Get current configuration (read-only)
    */
-  getConfig(): Readonly<CortexMemoryConfig> {
+  getConfig(): Readonly<MemoirMemoryConfig> {
     return Object.freeze({ ...this.config });
   }
 
   /**
-   * Close Cortex connection and graph adapter
+   * Close Memoir connection and graph adapter
    */
   async close(): Promise<void> {
     // Disconnect graph adapter if connected
@@ -563,6 +563,6 @@ export class CortexMemoryProvider {
         this.logger.warn("Failed to disconnect graph adapter:", error);
       }
     }
-    this.cortex.close();
+    this.memoir.close();
   }
 }

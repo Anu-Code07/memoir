@@ -59,13 +59,13 @@ Store immutable data. Creates v1 or increments version if ID exists.
 **Signature:**
 
 ```typescript
-cortex.immutable.store(
+memoir.immutable.store(
   entry: ImmutableEntry
 ): Promise<ImmutableRecord>
 ```
 
 <Callout type="info">
-**v0.29.0+**: Graph sync is now automatic when `CORTEX_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been removed from all APIs.
+**v0.29.0+**: Graph sync is now automatic when `MEMOIR_GRAPH_SYNC=true` is set in your environment. The `syncToGraph` option has been removed from all APIs.
 </Callout>
 
 **Parameters:**
@@ -90,14 +90,14 @@ interface ImmutableEntry {
 
 - **Optional** - Only include if this record belongs to a specific user
 - **Validated** - Must reference an existing user profile
-- **GDPR-enabled** - Allows `cortex.users.delete(userId, { cascade: true })` to find and delete this record
+- **GDPR-enabled** - Allows `memoir.users.delete(userId, { cascade: true })` to find and delete this record
 - **Use cases**: User feedback, user-submitted content, user surveys, user audit logs
 
 **Examples:**
 
 ```typescript
 // With userId (user-generated content)
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "feedback",
   id: "feedback-456",
   userId: "user-123", // ← Links to user
@@ -109,7 +109,7 @@ await cortex.immutable.store({
 });
 
 // Without userId (system content)
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "refund-policy",
   // No userId - not user-specific
@@ -119,8 +119,8 @@ await cortex.immutable.store({
   },
 });
 
-// Graph sync is automatic when CORTEX_GRAPH_SYNC=true
-await cortex.immutable.store({
+// Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
+await memoir.immutable.store({
   type: "kb-article",
   id: "product-guide",
   data: {
@@ -169,7 +169,7 @@ interface ImmutableVersion {
 
 ```typescript
 // Create v1
-const v1 = await cortex.immutable.store({
+const v1 = await memoir.immutable.store({
   type: "kb-article",
   id: "refund-policy",
   data: {
@@ -188,7 +188,7 @@ console.log(v1.version); // 1
 console.log(v1.id); // 'refund-policy'
 
 // Update creates v2 (v1 preserved)
-const v2 = await cortex.immutable.store({
+const v2 = await memoir.immutable.store({
   type: "kb-article",
   id: "refund-policy", // Same ID
   data: {
@@ -216,7 +216,7 @@ console.log(v2.previousVersions.length); // 1 (contains v1)
 - `ImmutableValidationError('MISSING_REQUIRED_FIELD')` - Required field missing
 
 <Callout type="info">
-Validation errors throw `ImmutableValidationError` (exported from `@cortexso/sdk/immutable`). Backend errors are wrapped in standard `Error` objects.
+Validation errors throw `ImmutableValidationError` (exported from `@memoir/sdk/immutable`). Backend errors are wrapped in standard `Error` objects.
 </Callout>
 
 ---
@@ -228,7 +228,7 @@ Get current version of immutable data.
 **Signature:**
 
 ```typescript
-cortex.immutable.get(
+memoir.immutable.get(
   type: string,
   id: string
 ): Promise<ImmutableRecord | null>
@@ -247,7 +247,7 @@ cortex.immutable.get(
 **Example:**
 
 ```typescript
-const article = await cortex.immutable.get("kb-article", "refund-policy");
+const article = await memoir.immutable.get("kb-article", "refund-policy");
 
 if (article) {
   console.log(`Current version: ${article.version}`);
@@ -275,7 +275,7 @@ Get specific version of immutable data.
 **Signature:**
 
 ```typescript
-cortex.immutable.getVersion(
+memoir.immutable.getVersion(
   type: string,
   id: string,
   version: number
@@ -310,7 +310,7 @@ interface ImmutableVersionExpanded {
 
 ```typescript
 // Get version 1
-const v1 = await cortex.immutable.getVersion("kb-article", "refund-policy", 1);
+const v1 = await memoir.immutable.getVersion("kb-article", "refund-policy", 1);
 
 if (v1) {
   console.log(`v1 content: ${v1.data.content}`);
@@ -329,7 +329,7 @@ Get all versions of immutable data.
 **Signature:**
 
 ```typescript
-cortex.immutable.getHistory(
+memoir.immutable.getHistory(
   type: string,
   id: string
 ): Promise<ImmutableVersionExpanded[]>
@@ -343,7 +343,7 @@ cortex.immutable.getHistory(
 **Example:**
 
 ```typescript
-const history = await cortex.immutable.getHistory("policy", "max-refund");
+const history = await memoir.immutable.getHistory("policy", "max-refund");
 
 console.log(`Policy has ${history.length} versions:`);
 history.forEach((v) => {
@@ -362,7 +362,7 @@ Get version that was current at specific time.
 **Signature:**
 
 ```typescript
-cortex.immutable.getAtTimestamp(
+memoir.immutable.getAtTimestamp(
   type: string,
   id: string,
   timestamp: number | Date
@@ -379,14 +379,14 @@ cortex.immutable.getAtTimestamp(
 
 ```typescript
 // What was the refund policy on January 1st? (using Date)
-const policy = await cortex.immutable.getAtTimestamp(
+const policy = await memoir.immutable.getAtTimestamp(
   "policy",
   "max-refund",
   new Date("2025-01-01"),
 );
 
 // Or using timestamp (ms)
-const policy2 = await cortex.immutable.getAtTimestamp(
+const policy2 = await memoir.immutable.getAtTimestamp(
   "policy",
   "max-refund",
   Date.parse("2025-01-01"),
@@ -408,7 +408,7 @@ List immutable records with filtering.
 **Signature:**
 
 ```typescript
-cortex.immutable.list(
+memoir.immutable.list(
   filter?: ListImmutableFilter
 ): Promise<ImmutableRecord[]>
 ```
@@ -432,19 +432,19 @@ interface ListImmutableFilter {
 
 ```typescript
 // List all KB articles
-const articles = await cortex.immutable.list({
+const articles = await memoir.immutable.list({
   type: "kb-article",
   limit: 50,
 });
 
 // List all records for a specific user
-const userRecords = await cortex.immutable.list({
+const userRecords = await memoir.immutable.list({
   userId: "user-123",
   limit: 20,
 });
 
 // List all records (up to default limit)
-const allRecords = await cortex.immutable.list();
+const allRecords = await memoir.immutable.list();
 ```
 
 ---
@@ -456,7 +456,7 @@ Search immutable data by content.
 **Signature:**
 
 ```typescript
-cortex.immutable.search(
+memoir.immutable.search(
   input: SearchImmutableInput
 ): Promise<ImmutableSearchResult[]>
 ```
@@ -486,7 +486,7 @@ interface ImmutableSearchResult {
 
 ```typescript
 // Search across all KB articles
-const results = await cortex.immutable.search({
+const results = await memoir.immutable.search({
   query: "refund process",
   type: "kb-article",
   limit: 20,
@@ -498,7 +498,7 @@ results.forEach((r) => {
 });
 
 // Search all immutable data
-const allResults = await cortex.immutable.search({
+const allResults = await memoir.immutable.search({
   query: "customer policy",
 });
 ```
@@ -512,7 +512,7 @@ Count immutable records.
 **Signature:**
 
 ```typescript
-cortex.immutable.count(
+memoir.immutable.count(
   filter?: CountImmutableFilter
 ): Promise<number>
 ```
@@ -531,15 +531,15 @@ interface CountImmutableFilter {
 
 ```typescript
 // Total KB articles
-const total = await cortex.immutable.count({ type: "kb-article" });
+const total = await memoir.immutable.count({ type: "kb-article" });
 
 // Count records for a specific user
-const userCount = await cortex.immutable.count({
+const userCount = await memoir.immutable.count({
   userId: "user-123",
 });
 
 // Count all immutable records
-const allCount = await cortex.immutable.count();
+const allCount = await memoir.immutable.count();
 ```
 
 ---
@@ -551,7 +551,7 @@ Delete all versions of an immutable record.
 **Signature:**
 
 ```typescript
-cortex.immutable.purge(
+memoir.immutable.purge(
   type: string,
   id: string
 ): Promise<PurgeResult>
@@ -572,7 +572,7 @@ interface PurgeResult {
 
 ```typescript
 // Delete all versions of an article
-const result = await cortex.immutable.purge("kb-article", "old-article");
+const result = await memoir.immutable.purge("kb-article", "old-article");
 
 if (result.deleted) {
   console.log(`Purged ${result.versionsDeleted} versions`);
@@ -598,7 +598,7 @@ Bulk delete immutable records matching a filter.
 **Signature:**
 
 ```typescript
-cortex.immutable.purgeMany(
+memoir.immutable.purgeMany(
   filter: PurgeManyFilter
 ): Promise<PurgeManyResult>
 ```
@@ -630,7 +630,7 @@ interface PurgeManyResult {
 
 ```typescript
 // Delete all audit logs
-const result = await cortex.immutable.purgeMany({
+const result = await memoir.immutable.purgeMany({
   type: "audit-log",
 });
 
@@ -639,7 +639,7 @@ console.log(
 );
 
 // Delete all records for a user (GDPR)
-const userPurge = await cortex.immutable.purgeMany({
+const userPurge = await memoir.immutable.purgeMany({
   userId: "user-123",
 });
 
@@ -655,7 +655,7 @@ Delete old versions while keeping recent ones (retention enforcement).
 **Signature:**
 
 ```typescript
-cortex.immutable.purgeVersions(
+memoir.immutable.purgeVersions(
   type: string,
   id: string,
   keepLatest: number
@@ -681,7 +681,7 @@ interface PurgeVersionsResult {
 
 ```typescript
 // Keep only last 20 versions
-const result = await cortex.immutable.purgeVersions(
+const result = await memoir.immutable.purgeVersions(
   "kb-article",
   "guide-123",
   20,
@@ -691,7 +691,7 @@ console.log(`Purged ${result.versionsPurged} old versions`);
 console.log(`Kept ${result.versionsRemaining} versions`);
 
 // Keep only latest 5 versions
-await cortex.immutable.purgeVersions("policy", "refund-policy", 5);
+await memoir.immutable.purgeVersions("policy", "refund-policy", 5);
 ```
 
 **Errors:**
@@ -709,21 +709,21 @@ await cortex.immutable.purgeVersions("policy", "refund-policy", 5);
 
 ```typescript
 // First store - creates v1
-const v1 = await cortex.immutable.store({
+const v1 = await memoir.immutable.store({
   type: "kb-article",
   id: "guide-1",
   data: { content: "Version 1" },
 });
 
 // Same ID - creates v2 automatically
-const v2 = await cortex.immutable.store({
+const v2 = await memoir.immutable.store({
   type: "kb-article",
   id: "guide-1", // Same ID
   data: { content: "Version 2" }, // Updated content
 });
 
 // Get current (v2) with history
-const current = await cortex.immutable.get("kb-article", "guide-1");
+const current = await memoir.immutable.get("kb-article", "guide-1");
 console.log(current.version); // 2
 console.log(current.previousVersions[0].version); // 1
 ```
@@ -735,7 +735,7 @@ console.log(current.previousVersions[0].version); // 1
 ### KB Articles
 
 ```typescript
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "how-to-refund",
   data: {
@@ -755,7 +755,7 @@ await cortex.immutable.store({
 ### Policies
 
 ```typescript
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "policy",
   id: "max-refund-amount",
   data: {
@@ -776,7 +776,7 @@ await cortex.immutable.store({
 ### Audit Logs
 
 ```typescript
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "audit-log",
   id: `audit-${Date.now()}`, // Unique ID per log entry
   data: {
@@ -797,7 +797,7 @@ await cortex.immutable.store({
 ### Agent Reasoning
 
 ```typescript
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "agent-reasoning",
   id: `reasoning-${agentId}-${Date.now()}`,
   data: {
@@ -823,14 +823,14 @@ await cortex.immutable.store({
 
 ```typescript
 // 1. Store in immutable (Layer 1b)
-const article = await cortex.immutable.store({
+const article = await memoir.immutable.store({
   type: "kb-article",
   id: "refund-guide",
   data: { title: "Refund Guide", content: "..." },
 });
 
 // 2. Index in Vector for searchability (Layer 2)
-await cortex.vector.store("kb-agent", {
+await memoir.vector.store("kb-agent", {
   content: `${article.data.title}: ${article.data.content}`,
   contentType: "raw", // or 'summarized'
   embedding: await embed(article.data.content),
@@ -848,11 +848,11 @@ await cortex.vector.store("kb-agent", {
 });
 
 // 3. All agents can search
-const results = await cortex.memory.search("support-agent", "refund policy");
+const results = await memoir.memory.search("support-agent", "refund policy");
 
 // 4. Retrieve full article via immutableRef
 if (results[0].immutableRef) {
-  const fullArticle = await cortex.immutable.get(
+  const fullArticle = await memoir.immutable.get(
     results[0].immutableRef.type,
     results[0].immutableRef.id,
   );
@@ -895,7 +895,7 @@ if (results[0].immutableRef) {
 
 ```typescript
 // Good: Self-contained
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "guide-1",
   data: {
@@ -908,7 +908,7 @@ await cortex.immutable.store({
 });
 
 // Avoid: Partial data requiring joins
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "guide-1",
   data: {
@@ -921,14 +921,14 @@ await cortex.immutable.store({
 
 ```typescript
 // Store in immutable for source of truth
-const policy = await cortex.immutable.store({
+const policy = await memoir.immutable.store({
   type: "policy",
   id: "refund-max",
   data: { value: 5000 },
 });
 
 // Index in Vector for searchability
-await cortex.vector.store("policy-agent", {
+await memoir.vector.store("policy-agent", {
   content: `Maximum refund amount is $${policy.data.value}`,
   contentType: "raw",
   embedding: await embed("maximum refund amount"),
@@ -947,15 +947,15 @@ Use these methods to manage storage and enforce retention policies:
 
 ```typescript
 // Purge specific entity (all versions)
-await cortex.immutable.purge("kb-article", "outdated-guide");
+await memoir.immutable.purge("kb-article", "outdated-guide");
 
 // Purge by type or user
-await cortex.immutable.purgeMany({
+await memoir.immutable.purgeMany({
   type: "agent-reasoning",
 });
 
 // Clean up old versions (keep latest 20)
-await cortex.immutable.purgeVersions("kb-article", "guide-123", 20);
+await memoir.immutable.purgeVersions("kb-article", "guide-123", 20);
 ```
 
 ### Governance Integration
@@ -964,7 +964,7 @@ For automated retention enforcement, use the Governance API:
 
 ```typescript
 // See Governance Policies API for multi-layer retention rules
-await cortex.governance.enforce({
+await memoir.governance.enforce({
   layers: ["immutable"],
   rules: ["retention"],
 });
@@ -978,7 +978,7 @@ await cortex.governance.enforce({
 
 ```typescript
 // Publish article
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "troubleshooting-login",
   data: {
@@ -989,7 +989,7 @@ await cortex.immutable.store({
 });
 
 // Update article (creates v2)
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "kb-article",
   id: "troubleshooting-login",
   data: {
@@ -1005,14 +1005,14 @@ await cortex.immutable.store({
 });
 
 // Agents access current version
-const guide = await cortex.immutable.get("kb-article", "troubleshooting-login");
+const guide = await memoir.immutable.get("kb-article", "troubleshooting-login");
 ```
 
 ### Use Case 2: Policy Management
 
 ```typescript
 // Set initial policy
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "policy",
   id: "refund-window",
   data: {
@@ -1023,7 +1023,7 @@ await cortex.immutable.store({
 });
 
 // Update policy (v2)
-await cortex.immutable.store({
+await memoir.immutable.store({
   type: "policy",
   id: "refund-window",
   data: {
@@ -1035,7 +1035,7 @@ await cortex.immutable.store({
 });
 
 // Agents check policy
-const policy = await cortex.immutable.get("policy", "refund-window");
+const policy = await memoir.immutable.get("policy", "refund-window");
 if (daysSincePurchase <= policy.data.days) {
   // Approve refund
 }
@@ -1046,7 +1046,7 @@ if (daysSincePurchase <= policy.data.days) {
 ```typescript
 // Log every significant action
 async function logAction(action: string, agentId: string, data: any) {
-  await cortex.immutable.store({
+  await memoir.immutable.store({
     type: "audit-log",
     id: `${action}-${Date.now()}`, // Unique per action
     data: {
@@ -1063,13 +1063,13 @@ async function logAction(action: string, agentId: string, data: any) {
 }
 
 // Query audit trail by type
-const auditLogs = await cortex.immutable.list({
+const auditLogs = await memoir.immutable.list({
   type: "audit-log",
   limit: 100,
 });
 
 // Search audit logs
-const searchResults = await cortex.immutable.search({
+const searchResults = await memoir.immutable.search({
   query: "finance-agent",
   type: "audit-log",
   limit: 50,
@@ -1097,15 +1097,15 @@ Immutable records can be graph nodes (especially Facts and KB Articles):
 
 ```typescript
 // Fact → User (via userId)
-const userFacts = await cortex.immutable.list({
+const userFacts = await memoir.immutable.list({
   type: "fact",
   userId: "user-123",
 });
 
 // Fact → Conversation (via conversationRef in data)
-const fact = await cortex.immutable.get("fact", "fact-abc123");
+const fact = await memoir.immutable.get("fact", "fact-abc123");
 if (fact?.data.conversationRef) {
-  const sourceConvo = await cortex.conversations.get(
+  const sourceConvo = await memoir.conversations.get(
     fact.data.conversationRef.conversationId,
   );
 }
@@ -1145,9 +1145,9 @@ if (fact?.data.conversationRef) {
 
 **Don't use for:**
 
-- Private conversations (use `cortex.conversations.*`)
-- Live/frequently changing data (use `cortex.mutable.*`)
-- Searchable memories (use `cortex.vector.*` referencing immutable)
+- Private conversations (use `memoir.conversations.*`)
+- Live/frequently changing data (use `memoir.mutable.*`)
+- Searchable memories (use `memoir.vector.*` referencing immutable)
 
 ---
 
@@ -1173,4 +1173,4 @@ if (fact?.data.conversationRef) {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

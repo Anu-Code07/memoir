@@ -14,13 +14,13 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 
 describe("Semantic Search for Facts", () => {
   const ctx = createNamedTestRunContext("semantic-facts");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -44,7 +44,7 @@ describe("Semantic Search for Facts", () => {
   beforeAll(async () => {
     console.log(`\n🧪 Semantic Facts Tests - Run ID: ${ctx.runId}\n`);
 
-    cortex = new Cortex({ convexUrl: CONVEX_URL });
+    memoir = new Memoir({ convexUrl: CONVEX_URL });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -102,13 +102,13 @@ describe("Semantic Search for Facts", () => {
 
   describe("semanticSearch API", () => {
     it("should have semanticSearch method on facts API", () => {
-      expect(typeof cortex.facts.semanticSearch).toBe("function");
+      expect(typeof memoir.facts.semanticSearch).toBe("function");
     });
 
     it("should throw error when embedding is empty", async () => {
       const memorySpaceId = ctx.memorySpaceId("empty-embed");
       await expect(
-        cortex.facts.semanticSearch(memorySpaceId, []),
+        memoir.facts.semanticSearch(memorySpaceId, []),
       ).rejects.toThrow("Embedding vector is required");
     });
 
@@ -178,7 +178,7 @@ describe("Semantic Search for Facts", () => {
       const memorySpaceId = ctx.memorySpaceId("recall-text-fallback");
 
       // Recall without embedding - should use text search
-      const result = await cortex.memory.recall({
+      const result = await memoir.memory.recall({
         memorySpaceId,
         query: "pizza",
         limit: 10,

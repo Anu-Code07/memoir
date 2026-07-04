@@ -6,7 +6,7 @@ FSL-1.1-Apache-2.0
 
 ## Notice
 
-Copyright 2025 Nicholas Geil / Saint Nick LLC
+Copyright 2025 Nicholas Geil / Anu-Code07
 
 ## Terms and Conditions
 
@@ -108,7 +108,7 @@ specific language governing permissions and limitations under the License.
 
 ## Third-Party Licenses
 
-Cortex depends on the following open source packages:
+Memoir depends on the following open source packages:
 
 ### Convex
 
@@ -129,39 +129,39 @@ Cortex depends on the following open source packages:
 
 This project was inspired by and built upon concepts from:
 
-- **Project Constellation** - The original enterprise AI agent platform that pioneered many of the memory architecture patterns used in Cortex
-- **Convex** - For providing the reactive backend platform that makes Cortex possible
+- **Project Constellation** - The original enterprise AI agent platform that pioneered many of the memory architecture patterns used in Memoir
+- **Convex** - For providing the reactive backend platform that makes Memoir possible
 - The broader open source AI and developer community
 
 ---
 
 ## Commercial Use
 
-Cortex uses the Functional Source License (FSL-1.1-Apache-2.0). This means:
+Memoir uses the Functional Source License (FSL-1.1-Apache-2.0). This means:
 
 **Permitted Uses:**
 
 - Internal use and access within your organization
 - Non-commercial education and research
 - Professional services you provide to licensees using the Software
-- Building applications that use Cortex as a dependency (not competing with Cortex itself)
+- Building applications that use Memoir as a dependency (not competing with Memoir itself)
 
 **Competing Use Restrictions:**
-You may NOT use Cortex to create a commercial product or service that:
+You may NOT use Memoir to create a commercial product or service that:
 
-- Substitutes for Cortex
-- Offers the same or substantially similar functionality as Cortex
-- Competes with any product or service we offer using Cortex
+- Substitutes for Memoir
+- Offers the same or substantially similar functionality as Memoir
+- Competes with any product or service we offer using Memoir
 
 **Future Apache 2.0 License:**
-Each version of Cortex automatically becomes available under the Apache License 2.0
+Each version of Memoir automatically becomes available under the Apache License 2.0
 two years after its release date, at which point all restrictions are lifted.
 
 ---
 
 ## Trademark
 
-"Cortex" is not a registered trademark. You are free to use the name "Cortex"
+"Memoir" is not a registered trademark. You are free to use the name "Memoir"
 when referring to this software in accordance with the Trademarks section above
 (reasonable and customary use in identifying the origin of the Software).
 
@@ -171,8 +171,8 @@ when referring to this software in accordance with the Trademarks section above
 
 For licensing questions or permissions:
 
-- Email: legal@cortexmemory.dev
-- Website: https://cortexmemory.dev
+- Email: legal@github.com/Anu-Code07/memoir
+- Website: https://github.com/Anu-Code07/memoir
 
 ---
 

@@ -13,7 +13,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -28,13 +28,13 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 /**
  * Create agent collaboration network
  */
-async function createAgentNetwork(cortex: Cortex) {
+async function createAgentNetwork(memoir: Memoir) {
   const timestamp = Date.now();
 
   // Create 5 agent memory spaces
@@ -49,7 +49,7 @@ async function createAgentNetwork(cortex: Cortex) {
 
   console.log("  Creating agent memory spaces...");
   for (let i = 0; i < 5; i++) {
-    const agent = await cortex.memorySpaces.register({
+    const agent = await memoir.memorySpaces.register({
       memorySpaceId: `agent-${i}-${timestamp}`,
       name: agentNames[i],
       type: "personal",
@@ -63,7 +63,7 @@ async function createAgentNetwork(cortex: Cortex) {
   const communications = [];
 
   // Supervisor → Finance
-  const comm1 = await cortex.vector.store(agents[0].memorySpaceId, {
+  const comm1 = await memoir.vector.store(agents[0].memorySpaceId, {
     content: "Please review Q4 budget",
     contentType: "raw",
     source: { type: "a2a" },
@@ -79,7 +79,7 @@ async function createAgentNetwork(cortex: Cortex) {
   console.log(`    ✓ Supervisor → Finance`);
 
   // Supervisor → HR
-  const comm2 = await cortex.vector.store(agents[0].memorySpaceId, {
+  const comm2 = await memoir.vector.store(agents[0].memorySpaceId, {
     content: "Need hiring approval for 3 positions",
     contentType: "raw",
     source: { type: "a2a" },
@@ -95,7 +95,7 @@ async function createAgentNetwork(cortex: Cortex) {
   console.log(`    ✓ Supervisor → HR`);
 
   // Finance → Legal
-  const comm3 = await cortex.vector.store(agents[1].memorySpaceId, {
+  const comm3 = await memoir.vector.store(agents[1].memorySpaceId, {
     content: "Contract review needed",
     contentType: "raw",
     source: { type: "a2a" },
@@ -111,7 +111,7 @@ async function createAgentNetwork(cortex: Cortex) {
   console.log(`    ✓ Finance → Legal`);
 
   // HR → Legal
-  const comm4 = await cortex.vector.store(agents[2].memorySpaceId, {
+  const comm4 = await memoir.vector.store(agents[2].memorySpaceId, {
     content: "Employee contract templates",
     contentType: "raw",
     source: { type: "a2a" },
@@ -128,7 +128,7 @@ async function createAgentNetwork(cortex: Cortex) {
 
   // Analytics → Everyone
   for (let i = 0; i < 4; i++) {
-    const comm = await cortex.vector.store(agents[4].memorySpaceId, {
+    const comm = await memoir.vector.store(agents[4].memorySpaceId, {
       content: `Monthly report for ${agentNames[i]}`,
       contentType: "raw",
       source: { type: "a2a" },
@@ -155,7 +155,7 @@ async function runAgentNetworkProof(adapter: GraphAdapter, dbName: string) {
   console.log(`Testing Agent Network with ${dbName}`);
   console.log(`${"=".repeat(60)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
 
   try {
     // ============================================================================
@@ -169,7 +169,7 @@ async function runAgentNetworkProof(adapter: GraphAdapter, dbName: string) {
     // Phase 2: Create Agent Network
     // ============================================================================
     console.log("📝 Phase 2: Create Agent Collaboration Network");
-    const { agents, communications } = await createAgentNetwork(cortex);
+    const { agents, communications } = await createAgentNetwork(memoir);
     console.log(`\n  ✓ Created ${agents.length} agents`);
     console.log(`  ✓ Created ${communications.length} A2A communications\n`);
 
@@ -330,7 +330,7 @@ async function runAgentNetworkProof(adapter: GraphAdapter, dbName: string) {
     console.error(`❌ Agent network proof failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -341,7 +341,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Integration - Agent Network Proof          ║");
+  console.log("║  Memoir Graph Integration - Agent Network Proof          ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test with Neo4j

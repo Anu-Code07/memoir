@@ -7,7 +7,7 @@
  * Updated: Added tenantId support for multi-tenancy testing.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -17,7 +17,7 @@ import { generateTenantId, createTenantAuthContext } from "./helpers/tenancy";
 const ctx = createTestRunContext();
 
 describe("Cross-Layer Reference Integrity", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -29,9 +29,9 @@ describe("Cross-Layer Reference Integrity", () => {
   const TEST_TENANT_ID = generateTenantId("cross-layer");
 
   beforeAll(async () => {
-    // Initialize Cortex with auth context for multi-tenancy
+    // Initialize Memoir with auth context for multi-tenancy
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() to enable parallel test execution.
@@ -44,13 +44,13 @@ describe("Cross-Layer Reference Integrity", () => {
 
   describe("Conversation References", () => {
     it("conversationRef points to actual conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const msgResult = await cortex.conversations.addMessage({
+      const msgResult = await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -58,7 +58,7 @@ describe("Cross-Layer Reference Integrity", () => {
         },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with conversation ref",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -70,7 +70,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate: Can retrieve referenced conversation
-      const referencedConv = await cortex.conversations.get(
+      const referencedConv = await memoir.conversations.get(
         memory.conversationRef!.conversationId!,
       );
       expect(referencedConv).not.toBeNull();
@@ -86,13 +86,13 @@ describe("Cross-Layer Reference Integrity", () => {
 
     it("memory conversationRef matches actual conversation messages", async () => {
       // Create conversation first
-      const convNew = await cortex.conversations.create({
+      const convNew = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: convNew.conversationId,
         userId: TEST_USER_ID,
@@ -102,13 +102,13 @@ describe("Cross-Layer Reference Integrity", () => {
         agentResponse: "Testing references",
       });
 
-      const userMem = await cortex.vector.get(
+      const userMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
 
       // Get the conversation
-      const conv = await cortex.conversations.get(
+      const conv = await memoir.conversations.get(
         userMem!.conversationRef!.conversationId!,
       );
 
@@ -125,7 +125,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("handles missing conversationRef gracefully", async () => {
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory without conversation ref",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -135,20 +135,20 @@ describe("Cross-Layer Reference Integrity", () => {
 
       expect(memory.conversationRef).toBeUndefined();
 
-      const stored = await cortex.vector.get(TEST_MEMSPACE_ID, memory.memoryId);
+      const stored = await memoir.vector.get(TEST_MEMSPACE_ID, memory.memoryId);
       expect(stored!.conversationRef).toBeUndefined();
     });
   });
 
   describe("Fact Source References", () => {
     it("sourceRef in facts points to actual conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers email",
         factType: "preference",
@@ -160,7 +160,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Validate: Referenced conversation exists
       if (fact.sourceRef?.conversationId) {
-        const conv = await cortex.conversations.get(
+        const conv = await memoir.conversations.get(
           fact.sourceRef.conversationId,
         );
         expect(conv).not.toBeNull();
@@ -169,14 +169,14 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("sourceRef in facts points to actual memory", async () => {
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Source memory for fact",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Extracted from memory",
         factType: "knowledge",
@@ -188,7 +188,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Validate: Referenced memory exists
       if (fact.sourceRef?.memoryId) {
-        const mem = await cortex.vector.get(
+        const mem = await memoir.vector.get(
           TEST_MEMSPACE_ID,
           fact.sourceRef.memoryId,
         );
@@ -198,13 +198,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("sourceRef with both conversationId and memoryId valid", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory for combined ref",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -215,7 +215,7 @@ describe("Cross-Layer Reference Integrity", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Combined source reference",
         factType: "knowledge",
@@ -229,10 +229,10 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate both references
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         fact.sourceRef!.conversationId!,
       );
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         fact.sourceRef!.memoryId!,
       );
@@ -244,13 +244,13 @@ describe("Cross-Layer Reference Integrity", () => {
 
   describe("Context References", () => {
     it("context conversationRef points to actual conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         purpose: "Test context with conversation",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
@@ -263,7 +263,7 @@ describe("Cross-Layer Reference Integrity", () => {
       // Validate reference
       expect(ctx.conversationRef).toBeDefined();
 
-      const referencedConv = await cortex.conversations.get(
+      const referencedConv = await memoir.conversations.get(
         ctx.conversationRef!.conversationId!,
       );
       expect(referencedConv).not.toBeNull();
@@ -271,13 +271,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context parentId points to actual parent context", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
@@ -285,7 +285,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate: Parent exists
-      const actualParent = await cortex.contexts.get(child.parentId!);
+      const actualParent = await memoir.contexts.get(child.parentId!);
       expect(actualParent).not.toBeNull();
 
       // Type guard to check if it's a Context (not ContextChain)
@@ -298,27 +298,27 @@ describe("Cross-Layer Reference Integrity", () => {
 
   describe("Bidirectional References", () => {
     it("parent context childIds matches children's parentId", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent for bidirectional test",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Child 1",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         parentId: parent.contextId,
       });
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         purpose: "Child 2",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         parentId: parent.contextId,
       });
 
-      const updatedParent = await cortex.contexts.get(parent.contextId);
+      const updatedParent = await memoir.contexts.get(parent.contextId);
 
       // Validate: Parent knows about both children
       if (updatedParent && "childIds" in updatedParent) {
@@ -333,7 +333,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("fact version chains are bidirectional", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Original fact",
         factType: "knowledge",
@@ -342,14 +342,14 @@ describe("Cross-Layer Reference Integrity", () => {
         sourceType: "system",
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "Updated fact",
         confidence: 90,
       });
 
       // Retrieve both versions
-      const storedV1 = await cortex.facts.get(TEST_MEMSPACE_ID, v1.factId);
-      const storedV2 = await cortex.facts.get(TEST_MEMSPACE_ID, v2.factId);
+      const storedV1 = await memoir.facts.get(TEST_MEMSPACE_ID, v1.factId);
+      const storedV2 = await memoir.facts.get(TEST_MEMSPACE_ID, v2.factId);
 
       // Validate: v1 knows it's superseded by v2
       expect(storedV1!.supersededBy).toBe(v2.factId);
@@ -359,7 +359,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("fact version chain with multiple updates", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Version 1",
         factType: "knowledge",
@@ -368,20 +368,20 @@ describe("Cross-Layer Reference Integrity", () => {
         sourceType: "system",
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "Version 2",
         confidence: 80,
       });
 
-      const v3 = await cortex.facts.update(TEST_MEMSPACE_ID, v2.factId, {
+      const v3 = await memoir.facts.update(TEST_MEMSPACE_ID, v2.factId, {
         fact: "Version 3",
         confidence: 90,
       });
 
       // Check bidirectional links
-      const stored1 = await cortex.facts.get(TEST_MEMSPACE_ID, v1.factId);
-      const stored2 = await cortex.facts.get(TEST_MEMSPACE_ID, v2.factId);
-      const stored3 = await cortex.facts.get(TEST_MEMSPACE_ID, v3.factId);
+      const stored1 = await memoir.facts.get(TEST_MEMSPACE_ID, v1.factId);
+      const stored2 = await memoir.facts.get(TEST_MEMSPACE_ID, v2.factId);
+      const stored3 = await memoir.facts.get(TEST_MEMSPACE_ID, v3.factId);
 
       // Forward links
       expect(stored1!.supersededBy).toBe(v2.factId);
@@ -397,13 +397,13 @@ describe("Cross-Layer Reference Integrity", () => {
   describe("Reference Consistency Across Operations", () => {
     it("memory.remember() creates consistent cross-layer references", async () => {
       // Create conversation first
-      const convRef = await cortex.conversations.create({
+      const convRef = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: convRef.conversationId,
         userId: TEST_USER_ID,
@@ -414,14 +414,14 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Get all created entities
-      const conversation = await cortex.conversations.get(
+      const conversation = await memoir.conversations.get(
         result.conversation.conversationId,
       );
-      const userMemory = await cortex.vector.get(
+      const userMemory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[0].memoryId,
       );
-      const agentMemory = await cortex.vector.get(
+      const agentMemory = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         result.memories[1].memoryId,
       );
@@ -453,20 +453,20 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context chain maintains reference integrity", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Root context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         parentId: root.contextId,
       });
 
-      const grandchild = await cortex.contexts.create({
+      const grandchild = await memoir.contexts.create({
         purpose: "Grandchild context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
@@ -474,7 +474,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Get chain from grandchild
-      const chain = await cortex.contexts.getChain(grandchild.contextId);
+      const chain = await memoir.contexts.getChain(grandchild.contextId);
 
       // Validate root
       expect(chain.root.contextId).toBe(root.contextId);
@@ -484,23 +484,23 @@ describe("Cross-Layer Reference Integrity", () => {
       expect(chain.current.parentId).toBe(child.contextId);
 
       // Verify all contexts in chain are retrievable
-      const rootCheck = await cortex.contexts.get(chain.root.contextId);
+      const rootCheck = await memoir.contexts.get(chain.root.contextId);
       expect(rootCheck).not.toBeNull();
 
       if (chain.parent) {
-        const parentCheck = await cortex.contexts.get(chain.parent.contextId);
+        const parentCheck = await memoir.contexts.get(chain.parent.contextId);
         expect(parentCheck).not.toBeNull();
       }
     });
 
     it("updates preserve reference integrity", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Original content",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -512,7 +512,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update memory
-      const updated = await cortex.vector.update(
+      const updated = await memoir.vector.update(
         TEST_MEMSPACE_ID,
         memory.memoryId,
         {
@@ -525,7 +525,7 @@ describe("Cross-Layer Reference Integrity", () => {
       expect(updated.conversationRef!.conversationId).toBe(conv.conversationId);
 
       // Verify reference still valid
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         updated.conversationRef!.conversationId!,
       );
       expect(convCheck).not.toBeNull();
@@ -535,13 +535,13 @@ describe("Cross-Layer Reference Integrity", () => {
   describe("Complete Workflow Reference Validation", () => {
     it("end-to-end: conversation → memory → fact → context all interconnected", async () => {
       // Create conversation
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -550,7 +550,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Store memory
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "User prefers morning meetings",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -562,7 +562,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Extract fact
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers morning meetings",
         factType: "preference",
@@ -576,7 +576,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Create context
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         purpose: "Schedule meeting based on preference",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
@@ -588,26 +588,26 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Validate all references
       // 1. Memory → Conversation
-      const memoryConv = await cortex.conversations.get(
+      const memoryConv = await memoir.conversations.get(
         memory.conversationRef!.conversationId!,
       );
       expect(memoryConv).not.toBeNull();
 
       // 2. Fact → Conversation
-      const factConv = await cortex.conversations.get(
+      const factConv = await memoir.conversations.get(
         fact.sourceRef!.conversationId!,
       );
       expect(factConv).not.toBeNull();
 
       // 3. Fact → Memory
-      const factMem = await cortex.vector.get(
+      const factMem = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         fact.sourceRef!.memoryId!,
       );
       expect(factMem).not.toBeNull();
 
       // 4. Context → Conversation
-      const ctxConv = await cortex.conversations.get(
+      const ctxConv = await memoir.conversations.get(
         ctx.conversationRef!.conversationId!,
       );
       expect(ctxConv).not.toBeNull();
@@ -625,13 +625,13 @@ describe("Cross-Layer Reference Integrity", () => {
 
   describe("Comprehensive Reference Integrity", () => {
     it("immutableRef in vector points to actual immutable record", async () => {
-      const immutableRecord = await cortex.immutable.store({
+      const immutableRecord = await memoir.immutable.store({
         type: "document",
         id: `imm-${Date.now()}`,
         data: { title: "Test Document" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory referencing immutable",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -644,7 +644,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate ref resolves
-      const resolved = await cortex.immutable.get(
+      const resolved = await memoir.immutable.get(
         memory.immutableRef!.type,
         memory.immutableRef!.id,
       );
@@ -658,9 +658,9 @@ describe("Cross-Layer Reference Integrity", () => {
       const ns = "test-namespace";
       const key = "test-key";
 
-      await cortex.mutable.set(ns, key, { value: "original" });
+      await memoir.mutable.set(ns, key, { value: "original" });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory referencing mutable",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -674,7 +674,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate ref resolves
-      const resolved = await cortex.mutable.get(
+      const resolved = await memoir.mutable.get(
         memory.mutableRef!.namespace,
         memory.mutableRef!.key,
       );
@@ -684,13 +684,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("sourceRef in facts points to actual memory and conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Source memory",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -701,7 +701,7 @@ describe("Cross-Layer Reference Integrity", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Test fact with source",
         factType: "knowledge",
@@ -715,14 +715,14 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate conversation ref
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         fact.sourceRef!.conversationId!,
       );
       expect(convCheck).not.toBeNull();
       expect(convCheck!.conversationId).toBe(conv.conversationId);
 
       // Validate memory ref
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         fact.sourceRef!.memoryId!,
       );
@@ -731,18 +731,18 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context conversationRef points to actual conversation with messages", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Test message" },
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Test context with conversation",
@@ -753,7 +753,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate conversation exists
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         ctx.conversationRef!.conversationId,
       );
       expect(convCheck).not.toBeNull();
@@ -761,13 +761,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("orphaned conversationRef detected when conversation deleted", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Will be orphaned",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -779,10 +779,10 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete conversation
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
 
       // Memory still exists but ref is orphaned
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
@@ -792,12 +792,12 @@ describe("Cross-Layer Reference Integrity", () => {
       );
 
       // Attempt to resolve ref fails
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck).toBeNull(); // Orphaned
     });
 
     it("fact version chain maintains complete bidirectional integrity", async () => {
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Chain version 1",
         factType: "knowledge",
@@ -806,18 +806,18 @@ describe("Cross-Layer Reference Integrity", () => {
         sourceType: "manual",
       });
 
-      const fact2 = await cortex.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
         fact: "Chain version 2",
       });
 
-      const fact3 = await cortex.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
+      const fact3 = await memoir.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
         fact: "Chain version 3",
       });
 
       // Get all versions
-      const v1Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact1.factId);
-      const v2Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact2.factId);
-      const v3Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact3.factId);
+      const v1Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact1.factId);
+      const v2Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact2.factId);
+      const v3Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact3.factId);
 
       // Validate forward chain (supersededBy)
       expect(v1Check!.supersededBy).toBeDefined();
@@ -830,20 +830,20 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context parent-child bidirectional relationship maintained", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent context",
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child 1",
         parentId: parent.contextId,
       });
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child 2",
@@ -851,7 +851,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Get parent and check children
-      const parentCheck = await cortex.contexts.get(parent.contextId);
+      const parentCheck = await memoir.contexts.get(parent.contextId);
       expect((parentCheck as any).childIds).toContain(child1.contextId);
       expect((parentCheck as any).childIds).toContain(child2.contextId);
 
@@ -861,27 +861,27 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context chain getChain returns complete hierarchy", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Root",
       });
 
-      const level1 = await cortex.contexts.create({
+      const level1 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Level 1",
         parentId: root.contextId,
       });
 
-      const level2 = await cortex.contexts.create({
+      const level2 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Level 2",
         parentId: level1.contextId,
       });
 
-      const chain = await cortex.contexts.getChain(level2.contextId);
+      const chain = await memoir.contexts.getChain(level2.contextId);
 
       expect(chain.root.contextId).toBe(root.contextId);
       expect(chain.current.contextId).toBe(level2.contextId);
@@ -893,14 +893,14 @@ describe("Cross-Layer Reference Integrity", () => {
       const spaceB = `${TEST_MEMSPACE_ID}-b`;
 
       // Create context in space A
-      const ctxA = await cortex.contexts.create({
+      const ctxA = await memoir.contexts.create({
         memorySpaceId: spaceA,
         userId: TEST_USER_ID,
         purpose: "Context in Space A",
       });
 
       // Create child in space B referencing space A parent
-      const ctxB = await cortex.contexts.create({
+      const ctxB = await memoir.contexts.create({
         memorySpaceId: spaceB,
         userId: TEST_USER_ID,
         purpose: "Context in Space B",
@@ -912,30 +912,30 @@ describe("Cross-Layer Reference Integrity", () => {
       expect(ctxB.memorySpaceId).toBe(spaceB);
 
       // Parent should know about child
-      const parentCheck = await cortex.contexts.get(ctxA.contextId);
+      const parentCheck = await memoir.contexts.get(ctxA.contextId);
       expect((parentCheck as any).childIds).toContain(ctxB.contextId);
     });
 
     it("messageIds in conversationRef point to actual messages", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Message 1" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "agent", content: "Message 2" },
       });
 
-      const convWithMsgs = await cortex.conversations.get(conv.conversationId);
+      const convWithMsgs = await memoir.conversations.get(conv.conversationId);
       const msgIds = convWithMsgs!.messages.map((m) => m.id);
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with message refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -947,7 +947,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate all messageIds exist
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         memory.conversationRef!.conversationId,
       );
 
@@ -958,13 +958,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("deleting parent context updates children's parentId", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent to be deleted",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child",
@@ -972,15 +972,15 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete parent with cascadeChildren
-      await cortex.contexts.delete(parent.contextId, { cascadeChildren: true });
+      await memoir.contexts.delete(parent.contextId, { cascadeChildren: true });
 
       // Child should be deleted too
-      const childCheck = await cortex.contexts.get(child.contextId);
+      const childCheck = await memoir.contexts.get(child.contextId);
       expect(childCheck).toBeNull();
     });
 
     it("context with multiple children maintains all references", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent with many children",
@@ -989,7 +989,7 @@ describe("Cross-Layer Reference Integrity", () => {
       // Create 5 children
       const children = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          cortex.contexts.create({
+          memoir.contexts.create({
             memorySpaceId: TEST_MEMSPACE_ID,
             userId: TEST_USER_ID,
             purpose: `Child ${i}`,
@@ -999,7 +999,7 @@ describe("Cross-Layer Reference Integrity", () => {
       );
 
       // Get parent
-      const parentCheck = await cortex.contexts.get(parent.contextId);
+      const parentCheck = await memoir.contexts.get(parent.contextId);
 
       // All children referenced
       expect((parentCheck as any).childIds).toHaveLength(5);
@@ -1009,21 +1009,21 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("memory with all ref types resolves correctly", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "config",
         id: `cfg-${Date.now()}`,
         data: { setting: "value" },
       });
 
-      await cortex.mutable.set("test-ns", "test-key", "test-value");
+      await memoir.mutable.set("test-ns", "test-key", "test-value");
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with all refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1042,14 +1042,14 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate all refs resolve
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         memory.conversationRef!.conversationId,
       );
-      const immCheck = await cortex.immutable.get(
+      const immCheck = await memoir.immutable.get(
         memory.immutableRef!.type,
         memory.immutableRef!.id,
       );
-      const mutCheck = await cortex.mutable.get(
+      const mutCheck = await memoir.mutable.get(
         memory.mutableRef!.namespace,
         memory.mutableRef!.key,
       );
@@ -1060,14 +1060,14 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("fact with memoryId in sourceRef points to actual memory", async () => {
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Source memory for fact",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact with memory ref",
         factType: "knowledge",
@@ -1080,7 +1080,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate memory ref
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         fact.sourceRef!.memoryId!,
       );
@@ -1090,7 +1090,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
     it("deep context chain maintains complete path integrity", async () => {
       // Create 5-level deep chain
-      let parent = await cortex.contexts.create({
+      let parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Level 0 (root)",
@@ -1099,7 +1099,7 @@ describe("Cross-Layer Reference Integrity", () => {
       const chain = [parent];
 
       for (let i = 1; i <= 4; i++) {
-        const child = await cortex.contexts.create({
+        const child = await memoir.contexts.create({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: TEST_USER_ID,
           purpose: `Level ${i}`,
@@ -1111,7 +1111,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Validate each level
       for (let i = 0; i < chain.length; i++) {
-        const ctx = await cortex.contexts.get(chain[i].contextId);
+        const ctx = await memoir.contexts.get(chain[i].contextId);
         expect(ctx!.depth).toBe(i);
 
         if (i > 0) {
@@ -1121,20 +1121,20 @@ describe("Cross-Layer Reference Integrity", () => {
       }
 
       // Validate chain from leaf
-      const fullChain = await cortex.contexts.getChain(chain[4].contextId);
+      const fullChain = await memoir.contexts.getChain(chain[4].contextId);
       expect(fullChain.root.contextId).toBe(chain[0].contextId);
       expect(fullChain.current.contextId).toBe(chain[4].contextId);
       expect(fullChain.depth).toBe(4);
     });
 
     it("updating immutableRef version in memory stays valid", async () => {
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "doc",
         id: `doc-${Date.now()}`,
         data: { version: "1" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with versioned ref",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -1147,30 +1147,30 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Create v2 of immutable
-      await cortex.immutable.store({
+      await memoir.immutable.store({
         type: "doc",
         id: immutable.id,
         data: { version: "2" },
       });
 
       // Memory still references v1
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
       expect(memCheck!.immutableRef!.version).toBe(1);
 
       // V1 is still retrievable
-      const v1Check = await cortex.immutable.getVersion("doc", immutable.id, 1);
+      const v1Check = await memoir.immutable.getVersion("doc", immutable.id, 1);
       expect(v1Check).not.toBeNull();
     });
 
     it("mutableRef snapshot preserves point-in-time value", async () => {
-      await cortex.mutable.set("snapshot-ns", "snapshot-key", "original");
+      await memoir.mutable.set("snapshot-ns", "snapshot-key", "original");
 
       const snapshotTime = Date.now();
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with snapshot",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
@@ -1184,17 +1184,17 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update mutable value
-      await cortex.mutable.set("snapshot-ns", "snapshot-key", "updated");
+      await memoir.mutable.set("snapshot-ns", "snapshot-key", "updated");
 
       // Memory snapshot still shows original
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
       expect(memCheck!.mutableRef!.snapshotValue).toBe("original");
 
       // Current value is updated
-      const currentValue = await cortex.mutable.get(
+      const currentValue = await memoir.mutable.get(
         "snapshot-ns",
         "snapshot-key",
       );
@@ -1202,7 +1202,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("multiple memories can reference same conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -1211,7 +1211,7 @@ describe("Cross-Layer Reference Integrity", () => {
       // Create 3 memories referencing same conversation
       const memories = await Promise.all(
         Array.from({ length: 3 }, (_, i) =>
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Memory ${i} from conversation`,
             contentType: "raw",
             source: { type: "conversation", userId: TEST_USER_ID },
@@ -1231,7 +1231,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Conversation should be retrievable from any memory
       for (const mem of memories) {
-        const convCheck = await cortex.conversations.get(
+        const convCheck = await memoir.conversations.get(
           mem.conversationRef!.conversationId,
         );
         expect(convCheck).not.toBeNull();
@@ -1240,7 +1240,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("fact history returns all versions in order", async () => {
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "History v1",
         factType: "knowledge",
@@ -1249,15 +1249,15 @@ describe("Cross-Layer Reference Integrity", () => {
         sourceType: "manual",
       });
 
-      const fact2 = await cortex.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
         confidence: 80,
       });
 
-      const fact3 = await cortex.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
+      const fact3 = await memoir.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
         confidence: 90,
       });
 
-      const history = await cortex.facts.getHistory(
+      const history = await memoir.facts.getHistory(
         TEST_MEMSPACE_ID,
         fact1.factId,
       );
@@ -1277,28 +1277,28 @@ describe("Cross-Layer Reference Integrity", () => {
       const spaceA = `${TEST_MEMSPACE_ID}-grant-a`;
       const spaceB = `${TEST_MEMSPACE_ID}-grant-b`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceA,
         type: "team",
         name: "Space A",
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceB,
         type: "team",
         name: "Space B",
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: spaceA,
         userId: TEST_USER_ID,
         purpose: "Context with granted access",
       });
 
       // Grant access to space B
-      await cortex.contexts.grantAccess(ctx.contextId, spaceB, "read-only");
+      await memoir.contexts.grantAccess(ctx.contextId, spaceB, "read-only");
 
-      const ctxCheck = await cortex.contexts.get(ctx.contextId);
+      const ctxCheck = await memoir.contexts.get(ctx.contextId);
 
       // Validate granted access
       if ((ctxCheck as any).grantedAccess) {
@@ -1310,18 +1310,18 @@ describe("Cross-Layer Reference Integrity", () => {
       }
 
       // Validate space B exists
-      const spaceBCheck = await cortex.memorySpaces.get(spaceB);
+      const spaceBCheck = await memoir.memorySpaces.get(spaceB);
       expect(spaceBCheck).not.toBeNull();
     });
 
     it("detects orphaned contexts when parent deleted without cascade", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent to delete",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child that will be orphaned",
@@ -1330,7 +1330,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Try to delete parent without cascade (should fail if has children)
       try {
-        await cortex.contexts.delete(parent.contextId);
+        await memoir.contexts.delete(parent.contextId);
         // If it succeeds, check child is orphaned or deleted
       } catch (_e) {
         // Expected - HAS_CHILDREN error
@@ -1338,12 +1338,12 @@ describe("Cross-Layer Reference Integrity", () => {
       }
 
       // Child should still exist
-      const childCheck = await cortex.contexts.get(child.contextId);
+      const childCheck = await memoir.contexts.get(child.contextId);
       expect(childCheck).not.toBeNull();
     });
 
     it("conversation with multiple messages preserves all message references", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -1351,7 +1351,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Add 10 messages
       for (let i = 0; i < 10; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv.conversationId,
           message: {
             role: i % 2 === 0 ? "user" : "agent",
@@ -1360,7 +1360,7 @@ describe("Cross-Layer Reference Integrity", () => {
         });
       }
 
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck!.messages).toHaveLength(10);
 
       // All messages have unique IDs
@@ -1377,7 +1377,7 @@ describe("Cross-Layer Reference Integrity", () => {
       // Track updatedAt timestamps (not createdAt which doesn't change on updates)
       const timestamps: number[] = [];
 
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Temporal v1",
         factType: "knowledge",
@@ -1390,14 +1390,14 @@ describe("Cross-Layer Reference Integrity", () => {
       // Ensure enough time passes for distinct timestamps under load
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      const fact2 = await cortex.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
         confidence: 80,
       });
       timestamps.push(fact2.updatedAt);
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      const fact3 = await cortex.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
+      const fact3 = await memoir.facts.update(TEST_MEMSPACE_ID, fact2.factId, {
         confidence: 90,
       });
       timestamps.push(fact3.updatedAt);
@@ -1408,14 +1408,14 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("deleting memory doesn't orphan facts referencing it", async () => {
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory to be deleted",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact referencing memory",
         factType: "knowledge",
@@ -1426,15 +1426,15 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete memory
-      await cortex.vector.delete(TEST_MEMSPACE_ID, memory.memoryId);
+      await memoir.vector.delete(TEST_MEMSPACE_ID, memory.memoryId);
 
       // Fact still exists with orphaned ref
-      const factCheck = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const factCheck = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
       expect(factCheck).not.toBeNull();
       expect(factCheck!.sourceRef!.memoryId).toBe(memory.memoryId);
 
       // But memory doesn't exist
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
@@ -1442,13 +1442,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context conversationRef survives conversation deletion", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Context with conversation ref",
@@ -1459,10 +1459,10 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete conversation
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
 
       // Context persists with orphaned ref
-      const ctxCheck = await cortex.contexts.get(ctx.contextId);
+      const ctxCheck = await memoir.contexts.get(ctx.contextId);
       expect(ctxCheck).not.toBeNull();
       expect((ctxCheck as any).conversationRef!.conversationId).toBe(
         conv.conversationId,
@@ -1474,20 +1474,20 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Create 5 versions
       for (let i = 1; i <= 5; i++) {
-        await cortex.immutable.store({
+        await memoir.immutable.store({
           type: "versioned",
           id,
           data: { version: i },
         });
       }
 
-      const history = await cortex.immutable.getHistory("versioned", id);
+      const history = await memoir.immutable.getHistory("versioned", id);
 
       expect(history).toHaveLength(5);
 
       // Each version retrievable
       for (let i = 1; i <= 5; i++) {
-        const version = await cortex.immutable.getVersion("versioned", id, i);
+        const version = await memoir.immutable.getVersion("versioned", id, i);
         expect(version).not.toBeNull();
         expect(version!.data.version).toBe(i);
       }
@@ -1496,19 +1496,19 @@ describe("Cross-Layer Reference Integrity", () => {
     it("references survive space updates", async () => {
       const spaceId = `${TEST_MEMSPACE_ID}-ref-survive-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Original name",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(spaceId, {
+      const memory = await memoir.vector.store(spaceId, {
         content: "Memory with ref",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1520,11 +1520,11 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update space
-      await cortex.memorySpaces.update(spaceId, { name: "Updated name" });
+      await memoir.memorySpaces.update(spaceId, { name: "Updated name" });
 
       // References still valid
-      const memCheck = await cortex.vector.get(spaceId, memory.memoryId);
-      const convCheck = await cortex.conversations.get(
+      const memCheck = await memoir.vector.get(spaceId, memory.memoryId);
+      const convCheck = await memoir.conversations.get(
         memCheck!.conversationRef!.conversationId,
       );
 
@@ -1533,13 +1533,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("circular references prevented in contexts", async () => {
-      const ctx1 = await cortex.contexts.create({
+      const ctx1 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Context 1",
       });
 
-      const ctx2 = await cortex.contexts.create({
+      const ctx2 = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Context 2",
@@ -1548,7 +1548,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Attempt to make ctx1 a child of ctx2 (circular)
       try {
-        await cortex.contexts.update(ctx1.contextId, {
+        await memoir.contexts.update(ctx1.contextId, {
           data: { parentId: ctx2.contextId },
         });
         // If allowed, hierarchy should detect it
@@ -1557,8 +1557,8 @@ describe("Cross-Layer Reference Integrity", () => {
       }
 
       // Verify original hierarchy intact
-      const ctx1Check = await cortex.contexts.get(ctx1.contextId);
-      const ctx2Check = await cortex.contexts.get(ctx2.contextId);
+      const ctx1Check = await memoir.contexts.get(ctx1.contextId);
+      const ctx2Check = await memoir.contexts.get(ctx2.contextId);
 
       expect((ctx2Check as any).parentId).toBe(ctx1.contextId);
       expect((ctx1Check as any).parentId).toBeUndefined();
@@ -1567,20 +1567,20 @@ describe("Cross-Layer Reference Integrity", () => {
     it("cross-layer cascade maintains reference integrity", async () => {
       const spaceId = `${TEST_MEMSPACE_ID}-cascade-ref-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Cascade ref test",
       });
 
       // Create linked entities
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(spaceId, {
+      const memory = await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1591,7 +1591,7 @@ describe("Cross-Layer Reference Integrity", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact",
         factType: "knowledge",
@@ -1605,15 +1605,15 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete with cascade
-      await cortex.memorySpaces.delete(spaceId, {
+      await memoir.memorySpaces.delete(spaceId, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // All should be deleted
-      const convCheck = await cortex.conversations.get(conv.conversationId);
-      const memCheck = await cortex.vector.get(spaceId, memory.memoryId);
-      const factCheck = await cortex.facts.get(spaceId, fact.factId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
+      const memCheck = await memoir.vector.get(spaceId, memory.memoryId);
+      const factCheck = await memoir.facts.get(spaceId, fact.factId);
 
       expect(convCheck).toBeNull();
       expect(memCheck).toBeNull();
@@ -1621,20 +1621,20 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("updating fact preserves all sourceRef fields", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Source",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Original",
         factType: "knowledge",
@@ -1647,7 +1647,7 @@ describe("Cross-Layer Reference Integrity", () => {
         },
       });
 
-      const fact2 = await cortex.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
+      const fact2 = await memoir.facts.update(TEST_MEMSPACE_ID, fact1.factId, {
         confidence: 90,
       });
 
@@ -1658,13 +1658,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("memory version history preserves conversationRef", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const mem = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const mem = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "V1",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1676,14 +1676,14 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update multiple times
-      await cortex.vector.update(TEST_MEMSPACE_ID, mem.memoryId, {
+      await memoir.vector.update(TEST_MEMSPACE_ID, mem.memoryId, {
         content: "V2",
       });
-      await cortex.vector.update(TEST_MEMSPACE_ID, mem.memoryId, {
+      await memoir.vector.update(TEST_MEMSPACE_ID, mem.memoryId, {
         content: "V3",
       });
 
-      const current = await cortex.vector.get(TEST_MEMSPACE_ID, mem.memoryId);
+      const current = await memoir.vector.get(TEST_MEMSPACE_ID, mem.memoryId);
 
       // conversationRef preserved through all versions
       expect(current!.conversationRef).toBeDefined();
@@ -1701,13 +1701,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("cascade delete removes refs in both directions", async () => {
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent for cascade",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child",
@@ -1715,31 +1715,31 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete parent with cascade
-      await cortex.contexts.delete(parent.contextId, { cascadeChildren: true });
+      await memoir.contexts.delete(parent.contextId, { cascadeChildren: true });
 
       // Both should be deleted
-      const parentCheck = await cortex.contexts.get(parent.contextId);
-      const childCheck = await cortex.contexts.get(child.contextId);
+      const parentCheck = await memoir.contexts.get(parent.contextId);
+      const childCheck = await memoir.contexts.get(child.contextId);
 
       expect(parentCheck).toBeNull();
       expect(childCheck).toBeNull();
     });
 
     it("fact with multiple references maintains all", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Multi-ref memory",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact with multiple refs",
         factType: "knowledge",
@@ -1754,10 +1754,10 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // All refs should resolve
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         fact.sourceRef!.conversationId!,
       );
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         fact.sourceRef!.memoryId!,
       );
@@ -1767,19 +1767,19 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("context with conversationRef and parentId maintains both", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Parent",
       });
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Child with both refs",
@@ -1791,8 +1791,8 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Both refs should resolve
-      const parentCheck = await cortex.contexts.get(child.parentId!);
-      const convCheck = await cortex.conversations.get(
+      const parentCheck = await memoir.contexts.get(child.parentId!);
+      const convCheck = await memoir.conversations.get(
         child.conversationRef!.conversationId,
       );
 
@@ -1801,14 +1801,14 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("memory update doesn't break existing fact references", async () => {
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Original",
         contentType: "raw",
         source: { type: "system", userId: TEST_USER_ID },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact referencing memory",
         factType: "knowledge",
@@ -1819,13 +1819,13 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update memory
-      await cortex.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
+      await memoir.vector.update(TEST_MEMSPACE_ID, memory.memoryId, {
         content: "Updated",
       });
 
       // Fact ref still valid
-      const factCheck = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
-      const memCheck = await cortex.vector.get(
+      const factCheck = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         factCheck!.sourceRef!.memoryId!,
       );
@@ -1835,7 +1835,7 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("conversation deletion with multiple memory references", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -1844,7 +1844,7 @@ describe("Cross-Layer Reference Integrity", () => {
       // Create 5 memories referencing same conversation
       const memories = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          cortex.vector.store(TEST_MEMSPACE_ID, {
+          memoir.vector.store(TEST_MEMSPACE_ID, {
             content: `Memory ${i}`,
             contentType: "raw",
             source: { type: "conversation", userId: TEST_USER_ID },
@@ -1858,11 +1858,11 @@ describe("Cross-Layer Reference Integrity", () => {
       );
 
       // Delete conversation
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
 
       // All memories persist with orphaned refs
       for (const mem of memories) {
-        const memCheck = await cortex.vector.get(
+        const memCheck = await memoir.vector.get(
           TEST_MEMSPACE_ID,
           mem.memoryId,
         );
@@ -1875,7 +1875,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
     it("deep context hierarchy maintains root references", async () => {
       // Create 10-level hierarchy
-      let parent = await cortex.contexts.create({
+      let parent = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Root",
@@ -1884,7 +1884,7 @@ describe("Cross-Layer Reference Integrity", () => {
       const rootId = parent.contextId;
 
       for (let i = 1; i < 10; i++) {
-        parent = await cortex.contexts.create({
+        parent = await memoir.contexts.create({
           memorySpaceId: TEST_MEMSPACE_ID,
           userId: TEST_USER_ID,
           purpose: `Level ${i}`,
@@ -1898,14 +1898,14 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("fact consolidation maintains sourceRef integrity", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
       // Create duplicate facts
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Duplicate fact 1",
         factType: "knowledge",
@@ -1915,7 +1915,7 @@ describe("Cross-Layer Reference Integrity", () => {
         sourceRef: { conversationId: conv.conversationId },
       });
 
-      const fact2 = await cortex.facts.store({
+      const fact2 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Duplicate fact 2",
         factType: "knowledge",
@@ -1926,7 +1926,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Consolidate
-      const result = await cortex.facts.consolidate({
+      const result = await memoir.facts.consolidate({
         memorySpaceId: TEST_MEMSPACE_ID,
         factIds: [fact1.factId, fact2.factId],
         keepFactId: fact1.factId,
@@ -1935,36 +1935,36 @@ describe("Cross-Layer Reference Integrity", () => {
       expect(result.consolidated).toBe(true);
 
       // Kept fact should still have sourceRef
-      const keptFact = await cortex.facts.get(TEST_MEMSPACE_ID, fact1.factId);
+      const keptFact = await memoir.facts.get(TEST_MEMSPACE_ID, fact1.factId);
       expect(keptFact!.sourceRef).toBeDefined();
       expect(keptFact!.sourceRef!.conversationId).toBe(conv.conversationId);
     });
 
     it("memory with conversationRef messageIds validates all messages exist", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
       // Add 3 messages
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Msg 1" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "agent", content: "Msg 2" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Msg 3" },
       });
 
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       const msgIds = convCheck!.messages.map((m) => m.id);
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with specific messages",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -1976,7 +1976,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // All messageIds should exist in conversation
-      const convFinal = await cortex.conversations.get(conv.conversationId);
+      const convFinal = await memoir.conversations.get(conv.conversationId);
       memory.conversationRef!.messageIds!.forEach((msgId) => {
         const exists = convFinal!.messages.some((m) => m.id === msgId);
         expect(exists).toBe(true);
@@ -1984,13 +1984,13 @@ describe("Cross-Layer Reference Integrity", () => {
     });
 
     it("references survive parent entity updates", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Reference test",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -2002,17 +2002,17 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Add message to conversation (modifies it)
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "New message" },
       });
 
       // Memory ref still valid
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
-      const convCheck = await cortex.conversations.get(
+      const convCheck = await memoir.conversations.get(
         memCheck!.conversationRef!.conversationId,
       );
 
@@ -2022,21 +2022,21 @@ describe("Cross-Layer Reference Integrity", () => {
 
     it("complex multi-ref integrity across all layers", async () => {
       // Create complete reference graph
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const immutable = await cortex.immutable.store({
+      const immutable = await memoir.immutable.store({
         type: "data",
         id: `multi-${Date.now()}`,
         data: { value: "test" },
       });
 
-      await cortex.mutable.set("multi-ns", "multi-key", "test");
+      await memoir.mutable.set("multi-ns", "multi-key", "test");
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Memory with all refs",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -2058,7 +2058,7 @@ describe("Cross-Layer Reference Integrity", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Multi-ref fact",
         factType: "knowledge",
@@ -2071,7 +2071,7 @@ describe("Cross-Layer Reference Integrity", () => {
         },
       });
 
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Context with refs",
@@ -2083,15 +2083,15 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Validate ALL refs resolve
-      const convCheck = await cortex.conversations.get(conv.conversationId);
-      const immCheck = await cortex.immutable.get("data", immutable.id);
-      const mutCheck = await cortex.mutable.get("multi-ns", "multi-key");
-      const memCheck = await cortex.vector.get(
+      const convCheck = await memoir.conversations.get(conv.conversationId);
+      const immCheck = await memoir.immutable.get("data", immutable.id);
+      const mutCheck = await memoir.mutable.get("multi-ns", "multi-key");
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         memory.memoryId,
       );
-      const factCheck = await cortex.facts.get(TEST_MEMSPACE_ID, fact.factId);
-      const ctxCheck = await cortex.contexts.get(ctx.contextId);
+      const factCheck = await memoir.facts.get(TEST_MEMSPACE_ID, fact.factId);
+      const ctxCheck = await memoir.contexts.get(ctx.contextId);
 
       expect(convCheck).not.toBeNull();
       expect(immCheck).not.toBeNull();
@@ -2105,7 +2105,7 @@ describe("Cross-Layer Reference Integrity", () => {
       const now = Date.now();
       const future = now + 86400000; // 24 hours
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Temporal fact",
         factType: "event",
@@ -2117,7 +2117,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Update fact (new version)
-      const updated = await cortex.facts.update(TEST_MEMSPACE_ID, fact.factId, {
+      const updated = await memoir.facts.update(TEST_MEMSPACE_ID, fact.factId, {
         confidence: 95,
       });
 
@@ -2131,21 +2131,21 @@ describe("Cross-Layer Reference Integrity", () => {
       const survivingSpace = `${TEST_MEMSPACE_ID}-orphan-survive-${Date.now()}`;
 
       // Create both spaces
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceToDelete,
         type: "project",
         name: "To delete",
       });
 
       // Create conversation that will be deleted
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceToDelete,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
       // Create memory in surviving space referencing the conversation
-      const orphanMemory = await cortex.vector.store(survivingSpace, {
+      const orphanMemory = await memoir.vector.store(survivingSpace, {
         content: "Will have orphaned ref",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -2157,45 +2157,45 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Delete space (cascades conversation)
-      await cortex.memorySpaces.delete(spaceToDelete, {
+      await memoir.memorySpaces.delete(spaceToDelete, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Memory in surviving space still exists
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         survivingSpace,
         orphanMemory.memoryId,
       );
       expect(memCheck).not.toBeNull();
 
       // But its conversation ref is orphaned
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck).toBeNull();
     });
 
     it("getChain validates complete ancestry", async () => {
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Root",
       });
 
-      const mid = await cortex.contexts.create({
+      const mid = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Middle",
         parentId: root.contextId,
       });
 
-      const leaf = await cortex.contexts.create({
+      const leaf = await memoir.contexts.create({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: TEST_USER_ID,
         purpose: "Leaf",
         parentId: mid.contextId,
       });
 
-      const chain = await cortex.contexts.getChain(leaf.contextId);
+      const chain = await memoir.contexts.getChain(leaf.contextId);
 
       // Root should be root
       expect(chain.root.contextId).toBe(root.contextId);
@@ -2213,7 +2213,7 @@ describe("Cross-Layer Reference Integrity", () => {
       const facts = [];
 
       // Create initial fact
-      let currentFact = await cortex.facts.store({
+      let currentFact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "V1",
         factType: "knowledge",
@@ -2225,7 +2225,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // Create 4 more versions
       for (let i = 2; i <= 5; i++) {
-        currentFact = await cortex.facts.update(
+        currentFact = await memoir.facts.update(
           TEST_MEMSPACE_ID,
           currentFact.factId,
           {
@@ -2236,11 +2236,11 @@ describe("Cross-Layer Reference Integrity", () => {
       }
 
       // Walk forward from v1
-      let current = await cortex.facts.get(TEST_MEMSPACE_ID, facts[0].factId);
+      let current = await memoir.facts.get(TEST_MEMSPACE_ID, facts[0].factId);
       let steps = 0;
 
       while (current && current.supersededBy && steps < 10) {
-        const next = await cortex.facts.get(
+        const next = await memoir.facts.get(
           TEST_MEMSPACE_ID,
           current.supersededBy,
         );
@@ -2257,7 +2257,7 @@ describe("Cross-Layer Reference Integrity", () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (current && current.supersedes && steps < 10) {
-        const prev = await cortex.facts.get(
+        const prev = await memoir.facts.get(
           TEST_MEMSPACE_ID,
           current.supersedes,
         );
@@ -2274,14 +2274,14 @@ describe("Cross-Layer Reference Integrity", () => {
       const spaceB = `${TEST_MEMSPACE_ID}-collab-b-${Date.now()}`;
 
       // Create conversation in space A
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceA,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
       // Create context in space B referencing space A conversation
-      const ctx = await cortex.contexts.create({
+      const ctx = await memoir.contexts.create({
         memorySpaceId: spaceB,
         userId: TEST_USER_ID,
         purpose: "Cross-space context",
@@ -2292,25 +2292,25 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Grant access
-      await cortex.contexts.grantAccess(ctx.contextId, spaceA, "read-only");
+      await memoir.contexts.grantAccess(ctx.contextId, spaceA, "read-only");
 
       // Validate cross-space ref
       expect(ctx.memorySpaceId).toBe(spaceB);
       expect(ctx.conversationRef!.conversationId).toBe(conv.conversationId);
 
       // Conversation still in space A
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck!.memorySpaceId).toBe(spaceA);
     });
 
     it("reference integrity preserved through export/import cycle", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const memory = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const memory = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Export test",
         contentType: "raw",
         source: { type: "conversation", userId: TEST_USER_ID },
@@ -2322,7 +2322,7 @@ describe("Cross-Layer Reference Integrity", () => {
       });
 
       // Export
-      const exported = await cortex.vector.export({
+      const exported = await memoir.vector.export({
         memorySpaceId: TEST_MEMSPACE_ID,
         format: "json",
       });

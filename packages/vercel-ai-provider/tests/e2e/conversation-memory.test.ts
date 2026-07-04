@@ -5,8 +5,8 @@
  * Requires: CONVEX_URL, OPENAI_API_KEY
  */
 
-import { createCortexMemory } from "../../src/index";
-import { Cortex } from "@cortexmemory/sdk";
+import { createMemoirMemory } from "../../src/index";
+import { Memoir } from "@memoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,
@@ -146,7 +146,7 @@ function createRealLLM() {
 describe("Conversation Memory E2E", () => {
   let memorySpaceId: string;
   let userId: string;
-  let cortex: Cortex;
+  let memoir: Memoir;
 
   beforeAll(() => {
     if (SKIP_E2E) {
@@ -167,13 +167,13 @@ describe("Conversation Memory E2E", () => {
     memorySpaceId = createTestMemorySpaceId("e2e-conv");
     userId = createTestUserId();
 
-    // Initialize Cortex for direct verification
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    // Initialize Memoir for direct verification
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterEach(async () => {
-    if (cortex) {
-      cortex.close();
+    if (memoir) {
+      memoir.close();
     }
   });
 
@@ -185,7 +185,7 @@ describe("Conversation Memory E2E", () => {
     "basic remember and recall",
     () => {
       it("should store and recall user information", async () => {
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -222,7 +222,7 @@ describe("Conversation Memory E2E", () => {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Verify memories were stored
-        const memories = await cortex.memory.list({
+        const memories = await memoir.memory.list({
           memorySpaceId,
           limit: 10,
         });
@@ -233,7 +233,7 @@ describe("Conversation Memory E2E", () => {
       it("should recall stored information in subsequent turns", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -289,7 +289,7 @@ describe("Conversation Memory E2E", () => {
     "manual memory methods",
     () => {
       it("should manually remember and search", async () => {
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -313,7 +313,7 @@ describe("Conversation Memory E2E", () => {
       }, 30000);
 
       it("should list and clear memories", async () => {
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -346,7 +346,7 @@ describe("Conversation Memory E2E", () => {
     "streaming conversations",
     () => {
       it("should stream and store response", async () => {
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,
@@ -402,7 +402,7 @@ describe("Conversation Memory E2E", () => {
       it("should maintain context across multiple turns", async () => {
         const conversationId = createTestConversationId();
 
-        const factory = createCortexMemory({
+        const factory = createMemoirMemory({
           convexUrl: process.env.CONVEX_URL!,
           memorySpaceId,
           userId,

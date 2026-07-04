@@ -8,7 +8,7 @@
  * - Session-scoped memory operations
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { createTestRunContext } from "../helpers/isolation";
 import {
   generateTenantId,
@@ -23,7 +23,7 @@ const ctx = createTestRunContext();
 const describeWithConvex = process.env.CONVEX_URL ? describe : describe.skip;
 
 describeWithConvex("Sessions Workflow E2E", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let testTenantId: string;
   let testUserId: string;
   let testMemorySpaceId: string;
@@ -35,13 +35,13 @@ describeWithConvex("Sessions Workflow E2E", () => {
 
     const authContext = createTenantAuthContext(testTenantId, testUserId);
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authContext,
     });
 
     // Register memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Sessions E2E Test Space",
       type: "custom",
@@ -50,7 +50,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(testMemorySpaceId, {
+      await memoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -66,7 +66,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
   describe("Scenario 1: Basic User Session Lifecycle", () => {
     it("should complete full session lifecycle: login -> activity -> logout", async () => {
       // Step 1: User logs in - create session
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         memorySpaceId: testMemorySpaceId,
@@ -81,17 +81,17 @@ describeWithConvex("Sessions Workflow E2E", () => {
       expect(session.messageCount).toBe(0);
 
       // Step 2: User performs activity
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: testUserId, agentId: "test-agent" },
       });
 
       // Touch session to record activity
-      await cortex.sessions.touch(session.sessionId);
+      await memoir.sessions.touch(session.sessionId);
 
       // Step 3: User sends messages
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: conv.conversationId,
         userMessage: "What's the weather like?",
@@ -102,21 +102,21 @@ describeWithConvex("Sessions Workflow E2E", () => {
       });
 
       // Step 4: Verify session was updated
-      const updatedSession = await cortex.sessions.get(session.sessionId);
+      const updatedSession = await memoir.sessions.get(session.sessionId);
       expect(updatedSession?.lastActiveAt).toBeGreaterThan(
         session.lastActiveAt,
       );
 
       // Step 5: User logs out
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
 
       // Step 6: Verify session is ended
-      const endedSession = await cortex.sessions.get(session.sessionId);
+      const endedSession = await memoir.sessions.get(session.sessionId);
       expect(endedSession?.status).toBe("ended");
       expect(endedSession?.endedAt).toBeDefined();
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -127,7 +127,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
   describe("Scenario 2: Multi-Device Session Management", () => {
     it("should handle user logged in on multiple devices", async () => {
       // User logs in on laptop
-      const laptopSession = await cortex.sessions.create({
+      const laptopSession = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         metadata: {
@@ -138,7 +138,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       });
 
       // User logs in on mobile
-      const mobileSession = await cortex.sessions.create({
+      const mobileSession = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         metadata: {
@@ -149,7 +149,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       });
 
       // User logs in on tablet
-      const tabletSession = await cortex.sessions.create({
+      const tabletSession = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         metadata: {
@@ -160,7 +160,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       });
 
       // Verify all sessions are active
-      const activeSessions = await cortex.sessions.getActive(testUserId);
+      const activeSessions = await memoir.sessions.getActive(testUserId);
       expect(activeSessions.length).toBeGreaterThanOrEqual(3);
 
       // Verify each device has its session
@@ -170,42 +170,42 @@ describeWithConvex("Sessions Workflow E2E", () => {
       expect(sessionIds).toContain(tabletSession.sessionId);
 
       // User activity on mobile
-      await cortex.sessions.touch(mobileSession.sessionId);
+      await memoir.sessions.touch(mobileSession.sessionId);
 
       // User logs out of all devices
-      const result = await cortex.sessions.endAll(testUserId);
+      const result = await memoir.sessions.endAll(testUserId);
       expect(result.ended).toBeGreaterThanOrEqual(3);
 
       // Verify no active sessions remain
-      const remainingSessions = await cortex.sessions.getActive(testUserId);
+      const remainingSessions = await memoir.sessions.getActive(testUserId);
       expect(remainingSessions.length).toBe(0);
     });
 
     it("should allow selective logout (single device)", async () => {
       // Create sessions for two devices
-      const device1Session = await cortex.sessions.create({
+      const device1Session = await memoir.sessions.create({
         userId: testUserId,
         metadata: { deviceId: "device-1" },
       });
 
-      const device2Session = await cortex.sessions.create({
+      const device2Session = await memoir.sessions.create({
         userId: testUserId,
         metadata: { deviceId: "device-2" },
       });
 
       // Log out only from device 1
-      await cortex.sessions.end(device1Session.sessionId);
+      await memoir.sessions.end(device1Session.sessionId);
 
       // Verify device 1 is logged out
-      const d1Status = await cortex.sessions.get(device1Session.sessionId);
+      const d1Status = await memoir.sessions.get(device1Session.sessionId);
       expect(d1Status?.status).toBe("ended");
 
       // Verify device 2 is still active
-      const d2Status = await cortex.sessions.get(device2Session.sessionId);
+      const d2Status = await memoir.sessions.get(device2Session.sessionId);
       expect(d2Status?.status).toBe("active");
 
       // Cleanup
-      await cortex.sessions.end(device2Session.sessionId);
+      await memoir.sessions.end(device2Session.sessionId);
     });
   });
 
@@ -234,14 +234,14 @@ describeWithConvex("Sessions Workflow E2E", () => {
         permissions: ["read", "write", "admin"],
       };
 
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         metadata: customMetadata,
       });
 
       // Retrieve and verify
-      const retrieved = await cortex.sessions.get(session.sessionId);
+      const retrieved = await memoir.sessions.get(session.sessionId);
 
       expect(retrieved?.metadata?.device).toEqual(customMetadata.device);
       expect(retrieved?.metadata?.location).toEqual(customMetadata.location);
@@ -254,7 +254,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       );
 
       // Cleanup
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
     });
   });
 
@@ -265,14 +265,14 @@ describeWithConvex("Sessions Workflow E2E", () => {
   describe("Scenario 4: Session-Scoped Operations", () => {
     it("should create session and use it for all operations", async () => {
       // Create session
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
         memorySpaceId: testMemorySpaceId,
       });
 
       // Create conversation in this session
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: testMemorySpaceId,
         type: "user-agent",
         participants: { userId: testUserId, agentId: "test-agent" },
@@ -286,7 +286,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       ];
 
       for (const interaction of interactions) {
-        await cortex.memory.remember({
+        await memoir.memory.remember({
           memorySpaceId: testMemorySpaceId,
           conversationId: conv.conversationId,
           userMessage: interaction.user,
@@ -297,19 +297,19 @@ describeWithConvex("Sessions Workflow E2E", () => {
         });
 
         // Touch session after each interaction
-        await cortex.sessions.touch(session.sessionId);
+        await memoir.sessions.touch(session.sessionId);
       }
 
       // Verify session activity
-      const finalSession = await cortex.sessions.get(session.sessionId);
+      const finalSession = await memoir.sessions.get(session.sessionId);
       expect(finalSession?.status).toBe("active");
       expect(finalSession?.lastActiveAt).toBeGreaterThan(session.startedAt);
 
       // End session
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
 
       // Cleanup
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
     });
   });
 
@@ -322,45 +322,45 @@ describeWithConvex("Sessions Workflow E2E", () => {
       const returningUserId = generateTenantUserId(testTenantId);
 
       // First visit - creates new session
-      const firstVisit = await cortex.sessions.getOrCreate(returningUserId);
+      const firstVisit = await memoir.sessions.getOrCreate(returningUserId);
       expect(firstVisit).toBeDefined();
       expect(firstVisit.userId).toBe(returningUserId);
 
       // Simulate some activity
-      await cortex.sessions.touch(firstVisit.sessionId);
+      await memoir.sessions.touch(firstVisit.sessionId);
 
       // User returns (same browser tab or session storage)
-      const secondVisit = await cortex.sessions.getOrCreate(returningUserId);
+      const secondVisit = await memoir.sessions.getOrCreate(returningUserId);
 
       // Should be the same session
       expect(secondVisit.sessionId).toBe(firstVisit.sessionId);
 
       // User returns again
-      const thirdVisit = await cortex.sessions.getOrCreate(returningUserId);
+      const thirdVisit = await memoir.sessions.getOrCreate(returningUserId);
       expect(thirdVisit.sessionId).toBe(firstVisit.sessionId);
 
       // Cleanup
-      await cortex.sessions.end(firstVisit.sessionId);
+      await memoir.sessions.end(firstVisit.sessionId);
     });
 
     it("should create new session after previous was ended", async () => {
       const userId = generateTenantUserId(testTenantId);
 
       // First session
-      const session1 = await cortex.sessions.getOrCreate(userId);
+      const session1 = await memoir.sessions.getOrCreate(userId);
       const session1Id = session1.sessionId;
 
       // End the session (user logs out)
-      await cortex.sessions.end(session1Id);
+      await memoir.sessions.end(session1Id);
 
       // User returns and logs in again
-      const session2 = await cortex.sessions.getOrCreate(userId);
+      const session2 = await memoir.sessions.getOrCreate(userId);
 
       // Should be a new session
       expect(session2.sessionId).not.toBe(session1Id);
 
       // Cleanup
-      await cortex.sessions.end(session2.sessionId);
+      await memoir.sessions.end(session2.sessionId);
     });
   });
 
@@ -375,7 +375,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
     beforeAll(async () => {
       // Create multiple sessions with different states
       for (let i = 0; i < 5; i++) {
-        const session = await cortex.sessions.create({
+        const session = await memoir.sessions.create({
           userId: scenarioUserId,
           tenantId: testTenantId,
           metadata: { index: i },
@@ -384,15 +384,15 @@ describeWithConvex("Sessions Workflow E2E", () => {
       }
 
       // End some sessions
-      await cortex.sessions.end(testSessions[0].sessionId);
-      await cortex.sessions.end(testSessions[1].sessionId);
+      await memoir.sessions.end(testSessions[0].sessionId);
+      await memoir.sessions.end(testSessions[1].sessionId);
     });
 
     afterAll(async () => {
       // Cleanup remaining active sessions
       for (const session of testSessions) {
         try {
-          await cortex.sessions.end(session.sessionId);
+          await memoir.sessions.end(session.sessionId);
         } catch {
           // Ignore
         }
@@ -400,7 +400,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
     });
 
     it("should list all sessions for user", async () => {
-      const allSessions = await cortex.sessions.list({
+      const allSessions = await memoir.sessions.list({
         userId: scenarioUserId,
       });
 
@@ -408,7 +408,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
     });
 
     it("should filter by active status", async () => {
-      const activeSessions = await cortex.sessions.list({
+      const activeSessions = await memoir.sessions.list({
         userId: scenarioUserId,
         status: "active",
       });
@@ -419,7 +419,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
     });
 
     it("should filter by ended status", async () => {
-      const endedSessions = await cortex.sessions.list({
+      const endedSessions = await memoir.sessions.list({
         userId: scenarioUserId,
         status: "ended",
       });
@@ -430,12 +430,12 @@ describeWithConvex("Sessions Workflow E2E", () => {
     });
 
     it("should count sessions by status", async () => {
-      const activeCount = await cortex.sessions.count({
+      const activeCount = await memoir.sessions.count({
         userId: scenarioUserId,
         status: "active",
       });
 
-      const endedCount = await cortex.sessions.count({
+      const endedCount = await memoir.sessions.count({
         userId: scenarioUserId,
         status: "ended",
       });
@@ -457,7 +457,7 @@ describeWithConvex("Sessions Workflow E2E", () => {
       const createPromises = Array(5)
         .fill(null)
         .map(() =>
-          cortex.sessions.create({
+          memoir.sessions.create({
             userId: concurrentUserId,
             tenantId: testTenantId,
           }),
@@ -474,11 +474,11 @@ describeWithConvex("Sessions Workflow E2E", () => {
       expect(uniqueIds.size).toBe(5);
 
       // Cleanup
-      await cortex.sessions.endAll(concurrentUserId);
+      await memoir.sessions.endAll(concurrentUserId);
     });
 
     it("should handle concurrent touches on same session", async () => {
-      const session = await cortex.sessions.create({
+      const session = await memoir.sessions.create({
         userId: testUserId,
         tenantId: testTenantId,
       });
@@ -486,16 +486,16 @@ describeWithConvex("Sessions Workflow E2E", () => {
       // Simulate concurrent activity updates
       const touchPromises = Array(10)
         .fill(null)
-        .map(() => cortex.sessions.touch(session.sessionId));
+        .map(() => memoir.sessions.touch(session.sessionId));
 
       await Promise.all(touchPromises);
 
       // Session should still be valid
-      const updated = await cortex.sessions.get(session.sessionId);
+      const updated = await memoir.sessions.get(session.sessionId);
       expect(updated?.status).toBe("active");
 
       // Cleanup
-      await cortex.sessions.end(session.sessionId);
+      await memoir.sessions.end(session.sessionId);
     });
   });
 });

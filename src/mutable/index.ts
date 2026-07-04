@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Mutable Store API
+ * Memoir SDK - Mutable Store API
  *
  * Layer 1c: ACID-compliant mutable storage for live data
  */
@@ -86,7 +86,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.set('inventory', 'widget-qty', 100);
+   * await memoir.mutable.set('inventory', 'widget-qty', 100);
    * ```
    */
   async set(
@@ -142,7 +142,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * const qty = await cortex.mutable.get('inventory', 'widget-qty');
+   * const qty = await memoir.mutable.get('inventory', 'widget-qty');
    * ```
    */
   async get(namespace: string, key: string): Promise<unknown | null> {
@@ -170,7 +170,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * const record = await cortex.mutable.getRecord('inventory', 'widget-qty');
+   * const record = await memoir.mutable.getRecord('inventory', 'widget-qty');
    * console.log(record.updatedAt);
    * ```
    */
@@ -202,7 +202,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.update('inventory', 'widget-qty', (qty) => qty - 10);
+   * await memoir.mutable.update('inventory', 'widget-qty', (qty) => qty - 10);
    * ```
    */
   async update<T = unknown>(
@@ -248,7 +248,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.increment('counters', 'total-sales', 1);
+   * await memoir.mutable.increment('counters', 'total-sales', 1);
    * ```
    */
   async increment(
@@ -283,7 +283,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.decrement('inventory', 'widget-qty', 10);
+   * await memoir.mutable.decrement('inventory', 'widget-qty', 10);
    * ```
    */
   async decrement(
@@ -318,7 +318,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * if (await cortex.mutable.exists('inventory', 'widget-qty')) { ... }
+   * if (await memoir.mutable.exists('inventory', 'widget-qty')) { ... }
    * ```
    */
   async exists(namespace: string, key: string): Promise<boolean> {
@@ -358,7 +358,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * const items = await cortex.mutable.list({
+   * const items = await memoir.mutable.list({
    *   namespace: 'inventory',
    *   keyPrefix: 'widget-',
    *   sortBy: 'updatedAt',
@@ -404,7 +404,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * const count = await cortex.mutable.count({
+   * const count = await memoir.mutable.count({
    *   namespace: 'inventory',
    *   updatedAfter: Date.now() - 24 * 60 * 60 * 1000, // Last 24 hours
    * });
@@ -435,7 +435,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.delete('inventory', 'discontinued-item');
+   * await memoir.mutable.delete('inventory', 'discontinued-item');
    * ```
    */
   async delete(
@@ -481,7 +481,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.purge('inventory', 'discontinued-item');
+   * await memoir.mutable.purge('inventory', 'discontinued-item');
    * ```
    */
   async purge(
@@ -509,11 +509,11 @@ export class MutableAPI {
    * @example
    * ```typescript
    * // Preview what would be deleted
-   * const preview = await cortex.mutable.purgeNamespace('temp-cache', { dryRun: true });
+   * const preview = await memoir.mutable.purgeNamespace('temp-cache', { dryRun: true });
    * console.log(`Would delete ${preview.deleted} keys`);
    *
    * // Actually delete
-   * const result = await cortex.mutable.purgeNamespace('temp-cache');
+   * const result = await memoir.mutable.purgeNamespace('temp-cache');
    * console.log(`Deleted ${result.deleted} keys`);
    * ```
    */
@@ -554,7 +554,7 @@ export class MutableAPI {
    *
    * @example
    * ```typescript
-   * await cortex.mutable.transaction([
+   * await memoir.mutable.transaction([
    *   { op: 'increment', namespace: 'counters', key: 'sales', amount: 1 },
    *   { op: 'decrement', namespace: 'inventory', key: 'widget-qty', amount: 1 },
    *   { op: 'set', namespace: 'state', key: 'last-sale', value: Date.now() },
@@ -612,19 +612,19 @@ export class MutableAPI {
    * @example
    * ```typescript
    * // Delete keys with prefix
-   * await cortex.mutable.purgeMany({
+   * await memoir.mutable.purgeMany({
    *   namespace: 'cache',
    *   keyPrefix: 'temp-',
    * });
    *
    * // Delete old keys
-   * await cortex.mutable.purgeMany({
+   * await memoir.mutable.purgeMany({
    *   namespace: 'cache',
    *   updatedBefore: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
    * });
    *
    * // Delete by user (GDPR compliance)
-   * await cortex.mutable.purgeMany({
+   * await memoir.mutable.purgeMany({
    *   namespace: 'sessions',
    *   userId: 'user-123',
    * });

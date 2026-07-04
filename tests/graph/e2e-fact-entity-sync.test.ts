@@ -4,7 +4,7 @@
  * End-to-end tests for the complete fact extraction → graph sync workflow.
  *
  * Tests the following scenarios:
- * 1. Initialize Cortex with graph adapter (CORTEX_GRAPH_SYNC=true)
+ * 1. Initialize Memoir with graph adapter (MEMOIR_GRAPH_SYNC=true)
  * 2. Call remember() with conversation containing extractable facts
  * 3. Verify facts are stored in Convex
  * 4. Query graph for Fact nodes
@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter } from "../../src/graph";
 import type { GraphAdapter } from "../../src/graph";
 import { createNamedTestRunContext } from "../helpers";
@@ -27,12 +27,12 @@ const describeIfEnabled = GRAPH_TESTING_ENABLED ? describe : describe.skip;
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
   const ctx = createNamedTestRunContext("e2e-fact-graph-sync");
-  let cortex: Cortex;
+  let memoir: Memoir;
   let graphAdapter: GraphAdapter;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
   const TEST_MEMSPACE_ID = ctx.memorySpaceId("graph-sync");
@@ -43,9 +43,9 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
     await graphAdapter.connect(NEO4J_CONFIG);
     await graphAdapter.clearDatabase();
 
-    // Initialize Cortex with graph adapter
-    // Note: In production, this would be configured via CORTEX_GRAPH_SYNC=true
-    cortex = new Cortex({
+    // Initialize Memoir with graph adapter
+    // Note: In production, this would be configured via MEMOIR_GRAPH_SYNC=true
+    memoir = new Memoir({
       convexUrl: CONVEX_URL,
       graph: {
         adapter: graphAdapter,
@@ -53,7 +53,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
     });
 
     // Create test memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: TEST_MEMSPACE_ID,
       type: "personal",
       name: "Fact Graph Sync E2E Test Space",
@@ -62,7 +62,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
 
   afterAll(async () => {
     try {
-      await cortex.memorySpaces.delete(TEST_MEMSPACE_ID, {
+      await memoir.memorySpaces.delete(TEST_MEMSPACE_ID, {
         cascade: true,
         reason: "e2e test cleanup",
       });
@@ -81,7 +81,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
       const _factId = `fact-auto-sync-${Date.now()}`;
 
       // Store fact with entities
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Sarah works at TechCorp as a Senior Engineer",
         factType: "relationship",
@@ -133,7 +133,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
     });
 
     it("should create IN_SPACE relationship to MemorySpace", async () => {
-      const _fact = await cortex.facts.store({
+      const _fact = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "User prefers dark mode",
         factType: "preference",
@@ -163,7 +163,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
   describe("Belief Revision Graph Integration", () => {
     it("should sync facts created via belief revision", async () => {
       // Use revise() to store a fact with conflict detection
-      const result = await cortex.facts.revise({
+      const result = await memoir.facts.revise({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: {
           fact: "User likes hiking on weekends",
@@ -193,7 +193,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
 
     it("should create SUPERSEDES relationship when fact supersedes another", async () => {
       // Store initial fact
-      const initialResult = await cortex.facts.revise({
+      const initialResult = await memoir.facts.revise({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: {
           fact: "User's favorite color is blue",
@@ -208,7 +208,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
       expect(initialResult.action).toBe("ADD");
 
       // Store superseding fact
-      const supersedeResult = await cortex.facts.revise({
+      const supersedeResult = await memoir.facts.revise({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: {
           fact: "User's favorite color is purple",
@@ -242,7 +242,7 @@ describeIfEnabled("E2E: Fact and Entity Graph Sync", () => {
   describe("Graph Queries for Facts", () => {
     it("should be able to query facts by factType in graph", async () => {
       // Store multiple facts with different types
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Test knowledge fact",
         factType: "knowledge",

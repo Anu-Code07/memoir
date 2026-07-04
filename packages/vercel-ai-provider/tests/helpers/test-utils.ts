@@ -3,7 +3,7 @@
  */
 
 import crypto from "crypto";
-import type { CortexMemoryConfig } from "../../src/types";
+import type { MemoirMemoryConfig } from "../../src/types";
 
 /**
  * Generate a cryptographically secure random string of specified length
@@ -57,8 +57,8 @@ export function createTestUserId(): string {
  * Create base test configuration
  */
 export function createTestConfig(
-  overrides: Partial<CortexMemoryConfig> = {},
-): CortexMemoryConfig {
+  overrides: Partial<MemoirMemoryConfig> = {},
+): MemoirMemoryConfig {
   return {
     convexUrl: process.env.CONVEX_URL || "https://test.convex.cloud",
     memorySpaceId: createTestMemorySpaceId(),
@@ -180,9 +180,9 @@ export function wait(ms: number): Promise<void> {
 }
 
 /**
- * Create a mock Cortex SDK instance
+ * Create a mock Memoir SDK instance
  */
-export function createMockCortex() {
+export function createMockMemoir() {
   return {
     memory: {
       search: jest.fn().mockResolvedValue([]),

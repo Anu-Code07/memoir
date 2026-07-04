@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Attachments API Validation
+ * Memoir SDK - Attachments API Validation
  *
  * Client-side validation for attachment operations to catch errors before
  * they reach the backend, providing faster feedback and better error messages.

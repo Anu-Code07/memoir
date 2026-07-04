@@ -2,13 +2,13 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-09 | **Version**: v0.29.0+ </Callout>
 
-High-level architecture of Cortex and how it leverages Convex.
+High-level architecture of Memoir and how it leverages Convex.
 
 ## Architecture at a Glance
 
-Cortex is built **natively on Convex** - a reactive TypeScript database with built-in vector search. We organize storage into **four layers** (ACID + Vector + Facts + Convenience) plus **coordination entities** and a **resilience layer**:
+Memoir is built **natively on Convex** - a reactive TypeScript database with built-in vector search. We organize storage into **four layers** (ACID + Vector + Facts + Convenience) plus **coordination entities** and a **resilience layer**:
 
-<ArchitectureDiagram title="Cortex System Architecture" caption="Four-layer architecture with resilience layer, coordination entities, and optional graph integration">
+<ArchitectureDiagram title="Memoir System Architecture" caption="Four-layer architecture with resilience layer, coordination entities, and optional graph integration">
 
 <ArchitectureLayer 
   title="Resilience Layer" 
@@ -60,7 +60,7 @@ Cortex is built **natively on Convex** - a reactive TypeScript database with bui
   variant="quaternary"
 >
   <ArchitectureBox title="TypeScript SDK">
-    cortex.memory.remember() → Orchestrates L1 + L2 + L3 • cortex.memory.recall() → Unified retrieval + ranking • TypeScript helpers over Convex functions • Automatic orchestration across all layers
+    memoir.memory.remember() → Orchestrates L1 + L2 + L3 • memoir.memory.recall() → Unified retrieval + ranking • TypeScript helpers over Convex functions • Automatic orchestration across all layers
   </ArchitectureBox>
 </ArchitectureLayer>
 
@@ -191,8 +191,8 @@ memorySpaceId: "team-alpha"         // Team shared space
 memorySpaceId: "project-acme"       // Project-specific space
 
 // All operations scoped by memorySpaceId:
-await cortex.memory.remember({ memorySpaceId: "user-123-personal", ... });
-await cortex.memory.search("user-123-personal", query, filters);
+await memoir.memory.remember({ memorySpaceId: "user-123-personal", ... });
+await memoir.memory.search("user-123-personal", query, filters);
 
 // Cross-space access requires explicit context chain permission
 ```
@@ -274,10 +274,10 @@ const filters = {
 };
 
 // Use across all operations
-await cortex.memory.search(memorySpaceId, query, filters);
-await cortex.memory.count(memorySpaceId, filters);
-await cortex.memory.list(memorySpaceId, filters);
-await cortex.memory.deleteMany(memorySpaceId, filters);
+await memoir.memory.search(memorySpaceId, query, filters);
+await memoir.memory.count(memorySpaceId, filters);
+await memoir.memory.list(memorySpaceId, filters);
+await memoir.memory.deleteMany(memorySpaceId, filters);
 ```
 
 ### 6. Automatic Versioning
@@ -286,7 +286,7 @@ All updates create new versions, preserving history:
 
 ```typescript
 // Update creates v2, preserves v1 in previousVersions array
-await cortex.memory.update(memorySpaceId, memoryId, { content: "New value" });
+await memoir.memory.update(memorySpaceId, memoryId, { content: "New value" });
 
 // Applies to: memories, facts, immutable, contexts
 // Does NOT apply to: conversations (append-only), mutable (overwrites)
@@ -307,7 +307,7 @@ await cortex.memory.update(memorySpaceId, memoryId, { content: "New value" });
 
 - Syncs to Neo4j or Memgraph via graphSyncQueue
 - Enables deep traversals (6+ hops), complex pattern matching
-- **Automatic sync when `CORTEX_GRAPH_SYNC=true`** - no manual `syncToGraph` needed
+- **Automatic sync when `MEMOIR_GRAPH_SYNC=true`** - no manual `syncToGraph` needed
 - Facts and entities automatically synced to graph
 - Best for knowledge graphs and complex dependency analysis
 
@@ -347,7 +347,7 @@ interface MemoryMetadata {
 
 ### 6. Graph Integration
 
-Cortex offers two levels of graph capabilities:
+Memoir offers two levels of graph capabilities:
 
 **Graph-Lite (Built-in):**
 
@@ -358,9 +358,9 @@ Cortex offers two levels of graph capabilities:
 
 **Native Graph (Optional Integration, v0.29.0+):**
 
-- Syncs Cortex data to Neo4j or Memgraph
+- Syncs Memoir data to Neo4j or Memgraph
 - Enables deep traversals (6+ hops), complex pattern matching, and graph algorithms
-- **Automatic sync when `CORTEX_GRAPH_SYNC=true`** - no manual `syncToGraph` option needed
+- **Automatic sync when `MEMOIR_GRAPH_SYNC=true`** - no manual `syncToGraph` option needed
 - Facts and entities automatically synced to graph with relationships
 - Best for social graphs, knowledge graphs, and complex dependency analysis
 
@@ -857,7 +857,7 @@ memorySpaces: defineTable({
 ```typescript
 // Note: User profiles are stored in `immutable` table with type='user'
 // No separate table needed - leverages Layer 1b infrastructure
-// Accessed via cortex.users.* wrapper API
+// Accessed via memoir.users.* wrapper API
 ```
 
 ### Coordination: contexts
@@ -1134,7 +1134,7 @@ graphSyncQueue: defineTable({
 
 <FlowDiagram title="Storing a Conversation Memory">
   <FlowNode title="User Message → Agent Response" icon="message" variant="default" />
-  <FlowNode title="1. cortex.memory.remember()" icon="code" variant="primary">
+  <FlowNode title="1. memoir.memory.remember()" icon="code" variant="primary">
     SDK Layer 4 • Auto-registers: memorySpace, user, conversation
   </FlowNode>
   <FlowNode title="2. Resilience Layer" icon="shield" variant="secondary">
@@ -1158,8 +1158,8 @@ graphSyncQueue: defineTable({
 
 <FlowDiagram title="Searching Memories">
   <FlowNode title="Search Query" icon="search" variant="default" />
-  <FlowNode title="1. cortex.memory.recall()" icon="code" variant="primary">
-    SDK Layer 4 • Or: cortex.memory.search()
+  <FlowNode title="1. memoir.memory.recall()" icon="code" variant="primary">
+    SDK Layer 4 • Or: memoir.memory.search()
   </FlowNode>
   <FlowNode title="2. Resilience Layer" icon="shield" variant="secondary">
     Rate limiting check • Circuit breaker check
@@ -1180,7 +1180,7 @@ graphSyncQueue: defineTable({
 <ArchitectureDiagram title="GDPR Cascade Deletion" caption="All user data deleted across all layers with a single API call">
 
 <ArchitectureLayer title="API Call" variant="primary" showArrow={true}>
-  <ArchitectureBox title="cortex.users.delete()" subtitle="cascade: true">
+  <ArchitectureBox title="memoir.users.delete()" subtitle="cascade: true">
     Single API call triggers complete user data removal
   </ArchitectureBox>
 </ArchitectureLayer>
@@ -1350,7 +1350,7 @@ export const storeMemory = mutation({
 
 ## Resilience Layer (v0.16.0+)
 
-Cortex includes a **resilience layer** that protects all operations from overload:
+Memoir includes a **resilience layer** that protects all operations from overload:
 
 <FeatureGrid>
   <FeatureCard
@@ -1376,7 +1376,7 @@ Cortex includes a **resilience layer** that protects all operations from overloa
 **Configuration:**
 
 ```typescript
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL,
   resilience: {
     rateLimiter: {
@@ -1411,7 +1411,7 @@ const cortex = new Cortex({
 - Vector dimensions: Flexible (768, 1024, 1536, 3072, etc.)
 - Index count: Up to 32 indexes per table
 
-**Cortex design:**
+**Memoir design:**
 
 - Memories: < 10KB each (fits easily)
 - Facts: ~1KB each (very efficient)
@@ -1427,7 +1427,7 @@ const cortex = new Cortex({
 - Vector search: Sub-100ms for millions of vectors
 - Reactive updates: Real-time (< 100ms)
 
-**Cortex optimizations:**
+**Memoir optimizations:**
 
 - Compound indexes for common queries (e.g., tenant+space, space+user)
 - Vector filtering before similarity search via filterFields
@@ -1456,7 +1456,7 @@ const cortex = new Cortex({
 - Conflict-free concurrent queries
 - No manual locking needed
 
-**Cortex benefits:**
+**Memoir benefits:**
 
 - Multiple memory spaces writing concurrently
 - Multiple participants in Hive Mode
@@ -1473,7 +1473,7 @@ const cortex = new Cortex({
 **Architecture:**
 
 ```
-Your App → Cortex SDK → Your Convex Instance
+Your App → Memoir SDK → Your Convex Instance
 ```
 
 **What you control:**
@@ -1484,7 +1484,7 @@ Your App → Cortex SDK → Your Convex Instance
 - Agent execution (how agents run)
 - Pub/sub for A2A (optional Redis)
 
-**What Cortex provides:**
+**What Memoir provides:**
 
 - TypeScript SDK
 - Convex schema definitions
@@ -1497,9 +1497,9 @@ Your App → Cortex SDK → Your Convex Instance
 **Architecture:**
 
 ```
-Your App → Cortex Cloud API → Your Convex Instance
+Your App → Memoir Cloud API → Your Convex Instance
              ↓
-      Cortex Services:
+      Memoir Services:
       - GDPR cascade orchestration
       - Auto-embedding generation
       - Managed pub/sub (Redis)
@@ -1515,7 +1515,7 @@ Your App → Cortex Cloud API → Your Convex Instance
 - Analytics dashboard
 - Governance automation
 
-**Data stays in YOUR Convex instance** - Cortex Cloud is a management layer, not a data host.
+**Data stays in YOUR Convex instance** - Memoir Cloud is a management layer, not a data host.
 
 ---
 
@@ -1527,7 +1527,7 @@ Your App → Cortex Cloud API → Your Convex Instance
 - **Vector Search:** Convex native vector indexes
 - **Full-Text Search:** Convex search indexes
 - **Language:** TypeScript (end-to-end)
-- **Packaging:** npm package (`@cortex-platform/sdk`)
+- **Packaging:** npm package (`@memoir-platform/sdk`)
 
 ### Optional (Direct Mode)
 
@@ -1537,10 +1537,10 @@ Your App → Cortex Cloud API → Your Convex Instance
 
 ### Optional (Cloud Mode)
 
-- **Embeddings:** Cortex-managed (OpenAI)
-- **Pub/Sub:** Cortex-managed (Redis)
-- **Agent Triggers:** Cortex-managed (webhooks)
-- **Analytics:** Cortex-managed (aggregation service)
+- **Embeddings:** Memoir-managed (OpenAI)
+- **Pub/Sub:** Memoir-managed (Redis)
+- **Agent Triggers:** Memoir-managed (webhooks)
+- **Analytics:** Memoir-managed (aggregation service)
 
 ---
 
@@ -1657,4 +1657,4 @@ Your App → Cortex Cloud API → Your Convex Instance
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

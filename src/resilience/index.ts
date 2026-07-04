@@ -1,5 +1,5 @@
 /**
- * Cortex SDK Resilience Layer
+ * Memoir SDK Resilience Layer
  *
  * Main entry point for the overload protection system.
  * Provides a unified interface that combines:

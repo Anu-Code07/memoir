@@ -9,11 +9,11 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 import { createTestRunContext } from "./helpers/isolation";
 
 describe("Statistics Consistency Testing", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   // Use TestRunContext for parallel-safe test isolation
   const ctx = createTestRunContext();
   const BASE_ID = ctx.runId;
@@ -21,13 +21,13 @@ describe("Statistics Consistency Testing", () => {
   const TEST_AGENT_ID = ctx.agentId("stats-agent");
 
   beforeAll(() => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL! });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
   });
 
   afterAll(async () => {
     // Cleanup all test spaces created by this run
     try {
-      await cortex.memorySpaces.delete(BASE_ID, {
+      await memoir.memorySpaces.delete(BASE_ID, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -44,31 +44,31 @@ describe("Statistics Consistency Testing", () => {
     it("stats match actual conversation count", async () => {
       const spaceId = `${BASE_ID}-conv-stats`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Conv stats test",
       });
 
       // Create 3 conversations
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: `${TEST_USER_ID}-2`, agentId: "test-agent" },
       });
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: `${TEST_USER_ID}-3`, agentId: "test-agent" },
       });
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const directCount = await cortex.conversations.count({
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const directCount = await memoir.conversations.count({
         memorySpaceId: spaceId,
       });
 
@@ -78,7 +78,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats match actual memory count", async () => {
       const spaceId = `${BASE_ID}-mem-stats`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Memory stats test",
@@ -86,7 +86,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create 5 memories
       for (let i = 0; i < 5; i++) {
-        await cortex.vector.store(spaceId, {
+        await memoir.vector.store(spaceId, {
           content: `Memory ${i}`,
           contentType: "raw",
           source: { type: "system" },
@@ -94,8 +94,8 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const directCount = await cortex.vector.count({ memorySpaceId: spaceId });
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const directCount = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(stats.totalMemories).toBe(directCount);
     });
@@ -103,7 +103,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats match actual fact count", async () => {
       const spaceId = `${BASE_ID}-fact-stats`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Fact stats test",
@@ -111,7 +111,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create 4 facts
       for (let i = 0; i < 4; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           fact: `Fact ${i}`,
           factType: "knowledge",
@@ -121,8 +121,8 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const directCount = await cortex.facts.count({ memorySpaceId: spaceId });
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const directCount = await memoir.facts.count({ memorySpaceId: spaceId });
 
       expect(stats.totalFacts).toBeGreaterThanOrEqual(4);
       expect(stats.totalFacts).toBe(directCount);
@@ -131,13 +131,13 @@ describe("Statistics Consistency Testing", () => {
     it("stats match actual message count", async () => {
       const spaceId = `${BASE_ID}-msg-stats`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Message stats test",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
@@ -145,7 +145,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Add 7 messages
       for (let i = 0; i < 7; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv.conversationId,
           message: {
             role: i % 2 === 0 ? "user" : "agent",
@@ -154,8 +154,8 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
 
       expect(stats.totalMessages).toBe(convCheck!.messages.length);
     });
@@ -163,32 +163,32 @@ describe("Statistics Consistency Testing", () => {
     it("stats include all layers simultaneously", async () => {
       const spaceId = `${BASE_ID}-all-layers`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "All layers test",
       });
 
       // Add data to each layer
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Test" },
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Test memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Test fact",
         factType: "knowledge",
@@ -197,13 +197,13 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: TEST_USER_ID,
         purpose: "Test context",
       });
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       expect(stats.totalConversations).toBeGreaterThanOrEqual(1);
       expect(stats.totalMessages).toBeGreaterThanOrEqual(1);
@@ -223,7 +223,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create memories
       for (let i = 0; i < 6; i++) {
-        await cortex.vector.store(spaceId, {
+        await memoir.vector.store(spaceId, {
           content: `Count test ${i}`,
           contentType: "raw",
           source: { type: "system" },
@@ -231,8 +231,8 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(list.length);
     });
@@ -242,7 +242,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create conversations
       for (let i = 0; i < 4; i++) {
-        await cortex.conversations.create({
+        await memoir.conversations.create({
           type: "user-agent",
           memorySpaceId: spaceId,
           participants: {
@@ -252,10 +252,10 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const count = await cortex.conversations.count({
+      const count = await memoir.conversations.count({
         memorySpaceId: spaceId,
       });
-      const list = await cortex.conversations.list({ memorySpaceId: spaceId });
+      const list = await memoir.conversations.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(list.conversations.length);
     });
@@ -265,7 +265,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create facts
       for (let i = 0; i < 5; i++) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: spaceId,
           fact: `Count fact ${i}`,
           factType: "knowledge",
@@ -275,8 +275,8 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const count = await cortex.facts.count({ memorySpaceId: spaceId });
-      const list = await cortex.facts.list({ memorySpaceId: spaceId });
+      const count = await memoir.facts.count({ memorySpaceId: spaceId });
+      const list = await memoir.facts.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(list.length);
     });
@@ -286,15 +286,15 @@ describe("Statistics Consistency Testing", () => {
 
       // Create contexts
       for (let i = 0; i < 3; i++) {
-        await cortex.contexts.create({
+        await memoir.contexts.create({
           memorySpaceId: spaceId,
           userId: TEST_USER_ID,
           purpose: `Count context ${i}`,
         });
       }
 
-      const count = await cortex.contexts.count({ memorySpaceId: spaceId });
-      const list = await cortex.contexts.list({ memorySpaceId: spaceId });
+      const count = await memoir.contexts.count({ memorySpaceId: spaceId });
+      const list = await memoir.contexts.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(list.length);
     });
@@ -306,7 +306,7 @@ describe("Statistics Consistency Testing", () => {
       for (let i = 0; i < 3; i++) {
         const spaceId = `${testPrefix}-${i}`;
         createdSpaceIds.push(spaceId);
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaceId,
           type: "project",
           name: `Count space ${i}`,
@@ -316,7 +316,7 @@ describe("Statistics Consistency Testing", () => {
       // In parallel execution, we can't reliably count ALL spaces globally
       // as other tests create/delete spaces concurrently.
       // Instead, verify that our created spaces exist and can be retrieved.
-      const list = await cortex.memorySpaces.list({});
+      const list = await memoir.memorySpaces.list({});
       const allSpaces = (list as any).spaces ? (list as any).spaces : list;
 
       // Count how many of OUR spaces are in the list
@@ -332,31 +332,31 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-filter-count`;
 
       // Create memories with different tags
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tagged A",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["tag-a"] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tagged B",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["tag-b"] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tagged A again",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["tag-a"] },
       });
 
-      const allList = await cortex.vector.list({
+      const allList = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const count = allList.filter((m) => m.tags.includes("tag-a")).length;
 
-      const list = await cortex.vector.list({
+      const list = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const filtered = list.filter((m) => m.tags.includes("tag-a"));
@@ -369,7 +369,7 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-fact-type-count`;
 
       // Create different fact types
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Preference 1",
         factType: "preference",
@@ -377,7 +377,7 @@ describe("Statistics Consistency Testing", () => {
         confidence: 80,
         sourceType: "manual",
       });
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Preference 2",
         factType: "preference",
@@ -385,7 +385,7 @@ describe("Statistics Consistency Testing", () => {
         confidence: 80,
         sourceType: "manual",
       });
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Identity 1",
         factType: "identity",
@@ -394,7 +394,7 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const prefList = await cortex.facts.list({
+      const prefList = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "preference",
       });
@@ -408,17 +408,17 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-conv-type-count`;
 
       // Create different types
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: `${TEST_USER_ID}-2`, agentId: "test-agent" },
       });
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "agent-agent",
         memorySpaceId: spaceId,
         participants: {
@@ -427,12 +427,12 @@ describe("Statistics Consistency Testing", () => {
         },
       });
 
-      const uaCount = await cortex.conversations.count({
+      const uaCount = await memoir.conversations.count({
         memorySpaceId: spaceId,
         type: "user-agent",
       });
 
-      const uaList = await cortex.conversations.list({
+      const uaList = await memoir.conversations.list({
         memorySpaceId: spaceId,
         type: "user-agent",
       });
@@ -445,31 +445,31 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-ctx-status-count`;
 
       // Create contexts with different statuses
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: TEST_USER_ID,
         purpose: "Active 1",
         status: "active",
       });
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: TEST_USER_ID,
         purpose: "Active 2",
         status: "active",
       });
-      await cortex.contexts.create({
+      await memoir.contexts.create({
         memorySpaceId: spaceId,
         userId: TEST_USER_ID,
         purpose: "Completed",
         status: "completed",
       });
 
-      const activeCount = await cortex.contexts.count({
+      const activeCount = await memoir.contexts.count({
         memorySpaceId: spaceId,
         status: "active",
       });
 
-      const activeList = await cortex.contexts.list({
+      const activeList = await memoir.contexts.list({
         memorySpaceId: spaceId,
         status: "active",
       });
@@ -487,21 +487,21 @@ describe("Statistics Consistency Testing", () => {
     it("creating conversation increments stats", async () => {
       const spaceId = `${BASE_ID}-create-conv-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Create stats",
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalConversations).toBe(before.totalConversations + 1);
     });
@@ -509,26 +509,26 @@ describe("Statistics Consistency Testing", () => {
     it("adding message increments message count", async () => {
       const spaceId = `${BASE_ID}-add-msg-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Message stats",
       });
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "New message" },
       });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalMessages).toBe(before.totalMessages + 1);
     });
@@ -536,22 +536,22 @@ describe("Statistics Consistency Testing", () => {
     it("creating memory increments stats", async () => {
       const spaceId = `${BASE_ID}-create-mem-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Memory create stats",
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "New memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalMemories).toBe(before.totalMemories + 1);
     });
@@ -559,24 +559,24 @@ describe("Statistics Consistency Testing", () => {
     it("deleting memory decrements stats", async () => {
       const spaceId = `${BASE_ID}-del-mem-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Memory delete stats",
       });
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "To delete",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.vector.delete(spaceId, mem.memoryId);
+      await memoir.vector.delete(spaceId, mem.memoryId);
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalMemories).toBe(before.totalMemories - 1);
     });
@@ -584,15 +584,15 @@ describe("Statistics Consistency Testing", () => {
     it("creating fact increments stats", async () => {
       const spaceId = `${BASE_ID}-create-fact-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Fact create stats",
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "New fact",
         factType: "knowledge",
@@ -601,7 +601,7 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalFacts).toBeGreaterThanOrEqual(before.totalFacts + 1);
     });
@@ -609,20 +609,20 @@ describe("Statistics Consistency Testing", () => {
     it("updating memory doesn't change count", async () => {
       const spaceId = `${BASE_ID}-update-mem`;
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Original",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
-      await cortex.vector.update(spaceId, mem.memoryId, {
+      await memoir.vector.update(spaceId, mem.memoryId, {
         content: "Updated",
       });
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(after).toBe(before);
     });
@@ -630,7 +630,7 @@ describe("Statistics Consistency Testing", () => {
     it("updating fact creates new version but count stays same", async () => {
       const spaceId = `${BASE_ID}-update-fact`;
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Original",
         factType: "knowledge",
@@ -639,13 +639,13 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const before = await cortex.facts.count({ memorySpaceId: spaceId });
+      const before = await memoir.facts.count({ memorySpaceId: spaceId });
 
-      await cortex.facts.update(spaceId, fact.factId, {
+      await memoir.facts.update(spaceId, fact.factId, {
         confidence: 90,
       });
 
-      const after = await cortex.facts.count({ memorySpaceId: spaceId });
+      const after = await memoir.facts.count({ memorySpaceId: spaceId });
 
       // Count excludes superseded by default
       expect(after).toBe(before);
@@ -663,7 +663,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 10 memories
       await Promise.all(
         Array.from({ length: 10 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Bulk delete",
             contentType: "raw",
             source: { type: "system" },
@@ -672,18 +672,18 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
-      const toDelete = await cortex.vector.list({ memorySpaceId: spaceId });
+      const toDelete = await memoir.vector.list({ memorySpaceId: spaceId });
       const filteredDelete = toDelete.filter((m) =>
         m.tags.includes("bulk-del-stats"),
       );
       for (const mem of filteredDelete) {
-        await cortex.vector.delete(spaceId, mem.memoryId);
+        await memoir.vector.delete(spaceId, mem.memoryId);
       }
       const result = { deleted: filteredDelete.length };
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(before - after).toBe(result.deleted);
     });
@@ -694,7 +694,7 @@ describe("Statistics Consistency Testing", () => {
       // Create memories
       await Promise.all(
         Array.from({ length: 8 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Bulk update",
             contentType: "raw",
             source: { type: "system" },
@@ -703,17 +703,17 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
-      const toUpdate = await cortex.vector.list({ memorySpaceId: spaceId });
+      const toUpdate = await memoir.vector.list({ memorySpaceId: spaceId });
       const filteredUpdate = toUpdate.filter((m) =>
         m.tags.includes("bulk-upd-stats"),
       );
       for (const mem of filteredUpdate) {
-        await cortex.vector.update(spaceId, mem.memoryId, { importance: 90 });
+        await memoir.vector.update(spaceId, mem.memoryId, { importance: 90 });
       }
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(after).toBe(before);
     });
@@ -721,7 +721,7 @@ describe("Statistics Consistency Testing", () => {
     it("deleteMany affects stats.totalMemories", async () => {
       const spaceId = `${BASE_ID}-del-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Delete stats",
@@ -730,7 +730,7 @@ describe("Statistics Consistency Testing", () => {
       // Create memories
       await Promise.all(
         Array.from({ length: 5 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "To delete",
             contentType: "raw",
             source: { type: "system" },
@@ -739,19 +739,19 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      const toDeleteStats = await cortex.vector.list({
+      const toDeleteStats = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const filteredDelStats = toDeleteStats.filter((m) =>
         m.tags.includes("del-stats"),
       );
       for (const mem of filteredDelStats) {
-        await cortex.vector.delete(spaceId, mem.memoryId);
+        await memoir.vector.delete(spaceId, mem.memoryId);
       }
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalMemories).toBe(before.totalMemories - 5);
     });
@@ -761,7 +761,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create memories
       for (let i = 0; i < 7; i++) {
-        await cortex.vector.store(spaceId, {
+        await memoir.vector.store(spaceId, {
           content: `Export ${i}`,
           contentType: "raw",
           source: { type: "system" },
@@ -769,12 +769,12 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const exported = await cortex.vector.export({
+      const exported = await memoir.vector.export({
         memorySpaceId: spaceId,
         format: "json",
       });
 
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
 
       const parsed = JSON.parse(exported.data);
       expect(parsed.length).toBe(list.length);
@@ -790,65 +790,65 @@ describe("Statistics Consistency Testing", () => {
     it("stats reflect state immediately after each operation in sequence", async () => {
       const spaceId = `${BASE_ID}-realtime-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Realtime stats",
       });
 
       // Initial
-      const stats0 = await cortex.memorySpaces.getStats(spaceId);
+      const stats0 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats0.totalMemories).toBe(0);
 
       // Add 1
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Mem 1",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const stats1 = await cortex.memorySpaces.getStats(spaceId);
+      const stats1 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats1.totalMemories).toBe(1);
 
       // Add 2
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Mem 2",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const stats2 = await cortex.memorySpaces.getStats(spaceId);
+      const stats2 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats2.totalMemories).toBe(2);
 
       // Add 3
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Mem 3",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const stats3 = await cortex.memorySpaces.getStats(spaceId);
+      const stats3 = await memoir.memorySpaces.getStats(spaceId);
       expect(stats3.totalMemories).toBe(3);
     });
 
     it("concurrent creates reflected accurately in stats", async () => {
       const spaceId = `${BASE_ID}-concurrent-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Concurrent stats",
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
       // Create 15 memories concurrently
       await Promise.all(
         Array.from({ length: 15 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Concurrent",
             contentType: "raw",
             source: { type: "system" },
@@ -857,7 +857,7 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       expect(after.totalMemories).toBe(before.totalMemories + 15);
     });
@@ -865,15 +865,15 @@ describe("Statistics Consistency Testing", () => {
     it("remember() updates multiple stats simultaneously", async () => {
       const spaceId = `${BASE_ID}-remember-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Remember stats",
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.memory.remember({
+      await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: `remember-${Date.now()}`,
         userMessage: "Test",
@@ -883,7 +883,7 @@ describe("Statistics Consistency Testing", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       // Should update conversations, messages, and memories
       expect(after.totalConversations).toBe(before.totalConversations + 1);
@@ -894,7 +894,7 @@ describe("Statistics Consistency Testing", () => {
     it("forget() decrements memory count", async () => {
       const spaceId = `${BASE_ID}-forget-stats`;
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: `forget-${Date.now()}`,
         userMessage: "To forget",
@@ -904,11 +904,11 @@ describe("Statistics Consistency Testing", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
-      await cortex.memory.forget(spaceId, result.memories[0].memoryId);
+      await memoir.memory.forget(spaceId, result.memories[0].memoryId);
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(after).toBe(before - 1);
     });
@@ -916,27 +916,27 @@ describe("Statistics Consistency Testing", () => {
     it("cascade delete updates all stats", async () => {
       const spaceId = `${BASE_ID}-cascade-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Cascade stats",
       });
 
       // Create data in all layers
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact",
         factType: "knowledge",
@@ -946,13 +946,13 @@ describe("Statistics Consistency Testing", () => {
       });
 
       // Delete space
-      await cortex.memorySpaces.delete(spaceId, {
+      await memoir.memorySpaces.delete(spaceId, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Space should be gone
-      const check = await cortex.memorySpaces.get(spaceId);
+      const check = await memoir.memorySpaces.get(spaceId);
       expect(check).toBeNull();
     });
   });
@@ -965,14 +965,14 @@ describe("Statistics Consistency Testing", () => {
     it("count remains 0 for empty space", async () => {
       const spaceId = `${BASE_ID}-empty-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Empty space",
       });
 
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(0);
       expect(list).toHaveLength(0);
@@ -981,53 +981,53 @@ describe("Statistics Consistency Testing", () => {
     it("count after create/delete cycle returns to original", async () => {
       const spaceId = `${BASE_ID}-cycle`;
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
-      const mem = await cortex.vector.store(spaceId, {
+      const mem = await memoir.vector.store(spaceId, {
         content: "Temporary",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const during = await cortex.vector.count({ memorySpaceId: spaceId });
+      const during = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(during).toBe(before + 1);
 
-      await cortex.vector.delete(spaceId, mem.memoryId);
+      await memoir.vector.delete(spaceId, mem.memoryId);
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(after).toBe(before);
     });
 
     it("rapid create/delete maintains count consistency", async () => {
       const spaceId = `${BASE_ID}-rapid-count`;
 
-      const initial = await cortex.vector.count({ memorySpaceId: spaceId });
+      const initial = await memoir.vector.count({ memorySpaceId: spaceId });
 
       // Rapid create/delete
       for (let i = 0; i < 5; i++) {
-        const mem = await cortex.vector.store(spaceId, {
+        const mem = await memoir.vector.store(spaceId, {
           content: `Rapid ${i}`,
           contentType: "raw",
           source: { type: "system" },
           metadata: { importance: 50, tags: [] },
         });
 
-        await cortex.vector.delete(spaceId, mem.memoryId);
+        await memoir.vector.delete(spaceId, mem.memoryId);
       }
 
-      const final = await cortex.vector.count({ memorySpaceId: spaceId });
+      const final = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(final).toBe(initial);
     });
 
     it("parallel creates all counted", async () => {
       const spaceId = `${BASE_ID}-parallel-count`;
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
       await Promise.all(
         Array.from({ length: 12 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Parallel create",
             contentType: "raw",
             source: { type: "system" },
@@ -1036,7 +1036,7 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(after).toBe(before + 12);
     });
@@ -1050,7 +1050,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats accurate after mixed create/update/delete", async () => {
       const spaceId = `${BASE_ID}-mixed-ops-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Mixed ops",
@@ -1059,7 +1059,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 5
       const mems = await Promise.all(
         Array.from({ length: 5 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Mixed",
             contentType: "raw",
             source: { type: "system" },
@@ -1069,19 +1069,19 @@ describe("Statistics Consistency Testing", () => {
       );
 
       // Update 2
-      await cortex.vector.update(spaceId, mems[0].memoryId, {
+      await memoir.vector.update(spaceId, mems[0].memoryId, {
         content: "Updated 1",
       });
-      await cortex.vector.update(spaceId, mems[1].memoryId, {
+      await memoir.vector.update(spaceId, mems[1].memoryId, {
         content: "Updated 2",
       });
 
       // Delete 1
-      await cortex.vector.delete(spaceId, mems[2].memoryId);
+      await memoir.vector.delete(spaceId, mems[2].memoryId);
 
       // Count should be 4
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(4);
       expect(list).toHaveLength(4);
@@ -1091,7 +1091,7 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-superseded`;
 
       // Create fact and update it
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "V1",
         factType: "knowledge",
@@ -1100,12 +1100,12 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      await cortex.facts.update(spaceId, fact1.factId, { confidence: 80 });
-      await cortex.facts.update(spaceId, fact1.factId, { confidence: 90 });
+      await memoir.facts.update(spaceId, fact1.factId, { confidence: 80 });
+      await memoir.facts.update(spaceId, fact1.factId, { confidence: 90 });
 
       // Count excludes superseded
-      const count = await cortex.facts.count({ memorySpaceId: spaceId });
-      const list = await cortex.facts.list({ memorySpaceId: spaceId });
+      const count = await memoir.facts.count({ memorySpaceId: spaceId });
+      const list = await memoir.facts.list({ memorySpaceId: spaceId });
 
       // Should only count active (non-superseded) facts
       expect(count).toBe(list.length);
@@ -1116,7 +1116,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create 5 versions
       for (let i = 1; i <= 5; i++) {
-        await cortex.immutable.store({
+        await memoir.immutable.store({
           type: "versioned",
           id,
           data: { version: i },
@@ -1124,7 +1124,7 @@ describe("Statistics Consistency Testing", () => {
       }
 
       // List shows only latest for each ID
-      const list = await cortex.immutable.list({ type: "versioned" });
+      const list = await memoir.immutable.list({ type: "versioned" });
       const thisIdList = list.filter((item) => item.id === id);
 
       expect(thisIdList).toHaveLength(1);
@@ -1145,7 +1145,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Create spaces and different amounts of data
       for (let i = 0; i < spaces.length; i++) {
-        await cortex.memorySpaces.register({
+        await memoir.memorySpaces.register({
           memorySpaceId: spaces[i],
           type: "project",
           name: `Space ${i}`,
@@ -1153,7 +1153,7 @@ describe("Statistics Consistency Testing", () => {
 
         // Create i+1 memories
         for (let j = 0; j <= i; j++) {
-          await cortex.vector.store(spaces[i], {
+          await memoir.vector.store(spaces[i], {
             content: `Mem ${j}`,
             contentType: "raw",
             source: { type: "system" },
@@ -1163,9 +1163,9 @@ describe("Statistics Consistency Testing", () => {
       }
 
       // Verify independent stats
-      const stats0 = await cortex.memorySpaces.getStats(spaces[0]);
-      const stats1 = await cortex.memorySpaces.getStats(spaces[1]);
-      const stats2 = await cortex.memorySpaces.getStats(spaces[2]);
+      const stats0 = await memoir.memorySpaces.getStats(spaces[0]);
+      const stats1 = await memoir.memorySpaces.getStats(spaces[1]);
+      const stats2 = await memoir.memorySpaces.getStats(spaces[2]);
 
       expect(stats0.totalMemories).toBe(1);
       expect(stats1.totalMemories).toBe(2);
@@ -1176,23 +1176,23 @@ describe("Statistics Consistency Testing", () => {
       const space1 = `${BASE_ID}-modify-1-${Date.now()}`;
       const space2 = `${BASE_ID}-modify-2-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: space1,
         type: "project",
         name: "Space 1",
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: space2,
         type: "project",
         name: "Space 2",
       });
 
-      const stats2Before = await cortex.memorySpaces.getStats(space2);
+      const stats2Before = await memoir.memorySpaces.getStats(space2);
 
       // Modify space 1 heavily
       for (let i = 0; i < 10; i++) {
-        await cortex.vector.store(space1, {
+        await memoir.vector.store(space1, {
           content: `Mem ${i}`,
           contentType: "raw",
           source: { type: "system" },
@@ -1200,7 +1200,7 @@ describe("Statistics Consistency Testing", () => {
         });
       }
 
-      const stats2After = await cortex.memorySpaces.getStats(space2);
+      const stats2After = await memoir.memorySpaces.getStats(space2);
 
       // Space 2 stats unchanged
       expect(stats2After.totalMemories).toBe(stats2Before.totalMemories);
@@ -1216,19 +1216,19 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-tag-filter`;
 
       // Create with different tags
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tag A",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["filter-a"] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tag A",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: ["filter-a"] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Tag B",
         contentType: "raw",
         source: { type: "system" },
@@ -1236,12 +1236,12 @@ describe("Statistics Consistency Testing", () => {
       });
 
       // Count filtered by tag (not supported directly, use list)
-      const countListA = await cortex.vector.list({ memorySpaceId: spaceId });
+      const countListA = await memoir.vector.list({ memorySpaceId: spaceId });
       const countA = countListA.filter((m) =>
         m.tags.includes("filter-a"),
       ).length;
 
-      const listAAll = await cortex.vector.list({
+      const listAAll = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const listA = listAAll.filter((m) => m.tags.includes("filter-a"));
@@ -1254,31 +1254,31 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-importance-filter`;
 
       // Create with different importance
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Low",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 30, tags: [] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "High",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 90, tags: [] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "High 2",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 95, tags: [] },
       });
 
-      const allForImportance = await cortex.vector.list({
+      const allForImportance = await memoir.vector.list({
         memorySpaceId: spaceId,
       });
       const count = allForImportance.filter((m) => m.importance >= 80).length;
 
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
       const filtered = list.filter((m) => m.importance >= 80);
 
       expect(count).toBe(filtered.length);
@@ -1287,7 +1287,7 @@ describe("Statistics Consistency Testing", () => {
     it("fact count with factType matches filtered list", async () => {
       const spaceId = `${BASE_ID}-fact-type-filter`;
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Pref 1",
         factType: "preference",
@@ -1295,7 +1295,7 @@ describe("Statistics Consistency Testing", () => {
         confidence: 80,
         sourceType: "manual",
       });
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Pref 2",
         factType: "preference",
@@ -1303,7 +1303,7 @@ describe("Statistics Consistency Testing", () => {
         confidence: 80,
         sourceType: "manual",
       });
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Identity",
         factType: "identity",
@@ -1312,12 +1312,12 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: spaceId,
         factType: "preference",
       });
 
-      const list = await cortex.facts.list({
+      const list = await memoir.facts.list({
         memorySpaceId: spaceId,
         factType: "preference",
       });
@@ -1335,7 +1335,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats accurate with 100+ memories", async () => {
       const spaceId = `${BASE_ID}-scale-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Scale test",
@@ -1344,7 +1344,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 100 memories
       await Promise.all(
         Array.from({ length: 100 }, (_, i) =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: `Scale mem ${i}`,
             contentType: "raw",
             source: { type: "system" },
@@ -1353,8 +1353,8 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(stats.totalMemories).toBe(count);
       expect(stats.totalMemories).toBe(100);
@@ -1363,7 +1363,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats accurate with 50+ conversations", async () => {
       const spaceId = `${BASE_ID}-conv-scale-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Conv scale test",
@@ -1372,7 +1372,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 50 conversations
       await Promise.all(
         Array.from({ length: 50 }, (_, i) =>
-          cortex.conversations.create({
+          memoir.conversations.create({
             type: "user-agent",
             memorySpaceId: spaceId,
             participants: {
@@ -1383,8 +1383,8 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
-      const count = await cortex.conversations.count({
+      const stats = await memoir.memorySpaces.getStats(spaceId);
+      const count = await memoir.conversations.count({
         memorySpaceId: spaceId,
       });
 
@@ -1398,7 +1398,7 @@ describe("Statistics Consistency Testing", () => {
       // Create some data
       await Promise.all(
         Array.from({ length: 20 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Perf test",
             contentType: "raw",
             source: { type: "system" },
@@ -1409,7 +1409,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Count should be fast
       const start = Date.now();
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
       const duration = Date.now() - start;
 
       expect(count).toBeGreaterThanOrEqual(20);
@@ -1424,7 +1424,7 @@ describe("Statistics Consistency Testing", () => {
   describe("Statistics Validation Edge Cases", () => {
     it("stats for non-existent space returns zeros", async () => {
       try {
-        const stats = await cortex.memorySpaces.getStats(
+        const stats = await memoir.memorySpaces.getStats(
           "non-existent-space-xyz",
         );
         // May return zeros or throw
@@ -1436,7 +1436,7 @@ describe("Statistics Consistency Testing", () => {
     });
 
     it("count for non-existent space returns 0", async () => {
-      const count = await cortex.vector.count({
+      const count = await memoir.vector.count({
         memorySpaceId: "non-existent-space-count",
       });
 
@@ -1444,7 +1444,7 @@ describe("Statistics Consistency Testing", () => {
     });
 
     it("list for non-existent space returns empty array", async () => {
-      const list = await cortex.vector.list({
+      const list = await memoir.vector.list({
         memorySpaceId: "non-existent-space-list",
       });
 
@@ -1454,25 +1454,25 @@ describe("Statistics Consistency Testing", () => {
     it("stats remain consistent through space updates", async () => {
       const spaceId = `${BASE_ID}-update-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Original name",
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const before = await cortex.memorySpaces.getStats(spaceId);
+      const before = await memoir.memorySpaces.getStats(spaceId);
 
       // Update space metadata
-      await cortex.memorySpaces.update(spaceId, { name: "Updated name" });
+      await memoir.memorySpaces.update(spaceId, { name: "Updated name" });
 
-      const after = await cortex.memorySpaces.getStats(spaceId);
+      const after = await memoir.memorySpaces.getStats(spaceId);
 
       // Stats unchanged by metadata update
       expect(after.totalMemories).toBe(before.totalMemories);
@@ -1481,29 +1481,29 @@ describe("Statistics Consistency Testing", () => {
     it("stats accurate after archive/reactivate", async () => {
       const spaceId = `${BASE_ID}-archive-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Archive stats",
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const beforeArchive = await cortex.memorySpaces.getStats(spaceId);
+      const beforeArchive = await memoir.memorySpaces.getStats(spaceId);
 
-      await cortex.memorySpaces.archive(spaceId);
+      await memoir.memorySpaces.archive(spaceId);
 
-      const archived = await cortex.memorySpaces.getStats(spaceId);
+      const archived = await memoir.memorySpaces.getStats(spaceId);
       expect(archived.totalMemories).toBe(beforeArchive.totalMemories);
 
-      await cortex.memorySpaces.reactivate(spaceId);
+      await memoir.memorySpaces.reactivate(spaceId);
 
-      const reactivated = await cortex.memorySpaces.getStats(spaceId);
+      const reactivated = await memoir.memorySpaces.getStats(spaceId);
       expect(reactivated.totalMemories).toBe(beforeArchive.totalMemories);
     });
   });
@@ -1516,33 +1516,33 @@ describe("Statistics Consistency Testing", () => {
     it("total stats sum across all components", async () => {
       const spaceId = `${BASE_ID}-aggregate-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Aggregate test",
       });
 
       // Create known amounts
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       }); // 1 conv
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Mem 1",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Mem 2",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       }); // 2 mems
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact 1",
         factType: "knowledge",
@@ -1551,7 +1551,7 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       }); // 1 fact
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       // Individual counts
       expect(stats.totalConversations).toBe(1);
@@ -1572,27 +1572,27 @@ describe("Statistics Consistency Testing", () => {
     it("stats.totalItems calculated correctly", async () => {
       const spaceId = `${BASE_ID}-total-items-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Total items test",
       });
 
       // Create various items
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       // totalItems should equal sum of all counts
       const calculatedTotal =
@@ -1611,10 +1611,10 @@ describe("Statistics Consistency Testing", () => {
     it("remember→forget workflow maintains count consistency", async () => {
       const spaceId = `${BASE_ID}-workflow-count`;
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
       // Remember (creates 2 memories)
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: spaceId,
         conversationId: `workflow-${Date.now()}`,
         userMessage: "Test",
@@ -1624,23 +1624,23 @@ describe("Statistics Consistency Testing", () => {
         agentId: TEST_AGENT_ID,
       });
 
-      const during = await cortex.vector.count({ memorySpaceId: spaceId });
+      const during = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(during).toBe(before + 2);
 
       // Forget one
-      await cortex.memory.forget(spaceId, result.memories[0].memoryId);
+      await memoir.memory.forget(spaceId, result.memories[0].memoryId);
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
       expect(after).toBe(before + 1);
     });
 
     it("fact versioning maintains consistent count", async () => {
       const spaceId = `${BASE_ID}-fact-version-count`;
 
-      const before = await cortex.facts.count({ memorySpaceId: spaceId });
+      const before = await memoir.facts.count({ memorySpaceId: spaceId });
 
       // Create fact
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "V1",
         factType: "knowledge",
@@ -1649,13 +1649,13 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const afterCreate = await cortex.facts.count({ memorySpaceId: spaceId });
+      const afterCreate = await memoir.facts.count({ memorySpaceId: spaceId });
       expect(afterCreate).toBe(before + 1);
 
       // Update (creates v2, supersedes v1)
-      await cortex.facts.update(spaceId, fact1.factId, { confidence: 80 });
+      await memoir.facts.update(spaceId, fact1.factId, { confidence: 80 });
 
-      const afterUpdate = await cortex.facts.count({ memorySpaceId: spaceId });
+      const afterUpdate = await memoir.facts.count({ memorySpaceId: spaceId });
 
       // Count stays same (excludes superseded)
       expect(afterUpdate).toBe(afterCreate);
@@ -1664,27 +1664,27 @@ describe("Statistics Consistency Testing", () => {
     it("cascade delete decrements all stats correctly", async () => {
       const spaceId = `${BASE_ID}-cascade-count-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Cascade count",
       });
 
       // Create data in all layers
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Memory",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: spaceId,
         fact: "Fact",
         factType: "knowledge",
@@ -1693,16 +1693,16 @@ describe("Statistics Consistency Testing", () => {
         sourceType: "manual",
       });
 
-      const _before = await cortex.memorySpaces.getStats(spaceId);
+      const _before = await memoir.memorySpaces.getStats(spaceId);
 
       // Delete with cascade
-      await cortex.memorySpaces.delete(spaceId, {
+      await memoir.memorySpaces.delete(spaceId, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Space should be gone
-      const check = await cortex.memorySpaces.get(spaceId);
+      const check = await memoir.memorySpaces.get(spaceId);
       expect(check).toBeNull();
     });
   });
@@ -1715,7 +1715,7 @@ describe("Statistics Consistency Testing", () => {
     it("complete workflow stats match reality", async () => {
       const spaceId = `${BASE_ID}-complete-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Complete workflow",
@@ -1723,17 +1723,17 @@ describe("Statistics Consistency Testing", () => {
 
       // Create 3 conversations
       const convs = await Promise.all([
-        cortex.conversations.create({
+        memoir.conversations.create({
           type: "user-agent",
           memorySpaceId: spaceId,
           participants: { userId: TEST_USER_ID, agentId: "test-agent" },
         }),
-        cortex.conversations.create({
+        memoir.conversations.create({
           type: "user-agent",
           memorySpaceId: spaceId,
           participants: { userId: `${TEST_USER_ID}-2`, agentId: "test-agent" },
         }),
-        cortex.conversations.create({
+        memoir.conversations.create({
           type: "user-agent",
           memorySpaceId: spaceId,
           participants: { userId: `${TEST_USER_ID}-3`, agentId: "test-agent" },
@@ -1741,29 +1741,29 @@ describe("Statistics Consistency Testing", () => {
       ]);
 
       // Add messages (2 to first, 3 to second, 1 to third)
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[0].conversationId,
         message: { role: "user", content: "C1 M1" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[0].conversationId,
         message: { role: "agent", content: "C1 M2" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[1].conversationId,
         message: { role: "user", content: "C2 M1" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[1].conversationId,
         message: { role: "agent", content: "C2 M2" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[1].conversationId,
         message: { role: "user", content: "C2 M3" },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: convs[2].conversationId,
         message: { role: "user", content: "C3 M1" },
       });
@@ -1771,7 +1771,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 4 memories
       await Promise.all(
         Array.from({ length: 4 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Memory",
             contentType: "raw",
             source: { type: "system" },
@@ -1783,7 +1783,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 2 facts
       await Promise.all(
         Array.from({ length: 2 }, () =>
-          cortex.facts.store({
+          memoir.facts.store({
             memorySpaceId: spaceId,
             fact: "Fact",
             factType: "knowledge",
@@ -1794,7 +1794,7 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       // Validate counts
       expect(stats.totalConversations).toBe(3);
@@ -1803,11 +1803,11 @@ describe("Statistics Consistency Testing", () => {
       expect(stats.totalFacts).toBeGreaterThanOrEqual(2);
 
       // Verify with direct queries
-      const convCount = await cortex.conversations.count({
+      const convCount = await memoir.conversations.count({
         memorySpaceId: spaceId,
       });
-      const memCount = await cortex.vector.count({ memorySpaceId: spaceId });
-      const factCount = await cortex.facts.count({ memorySpaceId: spaceId });
+      const memCount = await memoir.vector.count({ memorySpaceId: spaceId });
+      const factCount = await memoir.facts.count({ memorySpaceId: spaceId });
 
       expect(stats.totalConversations).toBe(convCount);
       expect(stats.totalMemories).toBe(memCount);
@@ -1817,7 +1817,7 @@ describe("Statistics Consistency Testing", () => {
     it("stats consistent across rapid operations", async () => {
       const spaceId = `${BASE_ID}-rapid-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Rapid stats",
@@ -1825,7 +1825,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Rapid creates
       for (let i = 0; i < 10; i++) {
-        await cortex.vector.store(spaceId, {
+        await memoir.vector.store(spaceId, {
           content: `Rapid ${i}`,
           contentType: "raw",
           source: { type: "system" },
@@ -1833,7 +1833,7 @@ describe("Statistics Consistency Testing", () => {
         });
 
         // Check stats after each
-        const stats = await cortex.memorySpaces.getStats(spaceId);
+        const stats = await memoir.memorySpaces.getStats(spaceId);
         expect(stats.totalMemories).toBeGreaterThanOrEqual(i + 1);
       }
     });
@@ -1841,13 +1841,13 @@ describe("Statistics Consistency Testing", () => {
     it("empty space has zero stats", async () => {
       const spaceId = `${BASE_ID}-empty-stats-${Date.now()}`;
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Empty stats",
       });
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       expect(stats.totalConversations).toBe(0);
       expect(stats.totalMessages).toBe(0);
@@ -1862,7 +1862,7 @@ describe("Statistics Consistency Testing", () => {
       // Create 5 memories
       const mems = await Promise.all(
         Array.from({ length: 5 }, () =>
-          cortex.vector.store(spaceId, {
+          memoir.vector.store(spaceId, {
             content: "Partial",
             contentType: "raw",
             source: { type: "system" },
@@ -1871,13 +1871,13 @@ describe("Statistics Consistency Testing", () => {
         ),
       );
 
-      const before = await cortex.vector.count({ memorySpaceId: spaceId });
+      const before = await memoir.vector.count({ memorySpaceId: spaceId });
 
       // Delete 2
-      await cortex.vector.delete(spaceId, mems[0].memoryId);
-      await cortex.vector.delete(spaceId, mems[1].memoryId);
+      await memoir.vector.delete(spaceId, mems[0].memoryId);
+      await memoir.vector.delete(spaceId, mems[1].memoryId);
 
-      const after = await cortex.vector.count({ memorySpaceId: spaceId });
+      const after = await memoir.vector.count({ memorySpaceId: spaceId });
 
       expect(after).toBe(before - 2);
     });
@@ -1885,27 +1885,27 @@ describe("Statistics Consistency Testing", () => {
     it("count accurate with mixed content types", async () => {
       const spaceId = `${BASE_ID}-mixed-types`;
 
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Raw",
         contentType: "raw",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Summarized",
         contentType: "summarized",
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
-      await cortex.vector.store(spaceId, {
+      await memoir.vector.store(spaceId, {
         content: "Fact",
         contentType: "raw", // "fact" not in ContentType
         source: { type: "system" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const count = await cortex.vector.count({ memorySpaceId: spaceId });
-      const list = await cortex.vector.list({ memorySpaceId: spaceId });
+      const count = await memoir.vector.count({ memorySpaceId: spaceId });
+      const list = await memoir.vector.list({ memorySpaceId: spaceId });
 
       expect(count).toBe(list.length);
       expect(count).toBe(3);
@@ -1915,19 +1915,19 @@ describe("Statistics Consistency Testing", () => {
       const spaceId = `${BASE_ID}-multi-conv-msgs-${Date.now()}`;
 
       // Register space first
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: spaceId,
         type: "project",
         name: "Multi conv msgs",
       });
 
-      const conv1 = await cortex.conversations.create({
+      const conv1 = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: TEST_USER_ID, agentId: "test-agent" },
       });
 
-      const conv2 = await cortex.conversations.create({
+      const conv2 = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: spaceId,
         participants: { userId: `${TEST_USER_ID}-2`, agentId: "test-agent" },
@@ -1935,7 +1935,7 @@ describe("Statistics Consistency Testing", () => {
 
       // Add 3 to conv1
       for (let i = 0; i < 3; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv1.conversationId,
           message: { role: "user", content: `C1 M${i}` },
         });
@@ -1943,13 +1943,13 @@ describe("Statistics Consistency Testing", () => {
 
       // Add 2 to conv2
       for (let i = 0; i < 2; i++) {
-        await cortex.conversations.addMessage({
+        await memoir.conversations.addMessage({
           conversationId: conv2.conversationId,
           message: { role: "user", content: `C2 M${i}` },
         });
       }
 
-      const stats = await cortex.memorySpaces.getStats(spaceId);
+      const stats = await memoir.memorySpaces.getStats(spaceId);
 
       expect(stats.totalMessages).toBe(5); // 3 + 2
     });

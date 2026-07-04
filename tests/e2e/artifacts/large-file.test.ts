@@ -10,7 +10,7 @@
  * - Performance benchmarks
  */
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import { createTestRunContext } from "../../helpers/isolation";
 import {
   generateTenantId,
@@ -34,7 +34,7 @@ function generateContent(sizeBytes: number, char = "x"): string {
 }
 
 describeWithConvex("E2E: Large File Artifacts", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let testTenantId: string;
   let testUserId: string;
   let testMemorySpaceId: string;
@@ -49,13 +49,13 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     const authContext = createTenantAuthContext(testTenantId, testUserId);
 
-    cortex = new Cortex({
+    memoir = new Memoir({
       convexUrl: process.env.CONVEX_URL!,
       auth: authContext,
     });
 
     // Register memory space
-    await cortex.memorySpaces.register({
+    await memoir.memorySpaces.register({
       memorySpaceId: testMemorySpaceId,
       name: "Large File E2E Test Space",
       type: "custom",
@@ -66,7 +66,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
     // Clean up artifacts (hard delete to remove files too)
     for (const artifactId of createdArtifactIds) {
       try {
-        await cortex.artifacts.delete(artifactId, true);
+        await memoir.artifacts.delete(artifactId, true);
       } catch {
         // Ignore cleanup errors
       }
@@ -74,7 +74,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     // Clean up memory space
     try {
-      await cortex.memorySpaces.delete(testMemorySpaceId, {
+      await memoir.memorySpaces.delete(testMemorySpaceId, {
         cascade: true,
         reason: "Test cleanup",
       });
@@ -91,7 +91,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
     it("should store small content inline (< 100KB)", async () => {
       const smallContent = generateContent(50 * KB);
 
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Small Content Test",
         content: smallContent,
@@ -114,7 +114,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       const content = generateContent(500 * KB);
 
       const startTime = Date.now();
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "500KB Content Test",
         content,
@@ -145,7 +145,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       const largeContent = generateContent(1.5 * MB);
 
       const startTime = Date.now();
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "1.5MB Content Test",
         content: largeContent,
@@ -180,7 +180,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       const content = generateContent(2 * MB);
 
       const startTime = Date.now();
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "2MB Content Test",
         content,
@@ -210,7 +210,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     beforeAll(async () => {
       // Create an artifact with file attachment
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "File URL Test",
         content: "Content with potential file attachment",
@@ -228,12 +228,12 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       // For artifacts without file attachments, it may return null/undefined
       // For artifacts with file storage, it returns a signed URL
 
-      const artifact = await cortex.artifacts.get(artifactWithFile);
+      const artifact = await memoir.artifacts.get(artifactWithFile);
 
       if (artifact?.fileRef) {
         // If there's a file ref, we should be able to get a URL
         const startTime = Date.now();
-        const url = await cortex.artifacts.getFileUrl(artifactWithFile);
+        const url = await memoir.artifacts.getFileUrl(artifactWithFile);
         const elapsed = Date.now() - startTime;
 
         expect(url).toBeDefined();
@@ -255,7 +255,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
     it.skip("should maintain version history with large content", async () => {
       // Create with 500KB content
       const v1Content = generateContent(500 * KB, "a");
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Large Versioning Test",
         content: v1Content,
@@ -268,24 +268,24 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
       // Update with different 500KB content
       const v2Content = generateContent(500 * KB, "b");
-      await cortex.artifacts.update(artifact.artifactId, v2Content, {
+      await memoir.artifacts.update(artifact.artifactId, v2Content, {
         changeSummary: "Updated to version 2",
       });
 
       // Update with 1MB content
       const v3Content = generateContent(1 * MB, "c");
-      await cortex.artifacts.update(artifact.artifactId, v3Content, {
+      await memoir.artifacts.update(artifact.artifactId, v3Content, {
         changeSummary: "Updated to version 3 with larger content",
       });
 
       // Verify version history
-      const history = await cortex.artifacts.getHistory(artifact.artifactId);
+      const history = await memoir.artifacts.getHistory(artifact.artifactId);
       expect(history.length).toBe(3);
 
       // Verify we can retrieve specific versions
-      const version1 = await cortex.artifacts.getVersion(artifact.artifactId, 1);
-      const version2 = await cortex.artifacts.getVersion(artifact.artifactId, 2);
-      const version3 = await cortex.artifacts.getVersion(artifact.artifactId, 3);
+      const version1 = await memoir.artifacts.getVersion(artifact.artifactId, 1);
+      const version2 = await memoir.artifacts.getVersion(artifact.artifactId, 2);
+      const version3 = await memoir.artifacts.getVersion(artifact.artifactId, 3);
 
       expect(version1?.content?.charAt(0)).toBe("a");
       expect(version2?.content?.charAt(0)).toBe("b");
@@ -294,7 +294,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     it("should undo/redo with large content", async () => {
       const v1Content = generateContent(200 * KB, "x");
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Undo Redo Large Test",
         content: v1Content,
@@ -305,18 +305,18 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       createdArtifactIds.push(artifact.artifactId);
 
       const v2Content = generateContent(200 * KB, "y");
-      await cortex.artifacts.update(artifact.artifactId, v2Content);
+      await memoir.artifacts.update(artifact.artifactId, v2Content);
 
       // Undo to v1
-      const undoResult = await cortex.artifacts.undo(artifact.artifactId);
+      const undoResult = await memoir.artifacts.undo(artifact.artifactId);
       expect(undoResult.success).toBe(true);
-      const afterUndo = await cortex.artifacts.get(artifact.artifactId);
+      const afterUndo = await memoir.artifacts.get(artifact.artifactId);
       expect(afterUndo?.content?.charAt(0)).toBe("x");
 
       // Redo to v2
-      const redoResult = await cortex.artifacts.redo(artifact.artifactId);
+      const redoResult = await memoir.artifacts.redo(artifact.artifactId);
       expect(redoResult.success).toBe(true);
-      const afterRedo = await cortex.artifacts.get(artifact.artifactId);
+      const afterRedo = await memoir.artifacts.get(artifact.artifactId);
       expect(afterRedo?.content?.charAt(0)).toBe("y");
     });
   });
@@ -328,7 +328,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
   describe("Scenario 5: Streaming Large Content", () => {
     // Skip: Streaming 1MB exceeds Convex's document size limit when content is accumulated
     it.skip("should stream 1MB content in chunks", async () => {
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "Stream Large Test",
         content: "",
@@ -340,7 +340,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       createdArtifactIds.push(artifact.artifactId);
 
       // Start streaming
-      const { sessionId } = await cortex.artifacts.startStreaming({
+      const { sessionId } = await memoir.artifacts.startStreaming({
         artifactId: artifact.artifactId,
       });
 
@@ -354,7 +354,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       for (let i = 0; i < numChunks; i++) {
         const chunk = generateContent(chunkSize, String.fromCharCode(65 + (i % 26)));
         const startTime = Date.now();
-        await cortex.artifacts.appendContent({
+        await memoir.artifacts.appendContent({
           artifactId: artifact.artifactId,
           sessionId,
           chunk,
@@ -363,7 +363,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       }
 
       // Finalize
-      const finalized = await cortex.artifacts.finalizeStreaming({
+      const finalized = await memoir.artifacts.finalizeStreaming({
         artifactId: artifact.artifactId,
         sessionId,
       });
@@ -372,7 +372,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
       expect(finalized.currentState).toBe("final");
 
       // Verify total content size
-      const retrieved = await cortex.artifacts.get(artifact.artifactId);
+      const retrieved = await memoir.artifacts.get(artifact.artifactId);
       const contentSize = retrieved?.content?.length || 0;
       const hasExpectedSize =
         contentSize >= totalSize || retrieved?.fileRef?.size! >= totalSize;
@@ -392,7 +392,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
   describe("Scenario 6: File Upload and Attachment", () => {
     it("should upload and attach file to artifact", async () => {
       // Create base artifact
-      const artifact = await cortex.artifacts.create({
+      const artifact = await memoir.artifacts.create({
         memorySpaceId: testMemorySpaceId,
         title: "File Upload Test",
         content: "Document with file attachment",
@@ -409,7 +409,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
       // Upload file
       const startTime = Date.now();
-      const withFile = await cortex.artifacts.uploadFile({
+      const withFile = await memoir.artifacts.uploadFile({
         artifactId: artifact.artifactId,
         file: fileBlob,
         filename: "test-attachment.txt",
@@ -445,7 +445,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
         const content = generateContent(bytes);
         const startTime = Date.now();
 
-        const artifact = await cortex.artifacts.create({
+        const artifact = await memoir.artifacts.create({
           memorySpaceId: testMemorySpaceId,
           title: `Benchmark ${name}`,
           content,
@@ -474,7 +474,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     it("should benchmark artifact retrieval", async () => {
       // Use an existing artifact from previous test
-      const artifacts = await cortex.artifacts.list({
+      const artifacts = await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         tags: ["benchmark"],
         limit: 1,
@@ -484,7 +484,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
         const artifactId = artifacts[0].artifactId;
 
         const startTime = Date.now();
-        await cortex.artifacts.get(artifactId);
+        await memoir.artifacts.get(artifactId);
         const elapsed = Date.now() - startTime;
 
         benchmarkResults["get"] = elapsed;
@@ -496,7 +496,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     it("should benchmark list operation", async () => {
       const startTime = Date.now();
-      await cortex.artifacts.list({
+      await memoir.artifacts.list({
         memorySpaceId: testMemorySpaceId,
         limit: 50,
       });
@@ -510,7 +510,7 @@ describeWithConvex("E2E: Large File Artifacts", () => {
 
     it("should benchmark count operation", async () => {
       const startTime = Date.now();
-      await cortex.artifacts.count({
+      await memoir.artifacts.count({
         memorySpaceId: testMemorySpaceId,
       });
       const elapsed = Date.now() - startTime;

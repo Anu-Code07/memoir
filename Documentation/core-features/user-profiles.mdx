@@ -17,14 +17,14 @@ description: Enable memories to follow users across tools with GDPR-compliant de
 
 ```typescript
 // Create/update a user profile
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   email: "alex@example.com",
   preferences: { theme: "dark", language: "en" },
 });
 
 // Get user profile (works from any memory space)
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 console.log(user.data.displayName);  // "Alex Johnson"
 ```
 
@@ -33,12 +33,12 @@ console.log(user.data.displayName);  // "Alex Johnson"
 ## Why User Profiles Exist
 
 <Callout type="info" title="Memory Follows the User">
-  The primary purpose of user profiles is **cross-tool memory sharing**. As long as the same `userId` is passed to Cortex, memories follow the user regardless of which tool they're using—Cursor, Claude, custom apps, or any MCP-connected tool. This is a core enabler of [Hive Mode](/core-features/hive-mode).
+  The primary purpose of user profiles is **cross-tool memory sharing**. As long as the same `userId` is passed to Memoir, memories follow the user regardless of which tool they're using—Cursor, Claude, custom apps, or any MCP-connected tool. This is a core enabler of [Hive Mode](/core-features/hive-mode).
 </Callout>
 
 ```typescript
 // In Cursor: Store a preference
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: 'user-123-space',
   userId: 'user-123',  // Same userId
   userMessage: 'I prefer TypeScript',
@@ -46,7 +46,7 @@ await cortex.memory.remember({
 });
 
 // In Claude Desktop: Recall the same memory
-const memories = await cortex.memory.recall({
+const memories = await memoir.memory.recall({
   memorySpaceId: 'user-123-space', 
   userId: 'user-123',  // Same userId = same memories
   query: 'programming preferences',
@@ -60,7 +60,7 @@ const memories = await cortex.memory.recall({
 
 ```typescript
 // GDPR "right to be forgotten" - ONE call deletes everything
-const result = await cortex.users.delete("user-123", { cascade: true });
+const result = await memoir.users.delete("user-123", { cascade: true });
 // Deletes: profile, conversations, memories, facts, sessions, graph nodes
 ```
 
@@ -80,7 +80,7 @@ const result = await cortex.users.delete("user-123", { cascade: true });
 ### Suggested Data Structure
 
 ```typescript
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   email: "alex@example.com",
   preferences: {
@@ -104,7 +104,7 @@ await cortex.users.update("user-123", {
 
 ```typescript
 // Create or update user profile
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alex Johnson",
   email: "alex@example.com",
   preferences: {
@@ -127,7 +127,7 @@ await cortex.users.update("user-123", {
 
 ```typescript
 // Get user profile
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 
 console.log(user.data.displayName);        // "Alex Johnson"
 console.log(user.data.preferences.theme);  // "dark"
@@ -139,14 +139,14 @@ console.log(user.version);                 // Version number
 
 ```typescript
 // Get all versions
-const history = await cortex.users.getHistory("user-123");
+const history = await memoir.users.getHistory("user-123");
 
 history.forEach(v => {
   console.log(`v${v.version}: ${v.data.displayName} (${new Date(v.timestamp)})`);
 });
 
 // Get profile at specific time
-const historical = await cortex.users.getAtTimestamp(
+const historical = await memoir.users.getAtTimestamp(
   "user-123",
   new Date("2025-08-01")
 );
@@ -157,10 +157,10 @@ const historical = await cortex.users.getAtTimestamp(
 
 ```typescript
 // Delete user profile only
-await cortex.users.delete("user-123");
+await memoir.users.delete("user-123");
 
 // GDPR cascade - delete ALL user data
-const result = await cortex.users.delete("user-123", { 
+const result = await memoir.users.delete("user-123", { 
   cascade: true,
   verify: true,
 });
@@ -180,14 +180,14 @@ console.log(`Deleted ${result.totalDeleted} records`);
 ## GDPR Compliance
 
 <Callout type="warning" title="Right to Erasure">
-  Cortex supports GDPR "right to be forgotten" via cascade deletion with verification.
+  Memoir supports GDPR "right to be forgotten" via cascade deletion with verification.
 </Callout>
 
 <Steps>
   <Step title="Preview deletion (optional)">
 
 ```typescript
-const preview = await cortex.users.delete("user-123", {
+const preview = await memoir.users.delete("user-123", {
   cascade: true,
   dryRun: true,  // Preview only
 });
@@ -198,7 +198,7 @@ console.log(`Would delete ${preview.totalDeleted} records`);
   <Step title="Export user data (GDPR requirement)">
 
 ```typescript
-const exportData = await cortex.users.export({
+const exportData = await memoir.users.export({
   format: "json",
   filters: { displayName: "user-123" },
   includeConversations: true,
@@ -211,7 +211,7 @@ await saveToFile(`gdpr-export-${userId}.json`, exportData);
   <Step title="Execute cascade deletion">
 
 ```typescript
-const result = await cortex.users.delete("user-123", {
+const result = await memoir.users.delete("user-123", {
   cascade: true,
   verify: true,
 });
@@ -220,7 +220,7 @@ const result = await cortex.users.delete("user-123", {
   </Step>
   <Step title="Automatic cleanup completes">
 
-Cortex deletes from ALL stores: User profile, all conversations (Layer 1a), all memories (Layer 2), all facts (Layer 3), all sessions, and graph nodes (if configured).
+Memoir deletes from ALL stores: User profile, all conversations (Layer 1a), all memories (Layer 2), all facts (Layer 3), all sessions, and graph nodes (if configured).
 
   </Step>
 </Steps>
@@ -248,7 +248,7 @@ Cortex deletes from ALL stores: User profile, all conversations (Layer 1a), all 
 
 ```typescript
 // First call with userId creates the profile automatically
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-space",
   userId: "user-123",      // Auto-creates profile
   userName: "Alex",        // Used for displayName
@@ -267,13 +267,13 @@ await cortex.memory.remember({
 
 ```typescript
 // Search by displayName
-const users = await cortex.users.search({
+const users = await memoir.users.search({
   displayName: "alex",
   limit: 50,
 });
 
 // Search recent users
-const recent = await cortex.users.search({
+const recent = await memoir.users.search({
   createdAfter: Date.now() - 30 * 24 * 60 * 60 * 1000,
   sortBy: "createdAt",
   sortOrder: "desc",
@@ -284,7 +284,7 @@ const recent = await cortex.users.search({
   <TabItem value="list" label="List (Paginated)">
 
 ```typescript
-const page1 = await cortex.users.list({
+const page1 = await memoir.users.list({
   limit: 50,
   offset: 0,
   sortBy: "createdAt",
@@ -298,9 +298,9 @@ console.log(`${page1.users.length} of ${page1.total} users`);
   <TabItem value="count" label="Count">
 
 ```typescript
-const total = await cortex.users.count();
+const total = await memoir.users.count();
 
-const activeThisWeek = await cortex.users.count({
+const activeThisWeek = await memoir.users.count({
   updatedAfter: Date.now() - 7 * 24 * 60 * 60 * 1000,
 });
 ```
@@ -310,13 +310,13 @@ const activeThisWeek = await cortex.users.count({
 
 ```typescript
 // Update multiple users
-await cortex.users.updateMany(
+await memoir.users.updateMany(
   ["user-1", "user-2", "user-3"],
   { data: { welcomeEmailSent: true } }
 );
 
 // Update by filter
-await cortex.users.updateMany(
+await memoir.users.updateMany(
   { createdAfter: Date.now() - 7 * 24 * 60 * 60 * 1000 },
   { data: { welcomeEmailSent: true } }
 );
@@ -334,9 +334,9 @@ await cortex.users.updateMany(
 </Callout>
 
 ```typescript
-import { Cortex, createAuthContext } from "@cortexmemory/sdk";
+import { Memoir, createAuthContext } from "@memoir/sdk";
 
-const cortex = new Cortex({
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   auth: createAuthContext({
     tenantId: "customer-acme",
@@ -345,13 +345,13 @@ const cortex = new Cortex({
 });
 
 // All operations automatically scoped to tenant
-await cortex.users.update("user-123", { displayName: "Alex" });
+await memoir.users.update("user-123", { displayName: "Alex" });
 // tenantId: "customer-acme" auto-injected
 
-const users = await cortex.users.list({ limit: 100 });
+const users = await memoir.users.list({ limit: 100 });
 // Only returns users for "customer-acme"
 
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 // Only deletes within "customer-acme" tenant
 ```
 
@@ -365,10 +365,10 @@ See [Isolation Boundaries](/security/isolation-boundaries) for complete multi-te
 
 ```typescript
 async function ensureUserProfile(userId: string, message: string) {
-  let user = await cortex.users.get(userId);
+  let user = await memoir.users.get(userId);
   
   if (!user) {
-    await cortex.users.update(userId, {
+    await memoir.users.update(userId, {
       displayName: userId,
       preferences: {
         language: detectLanguage(message),
@@ -379,7 +379,7 @@ async function ensureUserProfile(userId: string, message: string) {
         signupDate: Date.now(),
       },
     });
-    user = await cortex.users.get(userId);
+    user = await memoir.users.get(userId);
   }
   
   return user;
@@ -390,7 +390,7 @@ async function ensureUserProfile(userId: string, message: string) {
 
 ```typescript
 // All agents access the same profile
-const user = await cortex.users.get(userId);
+const user = await memoir.users.get(userId);
 
 // Support agent
 const greeting = `Hello ${user.data.displayName}!`;
@@ -420,7 +420,7 @@ const ProfileSchema = z.object({
 
 async function safeUpdate(userId: string, data: unknown) {
   const validated = ProfileSchema.parse(data);
-  return await cortex.users.update(userId, validated);
+  return await memoir.users.update(userId, validated);
 }
 ```
 
@@ -432,7 +432,7 @@ async function safeUpdate(userId: string, data: unknown) {
 
 ```typescript
 // Only require what you truly need
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   displayName: "Alex",  // That's it!
 });
 // Add more fields over time as you learn about the user
@@ -444,7 +444,7 @@ await cortex.users.update(userId, {
 
 ```typescript
 // Don't store unnecessary PII
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   preferences: {
     paymentMethod: "card-ending-1234",  // Reference only
   },
@@ -458,7 +458,7 @@ await cortex.users.update(userId, {
 
 ```typescript
 // Update lastSeen on each interaction
-await cortex.users.update(userId, {
+await memoir.users.update(userId, {
   metadata: { lastSeen: Date.now() },
 });
 ```

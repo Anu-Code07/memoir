@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Sessions API Types
+ * Memoir SDK - Sessions API Types
  *
  * Fully extensible session management types.
  */

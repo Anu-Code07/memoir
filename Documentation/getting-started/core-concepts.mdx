@@ -2,15 +2,15 @@
 id: core-concepts
 title: Core Concepts
 sidebar_position: 4
-description: Understand memory spaces, layers, and the Cortex architecture
+description: Understand memory spaces, layers, and the Memoir architecture
 ---
 
 # Core Concepts
 
-Understanding these core concepts will help you make the most of Cortex. This guide covers the fundamental building blocks of the system.
+Understanding these core concepts will help you make the most of Memoir. This guide covers the fundamental building blocks of the system.
 
-<Callout type="info" title="Cortex Cloud Coming Soon">
-  Cortex SDK is available now for self-hosted deployments. **Cortex Cloud**—a managed service with enhanced analytics, automatic scaling, and zero-config setup—is coming soon.
+<Callout type="info" title="Memoir Cloud Coming Soon">
+  Memoir SDK is available now for self-hosted deployments. **Memoir Cloud**—a managed service with enhanced analytics, automatic scaling, and zero-config setup—is coming soon.
 </Callout>
 
 ## Key Concepts at a Glance
@@ -64,7 +64,7 @@ Understanding these core concepts will help you make the most of Cortex. This gu
 
 ### What is a Memory Space?
 
-A **memory space** is the fundamental isolation boundary in Cortex. Think of it as a private namespace where memories, facts, and conversations are stored.
+A **memory space** is the fundamental isolation boundary in Memoir. Think of it as a private namespace where memories, facts, and conversations are stored.
 
 <Callout type="tip" title="Think of Memory Spaces Like...">
   A memory space is like a personal hard drive or team workspace. Everything inside is isolated from other spaces, but authorized agents can read and write freely within the space.
@@ -92,7 +92,7 @@ interface MemorySpace {
 
 ```typescript title="example.ts"
 // Every memory operation requires a memorySpaceId
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal", // ← Isolation boundary
   agentId: "cursor", // ← Optional for H2A, required for A2A
   conversationId: "conv-123",
@@ -147,7 +147,7 @@ await cortex.memory.remember({
 
 ```typescript title="implicit-creation.ts"
 // Just use memorySpaceId - space created automatically
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal", // Created on first use
   conversationId: "conv-123",
   userMessage: "Hello",
@@ -162,7 +162,7 @@ await cortex.memory.remember({
 
 ```typescript title="explicit-registration.ts"
 // Register space for rich metadata and analytics
-await cortex.memorySpaces.register({
+await memoir.memorySpaces.register({
   id: "user-123-personal",
   name: "Alice's Personal Space",
   type: "personal",
@@ -174,20 +174,20 @@ await cortex.memorySpaces.register({
 });
 
 // Now you can get memory space statistics
-const stats = await cortex.memorySpaces.getStats("user-123-personal");
+const stats = await memoir.memorySpaces.getStats("user-123-personal");
 // { totalMemories: 543, agents: 3, ... }
 ```
 
 </TabItem>
 <TabItem value="cli" label="CLI">
 
-<Terminal>cortex spaces list</Terminal>
+<Terminal>memoir spaces list</Terminal>
 
-<Terminal>cortex spaces create user-123-personal --type personal --name "Alice's Personal Space"</Terminal>
+<Terminal>memoir spaces create user-123-personal --type personal --name "Alice's Personal Space"</Terminal>
 
-<Terminal>cortex spaces stats user-123-personal</Terminal>
+<Terminal>memoir spaces stats user-123-personal</Terminal>
 
-<Terminal>cortex spaces agents user-123-personal</Terminal>
+<Terminal>memoir spaces agents user-123-personal</Terminal>
 
 </TabItem>
 </Tabs>
@@ -200,7 +200,7 @@ const stats = await cortex.memorySpaces.getStats("user-123-personal");
 
 ## Hive Mode vs Collaboration Mode
 
-Cortex supports two architectural patterns for multi-agent/multi-tool systems:
+Memoir supports two architectural patterns for multi-agent/multi-tool systems:
 
 <FeatureGrid columns={4}>
   <FeatureCard
@@ -235,7 +235,7 @@ Cortex supports two architectural patterns for multi-agent/multi-tool systems:
 
 ```typescript title="hive-mode.ts"
 // Cursor stores memory
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal", // Shared space
   agentId: "cursor", // Which agent stored it
   userMessage: "I prefer dark mode",
@@ -245,7 +245,7 @@ await cortex.memory.remember({
 });
 
 // Claude reads from SAME space
-const memories = await cortex.memory.search("user-123-personal", "preferences");
+const memories = await memoir.memory.search("user-123-personal", "preferences");
 // Returns: [{ content: "User prefers dark mode", agentId: "cursor", ... }]
 ```
 
@@ -286,7 +286,7 @@ const memories = await cortex.memory.search("user-123-personal", "preferences");
 
 ```typescript title="collaboration-mode.ts"
 // Finance agent stores in its own space
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "finance-agent-space", // Finance's space
   conversationId: "conv-123",
   userMessage: "Approve $50k budget",
@@ -296,7 +296,7 @@ await cortex.memory.remember({
 });
 
 // Send message to HR agent (dual-write to BOTH spaces)
-await cortex.a2a.send({
+await memoir.a2a.send({
   from: "finance-agent",
   to: "hr-agent",
   message: "Budget approved for hiring",
@@ -358,14 +358,14 @@ Even in Collaboration Mode, spaces can grant **limited** access via context chai
 
 ```typescript title="cross-space-access.ts"
 // Supervisor creates context and delegates
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Process refund request",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
 });
 
 // Specialist can access supervisor's context (read-only)
-const fullContext = await cortex.contexts.get(context.id, {
+const fullContext = await memoir.contexts.get(context.id, {
   includeChain: true,
   requestingSpace: "specialist-space", // Cross-space access
 });
@@ -386,7 +386,7 @@ const fullContext = await cortex.contexts.get(context.id, {
 
 ### What is Memory?
 
-In Cortex, a **memory** is a piece of information stored in a memory space for later retrieval.
+In Memoir, a **memory** is a piece of information stored in a memory space for later retrieval.
 
 ```typescript title="memory-types.ts"
 interface MemoryEntry {
@@ -414,7 +414,7 @@ interface MemoryEntry {
 Information from user interactions:
 
 ```typescript
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   conversationId: "conv-123",
   userMessage: "I work in San Francisco",
@@ -432,7 +432,7 @@ await cortex.memory.remember({
 Facts and system-generated information:
 
 ```typescript
-await cortex.vector.store("user-123-personal", {
+await memoir.vector.store("user-123-personal", {
   content: "Product X costs $49.99 with a 20% discount for annual billing",
   contentType: "raw",
   embedding: await embed("Product X pricing"),
@@ -450,7 +450,7 @@ await cortex.vector.store("user-123-personal", {
 What was done (tool results, actions):
 
 ```typescript
-await cortex.vector.store("support-bot-space", {
+await memoir.vector.store("support-bot-space", {
   content: "Sent password reset email to user@example.com at 2025-10-28 10:30",
   contentType: "raw",
   embedding: await embed("password reset action"),
@@ -477,7 +477,7 @@ await cortex.vector.store("support-bot-space", {
 
 ```typescript title="versioning.ts"
 // Store user's address
-const result = await cortex.memory.remember({
+const result = await memoir.memory.remember({
   memorySpaceId: "user-123-personal",
   conversationId: "conv-456",
   userMessage: "My address is 123 Main St, San Francisco",
@@ -489,12 +489,12 @@ const result = await cortex.memory.remember({
 const memoryId = result.memories[0].id;
 
 // User moves (creates version 2)
-await cortex.memory.update("user-123-personal", memoryId, {
+await memoir.memory.update("user-123-personal", memoryId, {
   content: "User's address is 456 Oak Ave, Seattle",
 });
 
 // Both versions are preserved!
-const memory = await cortex.memory.get("user-123-personal", memoryId);
+const memory = await memoir.memory.get("user-123-personal", memoryId);
 console.log(memory.content); // "User's address is 456 Oak Ave, Seattle" (current)
 console.log(memory.version); // 2
 
@@ -504,7 +504,7 @@ console.log(memory.previousVersions[0]);
 
 ### Memory Importance Scale
 
-Cortex uses a granular 0-100 importance scale for precise prioritization:
+Memoir uses a granular 0-100 importance scale for precise prioritization:
 
 <DataTable
   headers={["Range", "Level", "Examples"]}
@@ -534,15 +534,15 @@ Cortex uses a granular 0-100 importance scale for precise prioritization:
 ### Embedding-Agnostic Design
 
 <Callout type="info" title="Bring Your Own Embeddings">
-  The Cortex SDK does not generate embeddings—you bring your own provider (OpenAI, Cohere, local models, etc.).
+  The Memoir SDK does not generate embeddings—you bring your own provider (OpenAI, Cohere, local models, etc.).
 </Callout>
 
 ```typescript title="embedding-example.ts"
 // Choose your provider
 const embedding = await yourEmbeddingProvider.embed(text);
 
-// Cortex SDK stores and searches
-await cortex.vector.store(memorySpaceId, {
+// Memoir SDK stores and searches
+await memoir.vector.store(memorySpaceId, {
   content: text,
   contentType: "raw",
   embedding: embedding, // Your vectors
@@ -651,7 +651,7 @@ interface UserProfile {
 <TabItem value="create" label="Create/Update">
 
 ```typescript
-await cortex.users.update("user-123", {
+await memoir.users.update("user-123", {
   displayName: "Alice Johnson",
   email: "alice@example.com",
   preferences: {
@@ -671,7 +671,7 @@ await cortex.users.update("user-123", {
 <TabItem value="retrieve" label="Retrieve">
 
 ```typescript
-const user = await cortex.users.get("user-123");
+const user = await memoir.users.get("user-123");
 
 // Use in agent interactions
 const greeting = `Hello ${user.displayName}! I see you prefer ${user.preferences.theme} mode.`;
@@ -680,13 +680,13 @@ const greeting = `Hello ${user.displayName}! I see you prefer ${user.preferences
 </TabItem>
 <TabItem value="cli" label="CLI">
 
-<Terminal>cortex users list</Terminal>
+<Terminal>memoir users list</Terminal>
 
-<Terminal>cortex users get user-123</Terminal>
+<Terminal>memoir users get user-123</Terminal>
 
-<Terminal>cortex users export user-123 --output user-data.json</Terminal>
+<Terminal>memoir users export user-123 --output user-data.json</Terminal>
 
-<Terminal>cortex users delete user-123 --cascade</Terminal>
+<Terminal>memoir users delete user-123 --cascade</Terminal>
 
 </TabItem>
 </Tabs>
@@ -732,7 +732,7 @@ Instead of sending all history, **retrieve only relevant memories**:
 ```typescript title="infinite-context.ts"
 async function respondToUser(userMessage: string, memorySpaceId: string) {
   // 1. Retrieve relevant context from ALL past conversations
-  const relevantContext = await cortex.memory.search(
+  const relevantContext = await memoir.memory.search(
     memorySpaceId,
     userMessage,
     {
@@ -753,7 +753,7 @@ async function respondToUser(userMessage: string, memorySpaceId: string) {
   });
 
   // 3. Store exchange (adds to knowledge pool)
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId,
     conversationId: `ephemeral-${Date.now()}`,
     userMessage,
@@ -835,7 +835,7 @@ Multi-signal scoring algorithm • Ready-to-inject LLM context string
 </FlowDiagram>
 
 ```typescript
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-personal",
   query: "What are user's preferences?",
   limit: 10,
@@ -893,7 +893,7 @@ console.log(result.sources.graph);  // Graph-expanded entities
 
 ```typescript title="context-chains.ts"
 // Create parent context
-const context = await cortex.contexts.create({
+const context = await memoir.contexts.create({
   purpose: "Handle customer refund request",
   memorySpaceId: "supervisor-space",
   userId: "user-123",
@@ -901,7 +901,7 @@ const context = await cortex.contexts.create({
 });
 
 // Supervisor delegates to finance agent (different memory space)
-const financeContext = await cortex.contexts.create({
+const financeContext = await memoir.contexts.create({
   purpose: "Process $500 refund",
   memorySpaceId: "finance-agent-space", // Different space!
   parentId: context.id, // Link to parent
@@ -909,7 +909,7 @@ const financeContext = await cortex.contexts.create({
 });
 
 // Finance agent accesses supervisor context (different space)
-const fullContext = await cortex.contexts.get(financeContext.id, {
+const fullContext = await memoir.contexts.get(financeContext.id, {
   includeChain: true,
   requestingSpace: "finance-agent-space",
 });
@@ -949,12 +949,12 @@ const fullContext = await cortex.contexts.get(financeContext.id, {
 ## Analytics
 
 <Callout type="note" title="Enhanced Analytics Coming Soon">
-  Advanced analytics dashboards with `cortex.analytics.*` APIs are planned for Cortex Cloud. The SDK provides basic memory space statistics today via `cortex.memorySpaces.getStats()`.
+  Advanced analytics dashboards with `memoir.analytics.*` APIs are planned for Memoir Cloud. The SDK provides basic memory space statistics today via `memoir.memorySpaces.getStats()`.
 </Callout>
 
 ```typescript title="analytics.ts"
 // Get memory space statistics
-const stats = await cortex.memorySpaces.getStats("user-123-personal");
+const stats = await memoir.memorySpaces.getStats("user-123-personal");
 
 console.log(stats);
 // {
@@ -968,7 +968,7 @@ console.log(stats);
 <TabItem value="tracking" label="Access Tracking">
 
 ```typescript
-const memory = await cortex.memory.get("user-123-personal", "mem_123");
+const memory = await memoir.memory.get("user-123-personal", "mem_123");
 
 console.log({
   accessCount: memory.accessCount,
@@ -981,12 +981,12 @@ console.log({
 <TabItem value="insights" label="Usage Insights">
 
 <Callout type="info" title="Planned Feature">
-  Advanced analytics methods like `cortex.analytics.findUnusedMemories()` and `cortex.analytics.findHotMemories()` are planned for Cortex Cloud. See [Access Analytics roadmap](/roadmap/access-analytics) for details.
+  Advanced analytics methods like `memoir.analytics.findUnusedMemories()` and `memoir.analytics.findHotMemories()` are planned for Memoir Cloud. See [Access Analytics roadmap](/roadmap/access-analytics) for details.
 </Callout>
 
 ```typescript
 // For now, you can query memories manually:
-const memories = await cortex.memory.search("user-123-personal", "", {
+const memories = await memoir.memory.search("user-123-personal", "", {
   limit: 1000,
 });
 
@@ -1002,11 +1002,11 @@ const hot = memories.filter(m => m.accessCount >= 10);
 </TabItem>
 <TabItem value="cli" label="CLI">
 
-<Terminal>cortex db stats</Terminal>
+<Terminal>memoir db stats</Terminal>
 
-<Terminal>cortex spaces stats user-123-personal</Terminal>
+<Terminal>memoir spaces stats user-123-personal</Terminal>
 
-<Terminal>cortex memory stats --space user-123-personal</Terminal>
+<Terminal>memoir memory stats --space user-123-personal</Terminal>
 
 </TabItem>
 </Tabs>
@@ -1021,24 +1021,24 @@ const hot = memories.filter(m => m.accessCount >= 10);
 
 <FlowDiagram
   title="Memory Lifecycle"
-  caption="How Cortex orchestrates memory from input to retrieval"
+  caption="How Memoir orchestrates memory from input to retrieval"
 >
   <FlowNode
     title="Your Application"
     icon="code"
     variant="default"
   >
-    Call cortex.memory.remember() or cortex.memory.recall()
+    Call memoir.memory.remember() or memoir.memory.recall()
   </FlowNode>
   <FlowNode
-    title="Cortex SDK"
+    title="Memoir SDK"
     icon="brain"
     variant="primary"
   >
     Memory orchestration • Fact extraction • Multi-layer coordination • Real-time sync
   </FlowNode>
   <FlowNode
-    title="Cortex Storage"
+    title="Memoir Storage"
     icon="database"
     variant="success"
   >
@@ -1053,15 +1053,15 @@ const hot = memories.filter(m => m.accessCount >= 10);
   </FlowNode>
 </FlowDiagram>
 
-<Callout type="info" title="Cortex Does the Heavy Lifting">
-  You call `remember()` or `recall()`—Cortex handles orchestration, fact extraction, vector indexing, and multi-layer retrieval automatically.
+<Callout type="info" title="Memoir Does the Heavy Lifting">
+  You call `remember()` or `recall()`—Memoir handles orchestration, fact extraction, vector indexing, and multi-layer retrieval automatically.
 </Callout>
 
 ---
 
 ## Graph Database Integration
 
-Cortex supports optional graph database integration for advanced knowledge discovery, multi-hop queries, and relationship-based reasoning.
+Memoir supports optional graph database integration for advanced knowledge discovery, multi-hop queries, and relationship-based reasoning.
 
 <FlowDiagram
   title="Graph-Enhanced Architecture"
@@ -1110,8 +1110,8 @@ Cortex supports optional graph database integration for advanced knowledge disco
 ### Quick Start
 
 ```typescript title="graph-setup.ts"
-import { Cortex } from "@cortexmemory/sdk";
-import { CypherGraphAdapter, initializeGraphSchema } from "@cortexmemory/sdk/graph";
+import { Memoir } from "@memoir/sdk";
+import { CypherGraphAdapter, initializeGraphSchema } from "@memoir/sdk/graph";
 
 // 1. Setup graph adapter
 const graphAdapter = new CypherGraphAdapter();
@@ -1124,8 +1124,8 @@ await graphAdapter.connect({
 // 2. Initialize schema (one-time)
 await initializeGraphSchema(graphAdapter);
 
-// 3. Initialize Cortex with graph
-const cortex = new Cortex({
+// 3. Initialize Memoir with graph
+const memoir = new Memoir({
   convexUrl: process.env.CONVEX_URL!,
   graph: {
     adapter: graphAdapter,
@@ -1133,7 +1133,7 @@ const cortex = new Cortex({
   },
 });
 
-// 4. Use Cortex normally - graph syncs automatically!
+// 4. Use Memoir normally - graph syncs automatically!
 ```
 
 ### Graph-Powered Queries
@@ -1196,7 +1196,7 @@ const provenance = await graphAdapter.query(`
 />
 
 <Callout type="info" title="Convex as Source of Truth">
-  Graph is for **discovery and traversal**. Always write to Convex first, then sync to graph. Cortex works perfectly without graph—add it when you need multi-hop reasoning or knowledge graphs.
+  Graph is for **discovery and traversal**. Always write to Convex first, then sync to graph. Memoir works perfectly without graph—add it when you need multi-hop reasoning or knowledge graphs.
 </Callout>
 
 **Learn more:** [Graph Integration Guide](/advanced-topics/graph-integration) • [Graph Operations API](/api-reference/graph-operations)
@@ -1240,4 +1240,4 @@ const provenance = await graphAdapter.query(`
 
 ---
 
-**Questions?** Ask in [Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [Discussions](https://github.com/Anu-Code07/memoir/discussions).

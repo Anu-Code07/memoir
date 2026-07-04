@@ -1,7 +1,7 @@
 /**
  * Graph Sync Relationships
  *
- * Functions for syncing relationships between Cortex entities in graph database
+ * Functions for syncing relationships between Memoir entities in graph database
  */
 
 import type { GraphAdapter } from "../types";

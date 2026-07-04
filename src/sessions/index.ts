@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Sessions API
+ * Memoir SDK - Sessions API
  *
  * Native session management with fully extensible metadata.
  * Sessions are stored in Convex for real-time reactivity.
@@ -81,7 +81,7 @@ export class SessionsAPI {
    *
    * @example
    * ```typescript
-   * const session = await cortex.sessions.create({
+   * const session = await memoir.sessions.create({
    *   userId: 'user-123',
    *   tenantId: 'tenant-456',
    *   memorySpaceId: 'workspace-abc',
@@ -125,7 +125,7 @@ export class SessionsAPI {
    *
    * @example
    * ```typescript
-   * const session = await cortex.sessions.get('sess-123');
+   * const session = await memoir.sessions.get('sess-123');
    * if (session && session.status === 'active') {
    *   console.log('Session is active');
    * }
@@ -168,7 +168,7 @@ export class SessionsAPI {
    *
    * @example
    * ```typescript
-   * const session = await cortex.sessions.getOrCreate('user-123', {
+   * const session = await memoir.sessions.getOrCreate('user-123', {
    *   device: 'Mobile Safari',
    * });
    * ```
@@ -201,7 +201,7 @@ export class SessionsAPI {
    * @example
    * ```typescript
    * // Keep session alive during user activity
-   * await cortex.sessions.touch('sess-123');
+   * await memoir.sessions.touch('sess-123');
    * ```
    */
   async touch(sessionId: string): Promise<void> {
@@ -224,7 +224,7 @@ export class SessionsAPI {
    * @example
    * ```typescript
    * // End session on logout
-   * await cortex.sessions.end('sess-123');
+   * await memoir.sessions.end('sess-123');
    * ```
    */
   async end(sessionId: string): Promise<void> {
@@ -259,11 +259,11 @@ export class SessionsAPI {
    * @example
    * ```typescript
    * // End all sessions on password change
-   * const result = await cortex.sessions.endAll('user-123');
+   * const result = await memoir.sessions.endAll('user-123');
    * console.log(`Ended ${result.ended} sessions`);
    *
    * // End sessions only for a specific tenant (multi-tenant safe)
-   * const tenantResult = await cortex.sessions.endAll('admin', {
+   * const tenantResult = await memoir.sessions.endAll('admin', {
    *   tenantId: 'tenant-456',
    * });
    * ```
@@ -302,7 +302,7 @@ export class SessionsAPI {
    * @example
    * ```typescript
    * // List all active sessions for a tenant
-   * const sessions = await cortex.sessions.list({
+   * const sessions = await memoir.sessions.list({
    *   tenantId: 'tenant-456',
    *   status: 'active',
    * });
@@ -339,7 +339,7 @@ export class SessionsAPI {
    *
    * @example
    * ```typescript
-   * const activeCount = await cortex.sessions.count({
+   * const activeCount = await memoir.sessions.count({
    *   tenantId: 'tenant-456',
    *   status: 'active',
    * });
@@ -373,7 +373,7 @@ export class SessionsAPI {
    *
    * @example
    * ```typescript
-   * const active = await cortex.sessions.getActive('user-123');
+   * const active = await memoir.sessions.getActive('user-123');
    * console.log(`User has ${active.length} active sessions`);
    * ```
    */
@@ -401,13 +401,13 @@ export class SessionsAPI {
    * @example
    * ```typescript
    * // Expire sessions idle for more than 30 minutes
-   * const result = await cortex.sessions.expireIdle({
+   * const result = await memoir.sessions.expireIdle({
    *   idleTimeout: 30 * 60 * 1000, // 30 minutes in ms
    * });
    * console.log(`Expired ${result.expired} idle sessions`);
    *
    * // Expire for specific tenant
-   * const tenantResult = await cortex.sessions.expireIdle({
+   * const tenantResult = await memoir.sessions.expireIdle({
    *   tenantId: 'tenant-456',
    *   idleTimeout: 15 * 60 * 1000, // 15 minutes
    * });

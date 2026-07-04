@@ -1,5 +1,5 @@
 /**
- * Cortex SDK - Conversation Snapshots Tests
+ * Memoir SDK - Conversation Snapshots Tests
  *
  * Tests the Shareable Chats Phase 3 implementation:
  * - snapshot() method with all options
@@ -11,7 +11,7 @@
  * PARALLEL-SAFE: Uses TestRunContext for isolated test data
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { createNamedTestRunContext, ScopedCleanup } from "./helpers";
 import { generateTenantId, createTenantAuthContext } from "./helpers/tenancy";
 import { ConvexClient } from "convex/browser";
@@ -19,7 +19,7 @@ import { ConvexClient } from "convex/browser";
 describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
   const ctx = createNamedTestRunContext("snapshots");
 
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let scopedCleanup: ScopedCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -30,7 +30,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
     console.log(`\n🧪 Snapshots Tests - Run ID: ${ctx.runId}\n`);
 
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     scopedCleanup = new ScopedCleanup(client, ctx);
 
@@ -40,7 +40,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
   afterAll(async () => {
     console.log(`\n🧹 Cleaning up test run ${ctx.runId}...`);
     await scopedCleanup.cleanupAll();
-    cortex.close();
+    memoir.close();
     await client.close();
     console.log(`✅ Test run ${ctx.runId} cleanup complete\n`);
   });
@@ -52,24 +52,24 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const agent = ctx.agentId("snap-agent-1");
 
       // Create a conversation with messages
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Add some messages
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Hello, this is a test message" },
       });
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "agent", content: "Hello! I received your message." },
       });
 
       // Create snapshot
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
@@ -85,14 +85,14 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("snap-user-2");
       const agent = ctx.agentId("snap-agent-2");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Add message with PII
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -101,7 +101,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       });
 
       // Create snapshot with PII redaction
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactPII: true,
       });
@@ -120,14 +120,14 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("snap-user-3");
       const agent = ctx.agentId("snap-agent-3");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Add first message
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "First message (should be redacted)" },
       });
@@ -137,13 +137,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
 
       // Wait a bit then add second message
       await new Promise((r) => setTimeout(r, 50));
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: { role: "user", content: "Second message (should be kept)" },
       });
 
       // Create snapshot with redactBefore
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactBefore: cutoffTime,
       });
@@ -161,13 +161,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("snap-user-4");
       const agent = ctx.agentId("snap-agent-4");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -176,7 +176,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       });
 
       // Create snapshot with custom redactions
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactPII: true,
         customRedactions: [
@@ -197,13 +197,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("snap-user-5");
       const agent = ctx.agentId("snap-agent-5");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
@@ -222,17 +222,17 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("get-snap-user");
       const agent = ctx.agentId("get-snap-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const created = await cortex.conversations.snapshot({
+      const created = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
-      const retrieved = await cortex.conversations.getSnapshot(
+      const retrieved = await memoir.conversations.getSnapshot(
         created.snapshotId,
       );
 
@@ -242,7 +242,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
     });
 
     it("returns null for non-existent snapshot", async () => {
-      const result = await cortex.conversations.getSnapshot("snap-nonexistent");
+      const result = await memoir.conversations.getSnapshot("snap-nonexistent");
       expect(result).toBeNull();
     });
 
@@ -251,21 +251,21 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("del-snap-user");
       const agent = ctx.agentId("del-snap-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const created = await cortex.conversations.snapshot({
+      const created = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
       // Delete the snapshot
-      await cortex.conversations.deleteSnapshot(created.snapshotId);
+      await memoir.conversations.deleteSnapshot(created.snapshotId);
 
       // Should return null for deleted snapshot
-      const retrieved = await cortex.conversations.getSnapshot(
+      const retrieved = await memoir.conversations.getSnapshot(
         created.snapshotId,
       );
       expect(retrieved).toBeNull();
@@ -278,21 +278,21 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("list-snap-user");
       const agent = ctx.agentId("list-snap-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Create multiple snapshots
-      await cortex.conversations.snapshot({
+      await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
-      await cortex.conversations.snapshot({
+      await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
-      const snapshots = await cortex.conversations.listSnapshots(
+      const snapshots = await memoir.conversations.listSnapshots(
         conv.conversationId,
       );
 
@@ -307,24 +307,24 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("list-del-user");
       const agent = ctx.agentId("list-del-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
       // Create and delete a snapshot
-      const toDelete = await cortex.conversations.snapshot({
+      const toDelete = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
-      await cortex.conversations.deleteSnapshot(toDelete.snapshotId);
+      await memoir.conversations.deleteSnapshot(toDelete.snapshotId);
 
       // Create another snapshot
-      const kept = await cortex.conversations.snapshot({
+      const kept = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
-      const snapshots = await cortex.conversations.listSnapshots(
+      const snapshots = await memoir.conversations.listSnapshots(
         conv.conversationId,
       );
 
@@ -340,17 +340,17 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("delete-snap-user");
       const agent = ctx.agentId("delete-snap-agent");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      const created = await cortex.conversations.snapshot({
+      const created = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
       });
 
-      const result = await cortex.conversations.deleteSnapshot(
+      const result = await memoir.conversations.deleteSnapshot(
         created.snapshotId,
       );
 
@@ -364,13 +364,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("pii-user-email");
       const agent = ctx.agentId("pii-agent-email");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -378,7 +378,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
         },
       });
 
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactPII: true,
       });
@@ -394,13 +394,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("pii-user-phone");
       const agent = ctx.agentId("pii-agent-phone");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -408,7 +408,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
         },
       });
 
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactPII: true,
       });
@@ -423,13 +423,13 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
       const user = ctx.userId("pii-user-ip");
       const agent = ctx.agentId("pii-agent-ip");
 
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         memorySpaceId: space,
         type: "user-agent",
         participants: { userId: user, agentId: agent },
       });
 
-      await cortex.conversations.addMessage({
+      await memoir.conversations.addMessage({
         conversationId: conv.conversationId,
         message: {
           role: "user",
@@ -437,7 +437,7 @@ describe("Conversation Snapshots (Shareable Chats Phase 3)", () => {
         },
       });
 
-      const result = await cortex.conversations.snapshot({
+      const result = await memoir.conversations.snapshot({
         conversationId: conv.conversationId,
         redactPII: true,
       });

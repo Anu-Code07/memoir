@@ -21,7 +21,7 @@ Traditional LLM applications face a fundamental limitation: **context window lim
 2. Summarize aggressively (losing nuance)
 3. Hit token limits (can't continue)
 
-Cortex's **Infinite Context** capability solves this by separating _conversation accumulation_ from _context retrieval_. Instead of sending all past messages to the LLM, Cortex retrieves only the most relevant facts and memories from unlimited history.
+Memoir's **Infinite Context** capability solves this by separating _conversation accumulation_ from _context retrieval_. Instead of sending all past messages to the LLM, Memoir retrieves only the most relevant facts and memories from unlimited history.
 
 **Result:** Conversations can span millions of messages, but each LLM call stays under token limits while maintaining perfect context awareness.
 
@@ -79,7 +79,7 @@ const conversation = {
 
 **Instead of accumulating, retrieve:**
 
-1. **Store each conversation exchange** in Cortex (L1a + L3 facts)
+1. **Store each conversation exchange** in Memoir (L1a + L3 facts)
 2. **Don't pass all history to LLM** - keep conversations short-lived
 3. **Retrieve relevant context** before each LLM call via semantic search
 4. **Construct context dynamically** from retrieved facts + recent messages
@@ -88,7 +88,7 @@ const conversation = {
 // Infinite Context pattern
 async function respondToUser(userMessage: string, memorySpaceId: string) {
   // 1. Retrieve relevant context via recall() - unified retrieval
-  const retrieved = await cortex.memory.recall({
+  const retrieved = await memoir.memory.recall({
     memorySpaceId,
     query: userMessage,
     embedding: await embed(userMessage),
@@ -119,7 +119,7 @@ Instructions: Use the context above to provide a personalized response.
   });
 
   // 4. Store new exchange with full orchestration (L1 + L2 + L3)
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId,
     participantId: "my-assistant", // Track participant
     userMessage,
@@ -270,7 +270,7 @@ interface Fact {
 ### Tier 1: Facts (Primary - Most Efficient)
 
 ```typescript
-const facts = await cortex.memory.search(memorySpaceId, query, {
+const facts = await memoir.memory.search(memorySpaceId, query, {
   embedding: await embed(query),
   contentType: "fact", // Only retrieve facts
   limit: 10,
@@ -292,7 +292,7 @@ const facts = await cortex.memory.search(memorySpaceId, query, {
 ### Tier 2: Vector Summaries (Secondary - More Detail)
 
 ```typescript
-const summaries = await cortex.memory.search(memorySpaceId, query, {
+const summaries = await memoir.memory.search(memorySpaceId, query, {
   embedding: await embed(query),
   contentType: "summarized",
   limit: 3,
@@ -320,7 +320,7 @@ const criticalFacts = facts.filter((f) => f.confidence >= 90);
 for (const fact of criticalFacts.slice(0, 2)) {
   // Top 2 only
   if (fact.conversationRef) {
-    const conversation = await cortex.conversations.get(
+    const conversation = await memoir.conversations.get(
       fact.conversationRef.conversationId,
     );
 
@@ -352,7 +352,7 @@ for (const fact of criticalFacts.slice(0, 2)) {
 ```typescript
 async function intelligentRetrieval(memorySpaceId: string, query: string) {
   // recall() automatically combines all strategies
-  const result = await cortex.memory.recall({
+  const result = await memoir.memory.recall({
     memorySpaceId,
     query,
     embedding: await embed(query),
@@ -381,7 +381,7 @@ async function manualIntelligentRetrieval(
   query: string,
 ) {
   // Tier 1: Facts (always - most efficient)
-  const facts = await cortex.facts.search(
+  const facts = await memoir.facts.search(
     memorySpaceId,
     query,
     {
@@ -391,7 +391,7 @@ async function manualIntelligentRetrieval(
   );
 
   // Tier 2: Summaries (for additional context)
-  const summaries = await cortex.memory.search(memorySpaceId, query, {
+  const summaries = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     contentType: "summarized",
     userId: "user-123",
@@ -489,7 +489,7 @@ Total Latency Addition:           <150ms
 // Total: 60,000 exchanges = 3M tokens if accumulated
 
 // With Infinite Context + recall():
-const result = await cortex.memory.recall({
+const result = await memoir.memory.recall({
   memorySpaceId: "user-123-personal",
   query: "What are user's preferences?",
   embedding: await embed("What are user's preferences?"),
@@ -513,7 +513,7 @@ const result = await cortex.memory.recall({
 // Total: 500K tokens accumulated
 
 // With Infinite Context:
-const relevantTickets = await cortex.memory.search(
+const relevantTickets = await memoir.memory.search(
   memorySpaceId,
   "shipping address issues",
   { contentType: "fact", limit: 5 },
@@ -531,7 +531,7 @@ const relevantTickets = await cortex.memory.search(
 // Hive Mode + Infinite Context:
 // All participants share one memory space
 // Each retrieves only relevant subset via recall()
-const context = await cortex.memory.recall({
+const context = await memoir.memory.recall({
   memorySpaceId: "team-project-alpha", // Shared Hive space
   query,
   participantId: "cursor", // Optional: Filter by participant
@@ -552,7 +552,7 @@ const context = await cortex.memory.recall({
 // With Infinite Context:
 // Papers converted to facts during ingestion
 // Query: "What papers discuss neural scaling laws?"
-const papers = await cortex.memory.search(memorySpaceId, query, {
+const papers = await memoir.memory.search(memorySpaceId, query, {
   contentType: "fact",
   metadata: { sourceType: "research-paper" },
   limit: 20,
@@ -583,7 +583,7 @@ async function handleUserMessage(message: string, memorySpaceId: string) {
   });
 
   // Store exchange (adds to memory pool)
-  await cortex.memory.remember({
+  await memoir.memory.remember({
     memorySpaceId,
     conversationId,
     userMessage: message,
@@ -604,8 +604,8 @@ async function handleUserMessage(message: string, memorySpaceId: string) {
 const CONVERSATION_RETENTION_DAYS = 90;
 
 // Governance policy
-// Note: Verify governance API signature matches your Cortex version
-await cortex.governance.addPolicy({
+// Note: Verify governance API signature matches your Memoir version
+await memoir.governance.addPolicy({
   name: "Prune Old Conversations",
   type: "retention",
   scope: "conversations",
@@ -622,7 +622,7 @@ await cortex.governance.addPolicy({
 
 ```typescript
 // Retrieve high-importance facts first
-const context = await cortex.memory.search(memorySpaceId, query, {
+const context = await memoir.memory.search(memorySpaceId, query, {
   embedding: await embed(query),
   minImportance: 70, // Only important facts
   limit: 15,
@@ -630,7 +630,7 @@ const context = await cortex.memory.search(memorySpaceId, query, {
 
 // Then fill remaining context budget with lower-importance items
 if (context.length < 15) {
-  const additional = await cortex.memory.search(memorySpaceId, query, {
+  const additional = await memoir.memory.search(memorySpaceId, query, {
     embedding: await embed(query),
     minImportance: 40,
     limit: 15 - context.length,
@@ -661,7 +661,7 @@ async function adaptiveRetrieval(
   const retrievalBudget = Math.floor(contextBudget * 0.75);
 
   // Retrieve until budget exhausted
-  let facts = await cortex.memory.search(memorySpaceId, query, {
+  let facts = await memoir.memory.search(memorySpaceId, query, {
     contentType: "fact",
     limit: Math.floor(retrievalBudget / 8), // 8 tokens per fact
   });
@@ -669,7 +669,7 @@ async function adaptiveRetrieval(
   // If budget allows, add summaries
   const remainingBudget = retrievalBudget - facts.length * 8;
   if (remainingBudget > 150) {
-    const summaries = await cortex.memory.search(memorySpaceId, query, {
+    const summaries = await memoir.memory.search(memorySpaceId, query, {
       contentType: "summarized",
       limit: Math.floor(remainingBudget / 75),
     });
@@ -714,7 +714,7 @@ class TraditionalChatbot {
 }
 ```
 
-### Cortex Infinite Context
+### Memoir Infinite Context
 
 ```typescript
 class InfiniteContextAgent {
@@ -722,7 +722,7 @@ class InfiniteContextAgent {
 
   async respond(userMessage: string) {
     // Retrieve (not accumulate)
-    const relevantContext = await cortex.memory.search(
+    const relevantContext = await memoir.memory.search(
       this.memorySpaceId,
       userMessage,
       {
@@ -740,7 +740,7 @@ class InfiniteContextAgent {
     });
 
     // Store (adds to memory pool, doesn't accumulate in context)
-    await cortex.memory.remember({
+    await memoir.memory.remember({
       memorySpaceId: this.memorySpaceId,
       userMessage,
       agentResponse: response,
@@ -763,14 +763,14 @@ class InfiniteContextAgent {
 **"Never run out of context again."**
 
 - Traditional AI: Forgets after 100 messages
-- With Cortex: Remember 100,000 messages perfectly
+- With Memoir: Remember 100,000 messages perfectly
 - Cost: 99% cheaper than accumulation
 - Works with: ANY LLM (from legacy models to GPT-5, Claude-4.5-sonnet)
 
 ### Competitive Differentiation
 
 <ComparisonTable
-  headers={["Capability", "Cortex", "Traditional LLM Apps"]}
+  headers={["Capability", "Memoir", "Traditional LLM Apps"]}
   items={[
     { feature: "Context Limit", values: ["Infinite", "16K-200K"] },
     { feature: "Token Efficiency", values: ["99% reduction", "Baseline (accumulation)"] },
@@ -781,7 +781,7 @@ class InfiniteContextAgent {
   ]}
 />
 
-**Unique to Cortex:**
+**Unique to Memoir:**
 
 - 3-tier retrieval strategy (facts + summaries + raw)
 - Memory space architecture (Hive + Collaboration modes)
@@ -804,7 +804,7 @@ Traditional Approach (Accumulation):
 - Cost (GPT-5 @ $5/1M tokens): 625M × $5/1M = $3,125/month
 - Problem: Hits context limits at ~200 exchanges, forcing truncation or model upgrade
 
-With Cortex Infinite Context (Retrieval-Based):
+With Memoir Infinite Context (Retrieval-Based):
 - Tokens per exchange: Constant regardless of history
   - Each exchange: 400 tokens (retrieved context + current message)
   - Exchange 1: 400 tokens
@@ -832,7 +832,7 @@ Savings Comparison:
 const nextTopics = await predictNextTopics(conversationHistory);
 
 for (const topic of nextTopics) {
-  await cortex.memory.search(memorySpaceId, topic); // Cache results
+  await memoir.memory.search(memorySpaceId, topic); // Cache results
 }
 ```
 
@@ -842,14 +842,14 @@ for (const topic of nextTopics) {
 // First pass: Coarse-grained (categories)
 // Second pass: Fine-grained (specific facts)
 
-const categories = await cortex.memory.search(memorySpaceId, query, {
+const categories = await memoir.memory.search(memorySpaceId, query, {
   contentType: "category", // High-level summaries
   limit: 3,
 });
 
 const facts = await Promise.all(
   categories.map((cat) =>
-    cortex.memory.search(memorySpaceId, query, {
+    memoir.memory.search(memorySpaceId, query, {
       contentType: "fact",
       category: cat.name,
       limit: 5,
@@ -863,8 +863,8 @@ const facts = await Promise.all(
 ```typescript
 // Retrieve from multiple memory spaces (with permission)
 const contexts = await Promise.all([
-  cortex.memory.search("user-123-personal", query),
-  cortex.memory.search("user-123-work", query, {
+  memoir.memory.search("user-123-personal", query),
+  memoir.memory.search("user-123-work", query, {
     // Cross-space access via context chain
     contextChain: contextId,
   }),
@@ -883,7 +883,7 @@ const combinedContext = contexts.flat().map((c) => ({
 // More facts for important conversations, fewer for casual
 const importance = await assessConversationImportance(exchange);
 
-await cortex.memory.remember({
+await memoir.memory.remember({
   memorySpaceId,
   userMessage,
   agentResponse,
@@ -894,7 +894,7 @@ await cortex.memory.remember({
 
 ## Conclusion
 
-**Infinite Context is Cortex's killer feature:**
+**Infinite Context is Memoir's killer feature:**
 
 1. **Never hit limits** - Conversations can span years
 2. **Up to 99% cheaper** - Token costs stay constant
@@ -902,7 +902,7 @@ await cortex.memory.remember({
 4. **Perfect recall** - Retrieve from millions of past exchanges
 5. **Fast** - Sub-second retrieval at any scale
 
-This capability alone justifies Cortex's existence. It's not just an incremental improvement - it's a **fundamental architectural shift** from accumulation to retrieval.
+This capability alone justifies Memoir's existence. It's not just an incremental improvement - it's a **fundamental architectural shift** from accumulation to retrieval.
 
 **The future of AI memory is infinite.**
 

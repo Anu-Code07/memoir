@@ -2,16 +2,16 @@
 id: overview
 title: API Reference Overview
 sidebar_position: 1
-description: Complete guide to navigating and using the Cortex API - a persistent memory system for AI agents built on Convex
+description: Complete guide to navigating and using the Memoir API - a persistent memory system for AI agents built on Convex
 ---
 
 # API Reference Overview
 
-Welcome to the Cortex API Reference! This guide explains how to navigate the documentation and use Cortex effectively.
+Welcome to the Memoir API Reference! This guide explains how to navigate the documentation and use Memoir effectively.
 
-## What is Cortex?
+## What is Memoir?
 
-Cortex is a **persistent memory system for AI agents** built on Convex. It provides:
+Memoir is a **persistent memory system for AI agents** built on Convex. It provides:
 
 <FeatureGrid>
   <FeatureCard
@@ -91,12 +91,12 @@ The API Reference is organized by architectural layers:
 ### Core Memory System (Start Here)
 
 - **[Memory Operations](/api-reference/memory-operations)** - The main API you'll use
-  - Layer 4 convenience (`cortex.memory.*`)
+  - Layer 4 convenience (`memoir.memory.*`)
   - Full orchestration: `remember()`, `rememberStream()`, `recall()`
   - Search, get, update, delete operations
   - Orchestration Observer for real-time monitoring
 - **[Memory Space Operations](/api-reference/memory-space-operations)** - Memory space management
-  - Fundamental isolation boundary in Cortex
+  - Fundamental isolation boundary in Memoir
   - Explicit registration for production deployments
   - Hive Mode participant tracking
   - `register()`, `get()`, `list()`, `archive()`, `delete()`, `getStats()`
@@ -124,7 +124,7 @@ The API Reference is organized by architectural layers:
 - **[Agent Management](/api-reference/agent-management)** - Optional agent metadata registry (analytics, discovery)
   - Optional metadata registration for discovery/analytics
   - Cascade deletion by participantId across all spaces
-  - Use `cortex.memorySpaces.*` for production isolation
+  - Use `memoir.memorySpaces.*` for production isolation
 - **[Context Operations](/api-reference/context-operations)** - Workflow coordination
   - Hierarchical task tracking (parent/child chains)
   - Multi-agent collaboration
@@ -167,7 +167,7 @@ The API Reference is organized by architectural layers:
   - Optional integration with Neo4j, Memgraph
   - Real-time sync via GraphSyncWorker
   - Multi-hop traversal and orphan cleanup
-  - Automatic sync when `CORTEX_GRAPH_SYNC=true` (v0.29.0+)
+  - Automatic sync when `MEMOIR_GRAPH_SYNC=true` (v0.29.0+)
 
 ### Reference
 
@@ -183,40 +183,40 @@ The API Reference is organized by architectural layers:
 **I want to...**
 
 **Store conversation messages:**
-→ [Memory Operations](/api-reference/memory-operations#remember) - `cortex.memory.remember()`
+→ [Memory Operations](/api-reference/memory-operations#remember) - `memoir.memory.remember()`
 
 **Search agent memories:**
-→ [Memory Operations](/api-reference/memory-operations#search) - `cortex.memory.search()`
+→ [Memory Operations](/api-reference/memory-operations#search) - `memoir.memory.search()`
 
 **Manage user profiles:**
-→ [User Operations](/api-reference/user-operations) - `cortex.users.*`
+→ [User Operations](/api-reference/user-operations) - `memoir.users.*`
 
 **Delete user data (GDPR):**
-→ [User Operations](/api-reference/user-operations#delete) - `cortex.users.delete({ cascade: true })`
+→ [User Operations](/api-reference/user-operations#delete) - `memoir.users.delete({ cascade: true })`
 
 **Track multi-agent workflows:**
-→ [Context Operations](/api-reference/context-operations) - `cortex.contexts.*`
+→ [Context Operations](/api-reference/context-operations) - `memoir.contexts.*`
 
 **Send agent-to-agent messages:**
-→ [A2A Communication](/api-reference/a2a-communication) - `cortex.a2a.send()`
+→ [A2A Communication](/api-reference/a2a-communication) - `memoir.a2a.send()`
 
 **Store shared knowledge:**
-→ [Immutable Store](/api-reference/immutable-store-api) - `cortex.immutable.store()`
+→ [Immutable Store](/api-reference/immutable-store-api) - `memoir.immutable.store()`
 
 **Store live data (inventory, config):**
-→ [Mutable Store](/api-reference/mutable-store-api) - `cortex.mutable.set()`
+→ [Mutable Store](/api-reference/mutable-store-api) - `memoir.mutable.set()`
 
 **Set retention policies:**
-→ [Governance Policies](/api-reference/governance-policies-api) - `cortex.governance.*`
+→ [Governance Policies](/api-reference/governance-policies-api) - `memoir.governance.*`
 
 **Manage user sessions:**
-→ [Sessions Operations](/api-reference/sessions-operations) - `cortex.sessions.*`
+→ [Sessions Operations](/api-reference/sessions-operations) - `memoir.sessions.*`
 
 **Store and query facts:**
-→ [Facts Operations](/api-reference/facts-operations) - `cortex.facts.*`
+→ [Facts Operations](/api-reference/facts-operations) - `memoir.facts.*`
 
 **Create versioned documents (artifacts):**
-→ [Artifacts Operations](/api-reference/artifacts-operations) - `cortex.artifacts.*`
+→ [Artifacts Operations](/api-reference/artifacts-operations) - `memoir.artifacts.*`
 
 **Integrate graph database:**
 → [Graph Operations](/api-reference/graph-operations) - GraphAdapter and GraphSyncWorker
@@ -239,19 +239,19 @@ The API Reference is organized by architectural layers:
 → [Mutable Store](/api-reference/mutable-store-api)
 
 **Layer 2 (Vector Index):**
-→ [Memory Operations](/api-reference/memory-operations) - `cortex.vector.*`
+→ [Memory Operations](/api-reference/memory-operations) - `memoir.vector.*`
 
 **Layer 3 (Facts Store):**
-→ [Facts Operations](/api-reference/facts-operations) - `cortex.facts.*`
+→ [Facts Operations](/api-reference/facts-operations) - `memoir.facts.*`
 
 **Layer 4 (Convenience API):**
-→ [Memory Operations](/api-reference/memory-operations) - `cortex.memory.*`
+→ [Memory Operations](/api-reference/memory-operations) - `memoir.memory.*`
 
 **Artifacts:**
-→ [Artifacts Operations](/api-reference/artifacts-operations) - `cortex.artifacts.*`
+→ [Artifacts Operations](/api-reference/artifacts-operations) - `memoir.artifacts.*`
 
 **Sessions:**
-→ [Sessions Operations](/api-reference/sessions-operations) - `cortex.sessions.*`
+→ [Sessions Operations](/api-reference/sessions-operations) - `memoir.sessions.*`
 
 ---
 
@@ -259,7 +259,7 @@ The API Reference is organized by architectural layers:
 
 ### The Four-Layer Architecture
 
-Cortex separates **storage** (immutable source) from **search** (optimized index):
+Memoir separates **storage** (immutable source) from **search** (optimized index):
 
 <FlowDiagram 
   title="Four-Layer Architecture" 
@@ -291,12 +291,12 @@ Cortex separates **storage** (immutable source) from **search** (optimized index
     icon="layers"
     variant="default"
   >
-    cortex.memory.* � Primary developer interface
+    memoir.memory.* � Primary developer interface
   </FlowNode>
 </FlowDiagram>
 
 <Callout type="tip">
-**Most developers use Layer 4** (`cortex.memory.*`) - it handles Layers 1, 2, and 3 automatically.
+**Most developers use Layer 4** (`memoir.memory.*`) - it handles Layers 1, 2, and 3 automatically.
 </Callout>
 
 **Benefits of layered architecture:**
@@ -322,7 +322,7 @@ Data is linked, not duplicated:
 }
 
 // Can always get full context
-const conversation = await cortex.conversations.get('conv-456');
+const conversation = await memoir.conversations.get('conv-456');
 const originalMessage = conversation.messages.find(m => m.id === 'msg-001');
 ```
 
@@ -340,12 +340,12 @@ const filters = {
 };
 
 // Use everywhere
-await cortex.memory.search(memorySpaceId, query, filters);
-await cortex.memory.count(memorySpaceId, filters);
-await cortex.memory.list(memorySpaceId, filters);
-await cortex.memory.updateMany(memorySpaceId, filters, updates);
-await cortex.memory.deleteMany(memorySpaceId, filters);
-await cortex.memory.export(memorySpaceId, filters);
+await memoir.memory.search(memorySpaceId, query, filters);
+await memoir.memory.count(memorySpaceId, filters);
+await memoir.memory.list(memorySpaceId, filters);
+await memoir.memory.updateMany(memorySpaceId, filters, updates);
+await memoir.memory.deleteMany(memorySpaceId, filters);
+await memoir.memory.export(memorySpaceId, filters);
 ```
 
 **Supported Filters:** `userId`, `tags`, `importance`, `createdBefore/After`, `accessCount`, `version`, `source.type`, and any `metadata.*` field.
@@ -371,13 +371,13 @@ Updates don't overwrite - they create new versions:
 
 ```typescript
 // v1
-await cortex.memory.store('user-123-personal', { content: 'Password is Blue', ... });
+await memoir.memory.store('user-123-personal', { content: 'Password is Blue', ... });
 
 // v2 (v1 preserved in history)
-await cortex.memory.update('user-123-personal', memoryId, { content: 'Password is Red' });
+await memoir.memory.update('user-123-personal', memoryId, { content: 'Password is Red' });
 
 // Access history
-const memory = await cortex.memory.get('user-123-personal', memoryId);
+const memory = await memoir.memory.get('user-123-personal', memoryId);
 console.log(memory.version); // 2
 console.log(memory.previousVersions[0].content); // "Password is Blue"
 ```
@@ -394,7 +394,7 @@ One call deletes from ALL stores with `userId`:
 
 ```typescript
 // SDK (Free) & Cloud Mode: One call deletes from ALL stores with userId
-await cortex.users.delete("user-123", { cascade: true });
+await memoir.users.delete("user-123", { cascade: true });
 
 // Automatically deletes from:
 // ✅ User profile (immutable store, type='user')
@@ -478,14 +478,14 @@ When facts are extracted from conversations, the Belief Revision System automati
 
 ### Async/Await
 
-All Cortex operations are async:
+All Memoir operations are async:
 
 ```typescript
 // ✅ Always use await
-const memory = await cortex.memory.get("agent-1", memoryId);
+const memory = await memoir.memory.get("agent-1", memoryId);
 
 // ❌ Don't forget await
-const memory = cortex.memory.get("agent-1", memoryId); // Returns Promise!
+const memory = memoir.memory.get("agent-1", memoryId); // Returns Promise!
 ```
 
 ### Error Handling
@@ -494,9 +494,9 @@ All errors are catchable with type information:
 
 ```typescript
 try {
-  await cortex.memory.store("agent-1", data);
+  await memoir.memory.store("agent-1", data);
 } catch (error) {
-  if (error instanceof CortexError) {
+  if (error instanceof MemoirError) {
     console.log(`Error: ${error.code}`);
     // Type-safe error handling
   }
@@ -631,7 +631,7 @@ try {
 
 ## Next Steps
 
-**New to Cortex?**
+**New to Memoir?**
 → Start with [Memory Operations](/api-reference/memory-operations) - the main API
 
 **Building multi-agent systems?**
@@ -673,4 +673,4 @@ try {
 
 ---
 
-**Questions?** Ask in [GitHub Discussions](https://github.com/SaintNick1214/Project-Cortex/discussions).
+**Questions?** Ask in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions).

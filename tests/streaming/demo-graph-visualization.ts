@@ -11,7 +11,7 @@
  * - Neo4j Browser: http://localhost:7474
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 import { CypherGraphAdapter } from "../../src/graph";
 
 async function main() {
@@ -25,18 +25,18 @@ async function main() {
     "╚═══════════════════════════════════════════════════════════════╝\n",
   );
 
-  // Initialize Cortex with graph adapters
-  console.log("📊 Initializing Cortex with graph databases...\n");
+  // Initialize Memoir with graph adapters
+  console.log("📊 Initializing Memoir with graph databases...\n");
 
   // Neo4j instance
   const neo4jAdapter = new CypherGraphAdapter();
   await neo4jAdapter.connect({
     uri: "bolt://localhost:7687",
     username: "neo4j",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
-  const cortexNeo4j = new Cortex({
+  const memoirNeo4j = new Memoir({
     convexUrl: process.env.CONVEX_URL || "http://127.0.0.1:3210",
     graph: {
       adapter: neo4jAdapter,
@@ -48,10 +48,10 @@ async function main() {
   await memgraphAdapter.connect({
     uri: "bolt://localhost:7688",
     username: "memgraph",
-    password: "cortex-dev-password",
+    password: "memoir-dev-password",
   });
 
-  const cortexMemgraph = new Cortex({
+  const memoirMemgraph = new Memoir({
     convexUrl: process.env.CONVEX_URL || "http://127.0.0.1:3210",
     graph: {
       adapter: memgraphAdapter,
@@ -74,7 +74,7 @@ async function main() {
     yield "sync!";
   }
 
-  const result1 = await cortexNeo4j.memory.rememberStream(
+  const result1 = await memoirNeo4j.memory.rememberStream(
     {
       memorySpaceId: "demo-neo4j-space",
       conversationId: `demo-neo4j-${Date.now()}`,
@@ -111,7 +111,7 @@ async function main() {
     }
   }
 
-  const result2 = await cortexMemgraph.memory.rememberStream(
+  const result2 = await memoirMemgraph.memory.rememberStream(
     {
       memorySpaceId: "demo-memgraph-space",
       conversationId: `demo-memgraph-${Date.now()}`,
@@ -153,7 +153,7 @@ async function main() {
       yield `Response for conversation ${i + 1}`;
     }
 
-    await cortexNeo4j.memory.rememberStream(
+    await memoirNeo4j.memory.rememberStream(
       {
         memorySpaceId: "demo-neo4j-space",
         conversationId: `demo-multi-${i}-${Date.now()}`,
@@ -177,7 +177,7 @@ async function main() {
       yield `Memgraph response ${i + 1}`;
     }
 
-    await cortexMemgraph.memory.rememberStream(
+    await memoirMemgraph.memory.rememberStream(
       {
         memorySpaceId: "demo-memgraph-space",
         conversationId: `demo-memgraph-multi-${i}-${Date.now()}`,
@@ -202,7 +202,7 @@ async function main() {
   console.log("📊 Open the Graph UIs to visualize:\n");
 
   console.log("🔷 Neo4j Browser: http://localhost:7474");
-  console.log("   Login: neo4j / cortex-dev-password");
+  console.log("   Login: neo4j / memoir-dev-password");
   console.log("   Try these queries:");
   console.log("   ");
   console.log("   // View all demo memories");

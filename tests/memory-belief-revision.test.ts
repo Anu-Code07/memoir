@@ -5,7 +5,7 @@
  * fact management (CREATE/UPDATE/SUPERSEDE/NONE actions).
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -14,7 +14,7 @@ import { createTestRunContext } from "./helpers/isolation";
 const ctx = createTestRunContext();
 
 describe("Memory API with Belief Revision", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let _cleanup: TestCleanup;
 
   // Use ctx-scoped IDs for parallel execution isolation
@@ -25,7 +25,7 @@ describe("Memory API with Belief Revision", () => {
   const testUserName = "Test User";
 
   beforeAll(async () => {
-    cortex = new Cortex({ convexUrl: process.env.CONVEX_URL || "" });
+    memoir = new Memoir({ convexUrl: process.env.CONVEX_URL || "" });
     const client = new ConvexClient(process.env.CONVEX_URL || "");
     _cleanup = new TestCleanup(client);
   });
@@ -39,7 +39,7 @@ describe("Memory API with Belief Revision", () => {
       const convId = `${testConversationId}-dedup-path`;
 
       // Create conversation first
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -65,7 +65,7 @@ describe("Memory API with Belief Revision", () => {
       };
 
       // Explicitly disable belief revision
-      const result = await cortex.memory.remember(
+      const result = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -93,7 +93,7 @@ describe("Memory API with Belief Revision", () => {
       const convId = `${testConversationId}-no-llm`;
 
       // Create conversation first
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -119,7 +119,7 @@ describe("Memory API with Belief Revision", () => {
       };
 
       // Explicitly disable belief revision
-      const result = await cortex.memory.remember(
+      const result = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -144,17 +144,17 @@ describe("Memory API with Belief Revision", () => {
 
   describe("FactsAPI hasBeliefRevision()", () => {
     test("hasBeliefRevision() returns consistent value based on LLM config", async () => {
-      // Note: hasBeliefRevision() may return true if CORTEX_FACT_EXTRACTION=true
+      // Note: hasBeliefRevision() may return true if MEMOIR_FACT_EXTRACTION=true
       // and OPENAI_API_KEY is set in the environment (auto-configuration)
-      const hasRevision = (cortex as any).memory.facts.hasBeliefRevision();
+      const hasRevision = (memoir as any).memory.facts.hasBeliefRevision();
 
       // Value should be boolean
       expect(typeof hasRevision).toBe("boolean");
     });
 
     test("hasBeliefRevision() should return true when LLM is configured", async () => {
-      // Create Cortex with LLM config
-      const cortexWithLLM = new Cortex({
+      // Create Memoir with LLM config
+      const memoirWithLLM = new Memoir({
         convexUrl: process.env.CONVEX_URL || "",
         llm: {
           provider: "openai",
@@ -164,7 +164,7 @@ describe("Memory API with Belief Revision", () => {
 
       // Access internal facts API
       const factsHasRevision = (
-        cortexWithLLM as any
+        memoirWithLLM as any
       ).memory.facts.hasBeliefRevision();
       expect(factsHasRevision).toBe(true);
     });
@@ -174,7 +174,7 @@ describe("Memory API with Belief Revision", () => {
     test("RememberResult should include factRevisions field type", async () => {
       const convId = `${testConversationId}-type-check`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -199,7 +199,7 @@ describe("Memory API with Belief Revision", () => {
         ];
       };
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: convId,
         userMessage: "I speak English fluently",
@@ -234,7 +234,7 @@ describe("Memory API with Belief Revision", () => {
     test("should store multiple facts when no conflicts exist", async () => {
       const convId = `${testConversationId}-multi-facts`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -277,7 +277,7 @@ describe("Memory API with Belief Revision", () => {
         ];
       };
 
-      const result = await cortex.memory.remember(
+      const result = await memoir.memory.remember(
         {
           memorySpaceId: testMemorySpaceId,
           conversationId: convId,
@@ -308,7 +308,7 @@ describe("Memory API with Belief Revision", () => {
     test("should not store facts when skipLayers includes 'facts'", async () => {
       const convId = `${testConversationId}-skip-facts`;
 
-      await cortex.conversations.create({
+      await memoir.conversations.create({
         conversationId: convId,
         type: "user-agent",
         memorySpaceId: testMemorySpaceId,
@@ -333,7 +333,7 @@ describe("Memory API with Belief Revision", () => {
         ];
       };
 
-      const result = await cortex.memory.remember({
+      const result = await memoir.memory.remember({
         memorySpaceId: testMemorySpaceId,
         conversationId: convId,
         userMessage: "Test message",

@@ -7,7 +7,7 @@
  * Updated: Added tenantId support for multi-tenancy testing.
  */
 
-import { Cortex } from "../src";
+import { Memoir } from "../src";
 import { ConvexClient } from "convex/browser";
 import { TestCleanup } from "./helpers/cleanup";
 import { createTestRunContext } from "./helpers/isolation";
@@ -21,7 +21,7 @@ import {
 const ctx = createTestRunContext();
 
 describe("GDPR: Cascade Deletion", () => {
-  let cortex: Cortex;
+  let memoir: Memoir;
   let client: ConvexClient;
   let _cleanup: TestCleanup;
   const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
@@ -32,9 +32,9 @@ describe("GDPR: Cascade Deletion", () => {
   const TEST_USER_ID = generateTenantUserId(TEST_TENANT_ID);
 
   beforeAll(async () => {
-    // Initialize Cortex with auth context for multi-tenancy
+    // Initialize Memoir with auth context for multi-tenancy
     const authContext = createTenantAuthContext(TEST_TENANT_ID, TEST_USER_ID);
-    cortex = new Cortex({ convexUrl: CONVEX_URL, auth: authContext });
+    memoir = new Memoir({ convexUrl: CONVEX_URL, auth: authContext });
     client = new ConvexClient(CONVEX_URL);
     _cleanup = new TestCleanup(client);
     // NOTE: Removed purgeAll() for parallel execution compatibility.
@@ -50,7 +50,7 @@ describe("GDPR: Cascade Deletion", () => {
       const SPACE = ctx.memorySpaceId("cascade-all");
       const TEST_USER = ctx.userId("cascade");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE,
         name: "Cascade Test Space",
         type: "personal",
@@ -58,20 +58,20 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Create data in ALL layers
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: SPACE,
         participants: { userId: TEST_USER, agentId: "test-agent" },
       });
 
-      const mem = await cortex.vector.store(SPACE, {
+      const mem = await memoir.vector.store(SPACE, {
         content: "Test memory for cascade",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const fact = await cortex.facts.store({
+      const fact = await memoir.facts.store({
         memorySpaceId: SPACE,
         fact: "Test fact for cascade",
         factType: "knowledge",
@@ -80,27 +80,27 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "system",
       });
 
-      const _ctx = await cortex.contexts.create({
+      const _ctx = await memoir.contexts.create({
         purpose: "Test context for cascade",
         memorySpaceId: SPACE,
         userId: "test-user",
       });
 
       // Delete space with cascade
-      await cortex.memorySpaces.delete(SPACE, {
+      await memoir.memorySpaces.delete(SPACE, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Validate: Conversations, memories, and facts deleted
-      const convCheck = await cortex.conversations.get(conv.conversationId);
+      const convCheck = await memoir.conversations.get(conv.conversationId);
       expect(convCheck).toBeNull();
 
-      const memCheck = await cortex.vector.get(SPACE, mem.memoryId);
+      const memCheck = await memoir.vector.get(SPACE, mem.memoryId);
       expect(memCheck).toBeNull();
 
       // Facts use soft delete - they're marked invalid
-      const factCheck = await cortex.facts.get(SPACE, fact.factId);
+      const factCheck = await memoir.facts.get(SPACE, fact.factId);
       if (factCheck) {
         expect(factCheck.validUntil).toBeDefined(); // Marked invalid
       }
@@ -109,11 +109,11 @@ describe("GDPR: Cascade Deletion", () => {
       // The test validates that conversations and memories are deleted
 
       // Validate: Counts reflect deletion (scoped by tenantId)
-      const convCount = await cortex.conversations.count({
+      const convCount = await memoir.conversations.count({
         memorySpaceId: SPACE,
         // Note: tenantId filter is automatically applied from auth context
       });
-      const memCount = await cortex.vector.count({ memorySpaceId: SPACE });
+      const memCount = await memoir.vector.count({ memorySpaceId: SPACE });
 
       expect(convCount).toBe(0);
       expect(memCount).toBe(0);
@@ -124,27 +124,27 @@ describe("GDPR: Cascade Deletion", () => {
       const SPACE_B = ctx.memorySpaceId("cascade-space-b");
 
       // Register both spaces
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE_A,
         name: "Space A",
         type: "personal",
       });
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE_B,
         name: "Space B",
         type: "personal",
       });
 
       // Create data in both spaces
-      const memA = await cortex.vector.store(SPACE_A, {
+      const memA = await memoir.vector.store(SPACE_A, {
         content: "Memory in space A",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const memB = await cortex.vector.store(SPACE_B, {
+      const memB = await memoir.vector.store(SPACE_B, {
         content: "Memory in space B",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -152,17 +152,17 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete space A with cascade
-      await cortex.memorySpaces.delete(SPACE_A, {
+      await memoir.memorySpaces.delete(SPACE_A, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Validate: Space A data deleted
-      const memACheck = await cortex.vector.get(SPACE_A, memA.memoryId);
+      const memACheck = await memoir.vector.get(SPACE_A, memA.memoryId);
       expect(memACheck).toBeNull();
 
       // Validate: Space B data still exists
-      const memBCheck = await cortex.vector.get(SPACE_B, memB.memoryId);
+      const memBCheck = await memoir.vector.get(SPACE_B, memB.memoryId);
       expect(memBCheck).not.toBeNull();
       expect(memBCheck!.content).toBe("Memory in space B");
     });
@@ -170,33 +170,33 @@ describe("GDPR: Cascade Deletion", () => {
     it("cascade handles empty memory space", async () => {
       const EMPTY_SPACE = ctx.memorySpaceId("empty-cascade-space");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: EMPTY_SPACE,
         name: "Empty Space",
         type: "personal",
       });
 
       // Delete without any data
-      await cortex.memorySpaces.delete(EMPTY_SPACE, {
+      await memoir.memorySpaces.delete(EMPTY_SPACE, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Should succeed without errors
-      const spaceCheck = await cortex.memorySpaces.get(EMPTY_SPACE);
+      const spaceCheck = await memoir.memorySpaces.get(EMPTY_SPACE);
       expect(spaceCheck).toBeNull();
     });
   });
 
   describe("Conversation Deletion", () => {
     it("remember() → forget() → verify: complete cleanup", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: "test-user", agentId: "test-agent" },
       });
 
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userId: "test-user",
@@ -210,35 +210,35 @@ describe("GDPR: Cascade Deletion", () => {
       const conversationId = remembered.conversation.conversationId;
 
       // Verify data exists
-      const memBefore = await cortex.vector.get(TEST_MEMSPACE_ID, memoryId);
+      const memBefore = await memoir.vector.get(TEST_MEMSPACE_ID, memoryId);
       expect(memBefore).not.toBeNull();
 
-      const convBefore = await cortex.conversations.get(conversationId);
+      const convBefore = await memoir.conversations.get(conversationId);
       expect(convBefore).not.toBeNull();
 
       // Forget with deleteConversation: true and deleteEntireConversation: true
-      await cortex.memory.forget(TEST_MEMSPACE_ID, memoryId, {
+      await memoir.memory.forget(TEST_MEMSPACE_ID, memoryId, {
         deleteConversation: true,
         deleteEntireConversation: true,
       });
 
       // Validate: Vector deleted
-      const vectorCheck = await cortex.vector.get(TEST_MEMSPACE_ID, memoryId);
+      const vectorCheck = await memoir.vector.get(TEST_MEMSPACE_ID, memoryId);
       expect(vectorCheck).toBeNull();
 
       // Validate: Conversation deleted
-      const convCheck = await cortex.conversations.get(conversationId);
+      const convCheck = await memoir.conversations.get(conversationId);
       expect(convCheck).toBeNull();
     });
 
     it("forget() with deleteConversation:false preserves conversation", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: "test-user", agentId: "test-agent" },
       });
 
-      const remembered = await cortex.memory.remember({
+      const remembered = await memoir.memory.remember({
         memorySpaceId: TEST_MEMSPACE_ID,
         conversationId: conv.conversationId,
         userId: "test-user",
@@ -252,29 +252,29 @@ describe("GDPR: Cascade Deletion", () => {
       const conversationId = remembered.conversation.conversationId;
 
       // Forget with deleteConversation: false
-      await cortex.memory.forget(TEST_MEMSPACE_ID, memoryId, {
+      await memoir.memory.forget(TEST_MEMSPACE_ID, memoryId, {
         deleteConversation: false,
       });
 
       // Validate: Memory deleted
-      const memCheck = await cortex.vector.get(TEST_MEMSPACE_ID, memoryId);
+      const memCheck = await memoir.vector.get(TEST_MEMSPACE_ID, memoryId);
       expect(memCheck).toBeNull();
 
       // Validate: Conversation still exists
-      const convCheck = await cortex.conversations.get(conversationId);
+      const convCheck = await memoir.conversations.get(conversationId);
       expect(convCheck).not.toBeNull();
       expect(convCheck!.conversationId).toBe(conversationId);
     });
 
     it("deleting conversation doesn't affect unrelated memories", async () => {
-      const conv = await cortex.conversations.create({
+      const conv = await memoir.conversations.create({
         type: "user-agent",
         memorySpaceId: TEST_MEMSPACE_ID,
         participants: { userId: "test-user", agentId: "test-agent" },
       });
 
       // Create unrelated memory (no conversationRef)
-      const unrelatedMem = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const unrelatedMem = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Unrelated memory",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -282,10 +282,10 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete conversation
-      await cortex.conversations.delete(conv.conversationId);
+      await memoir.conversations.delete(conv.conversationId);
 
       // Validate: Unrelated memory still exists
-      const memCheck = await cortex.vector.get(
+      const memCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         unrelatedMem.memoryId,
       );
@@ -300,7 +300,7 @@ describe("GDPR: Cascade Deletion", () => {
 
       // Create memories in parallel batches for speed
       const createPromises = Array.from({ length: BATCH_SIZE }, (_, i) =>
-        cortex.vector.store(TEST_MEMSPACE_ID, {
+        memoir.vector.store(TEST_MEMSPACE_ID, {
           content: `Bulk GDPR test ${i}`,
           contentType: "raw",
           userId: USER_ID,
@@ -312,7 +312,7 @@ describe("GDPR: Cascade Deletion", () => {
       const MEMORY_IDS = created.map((m) => m.memoryId);
 
       // Delete by userId
-      const result = await cortex.vector.deleteMany({
+      const result = await memoir.vector.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: USER_ID,
       });
@@ -320,7 +320,7 @@ describe("GDPR: Cascade Deletion", () => {
       expect(result.deleted).toBe(BATCH_SIZE);
 
       // Validate: Count matches (faster than checking each individually)
-      const remaining = await cortex.vector.count({
+      const remaining = await memoir.vector.count({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: USER_ID,
       });
@@ -329,14 +329,14 @@ describe("GDPR: Cascade Deletion", () => {
       // Spot check a few IDs to verify actual deletion
       const spotChecks = MEMORY_IDS.slice(0, 3);
       for (const memId of spotChecks) {
-        const mem = await cortex.vector.get(TEST_MEMSPACE_ID, memId);
+        const mem = await memoir.vector.get(TEST_MEMSPACE_ID, memId);
         expect(mem).toBeNull();
       }
     });
 
     it("bulk deletion by sourceType filter", async () => {
       // Create memories with different source types
-      const systemMem = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const systemMem = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "System generated memory",
         contentType: "raw",
         userId: "user-source-filter",
@@ -344,7 +344,7 @@ describe("GDPR: Cascade Deletion", () => {
         metadata: { importance: 50, tags: ["source-delete"] },
       });
 
-      const toolMem = await cortex.vector.store(TEST_MEMSPACE_ID, {
+      const toolMem = await memoir.vector.store(TEST_MEMSPACE_ID, {
         content: "Tool generated memory",
         contentType: "raw",
         userId: "user-source-filter-2",
@@ -353,7 +353,7 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete only system type for first user
-      const result = await cortex.vector.deleteMany({
+      const result = await memoir.vector.deleteMany({
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: "user-source-filter",
         sourceType: "system",
@@ -362,14 +362,14 @@ describe("GDPR: Cascade Deletion", () => {
       expect(result.deleted).toBe(1);
 
       // Validate: System memory deleted
-      const systemCheck = await cortex.vector.get(
+      const systemCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         systemMem.memoryId,
       );
       expect(systemCheck).toBeNull();
 
       // Validate: Tool memory still exists (different userId)
-      const toolCheck = await cortex.vector.get(
+      const toolCheck = await memoir.vector.get(
         TEST_MEMSPACE_ID,
         toolMem.memoryId,
       );
@@ -382,20 +382,20 @@ describe("GDPR: Cascade Deletion", () => {
       // Use unique userId for test isolation
       const testUserId = ctx.userId("ctx-cascade-root");
       
-      const root = await cortex.contexts.create({
+      const root = await memoir.contexts.create({
         purpose: "Root for cascade",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: testUserId,
       });
 
-      const child1 = await cortex.contexts.create({
+      const child1 = await memoir.contexts.create({
         purpose: "Child 1",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: testUserId,
         parentId: root.contextId,
       });
 
-      const child2 = await cortex.contexts.create({
+      const child2 = await memoir.contexts.create({
         purpose: "Child 2",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: testUserId,
@@ -403,16 +403,16 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete root with cascade children
-      await cortex.contexts.delete(root.contextId, { cascadeChildren: true });
+      await memoir.contexts.delete(root.contextId, { cascadeChildren: true });
 
       // Validate: All deleted
-      const rootCheck = await cortex.contexts.get(root.contextId);
+      const rootCheck = await memoir.contexts.get(root.contextId);
       expect(rootCheck).toBeNull();
 
-      const child1Check = await cortex.contexts.get(child1.contextId);
+      const child1Check = await memoir.contexts.get(child1.contextId);
       expect(child1Check).toBeNull();
 
-      const child2Check = await cortex.contexts.get(child2.contextId);
+      const child2Check = await memoir.contexts.get(child2.contextId);
       expect(child2Check).toBeNull();
     });
 
@@ -420,17 +420,17 @@ describe("GDPR: Cascade Deletion", () => {
       // Use unique userId for test isolation - different from other tests
       const testUserId = ctx.userId("ctx-child-delete");
       
-      const parent = await cortex.contexts.create({
+      const parent = await memoir.contexts.create({
         purpose: "Parent context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: testUserId,
       });
 
       // Verify parent was created before creating child
-      const parentVerify = await cortex.contexts.get(parent.contextId);
+      const parentVerify = await memoir.contexts.get(parent.contextId);
       expect(parentVerify).not.toBeNull();
 
-      const child = await cortex.contexts.create({
+      const child = await memoir.contexts.create({
         purpose: "Child context",
         memorySpaceId: TEST_MEMSPACE_ID,
         userId: testUserId,
@@ -438,24 +438,24 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete child
-      await cortex.contexts.delete(child.contextId);
+      await memoir.contexts.delete(child.contextId);
 
       // Validate: Parent still exists
-      const parentCheck = await cortex.contexts.get(parent.contextId);
+      const parentCheck = await memoir.contexts.get(parent.contextId);
       expect(parentCheck).not.toBeNull();
 
       // Validate: Child deleted
-      const childCheck = await cortex.contexts.get(child.contextId);
+      const childCheck = await memoir.contexts.get(child.contextId);
       expect(childCheck).toBeNull();
       
       // Cleanup: delete parent
-      await cortex.contexts.delete(parent.contextId);
+      await memoir.contexts.delete(parent.contextId);
     });
   });
 
   describe("Fact Deletion", () => {
     it("deleting fact marks it invalid (soft delete)", async () => {
-      const v1 = await cortex.facts.store({
+      const v1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Version 1",
         factType: "knowledge",
@@ -464,25 +464,25 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "system",
       });
 
-      const v2 = await cortex.facts.update(TEST_MEMSPACE_ID, v1.factId, {
+      const v2 = await memoir.facts.update(TEST_MEMSPACE_ID, v1.factId, {
         fact: "Version 2",
         confidence: 90,
       });
 
       // Delete v1 (soft delete - marks as invalid)
-      const deleteResult = await cortex.facts.delete(
+      const deleteResult = await memoir.facts.delete(
         TEST_MEMSPACE_ID,
         v1.factId,
       );
       expect(deleteResult.deleted).toBe(true);
 
       // Validate: v1 marked invalid (not null - it's soft deleted)
-      const v1Check = await cortex.facts.get(TEST_MEMSPACE_ID, v1.factId);
+      const v1Check = await memoir.facts.get(TEST_MEMSPACE_ID, v1.factId);
       expect(v1Check).not.toBeNull();
       expect(v1Check!.validUntil).toBeDefined(); // Marked as invalid
 
       // Validate: v2 still valid
-      const v2Check = await cortex.facts.get(TEST_MEMSPACE_ID, v2.factId);
+      const v2Check = await memoir.facts.get(TEST_MEMSPACE_ID, v2.factId);
       expect(v2Check).not.toBeNull();
       expect(v2Check!.fact).toBe("Version 2");
       expect(v2Check!.validUntil).toBeUndefined(); // Still valid
@@ -492,7 +492,7 @@ describe("GDPR: Cascade Deletion", () => {
       const SUBJECT = "gdpr-subject-test";
 
       // Create multiple facts about same subject
-      const fact1 = await cortex.facts.store({
+      const fact1 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact 1 about subject",
         factType: "knowledge",
@@ -501,7 +501,7 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "system",
       });
 
-      const fact2 = await cortex.facts.store({
+      const fact2 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact 2 about subject",
         factType: "preference",
@@ -510,7 +510,7 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "system",
       });
 
-      const fact3 = await cortex.facts.store({
+      const fact3 = await memoir.facts.store({
         memorySpaceId: TEST_MEMSPACE_ID,
         fact: "Fact 3 about subject",
         factType: "identity",
@@ -520,7 +520,7 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Get all facts about subject
-      const factsAboutSubject = await cortex.facts.queryBySubject({
+      const factsAboutSubject = await memoir.facts.queryBySubject({
         memorySpaceId: TEST_MEMSPACE_ID,
         subject: SUBJECT,
       });
@@ -529,7 +529,7 @@ describe("GDPR: Cascade Deletion", () => {
 
       // Delete all (soft delete - marks as invalid)
       for (const fact of factsAboutSubject) {
-        const deleteResult = await cortex.facts.delete(
+        const deleteResult = await memoir.facts.delete(
           TEST_MEMSPACE_ID,
           fact.factId,
         );
@@ -537,15 +537,15 @@ describe("GDPR: Cascade Deletion", () => {
       }
 
       // Validate: All marked invalid (soft deleted)
-      const fact1Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact1.factId);
+      const fact1Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact1.factId);
       expect(fact1Check).not.toBeNull();
       expect(fact1Check!.validUntil).toBeDefined(); // Marked invalid
 
-      const fact2Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact2.factId);
+      const fact2Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact2.factId);
       expect(fact2Check).not.toBeNull();
       expect(fact2Check!.validUntil).toBeDefined();
 
-      const fact3Check = await cortex.facts.get(TEST_MEMSPACE_ID, fact3.factId);
+      const fact3Check = await memoir.facts.get(TEST_MEMSPACE_ID, fact3.factId);
       expect(fact3Check).not.toBeNull();
       expect(fact3Check!.validUntil).toBeDefined();
     });
@@ -556,7 +556,7 @@ describe("GDPR: Cascade Deletion", () => {
       const OTHER_USER = `other-user-${Date.now()}`;
 
       // Create multiple facts for GDPR user across different types
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
         fact: "User preference fact for GDPR deletion",
@@ -567,7 +567,7 @@ describe("GDPR: Cascade Deletion", () => {
         tags: ["gdpr-test"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
         fact: "User identity fact for GDPR deletion",
@@ -578,7 +578,7 @@ describe("GDPR: Cascade Deletion", () => {
         tags: ["gdpr-test"],
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
         fact: "User knowledge fact for GDPR deletion",
@@ -590,7 +590,7 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Create fact for other user (should NOT be deleted)
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: OTHER_USER,
         fact: "Other user fact should remain",
@@ -602,14 +602,14 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Verify facts exist before deletion
-      const userFactsBefore = await cortex.facts.list({
+      const userFactsBefore = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
       expect(userFactsBefore.length).toBe(3);
 
       // Execute GDPR deletion: Delete ALL facts for the user
-      const deleteResult = await cortex.facts.deleteMany({
+      const deleteResult = await memoir.facts.deleteMany({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
@@ -619,14 +619,14 @@ describe("GDPR: Cascade Deletion", () => {
       expect(deleteResult.memorySpaceId).toBe(GDPR_SPACE);
 
       // Verify GDPR user's facts are completely deleted (hard delete)
-      const userFactsAfter = await cortex.facts.list({
+      const userFactsAfter = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
       expect(userFactsAfter.length).toBe(0);
 
       // Verify other user's fact still exists
-      const otherUserFacts = await cortex.facts.list({
+      const otherUserFacts = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         userId: OTHER_USER,
       });
@@ -639,7 +639,7 @@ describe("GDPR: Cascade Deletion", () => {
       const GDPR_SPACE = ctx.memorySpaceId("gdpr-facts-type");
 
       // Create different types of facts
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
         fact: "User preference to delete",
@@ -649,7 +649,7 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "conversation",
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
         fact: "User knowledge to keep",
@@ -660,7 +660,7 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Delete only preference facts (partial GDPR - user requested deletion of preferences only)
-      const deleteResult = await cortex.facts.deleteMany({
+      const deleteResult = await memoir.facts.deleteMany({
         memorySpaceId: GDPR_SPACE,
         factType: "preference",
       });
@@ -668,14 +668,14 @@ describe("GDPR: Cascade Deletion", () => {
       expect(deleteResult.deleted).toBe(1);
 
       // Verify preference deleted
-      const preferenceFacts = await cortex.facts.list({
+      const preferenceFacts = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         factType: "preference",
       });
       expect(preferenceFacts.length).toBe(0);
 
       // Verify knowledge fact still exists
-      const knowledgeFacts = await cortex.facts.list({
+      const knowledgeFacts = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         factType: "knowledge",
       });
@@ -698,7 +698,7 @@ describe("GDPR: Cascade Deletion", () => {
       ] as const;
 
       for (const factType of factTypes) {
-        await cortex.facts.store({
+        await memoir.facts.store({
           memorySpaceId: GDPR_SPACE,
           userId: GDPR_USER,
           fact: `${factType} fact for complete GDPR test`,
@@ -711,14 +711,14 @@ describe("GDPR: Cascade Deletion", () => {
       }
 
       // Verify all 7 facts created
-      const factsBefore = await cortex.facts.list({
+      const factsBefore = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
       expect(factsBefore.length).toBe(7);
 
       // Execute complete GDPR deletion
-      const deleteResult = await cortex.facts.deleteMany({
+      const deleteResult = await memoir.facts.deleteMany({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
@@ -726,14 +726,14 @@ describe("GDPR: Cascade Deletion", () => {
       expect(deleteResult.deleted).toBe(7);
 
       // Verify complete deletion
-      const factsAfter = await cortex.facts.list({
+      const factsAfter = await memoir.facts.list({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
       expect(factsAfter.length).toBe(0);
 
       // Verify count matches
-      const count = await cortex.facts.count({
+      const count = await memoir.facts.count({
         memorySpaceId: GDPR_SPACE,
         userId: GDPR_USER,
       });
@@ -745,21 +745,21 @@ describe("GDPR: Cascade Deletion", () => {
     it("stats reflect deletions immediately", async () => {
       const SPACE = ctx.memorySpaceId("stats-after-delete");
 
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE,
         name: "Stats Test Space",
         type: "personal",
       });
 
       // Create data
-      const mem1 = await cortex.vector.store(SPACE, {
+      const mem1 = await memoir.vector.store(SPACE, {
         content: "Memory 1",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
         metadata: { importance: 50, tags: [] },
       });
 
-      const mem2 = await cortex.vector.store(SPACE, {
+      const mem2 = await memoir.vector.store(SPACE, {
         content: "Memory 2",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -770,27 +770,27 @@ describe("GDPR: Cascade Deletion", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Get stats before deletion
-      const statsBefore = await cortex.memorySpaces.getStats(SPACE);
+      const statsBefore = await memoir.memorySpaces.getStats(SPACE);
       expect(statsBefore.totalMemories).toBe(2);
 
       // Delete one memory
-      await cortex.vector.delete(SPACE, mem1.memoryId);
+      await memoir.vector.delete(SPACE, mem1.memoryId);
 
       // Allow time for deletion to commit
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Get stats after deletion
-      const statsAfter = await cortex.memorySpaces.getStats(SPACE);
+      const statsAfter = await memoir.memorySpaces.getStats(SPACE);
       expect(statsAfter.totalMemories).toBe(1);
 
       // Delete remaining
-      await cortex.vector.delete(SPACE, mem2.memoryId);
+      await memoir.vector.delete(SPACE, mem2.memoryId);
 
       // Allow time for deletion to commit
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Get final stats
-      const statsFinal = await cortex.memorySpaces.getStats(SPACE);
+      const statsFinal = await memoir.memorySpaces.getStats(SPACE);
       expect(statsFinal.totalMemories).toBe(0);
     });
   });
@@ -808,30 +808,30 @@ describe("GDPR: Cascade Deletion", () => {
       const spaceA = ctx.memorySpaceId("gdpr-space-a");
       const spaceB = ctx.memorySpaceId("gdpr-space-b");
 
-      // Create Cortex instances for each tenant
-      const cortexA = new Cortex({
+      // Create Memoir instances for each tenant
+      const memoirA = new Memoir({
         convexUrl: CONVEX_URL,
         auth: createTenantAuthContext(tenantA, userA),
       });
-      const cortexB = new Cortex({
+      const memoirB = new Memoir({
         convexUrl: CONVEX_URL,
         auth: createTenantAuthContext(tenantB, userB),
       });
 
       // Register spaces for each tenant
-      await cortexA.memorySpaces.register({
+      await memoirA.memorySpaces.register({
         memorySpaceId: spaceA,
         name: "Tenant A Space",
         type: "personal",
       });
-      await cortexB.memorySpaces.register({
+      await memoirB.memorySpaces.register({
         memorySpaceId: spaceB,
         name: "Tenant B Space",
         type: "personal",
       });
 
       // Create data for each tenant
-      await cortexA.facts.store({
+      await memoirA.facts.store({
         memorySpaceId: spaceA,
         userId: userA,
         fact: "Tenant A secret data",
@@ -841,7 +841,7 @@ describe("GDPR: Cascade Deletion", () => {
         sourceType: "system",
       });
 
-      await cortexB.facts.store({
+      await memoirB.facts.store({
         memorySpaceId: spaceB,
         userId: userB,
         fact: "Tenant B secret data",
@@ -852,7 +852,7 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // GDPR delete for Tenant A
-      const deleteResult = await cortexA.facts.deleteMany({
+      const deleteResult = await memoirA.facts.deleteMany({
         memorySpaceId: spaceA,
         userId: userA,
       });
@@ -860,14 +860,14 @@ describe("GDPR: Cascade Deletion", () => {
       expect(deleteResult.deleted).toBeGreaterThanOrEqual(1);
 
       // Verify Tenant A data is deleted
-      const tenantAFacts = await cortexA.facts.list({
+      const tenantAFacts = await memoirA.facts.list({
         memorySpaceId: spaceA,
         userId: userA,
       });
       expect(tenantAFacts.length).toBe(0);
 
       // Verify Tenant B data is NOT affected
-      const tenantBFacts = await cortexB.facts.list({
+      const tenantBFacts = await memoirB.facts.list({
         memorySpaceId: spaceB,
         userId: userB,
       });
@@ -875,11 +875,11 @@ describe("GDPR: Cascade Deletion", () => {
       expect(tenantBFacts[0].fact).toBe("Tenant B secret data");
 
       // Cleanup
-      await cortexA.memorySpaces.delete(spaceA, {
+      await memoirA.memorySpaces.delete(spaceA, {
         cascade: true,
         reason: "test cleanup",
       });
-      await cortexB.memorySpaces.delete(spaceB, {
+      await memoirB.memorySpaces.delete(spaceB, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -893,29 +893,29 @@ describe("GDPR: Cascade Deletion", () => {
       const spaceA = ctx.memorySpaceId("cascade-a");
       const spaceB = ctx.memorySpaceId("cascade-b");
 
-      // Create Cortex instances
-      const cortexA = new Cortex({
+      // Create Memoir instances
+      const memoirA = new Memoir({
         convexUrl: CONVEX_URL,
         auth: createTenantAuthContext(tenantA, userA),
       });
-      const cortexB = new Cortex({
+      const memoirB = new Memoir({
         convexUrl: CONVEX_URL,
         auth: createTenantAuthContext(tenantB, userB),
       });
 
       // Setup: Create spaces and data
-      await cortexA.memorySpaces.register({
+      await memoirA.memorySpaces.register({
         memorySpaceId: spaceA,
         name: "Cascade Tenant A",
         type: "personal",
       });
-      await cortexB.memorySpaces.register({
+      await memoirB.memorySpaces.register({
         memorySpaceId: spaceB,
         name: "Cascade Tenant B",
         type: "personal",
       });
 
-      await cortexA.vector.store(spaceA, {
+      await memoirA.vector.store(spaceA, {
         content: "Tenant A memory",
         contentType: "raw",
         userId: userA,
@@ -923,7 +923,7 @@ describe("GDPR: Cascade Deletion", () => {
         metadata: { importance: 50, tags: [] },
       });
 
-      await cortexB.vector.store(spaceB, {
+      await memoirB.vector.store(spaceB, {
         content: "Tenant B memory",
         contentType: "raw",
         userId: userB,
@@ -932,26 +932,26 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // Cascade delete Tenant A's space
-      await cortexA.memorySpaces.delete(spaceA, {
+      await memoirA.memorySpaces.delete(spaceA, {
         cascade: true,
         reason: "test cleanup",
       });
 
       // Verify Tenant A space is gone
-      const spaceACheck = await cortexA.memorySpaces.get(spaceA);
+      const spaceACheck = await memoirA.memorySpaces.get(spaceA);
       expect(spaceACheck).toBeNull();
 
       // Verify Tenant B space and data still exists
-      const spaceBCheck = await cortexB.memorySpaces.get(spaceB);
+      const spaceBCheck = await memoirB.memorySpaces.get(spaceB);
       expect(spaceBCheck).not.toBeNull();
 
-      const tenantBMemories = await cortexB.vector.list({
+      const tenantBMemories = await memoirB.vector.list({
         memorySpaceId: spaceB,
       });
       expect(tenantBMemories.length).toBe(1);
 
       // Cleanup
-      await cortexB.memorySpaces.delete(spaceB, {
+      await memoirB.memorySpaces.delete(spaceB, {
         cascade: true,
         reason: "test cleanup",
       });
@@ -970,26 +970,26 @@ describe("GDPR: Cascade Deletion", () => {
       const USER_ID = `gdpr-user-${ts}`;
 
       // 1. Apply GDPR policy (purgeOnUserRequest: true)
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: orgId,
       });
 
       // 2. Verify policy allows purge on user request
-      const policy = await cortex.governance.getPolicy({
+      const policy = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
       expect(policy.conversations.retention.purgeOnUserRequest).toBe(true);
 
       // 3. Register space and create user data
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE,
         name: "GDPR Test Space",
         type: "personal",
       });
 
-      await cortex.vector.store(SPACE, {
+      await memoir.vector.store(SPACE, {
         content: "User personal data for GDPR test",
         contentType: "raw",
         userId: USER_ID,
@@ -997,7 +997,7 @@ describe("GDPR: Cascade Deletion", () => {
         metadata: { importance: 70, tags: ["personal-data"] },
       });
 
-      await cortex.facts.store({
+      await memoir.facts.store({
         memorySpaceId: SPACE,
         userId: USER_ID,
         fact: "User preference that should be deletable",
@@ -1008,12 +1008,12 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // 4. User requests deletion - GDPR policy allows it
-      const deleteResult = await cortex.vector.deleteMany({
+      const deleteResult = await memoir.vector.deleteMany({
         memorySpaceId: SPACE,
         userId: USER_ID,
       });
 
-      const factsDeleteResult = await cortex.facts.deleteMany({
+      const factsDeleteResult = await memoir.facts.deleteMany({
         memorySpaceId: SPACE,
         userId: USER_ID,
       });
@@ -1023,7 +1023,7 @@ describe("GDPR: Cascade Deletion", () => {
       expect(factsDeleteResult.deleted).toBeGreaterThanOrEqual(0);
 
       // 6. Verify no data remains
-      const remainingMemories = await cortex.vector.list({
+      const remainingMemories = await memoir.vector.list({
         memorySpaceId: SPACE,
         userId: USER_ID,
       });
@@ -1035,15 +1035,15 @@ describe("GDPR: Cascade Deletion", () => {
       const orgId = `gdpr-report-${ts}`;
 
       // 1. Apply GDPR policy
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: orgId,
       });
 
       // 2. Generate compliance report
       const now = Date.now();
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: orgId,
         period: {
           start: new Date(now - 30 * 24 * 60 * 60 * 1000), // 30 days ago
@@ -1063,20 +1063,20 @@ describe("GDPR: Cascade Deletion", () => {
       const orgId = `gdpr-stats-${ts}`;
 
       // 1. Apply GDPR policy and run enforcement
-      const gdprPolicy = await cortex.governance.getTemplate("GDPR");
-      await cortex.governance.setPolicy({
+      const gdprPolicy = await memoir.governance.getTemplate("GDPR");
+      await memoir.governance.setPolicy({
         ...gdprPolicy,
         organizationId: orgId,
       });
 
-      await cortex.governance.enforce({
+      await memoir.governance.enforce({
         layers: ["conversations", "vector"],
         rules: ["retention", "purging"],
         scope: { organizationId: orgId },
       });
 
       // 2. Get enforcement stats
-      const stats = await cortex.governance.getEnforcementStats({
+      const stats = await memoir.governance.getEnforcementStats({
         period: "30d",
         organizationId: orgId,
       });
@@ -1094,26 +1094,26 @@ describe("GDPR: Cascade Deletion", () => {
       const SPACE = ctx.memorySpaceId(`cascade-gov-${ts}`);
 
       // 1. Apply policy with audit logging enabled
-      const hipaaPolicy = await cortex.governance.getTemplate("HIPAA");
-      await cortex.governance.setPolicy({
+      const hipaaPolicy = await memoir.governance.getTemplate("HIPAA");
+      await memoir.governance.setPolicy({
         ...hipaaPolicy,
         organizationId: orgId,
       });
 
       // 2. Verify audit logging is enabled
-      const policy = await cortex.governance.getPolicy({
+      const policy = await memoir.governance.getPolicy({
         organizationId: orgId,
       });
       expect(policy.compliance.auditLogging).toBe(true);
 
       // 3. Register space and create data
-      await cortex.memorySpaces.register({
+      await memoir.memorySpaces.register({
         memorySpaceId: SPACE,
         name: "Cascade Governance Test",
         type: "personal",
       });
 
-      await cortex.vector.store(SPACE, {
+      await memoir.vector.store(SPACE, {
         content: "Test data for cascade",
         contentType: "raw",
         source: { type: "system", userId: "test-user" },
@@ -1121,18 +1121,18 @@ describe("GDPR: Cascade Deletion", () => {
       });
 
       // 4. Cascade delete the space
-      await cortex.memorySpaces.delete(SPACE, {
+      await memoir.memorySpaces.delete(SPACE, {
         cascade: true,
         reason: "GDPR governance test cleanup",
       });
 
       // 5. Verify space is deleted
-      const spaceCheck = await cortex.memorySpaces.get(SPACE);
+      const spaceCheck = await memoir.memorySpaces.get(SPACE);
       expect(spaceCheck).toBeNull();
 
       // 6. Verify compliance report can still be generated (audit trail exists)
       const now = Date.now();
-      const report = await cortex.governance.getComplianceReport({
+      const report = await memoir.governance.getComplianceReport({
         organizationId: orgId,
         period: {
           start: new Date(now - 7 * 24 * 60 * 60 * 1000),

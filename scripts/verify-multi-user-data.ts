@@ -4,7 +4,7 @@
  * Shows detailed breakdown of memories per user
  */
 
-import { Cortex } from "../src/index";
+import { Memoir } from "../src/index";
 import * as dotenv from "dotenv";
 import { resolve } from "path";
 
@@ -21,7 +21,7 @@ if (!convexUrl) {
 
 console.log(`\n📊 Verifying multi-user data in: ${convexUrl}\n`);
 
-const cortex = new Cortex({ convexUrl });
+const memoir = new Memoir({ convexUrl });
 
 const userIds = [
   "user-alice-001",
@@ -42,7 +42,7 @@ async function verify() {
     // Check memories for each user
     for (const userId of userIds) {
       try {
-        const memories = await cortex.vector.list({
+        const memories = await memoir.vector.list({
           memorySpaceId,
           userId,
           limit: 1000,
@@ -85,7 +85,7 @@ async function verify() {
     console.error("❌ Verification failed:", error);
     process.exit(1);
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 

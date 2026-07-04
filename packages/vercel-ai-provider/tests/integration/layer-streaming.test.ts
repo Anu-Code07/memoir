@@ -2,7 +2,7 @@
  * Integration Tests: Layer Streaming
  *
  * Tests the integration between createLayerStreamObserver and the
- * CortexMemoryProvider, verifying that layer events flow correctly
+ * MemoirMemoryProvider, verifying that layer events flow correctly
  * through the streaming pipeline.
  */
 
@@ -11,7 +11,7 @@ import {
   LAYER_STREAM_EVENTS,
   type StreamWriter,
 } from "../../src/streaming-helpers";
-import { CortexMemoryProvider } from "../../src/provider";
+import { MemoirMemoryProvider } from "../../src/provider";
 import {
   createTestConfig,
   createMockLLM,
@@ -63,8 +63,8 @@ function createTestSummary(
   };
 }
 
-// Mock Cortex SDK
-const mockCortex = {
+// Mock Memoir SDK
+const mockMemoir = {
   memory: {
     recall: jest.fn().mockResolvedValue({
       context: "",
@@ -87,8 +87,8 @@ const mockCortex = {
   close: jest.fn(),
 };
 
-jest.mock("@cortexmemory/sdk", () => ({
-  Cortex: jest.fn().mockImplementation(() => mockCortex),
+jest.mock("@memoir/sdk", () => ({
+  Memoir: jest.fn().mockImplementation(() => mockMemoir),
   CypherGraphAdapter: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
@@ -183,10 +183,10 @@ describe("Layer Streaming Integration", () => {
   });
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Observer with CortexMemoryProvider
+  // Observer with MemoirMemoryProvider
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  describe("observer with CortexMemoryProvider", () => {
+  describe("observer with MemoirMemoryProvider", () => {
     it("should pass layer observer to rememberStream", async () => {
       const { observer, emitTo } = createLayerStreamObserver();
       const mockWriter: StreamWriter = { write: jest.fn() };
@@ -197,7 +197,7 @@ describe("Layer Streaming Integration", () => {
         layerObserver: observer,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test message" }] }],
@@ -208,7 +208,7 @@ describe("Layer Streaming Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify observer was passed to rememberStream
-      const rememberStreamParams = mockCortex.memory.rememberStream.mock.calls[0]?.[0];
+      const rememberStreamParams = mockMemoir.memory.rememberStream.mock.calls[0]?.[0];
       expect(rememberStreamParams?.observer).toBe(observer);
     });
 
@@ -233,7 +233,7 @@ describe("Layer Streaming Integration", () => {
         layerObserver,
       });
       const mockLLM = createMockLLM();
-      const provider = new CortexMemoryProvider(mockLLM, config);
+      const provider = new MemoirMemoryProvider(mockLLM, config);
 
       const result = await provider.doStream({
         prompt: [{ role: "user", content: [{ type: "text", text: "Test" }] }],
@@ -244,7 +244,7 @@ describe("Layer Streaming Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Observer callbacks should have been passed to rememberStream
-      const params = mockCortex.memory.rememberStream.mock.calls[0]?.[0];
+      const params = mockMemoir.memory.rememberStream.mock.calls[0]?.[0];
       expect(params?.observer).toBe(layerObserver);
     });
   });

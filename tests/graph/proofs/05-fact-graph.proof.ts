@@ -13,7 +13,7 @@ import { resolve } from "path";
 // Load environment variables
 config({ path: resolve(process.cwd(), ".env.local") });
 
-import { Cortex } from "../../../src";
+import { Memoir } from "../../../src";
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
@@ -27,17 +27,17 @@ const CONVEX_URL = process.env.CONVEX_URL || "http://127.0.0.1:3210";
 const NEO4J_CONFIG = {
   uri: process.env.NEO4J_URI || "bolt://localhost:7687",
   username: process.env.NEO4J_USERNAME || "neo4j",
-  password: process.env.NEO4J_PASSWORD || "cortex-dev-password",
+  password: process.env.NEO4J_PASSWORD || "memoir-dev-password",
 };
 
 /**
  * Create a knowledge graph of facts
  */
-async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
+async function createFactKnowledgeGraph(memoir: Memoir, memorySpaceId: string) {
   const facts = [];
 
   // Create interconnected facts about a team
-  const fact1 = await cortex.facts.store({
+  const fact1 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice works at Acme Corp",
     factType: "relationship",
@@ -51,7 +51,7 @@ async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
   facts.push(fact1);
   console.log(`  ✓ Fact 1: ${fact1.fact}`);
 
-  const fact2 = await cortex.facts.store({
+  const fact2 = await memoir.facts.store({
     memorySpaceId,
     fact: "Bob works at Acme Corp",
     factType: "relationship",
@@ -65,7 +65,7 @@ async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
   facts.push(fact2);
   console.log(`  ✓ Fact 2: ${fact2.fact}`);
 
-  const fact3 = await cortex.facts.store({
+  const fact3 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice knows Bob",
     factType: "relationship",
@@ -79,7 +79,7 @@ async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
   facts.push(fact3);
   console.log(`  ✓ Fact 3: ${fact3.fact}`);
 
-  const fact4 = await cortex.facts.store({
+  const fact4 = await memoir.facts.store({
     memorySpaceId,
     fact: "Alice uses TypeScript",
     factType: "preference",
@@ -93,7 +93,7 @@ async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
   facts.push(fact4);
   console.log(`  ✓ Fact 4: ${fact4.fact}`);
 
-  const fact5 = await cortex.facts.store({
+  const fact5 = await memoir.facts.store({
     memorySpaceId,
     fact: "Bob uses TypeScript",
     factType: "preference",
@@ -107,7 +107,7 @@ async function createFactKnowledgeGraph(cortex: Cortex, memorySpaceId: string) {
   facts.push(fact5);
   console.log(`  ✓ Fact 5: ${fact5.fact}`);
 
-  const fact6 = await cortex.facts.store({
+  const fact6 = await memoir.facts.store({
     memorySpaceId,
     fact: "Acme Corp located in San Francisco",
     factType: "knowledge",
@@ -132,7 +132,7 @@ async function runFactGraphProof(adapter: GraphAdapter, dbName: string) {
   console.log(`Testing Fact Knowledge Graph with ${dbName}`);
   console.log(`${"=".repeat(60)}\n`);
 
-  const cortex = new Cortex({ convexUrl: CONVEX_URL });
+  const memoir = new Memoir({ convexUrl: CONVEX_URL });
   const timestamp = Date.now();
   const memorySpaceId = `space-facts-${timestamp}`;
 
@@ -145,18 +145,18 @@ async function runFactGraphProof(adapter: GraphAdapter, dbName: string) {
     console.log("  ✓ Schema ready\n");
 
     // ============================================================================
-    // Phase 2: Create Facts in Cortex
+    // Phase 2: Create Facts in Memoir
     // ============================================================================
     console.log("📝 Phase 2: Create Knowledge Graph Facts");
 
     // Register memory space
-    const memorySpace = await cortex.memorySpaces.register({
+    const memorySpace = await memoir.memorySpaces.register({
       memorySpaceId,
       name: "Fact Graph Test",
       type: "personal",
     });
 
-    const facts = await createFactKnowledgeGraph(cortex, memorySpaceId);
+    const facts = await createFactKnowledgeGraph(memoir, memorySpaceId);
     console.log(`  ✓ Created ${facts.length} interconnected facts\n`);
 
     // ============================================================================
@@ -311,7 +311,7 @@ async function runFactGraphProof(adapter: GraphAdapter, dbName: string) {
     console.error(`❌ Fact graph proof failed:`, error);
     throw error;
   } finally {
-    cortex.close();
+    memoir.close();
   }
 }
 
@@ -322,7 +322,7 @@ async function main() {
   console.log(
     "\n╔═══════════════════════════════════════════════════════════╗",
   );
-  console.log("║  Cortex Graph Integration - Fact Knowledge Graph Proof   ║");
+  console.log("║  Memoir Graph Integration - Fact Knowledge Graph Proof   ║");
   console.log("╚═══════════════════════════════════════════════════════════╝");
 
   // Test with Neo4j

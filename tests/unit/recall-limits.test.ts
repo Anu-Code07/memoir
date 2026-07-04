@@ -24,12 +24,12 @@ describe("Recall Limits Configuration", () => {
   // Store original env vars to restore after tests
   const originalEnv: Record<string, string | undefined> = {};
   const envVars = [
-    "CORTEX_RECALL_LIMIT_MEMORIES",
-    "CORTEX_RECALL_LIMIT_FACTS",
-    "CORTEX_RECALL_GRAPH_HOPS",
-    "CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP",
-    "CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY",
-    "CORTEX_RECALL_LIMIT_TOTAL",
+    "MEMOIR_RECALL_LIMIT_MEMORIES",
+    "MEMOIR_RECALL_LIMIT_FACTS",
+    "MEMOIR_RECALL_GRAPH_HOPS",
+    "MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP",
+    "MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY",
+    "MEMOIR_RECALL_LIMIT_TOTAL",
   ];
 
   beforeEach(() => {
@@ -66,51 +66,51 @@ describe("Recall Limits Configuration", () => {
       expect(RECALL_DEFAULTS.total).toBe(30);
     });
 
-    it("respects CORTEX_RECALL_LIMIT_MEMORIES env var", async () => {
-      process.env.CORTEX_RECALL_LIMIT_MEMORIES = "50";
+    it("respects MEMOIR_RECALL_LIMIT_MEMORIES env var", async () => {
+      process.env.MEMOIR_RECALL_LIMIT_MEMORIES = "50";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.memories).toBe(50);
     });
 
-    it("respects CORTEX_RECALL_LIMIT_FACTS env var", async () => {
-      process.env.CORTEX_RECALL_LIMIT_FACTS = "25";
+    it("respects MEMOIR_RECALL_LIMIT_FACTS env var", async () => {
+      process.env.MEMOIR_RECALL_LIMIT_FACTS = "25";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.facts).toBe(25);
     });
 
-    it("respects CORTEX_RECALL_GRAPH_HOPS env var", async () => {
-      process.env.CORTEX_RECALL_GRAPH_HOPS = "3";
+    it("respects MEMOIR_RECALL_GRAPH_HOPS env var", async () => {
+      process.env.MEMOIR_RECALL_GRAPH_HOPS = "3";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.graphHops).toBe(3);
     });
 
-    it("respects CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP env var", async () => {
-      process.env.CORTEX_RECALL_GRAPH_ENTITIES_PER_HOP = "10";
+    it("respects MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP env var", async () => {
+      process.env.MEMOIR_RECALL_GRAPH_ENTITIES_PER_HOP = "10";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.graphEntitiesPerHop).toBe(10);
     });
 
-    it("respects CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY env var", async () => {
-      process.env.CORTEX_RECALL_GRAPH_RESULTS_PER_ENTITY = "5";
+    it("respects MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY env var", async () => {
+      process.env.MEMOIR_RECALL_GRAPH_RESULTS_PER_ENTITY = "5";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.graphResultsPerEntity).toBe(5);
     });
 
-    it("respects CORTEX_RECALL_LIMIT_TOTAL env var", async () => {
-      process.env.CORTEX_RECALL_LIMIT_TOTAL = "100";
+    it("respects MEMOIR_RECALL_LIMIT_TOTAL env var", async () => {
+      process.env.MEMOIR_RECALL_LIMIT_TOTAL = "100";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.total).toBe(100);
     });
 
     it("handles invalid env var values by using defaults", async () => {
-      process.env.CORTEX_RECALL_LIMIT_MEMORIES = "not-a-number";
-      process.env.CORTEX_RECALL_LIMIT_FACTS = "";
+      process.env.MEMOIR_RECALL_LIMIT_MEMORIES = "not-a-number";
+      process.env.MEMOIR_RECALL_LIMIT_FACTS = "";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.memories).toBe(20); // Falls back to default
@@ -118,7 +118,7 @@ describe("Recall Limits Configuration", () => {
     });
 
     it("handles zero values from env vars", async () => {
-      process.env.CORTEX_RECALL_GRAPH_HOPS = "0";
+      process.env.MEMOIR_RECALL_GRAPH_HOPS = "0";
       const { RECALL_DEFAULTS } = await import("../../src/config");
 
       expect(RECALL_DEFAULTS.graphHops).toBe(0);
@@ -201,7 +201,7 @@ describe("Recall Limits Configuration", () => {
     });
 
     it("per-call overrides take precedence over env vars", async () => {
-      process.env.CORTEX_RECALL_LIMIT_MEMORIES = "1000";
+      process.env.MEMOIR_RECALL_LIMIT_MEMORIES = "1000";
       const { resolveRecallLimits } = await import("../../src/config");
 
       const result = resolveRecallLimits({ memories: 5 });
@@ -235,7 +235,7 @@ describe("Recall Limits Configuration", () => {
   describe("Configuration Hierarchy", () => {
     it("follows hierarchy: per-call > env > defaults", async () => {
       // Set env var
-      process.env.CORTEX_RECALL_LIMIT_MEMORIES = "100";
+      process.env.MEMOIR_RECALL_LIMIT_MEMORIES = "100";
 
       const { resolveRecallLimits, RECALL_DEFAULTS } = await import(
         "../../src/config"

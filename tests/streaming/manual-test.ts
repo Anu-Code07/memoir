@@ -3,12 +3,12 @@
  * Run with: npx tsx tests/streaming/manual-test.ts
  */
 
-import { Cortex } from "../../src";
+import { Memoir } from "../../src";
 
 async function main() {
   console.log("🧪 Testing RememberStream API...\n");
 
-  const cortex = new Cortex({
+  const memoir = new Memoir({
     convexUrl: process.env.CONVEX_URL || "http://127.0.0.1:3210",
   });
 
@@ -22,7 +22,7 @@ async function main() {
   }
 
   try {
-    const result1 = await cortex.memory.rememberStream({
+    const result1 = await memoir.memory.rememberStream({
       memorySpaceId: "manual-test-space",
       conversationId: `manual-test-${Date.now()}`,
       userMessage: "Say hello",
@@ -55,7 +55,7 @@ async function main() {
   }
 
   try {
-    const result2 = await cortex.memory.rememberStream(
+    const result2 = await memoir.memory.rememberStream(
       {
         memorySpaceId: "manual-test-space",
         conversationId: `manual-hooks-${Date.now()}`,
@@ -99,7 +99,7 @@ async function main() {
   }
 
   try {
-    const result3 = await cortex.memory.rememberStream({
+    const result3 = await memoir.memory.rememberStream({
       memorySpaceId: "manual-test-space",
       conversationId: `manual-metrics-${Date.now()}`,
       userMessage: "Test metrics",
@@ -150,7 +150,7 @@ async function main() {
   }
 
   try {
-    await cortex.memory.rememberStream({
+    await memoir.memory.rememberStream({
       memorySpaceId: "manual-test-space",
       conversationId: `manual-empty-${Date.now()}`,
       userMessage: "Empty test",

@@ -2,14 +2,14 @@
 
 **📍 The changelog has moved!**
 
-View the complete changelog at: **https://docs.cortexmemory.dev/whats-new**
+View the complete changelog at: **https://github.com/Anu-Code07/memoir/tree/main/Documentation/whats-new**
 
-All releases across the Cortex ecosystem are now unified in one easy-to-browse timeline:
+All releases across the Memoir ecosystem are now unified in one easy-to-browse timeline:
 
-- **TypeScript SDK** (`@cortexmemory/sdk`)
-- **Python SDK** (`cortex-sdk-python`)
-- **CLI** (`@cortexmemory/cli`)
-- **Vercel AI Provider** (`@cortexmemory/vercel-ai-provider`)
+- **TypeScript SDK** (`@memoir/sdk`)
+- **Python SDK** (`memoir-sdk-python`)
+- **CLI** (`@memoir/cli`)
+- **Vercel AI Provider** (`@memoir/vercel-ai-provider`)
 
 The new changelog features:
 
