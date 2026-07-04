@@ -528,8 +528,8 @@ Memoir was born out of building [Project Constellation](https://github.com/Saint
 
 **⭐ Star this repo if you're building AI agents with persistent memory ⭐**
 
-Built with ❤️ for the AI agent community by Nicholas Geil
+Built with ❤️ for the AI agent community by [Anu-Code07](https://github.com/Anu-Code07)
 
-*Copyright 2025 Nicholas Geil*
+*Copyright 2025 Anu-Code07*
 
 *Memoir is production-ready. Join [Discussions](https://github.com/Anu-Code07/memoir/discussions) to share your use case and help shape the future of AI agent memory.*

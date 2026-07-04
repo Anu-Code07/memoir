@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="memoir",
     version="0.32.0",
-    author="Nicholas Geil",
+    author="Anurag Singh (Anu-Code07)",
     author_email="support@memoir.dev",
     description="AI agent memory SDK built on Convex - ACID storage, vector search, and conversation management",
     long_description=long_description,

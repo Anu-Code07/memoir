@@ -482,4 +482,4 @@ FSL-1.1-Apache-2.0 - Same as the TypeScript SDK
 
 **Built with ❤️ for the AI agent community**
 
-Copyright 2025 Nicholas Geil
+Copyright 2025 Anurag Singh / Anu-Code07

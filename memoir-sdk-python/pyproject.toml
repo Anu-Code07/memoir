@@ -7,7 +7,7 @@ name = "memoir"
 version = "0.36.0"
 description = "AI agent memory SDK built on Convex - ACID storage, vector search, and conversation management"
 readme = "README.md"
-authors = [{name = "Nicholas Geil", email = "support@memoir.dev"}]
+authors = [{name = "Anurag Singh (Anu-Code07)", email = "support@memoir.dev"}]
 license = {file = "LICENSE.md"}
 requires-python = ">=3.10"
 keywords = [
