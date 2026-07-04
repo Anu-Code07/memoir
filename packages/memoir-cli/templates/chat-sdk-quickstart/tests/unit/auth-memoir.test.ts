@@ -13,7 +13,7 @@ import { auth } from "@/app/(auth)/auth";
 import type { AuthSession } from "@/lib/auth-memoir";
 
 // Mock the createAuthContext function from SDK
-vi.mock("@memoir/sdk", () => ({
+vi.mock("@getmemoir/sdk", () => ({
   createAuthContext: vi.fn((input) => ({
     ...input,
     _type: "AuthContext",

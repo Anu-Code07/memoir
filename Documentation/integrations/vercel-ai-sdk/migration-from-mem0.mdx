@@ -48,7 +48,7 @@ const result = await streamText({
 ### After (Memoir)
 
 ```typescript
-import { createMemoirMemory } from "@memoir/vercel-ai-provider";
+import { createMemoirMemory } from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 
 const memoirMemory = createMemoirMemory({
@@ -71,14 +71,14 @@ const result = await streamText({
 
 <Terminal>
 npx convex dev
-npx @memoir/cli init
+npx @getmemoir/cli init
 </Terminal>
 
 ### 2. Install Memoir Provider
 
 <Terminal>
 npm uninstall @mem0/vercel-ai-provider
-npm install @memoir/vercel-ai-provider
+npm install @getmemoir/vercel-ai-provider
 </Terminal>
 
 ### 3. Update Imports
@@ -88,7 +88,7 @@ npm install @memoir/vercel-ai-provider
 import { createMem0 } from "@mem0/vercel-ai-provider";
 
 // After
-import { createMemoirMemory } from "@memoir/vercel-ai-provider";
+import { createMemoirMemory } from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 ```
 
@@ -213,7 +213,7 @@ with open('memories.json', 'w') as f:
 ### Importing to Memoir
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import fs from "fs";
 
 const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });

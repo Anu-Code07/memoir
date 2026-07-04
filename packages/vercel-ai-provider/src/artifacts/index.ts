@@ -11,7 +11,7 @@
  *   ArtifactStreamer,
  *   MemoirArtifact,
  *   ArtifactKind,
- * } from '@memoir/vercel-ai-provider';
+ * } from '@getmemoir/vercel-ai-provider';
  *
  * // Create tools for AI to use
  * const tools = createArtifactTools({

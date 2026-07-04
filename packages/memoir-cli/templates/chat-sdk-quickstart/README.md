@@ -35,7 +35,7 @@
 - **Database**: [Convex](https://convex.dev) for real-time data sync
 - **Auth**: [Auth.js](https://authjs.dev) v5
 - **UI**: [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS](https://tailwindcss.com)
-- **Memory**: [@memoir/sdk](https://github.com/Anu-Code07/memoir) + [@memoir/vercel-ai-provider](https://github.com/Anu-Code07/memoir/docs/integrations/vercel-ai-sdk)
+- **Memory**: [@getmemoir/sdk](https://github.com/Anu-Code07/memoir) + [@getmemoir/vercel-ai-provider](https://github.com/Anu-Code07/memoir/docs/integrations/vercel-ai-sdk)
 
 ## Prerequisites
 
@@ -232,7 +232,7 @@ chat-sdk-quickstart/
 `app/(chat)/api/chat/route.ts` — Main endpoint that integrates Memoir:
 
 ```typescript
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
 import { getMemoirMemoryConfig } from "@/lib/memoir-config";
 
 // Create memory configuration

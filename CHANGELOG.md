@@ -6,10 +6,10 @@ View the complete changelog at: **https://github.com/Anu-Code07/memoir/tree/main
 
 All releases across the Memoir ecosystem are now unified in one easy-to-browse timeline:
 
-- **TypeScript SDK** (`@memoir/sdk`)
+- **TypeScript SDK** (`@getmemoir/sdk`)
 - **Python SDK** (`memoir-sdk-python`)
-- **CLI** (`@memoir/cli`)
-- **Vercel AI Provider** (`@memoir/vercel-ai-provider`)
+- **CLI** (`@getmemoir/cli`)
+- **Vercel AI Provider** (`@getmemoir/vercel-ai-provider`)
 
 The new changelog features:
 

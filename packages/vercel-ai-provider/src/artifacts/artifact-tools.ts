@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { createArtifactTools } from '@memoir/vercel-ai-provider';
+ * import { createArtifactTools } from '@getmemoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  *
  * const result = streamText({
@@ -322,7 +322,7 @@ function chunkContent(content: string, chunkSize: number): string[] {
  *
  * @example
  * ```typescript
- * import { createArtifactTools } from '@memoir/vercel-ai-provider';
+ * import { createArtifactTools } from '@getmemoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *

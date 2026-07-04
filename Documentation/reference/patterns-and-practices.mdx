@@ -238,7 +238,7 @@ console.log("Descendants:", chain.descendants.length); // Walk down
 // Native Graph DB (planned): Complex queries
 // Note: memoir.graph.traverse() is planned for a future release.
 // Currently, use the low-level graph adapter directly:
-// import { CypherGraphAdapter } from "@memoir/sdk/graph";
+// import { CypherGraphAdapter } from "@getmemoir/sdk/graph";
 // const graphAdapter = new CypherGraphAdapter();
 // await graphAdapter.connect({ uri, username, password });
 // const related = await graphAdapter.traverse({
@@ -327,7 +327,7 @@ await memoir.memory.deleteMany("user-123-personal", oldDebugLogs);
 Always catch and handle errors with type information:
 
 ```typescript
-import { MemoryValidationError, CircuitOpenError } from '@memoir/sdk';
+import { MemoryValidationError, CircuitOpenError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.store("user-123-personal", data);

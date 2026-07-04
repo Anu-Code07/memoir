@@ -6,7 +6,7 @@
  */
 
 import { createMemoirMemory } from "../../src/index";
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import {
   createTestMemorySpaceId,
   createTestUserId,

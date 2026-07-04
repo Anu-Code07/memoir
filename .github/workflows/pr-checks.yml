@@ -474,16 +474,16 @@ jobs:
         run: npm run build
 
       - name: Run Vercel AI Provider tests
-        run: npm test --workspace=@memoir/vercel-ai-provider
+        run: npm test --workspace=@getmemoir/vercel-ai-provider
 
       - name: Lint Vercel AI Provider
-        run: npm run lint --workspace=@memoir/vercel-ai-provider
+        run: npm run lint --workspace=@getmemoir/vercel-ai-provider
 
       - name: Build Vercel AI Provider
-        run: npm run build --workspace=@memoir/vercel-ai-provider
+        run: npm run build --workspace=@getmemoir/vercel-ai-provider
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@memoir/vercel-ai-provider
+        run: npm pack --dry-run --workspace=@getmemoir/vercel-ai-provider
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # STAGE 3: CLI Tests (parallel with other test jobs)
@@ -531,20 +531,20 @@ jobs:
         run: npm run build
 
       - name: Run CLI unit tests
-        run: npm run test:unit --workspace=@memoir/cli
+        run: npm run test:unit --workspace=@getmemoir/cli
 
       - name: Run CLI E2E tests
-        run: npm run test:e2e --workspace=@memoir/cli
+        run: npm run test:e2e --workspace=@getmemoir/cli
         env:
           CONVEX_URL_CLI: ${{ secrets.CONVEX_URL_CLI }}
           CONVEX_URL: ${{ secrets.CONVEX_URL_CLI }}
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY_CLI }}
 
       - name: Lint CLI
-        run: npm run lint --workspace=@memoir/cli
+        run: npm run lint --workspace=@getmemoir/cli
 
       - name: Build CLI
-        run: npm run build --workspace=@memoir/cli
+        run: npm run build --workspace=@getmemoir/cli
 
       - name: Verify CLI version matches package.json
         run: |
@@ -563,7 +563,7 @@ jobs:
           echo "✅ CLI version matches package.json"
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@memoir/cli
+        run: npm pack --dry-run --workspace=@getmemoir/cli
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # STAGE 4: All Checks Passed (final gate)

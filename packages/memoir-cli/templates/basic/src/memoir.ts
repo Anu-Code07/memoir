@@ -5,8 +5,8 @@
  * Includes optional embeddings, fact extraction, and belief revision.
  */
 
-import { Memoir } from "@memoir/sdk";
-import type { RememberParams } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
+import type { RememberParams } from "@getmemoir/sdk";
 import {
   printLayerUpdate,
   printRecallStart,

@@ -28,7 +28,7 @@ import type {
   Message as MemoirMessage,
   Artifact,
   ArtifactVersion,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 

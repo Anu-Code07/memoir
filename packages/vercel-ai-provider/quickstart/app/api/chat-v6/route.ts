@@ -16,8 +16,8 @@
 import {
   createMemoirMemoryAsync,
   createLayerStreamObserver,
-} from "@memoir/vercel-ai-provider";
-import type { MemoirMemoryConfig } from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
+import type { MemoirMemoryConfig } from "@getmemoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,

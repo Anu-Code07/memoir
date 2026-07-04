@@ -1,5 +1,5 @@
 {
-  "name": "@memoir/chat-sdk-quickstart",
+  "name": "@getmemoir/chat-sdk-quickstart",
   "version": "1.0.0",
   "private": true,
   "description": "Memoir + AI Chatbot SDK Quickstart - Based on vercel/ai-chatbot at commit 9d5d8a3ea7968522a37ab1cc145a6c0ef8a9dd2e",
@@ -29,8 +29,8 @@
     "@codemirror/state": "^6.5.4",
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.39.11",
-    "@memoir/sdk": "file:../../..",
-    "@memoir/vercel-ai-provider": "file:..",
+    "@getmemoir/sdk": "file:../../..",
+    "@getmemoir/vercel-ai-provider": "file:..",
     "@icons-pack/react-simple-icons": "^13.8.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.211.0",

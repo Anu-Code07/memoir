@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createMockAuthContext } from "../helpers/mock-memoir";
 
 // Mock the Memoir SDK before importing the module under test
-vi.mock("@memoir/sdk", () => ({
+vi.mock("@getmemoir/sdk", () => ({
   Memoir: vi.fn().mockImplementation((config) => ({
     _config: config,
     conversations: {},

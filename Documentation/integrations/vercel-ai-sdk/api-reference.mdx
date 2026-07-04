@@ -2,7 +2,7 @@
 
 <Callout type="info"> **Last Updated**: 2026-01-25 | **Version**: v0.35.1+ </Callout>
 
-Complete API documentation for @memoir/vercel-ai-provider (SDK v0.21.0+)
+Complete API documentation for @getmemoir/vercel-ai-provider (SDK v0.21.0+)
 
 ## createMemoirMemory(config)
 
@@ -473,7 +473,7 @@ interface OrchestrationSummary {
 **NEW in v0.35.1** - React hook for phase-aware layer tracking.
 
 ```typescript
-import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
+import { useLayerTracking } from "@getmemoir/vercel-ai-provider/react";
 ```
 
 ### Returns
@@ -511,7 +511,7 @@ interface UseLayerTrackingResult {
 ### Example Usage
 
 ```typescript
-import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
+import { useLayerTracking } from "@getmemoir/vercel-ai-provider/react";
 import { useChat } from "@ai-sdk/react";
 
 function ChatComponent() {
@@ -582,14 +582,14 @@ export type {
   RecallSummary,           // NEW in v0.35.1
   OrchestrationPhase,      // NEW in v0.35.1
   RevisionAction,
-} from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
 
 // React hook exports
 export {
   useLayerTracking,        // NEW in v0.35.1
   RECALL_LAYERS,           // NEW in v0.35.1
   REMEMBER_LAYERS,         // NEW in v0.35.1
-} from "@memoir/vercel-ai-provider/react";
+} from "@getmemoir/vercel-ai-provider/react";
 ```
 
 <Callout type="info">

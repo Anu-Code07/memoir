@@ -27,7 +27,7 @@ import {
   createMemoirCallOptionsSchema,
   createMemoryPrepareCall,
   type MemoirCallOptions,
-} from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Agent Configuration
@@ -118,7 +118,7 @@ export const memoryAgent = new ToolLoopAgent({
         query: z.string().describe('What to search for in memory'),
       }),
       execute: async ({ query }, { options }) => {
-        const { Memoir } = await import('@memoir/sdk');
+        const { Memoir } = await import('@getmemoir/sdk');
         const memoir = new Memoir({ convexUrl: process.env.CONVEX_URL! });
         const result = await memoir.memory.recall({
           memorySpaceId: options.memorySpaceId,

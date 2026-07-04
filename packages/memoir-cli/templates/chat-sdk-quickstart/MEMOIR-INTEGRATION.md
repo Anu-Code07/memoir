@@ -50,8 +50,8 @@ Memoir transforms a stateless AI chatbot into one with persistent, intelligent m
 The main integration happens in `app/(chat)/api/chat/route.ts`:
 
 ```typescript
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
-import type { LayerObserver } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
+import type { LayerObserver } from "@getmemoir/vercel-ai-provider";
 import { getMemoirMemoryConfig, getMemorySpaceId } from "@/lib/memoir-config";
 
 export async function POST(request: Request) {
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
 Centralized configuration in `lib/memoir-config.ts`:
 
 ```typescript
-import type { MemoirMemoryConfig, LayerObserver } from "@memoir/vercel-ai-provider";
+import type { MemoirMemoryConfig, LayerObserver } from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
 
@@ -171,7 +171,7 @@ export function getMemoirMemoryConfig(
 The Memory Retrieval Panel in `components/memory-retrieval-panel.tsx` provides real-time feedback:
 
 ```typescript
-import type { LayerState, MemoryLayer } from "@memoir/vercel-ai-provider/react";
+import type { LayerState, MemoryLayer } from "@getmemoir/vercel-ai-provider/react";
 
 interface MemoryRetrievalPanelProps {
   layers: Record<MemoryLayer, LayerState>;

@@ -22,7 +22,7 @@ import type {
   ValidationOptions,
   ValidationResult,
 } from "../types.js";
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 /**
  * Default configuration
@@ -365,14 +365,14 @@ function detectAppType(
 
     // Check for vercel-ai-quickstart pattern
     if (
-      deps["@memoir/vercel-ai-provider"] &&
+      deps["@getmemoir/vercel-ai-provider"] &&
       (deps["next"] || deps["@ai-sdk/react"])
     ) {
       return "vercel-ai-quickstart";
     }
 
     // Check for basic app pattern
-    if (deps["@memoir/sdk"] && !deps["next"]) {
+    if (deps["@getmemoir/sdk"] && !deps["next"]) {
       return "basic";
     }
 
@@ -389,8 +389,8 @@ function detectAppType(
  * yet registered in the config's apps section.
  *
  * Patterns detected:
- * - quickstart/ folder with Next.js + @memoir/vercel-ai-provider
- * - Any folder with @memoir/sdk (basic app)
+ * - quickstart/ folder with Next.js + @getmemoir/vercel-ai-provider
+ * - Any folder with @getmemoir/sdk (basic app)
  *
  * @param config - Current CLI configuration
  * @returns Array of discovered apps not yet registered

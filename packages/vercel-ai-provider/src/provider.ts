@@ -4,8 +4,8 @@
  * Wraps language models with automatic memory retrieval and storage
  */
 
-import { Memoir, CypherGraphAdapter } from "@memoir/sdk";
-import type { RecallResult, GraphAdapter } from "@memoir/sdk";
+import { Memoir, CypherGraphAdapter } from "@getmemoir/sdk";
+import type { RecallResult, GraphAdapter } from "@getmemoir/sdk";
 import type { MemoirMemoryConfig, Logger } from "./types";
 import {
   resolveUserId,

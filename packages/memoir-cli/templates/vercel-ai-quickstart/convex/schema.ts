@@ -2,7 +2,7 @@
  * Convex schema for the quickstart demo
  *
  * This extends the Memoir SDK schema to add any demo-specific tables.
- * The actual memory tables (conversations, memories, facts) come from @memoir/sdk.
+ * The actual memory tables (conversations, memories, facts) come from @getmemoir/sdk.
  */
 
 import { defineSchema, defineTable } from "convex/server";

@@ -387,19 +387,19 @@ async function checkSdkVersion(): Promise<{
   try {
     const currentResult = await execWithTimeout(
       "npm",
-      ["list", "@memoir/sdk", "--json"],
+      ["list", "@getmemoir/sdk", "--json"],
       { cwd, timeoutMs: 5000 },
     );
     if (currentResult.code === 0) {
       const data = JSON.parse(currentResult.stdout);
       result.current =
-        data.dependencies?.["@memoir/sdk"]?.version || null;
+        data.dependencies?.["@getmemoir/sdk"]?.version || null;
     }
 
     if (currentResult.code !== -1) {
       const latestResult = await execWithTimeout(
         "npm",
-        ["view", "@memoir/sdk", "version"],
+        ["view", "@getmemoir/sdk", "version"],
         { timeoutMs: 3000 },
       );
       if (latestResult.code === 0 && latestResult.stdout) {

@@ -16,7 +16,7 @@ const mockStorage = {
 };
 
 // Create mock Memoir SDK
-jest.mock("@memoir/sdk", () => {
+jest.mock("@getmemoir/sdk", () => {
   const mockMemory = {
     search: jest.fn().mockImplementation(() => mockStorage.searchResult),
     remember: jest.fn().mockResolvedValue({
@@ -66,7 +66,7 @@ jest.mock("@memoir/sdk", () => {
 
 // Get access to mocks
 const { __mockMemory: mockMemory, __mockInstance: mockMemoir } =
-  jest.requireMock("@memoir/sdk");
+  jest.requireMock("@getmemoir/sdk");
 
 // Reset mocks between tests
 beforeEach(() => {

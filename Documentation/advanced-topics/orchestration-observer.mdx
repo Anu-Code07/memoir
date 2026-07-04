@@ -41,7 +41,7 @@ The **OrchestrationObserver** API provides real-time callbacks for each phase, e
 ## Quick Start
 
 ```typescript
-import { Memoir, OrchestrationObserver } from "@memoir/sdk";
+import { Memoir, OrchestrationObserver } from "@getmemoir/sdk";
 
 const memoir = new Memoir({ convexUrl: "..." });
 
@@ -391,7 +391,7 @@ import type {
   OrchestrationObserver,
   RecallSummary,
   OrchestrationSummary,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 function useOrchestrationProgress() {
   const [recallLayers, setRecallLayers] = useState<Record<string, LayerEvent>>({});
@@ -491,7 +491,7 @@ For Vercel AI SDK apps, bridge events to the client via data streams:
 ```typescript
 // API Route
 import { createDataStreamResponse, streamText } from "ai";
-import type { OrchestrationObserver } from "@memoir/sdk";
+import type { OrchestrationObserver } from "@getmemoir/sdk";
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
@@ -546,7 +546,7 @@ export async function POST(req: Request) {
 ```typescript
 // Client Component - using useLayerTracking hook
 import { useChat } from "@ai-sdk/react";
-import { useLayerTracking } from "@memoir/vercel-ai-provider/react";
+import { useLayerTracking } from "@getmemoir/vercel-ai-provider/react";
 
 function Chat() {
   const {
@@ -576,7 +576,7 @@ function Chat() {
 ```
 
 <Callout type="tip">
-The `useLayerTracking` hook from `@memoir/vercel-ai-provider/react` provides built-in state management for phase-aware layer tracking. See [useLayerTracking Hook](/integrations/vercel-ai-sdk/api-reference#uselayertracking-hook) for full documentation.
+The `useLayerTracking` hook from `@getmemoir/vercel-ai-provider/react` provides built-in state management for phase-aware layer tracking. See [useLayerTracking Hook](/integrations/vercel-ai-sdk/api-reference#uselayertracking-hook) for full documentation.
 </Callout>
 
 ## Native Reasoning Panel Integration
@@ -629,8 +629,8 @@ Here's how to emit reasoning parts from your API route:
 ```typescript
 // API Route with reasoning panel integration
 import { createUIMessageStream, streamText } from "ai";
-import { createMemoirMemoryAsync } from "@memoir/vercel-ai-provider";
-import type { LayerObserver } from "@memoir/vercel-ai-provider";
+import { createMemoirMemoryAsync } from "@getmemoir/vercel-ai-provider";
+import type { LayerObserver } from "@getmemoir/vercel-ai-provider";
 
 export async function POST(request: Request) {
   const { messages } = await request.json();

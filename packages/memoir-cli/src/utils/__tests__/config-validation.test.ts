@@ -29,7 +29,7 @@ const mockMemoirClose: any = jest.fn();
  
 const mockMemorySpacesList: any = jest.fn();
 
-jest.unstable_mockModule("@memoir/sdk", () => ({
+jest.unstable_mockModule("@getmemoir/sdk", () => ({
   Memoir: jest.fn().mockImplementation(() => ({
     memorySpaces: { list: mockMemorySpacesList },
     close: mockMemoirClose,
@@ -46,7 +46,7 @@ jest.unstable_mockModule("cosmiconfig", () => ({
 // Import after mocks
 const { existsSync } = await import("fs");
 const { writeFile } = await import("fs/promises");
-const { Memoir } = await import("@memoir/sdk");
+const { Memoir } = await import("@getmemoir/sdk");
 
 // Import the module under test
 const { validateAndCleanConfig, loadConfigWithValidation } =

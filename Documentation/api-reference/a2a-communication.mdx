@@ -1767,7 +1767,7 @@ For advanced graph analytics (community detection, centrality, influence metrics
 The SDK exports a custom error class for validation failures:
 
 ```typescript
-import { A2AValidationError } from "@memoir/sdk/a2a";
+import { A2AValidationError } from "@getmemoir/sdk/a2a";
 
 // Error properties
 interface A2AValidationError extends Error {
@@ -1796,7 +1796,7 @@ try {
 Thrown when request() times out waiting for a response:
 
 ```typescript
-import { A2ATimeoutError } from "@memoir/sdk";
+import { A2ATimeoutError } from "@getmemoir/sdk";
 
 interface A2ATimeoutError extends Error {
   name: "A2ATimeoutError";

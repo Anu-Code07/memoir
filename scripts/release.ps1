@@ -74,14 +74,14 @@ Write-Host "✅ GitHub release created!`n" -ForegroundColor Green
 
 # Step 8: Verify
 Write-Host "🔍 Step 8: Verifying release..." -ForegroundColor Yellow
-Write-Host "npm view @memoir/sdk version" -ForegroundColor Cyan
-npm view @memoir/sdk version
+Write-Host "npm view @getmemoir/sdk version" -ForegroundColor Cyan
+npm view @getmemoir/sdk version
 Write-Host ""
 
 Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Green
 Write-Host "  ✅ RELEASE COMPLETE!" -ForegroundColor Green
 Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Green
-Write-Host "`n📦 Package: @memoir/sdk@$Version" -ForegroundColor Cyan
-Write-Host "📚 npm: https://www.npmjs.com/package/@memoir/sdk" -ForegroundColor Cyan
+Write-Host "`n📦 Package: @getmemoir/sdk@$Version" -ForegroundColor Cyan
+Write-Host "📚 npm: https://www.npmjs.com/package/@getmemoir/sdk" -ForegroundColor Cyan
 Write-Host "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/v$Version`n" -ForegroundColor Cyan
 

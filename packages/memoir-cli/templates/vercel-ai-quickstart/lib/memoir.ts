@@ -4,7 +4,7 @@
  * Shared Memoir client instance for API routes.
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 let memoirClient: Memoir | null = null;
 

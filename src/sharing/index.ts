@@ -31,7 +31,7 @@ export interface ShareUrlConfig {
  *
  * @example
  * ```typescript
- * import { buildShareUrl } from '@memoir/sdk';
+ * import { buildShareUrl } from '@getmemoir/sdk';
  *
  * // Path style (default): https://myapp.com/shared/share-abc123
  * const url1 = buildShareUrl('share-abc123', {
@@ -74,7 +74,7 @@ export function buildShareUrl(shareId: string, config: ShareUrlConfig): string {
  *
  * @example
  * ```typescript
- * import { extractShareId } from '@memoir/sdk';
+ * import { extractShareId } from '@getmemoir/sdk';
  *
  * // From path style
  * extractShareId('https://myapp.com/shared/share-abc123', { style: 'path' });

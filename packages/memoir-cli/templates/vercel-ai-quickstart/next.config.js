@@ -2,8 +2,8 @@ const path = require("path");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@memoir/vercel-ai-provider"],
-  serverExternalPackages: ["convex", "neo4j-driver", "@memoir/sdk"],
+  transpilePackages: ["@getmemoir/vercel-ai-provider"],
+  serverExternalPackages: ["convex", "neo4j-driver", "@getmemoir/sdk"],
   // Disable image optimization to avoid sharp dependency (LGPL licensed)
   // This quickstart doesn't use image optimization features
   images: {

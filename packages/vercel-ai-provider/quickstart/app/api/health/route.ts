@@ -1,4 +1,4 @@
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 /**
  * Health check endpoint to verify all backend services

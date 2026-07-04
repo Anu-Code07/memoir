@@ -48,7 +48,7 @@ export async function isV6Available(): Promise<boolean> {
  * @example
  * ```typescript
  * import { z } from 'zod';
- * import { MemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
+ * import { MemoirCallOptionsSchema } from '@getmemoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'openai/gpt-4o-mini',
@@ -91,7 +91,7 @@ export interface MemoirCallOptions {
  *
  * @example
  * ```typescript
- * import { createMemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
+ * import { createMemoirCallOptionsSchema } from '@getmemoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'anthropic/claude-sonnet-4.5',
@@ -154,7 +154,7 @@ export interface MemoirMessageMetadata {
  *
  * @example
  * ```typescript
- * import { InferAgentUIMessage } from '@memoir/vercel-ai-provider';
+ * import { InferAgentUIMessage } from '@getmemoir/vercel-ai-provider';
  * import { myAgent } from './agents/my-agent';
  *
  * type MyAgentMessage = InferAgentUIMessage<typeof myAgent>;
@@ -239,7 +239,7 @@ export function defaultMemoryContextFormatter(recallContext: string): string {
  * @example
  * ```typescript
  * import { ToolLoopAgent } from 'ai';
- * import { createMemoryPrepareCall, createMemoirCallOptionsSchema } from '@memoir/vercel-ai-provider';
+ * import { createMemoryPrepareCall, createMemoirCallOptionsSchema } from '@getmemoir/vercel-ai-provider';
  *
  * const myAgent = new ToolLoopAgent({
  *   model: 'openai/gpt-4o-mini',
@@ -299,7 +299,7 @@ export function createMemoryPrepareCall(config: MemoryInjectionConfig) {
     }
 
     // Dynamic import to avoid bundling issues
-    const { Memoir } = await import("@memoir/sdk");
+    const { Memoir } = await import("@getmemoir/sdk");
     const memoir = new Memoir({ convexUrl });
 
     try {
@@ -379,7 +379,7 @@ export interface MemoirAgentStreamOptions {
  * @example
  * ```typescript
  * // app/api/chat/route.ts
- * import { createMemoirAgentStreamResponse } from '@memoir/vercel-ai-provider';
+ * import { createMemoirAgentStreamResponse } from '@getmemoir/vercel-ai-provider';
  * import { myAgent } from '@/agents/my-agent';
  *
  * export async function POST(req: Request) {

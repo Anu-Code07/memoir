@@ -32,7 +32,7 @@ export async function deployMemoirBackend(projectPath: string): Promise<void> {
     const exists = fs.existsSync(nodeModulesPath);
 
     throw new Error(
-      `Could not locate @memoir/sdk package. ` +
+      `Could not locate @getmemoir/sdk package. ` +
         `Checked: ${path.join(projectPath, "node_modules", "@memoir", "sdk")} ` +
         `(@memoir folder exists: ${exists})`,
     );
@@ -45,7 +45,7 @@ export async function deployMemoirBackend(projectPath: string): Promise<void> {
   if (!fs.existsSync(convexDevPath)) {
     throw new Error(
       `Convex backend functions not found at ${convexDevPath}. ` +
-        "Please ensure you are using @memoir/sdk v0.8.1 or later.",
+        "Please ensure you are using @getmemoir/sdk v0.8.1 or later.",
     );
   }
 

@@ -40,8 +40,8 @@ If you want to use the published npm packages instead, update `package.json`:
 ```json
 {
   "dependencies": {
-    "@memoir/sdk": "^0.24.0",
-    "@memoir/vercel-ai-provider": "^1.0.0"
+    "@getmemoir/sdk": "^0.24.0",
+    "@getmemoir/vercel-ai-provider": "^1.0.0"
     // ... other deps
   }
 }
@@ -108,7 +108,7 @@ When you send a message, you'll see it flow through these layers:
 The chat API route at `/app/api/chat/route.ts` shows how to configure the Memoir provider:
 
 ```typescript
-import { createMemoirMemory } from "@memoir/vercel-ai-provider";
+import { createMemoirMemory } from "@getmemoir/vercel-ai-provider";
 import { openai, createOpenAI } from "@ai-sdk/openai";
 import { streamText, embed } from "ai";
 

@@ -114,7 +114,7 @@ jobs:
           echo "📦 SDK version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @memoir/sdk version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @getmemoir/sdk version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -135,7 +135,7 @@ jobs:
           echo "📦 Vercel AI Provider version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @memoir/vercel-ai-provider version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @getmemoir/vercel-ai-provider version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -156,7 +156,7 @@ jobs:
           echo "📦 CLI version: $CURRENT_VERSION"
 
           # Get published version from npm (or 0.0.0 if not published yet)
-          NPM_VERSION=$(npm view @memoir/cli version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @getmemoir/cli version 2>/dev/null || echo "0.0.0")
           echo "📚 npm version: $NPM_VERSION"
 
           # Compare versions (publish if package.json > npm)
@@ -270,12 +270,12 @@ jobs:
 
           ### Quick Start
           \`\`\`bash
-          npx @memoir/cli init
+          npx @getmemoir/cli init
           \`\`\`
 
           ### Install SDK Only
           \`\`\`bash
-          npm install @memoir/sdk@$VERSION
+          npm install @getmemoir/sdk@$VERSION
           \`\`\`"
 
       - name: Verify npm publish
@@ -283,7 +283,7 @@ jobs:
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @memoir/sdk version 2>/dev/null; then
+            if npm view @getmemoir/sdk version 2>/dev/null; then
               echo "✅ SDK published successfully!"
               exit 0
             fi
@@ -300,8 +300,8 @@ jobs:
           echo "  ✅ SDK PUBLISHED!"
           echo "════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @memoir/sdk@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@memoir/sdk"
+          echo "📦 Package: @getmemoir/sdk@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@getmemoir/sdk"
           echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/v$VERSION"
           echo ""
 
@@ -348,10 +348,10 @@ jobs:
         run: npm run build
 
       - name: Build package
-        run: npm run build --workspace=@memoir/vercel-ai-provider
+        run: npm run build --workspace=@getmemoir/vercel-ai-provider
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@memoir/vercel-ai-provider
+        run: npm pack --dry-run --workspace=@getmemoir/vercel-ai-provider
 
       - name: Debug OIDC environment
         run: |
@@ -386,12 +386,12 @@ jobs:
 
           ### Installation
           \`\`\`bash
-          npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
+          npm install @getmemoir/vercel-ai-provider @getmemoir/sdk ai convex
           \`\`\`
 
           ### Quick Start
           \`\`\`typescript
-          import { createMemoirMemory } from '@memoir/vercel-ai-provider';
+          import { createMemoirMemory } from '@getmemoir/vercel-ai-provider';
           import { openai } from '@ai-sdk/openai';
           import { streamText } from 'ai';
 
@@ -417,7 +417,7 @@ jobs:
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @memoir/vercel-ai-provider version 2>/dev/null; then
+            if npm view @getmemoir/vercel-ai-provider version 2>/dev/null; then
               echo "✅ Vercel AI Provider published successfully!"
               exit 0
             fi
@@ -434,11 +434,11 @@ jobs:
           echo "  ✅ VERCEL AI PROVIDER PUBLISHED!"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @memoir/vercel-ai-provider@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@memoir/vercel-ai-provider"
+          echo "📦 Package: @getmemoir/vercel-ai-provider@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@getmemoir/vercel-ai-provider"
           echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/vercel-ai-provider-v$VERSION"
           echo ""
-          echo "🚀 Install: npm install @memoir/vercel-ai-provider"
+          echo "🚀 Install: npm install @getmemoir/vercel-ai-provider"
           echo ""
 
   publish-cli:
@@ -485,10 +485,10 @@ jobs:
         run: node packages/memoir-cli/scripts/sync-quickstart-template.js
 
       - name: Build package
-        run: npm run build --workspace=@memoir/cli
+        run: npm run build --workspace=@getmemoir/cli
 
       - name: Verify package contents
-        run: npm pack --dry-run --workspace=@memoir/cli
+        run: npm pack --dry-run --workspace=@getmemoir/cli
 
       - name: Debug OIDC environment
         run: |
@@ -537,7 +537,7 @@ jobs:
 
           **Via npm:**
           \`\`\`bash
-          npm install -g @memoir/cli
+          npm install -g @getmemoir/cli
           \`\`\`
 
           ### Quick Start
@@ -564,7 +564,7 @@ jobs:
           echo "Verifying npm registry update..."
           # Retry up to 6 times with 10s delay between retries (check first, then wait)
           for i in 1 2 3 4 5 6; do
-            if npm view @memoir/cli version 2>/dev/null; then
+            if npm view @getmemoir/cli version 2>/dev/null; then
               echo "✅ CLI published successfully!"
               exit 0
             fi
@@ -581,11 +581,11 @@ jobs:
           echo "  ✅ CLI PUBLISHED!"
           echo "════════════════════════════════════════════════════════════"
           echo ""
-          echo "📦 Package: @memoir/cli@$VERSION"
-          echo "📚 npm: https://www.npmjs.com/package/@memoir/cli"
+          echo "📦 Package: @getmemoir/cli@$VERSION"
+          echo "📚 npm: https://www.npmjs.com/package/@getmemoir/cli"
           echo "🐙 GitHub: https://github.com/Anu-Code07/memoir/releases/tag/cli-v$VERSION"
           echo ""
-          echo "🚀 Install via npm:      npm install -g @memoir/cli"
+          echo "🚀 Install via npm:      npm install -g @getmemoir/cli"
           echo "🍺 Install via Homebrew: brew install memoir/tap/cli"
           echo ""
 
@@ -598,7 +598,7 @@ jobs:
           echo "  Updating Homebrew Tap Formula"
           echo "════════════════════════════════════════════════════════════"
 
-          TARBALL_URL="https://registry.npmjs.org/@memoir/cli/-/cli-${VERSION}.tgz"
+          TARBALL_URL="https://registry.npmjs.org/@getmemoir/cli/-/cli-${VERSION}.tgz"
           TARBALL_FILE=$(mktemp)
 
           echo "📦 Version: ${VERSION}"
@@ -669,7 +669,7 @@ jobs:
 
           # Update formula content using sed
           UPDATED_CONTENT=$(echo "$CURRENT_CONTENT" | \
-            sed "s|url \"https://registry.npmjs.org/@memoir/cli/-/cli-[0-9.]*\.tgz\"|url \"https://registry.npmjs.org/@memoir/cli/-/cli-${VERSION}.tgz\"|" | \
+            sed "s|url \"https://registry.npmjs.org/@getmemoir/cli/-/cli-[0-9.]*\.tgz\"|url \"https://registry.npmjs.org/@getmemoir/cli/-/cli-${VERSION}.tgz\"|" | \
             sed "s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA256}\"|")
 
           echo "✅ Formula updated locally"

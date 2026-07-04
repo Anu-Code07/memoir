@@ -46,7 +46,7 @@ const mockMemoir = {
   close: jest.fn(),
 };
 
-jest.mock("@memoir/sdk", () => ({
+jest.mock("@getmemoir/sdk", () => ({
   Memoir: jest.fn().mockImplementation(() => mockMemoir),
   CypherGraphAdapter: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),

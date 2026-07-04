@@ -1,5 +1,5 @@
 # Memoir CLI completion script for Fish
-# Auto-installed by @memoir/cli
+# Auto-installed by @getmemoir/cli
 
 # Helper function to get deployments from config
 function __memoir_deployments

@@ -9,7 +9,7 @@ import { auth } from "@/app/(auth)/auth";
 import {
   createAuthContext,
   type AuthContext,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 /**
  * Session type from Auth.js

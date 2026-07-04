@@ -405,7 +405,7 @@ You can optionally create a `memoir.config.json` in your project root:
 When using the SDK programmatically, configuration is minimal:
 
 ```typescript
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 // Minimal configuration
 const memoir = new Memoir({
@@ -419,7 +419,7 @@ const memoir = new Memoir({
 import {
   CypherGraphAdapter,
   initializeGraphSchema,
-} from "@memoir/sdk/graph";
+} from "@getmemoir/sdk/graph";
 
 const graphAdapter = new CypherGraphAdapter();
 await graphAdapter.connect({

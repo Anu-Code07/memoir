@@ -3,7 +3,7 @@
  * Global test hooks that run after test environment is initialized
  */
 
-import { Memoir } from "@memoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 
 // Global Memoir client for cleanup
 let cleanupClient: Memoir | null = null;

@@ -2140,9 +2140,9 @@ The Mutable API exports `MutableValidationError` for client-side validation erro
 **Import:**
 
 ```typescript
-import { MutableValidationError } from "@memoir/sdk/mutable";
+import { MutableValidationError } from "@getmemoir/sdk/mutable";
 // or from main export:
-import { MutableValidationError } from "@memoir/sdk";
+import { MutableValidationError } from "@getmemoir/sdk";
 ```
 
 **Error Structure:**
@@ -2158,7 +2158,7 @@ class MutableValidationError extends Error {
 **Example:**
 
 ```typescript
-import { MutableValidationError } from "@memoir/sdk";
+import { MutableValidationError } from "@getmemoir/sdk";
 
 try {
   await memoir.mutable.set("", "key", "value"); // Invalid namespace

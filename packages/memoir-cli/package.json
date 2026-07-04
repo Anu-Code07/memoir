@@ -1,5 +1,5 @@
 {
-  "name": "@memoir/cli",
+  "name": "@getmemoir/cli",
   "version": "0.36.0",
   "description": "CLI tool for managing Memoir deployments, performing administrative tasks, and streamlining development workflows",
   "type": "module",
@@ -61,7 +61,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@memoir/sdk": "*",
+    "@getmemoir/sdk": "*",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
     "convex": "^1.31.6",

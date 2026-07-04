@@ -39,7 +39,7 @@ import {
   // Other errors
   A2ATimeoutError,
   CascadeDeletionError,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 ```
 
 ---
@@ -97,7 +97,7 @@ Error (native JavaScript)
 ### Basic Error Handling
 
 ```typescript
-import { MemoryValidationError, CircuitOpenError } from "@memoir/sdk";
+import { MemoryValidationError, CircuitOpenError } from "@getmemoir/sdk";
 
 try {
   await memoir.memory.remember({
@@ -129,7 +129,7 @@ try {
 ### Validation Error Handling
 
 ```typescript
-import { MemoryValidationError } from '@memoir/sdk';
+import { MemoryValidationError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -160,7 +160,7 @@ import {
   CircuitOpenError,
   QueueFullError,
   RateLimitExceededError
-} from '@memoir/sdk';
+} from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -190,7 +190,7 @@ import {
   GraphConnectionError,
   GraphAuthenticationError,
   GraphQueryError,
-} from "@memoir/sdk";
+} from "@getmemoir/sdk";
 
 // Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 try {
@@ -267,7 +267,7 @@ class MemoryValidationError extends Error {
 **Example:**
 
 ```typescript
-import { MemoryValidationError } from "@memoir/sdk";
+import { MemoryValidationError } from "@getmemoir/sdk";
 
 try {
   await memoir.memory.remember({
@@ -431,7 +431,7 @@ class CircuitOpenError extends Error {
 **Example:**
 
 ```typescript
-import { CircuitOpenError } from '@memoir/sdk';
+import { CircuitOpenError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -469,7 +469,7 @@ class RateLimitExceededError extends Error {
 **Example:**
 
 ```typescript
-import { RateLimitExceededError } from '@memoir/sdk';
+import { RateLimitExceededError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -507,7 +507,7 @@ class QueueFullError extends Error {
 **Example:**
 
 ```typescript
-import { QueueFullError } from '@memoir/sdk';
+import { QueueFullError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -582,7 +582,7 @@ class GraphConnectionError extends GraphDatabaseError {
 **Example:**
 
 ```typescript
-import { GraphConnectionError } from "@memoir/sdk";
+import { GraphConnectionError } from "@getmemoir/sdk";
 
 // Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 // Graph failures are non-fatal - the app continues working
@@ -626,7 +626,7 @@ class GraphAuthenticationError extends GraphConnectionError {
 **Example:**
 
 ```typescript
-import { GraphAuthenticationError } from "@memoir/sdk";
+import { GraphAuthenticationError } from "@getmemoir/sdk";
 
 try {
   await graphAdapter.connect(config);
@@ -863,7 +863,7 @@ await memoir.memory.remember({
 **Recovery Strategy:**
 
 ```typescript
-import { CircuitOpenError } from "@memoir/sdk";
+import { CircuitOpenError } from "@getmemoir/sdk";
 
 async function rememberWithRetry(params, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
@@ -915,7 +915,7 @@ const memoir = new Memoir({
 3. **Return 503 to clients:**
 
 ```typescript
-import { QueueFullError } from '@memoir/sdk';
+import { QueueFullError } from '@getmemoir/sdk';
 
 try {
   await memoir.memory.remember({...});
@@ -954,7 +954,7 @@ MEMOIR_GRAPH_SYNC=false
 ```
 
 ```typescript
-import { GraphAuthenticationError } from "@memoir/sdk";
+import { GraphAuthenticationError } from "@getmemoir/sdk";
 
 // Graph sync is automatic when MEMOIR_GRAPH_SYNC=true (v0.29.0+)
 // If graph auth fails, the operation still succeeds (graph is optional)
@@ -1040,7 +1040,7 @@ await withRetry(() => memoir.memory.remember({...}));
 ### Circuit Breaker Pattern
 
 ```typescript
-import { CircuitOpenError } from '@memoir/sdk';
+import { CircuitOpenError } from '@getmemoir/sdk';
 
 class CircuitBreakerWrapper {
   private failures = 0;
@@ -1084,7 +1084,7 @@ await breaker.execute(() => memoir.memory.remember({...}));
 ### Graceful Degradation
 
 ```typescript
-import { GraphConnectionError, CircuitOpenError } from "@memoir/sdk";
+import { GraphConnectionError, CircuitOpenError } from "@getmemoir/sdk";
 
 // v0.29.0+: Graph sync is automatic when MEMOIR_GRAPH_SYNC=true
 // Graph failures are non-fatal - data is still stored in Convex

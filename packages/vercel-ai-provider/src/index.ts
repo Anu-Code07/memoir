@@ -3,7 +3,7 @@
  *
  * @example
  * ```typescript
- * import { createMemoirMemory } from '@memoir/vercel-ai-provider';
+ * import { createMemoirMemory } from '@getmemoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *
@@ -27,8 +27,8 @@
  */
 
 // Types handled dynamically to support all AI SDK versions
-import type { MemoryEntry } from "@memoir/sdk";
-import { Memoir } from "@memoir/sdk";
+import type { MemoryEntry } from "@getmemoir/sdk";
+import { Memoir } from "@getmemoir/sdk";
 import type {
   MemoirMemoryConfig,
   MemoirMemoryModel,
@@ -52,7 +52,7 @@ import { createLogger } from "./types";
  *
  * @example
  * ```typescript
- * import { createMemoirMemory } from '@memoir/vercel-ai-provider';
+ * import { createMemoirMemory } from '@getmemoir/vercel-ai-provider';
  * import { streamText } from 'ai';
  * import { openai } from '@ai-sdk/openai';
  *
@@ -264,7 +264,7 @@ export function createMemoirMemory(
  *
  * @example
  * ```typescript
- * import { createMemoirMemoryAsync } from '@memoir/vercel-ai-provider';
+ * import { createMemoirMemoryAsync } from '@getmemoir/vercel-ai-provider';
  *
  * // With env vars: MEMOIR_GRAPH_SYNC=true, NEO4J_URI=bolt://localhost:7687
  * const memoirMemory = await createMemoirMemoryAsync({

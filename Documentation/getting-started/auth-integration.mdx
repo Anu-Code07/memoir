@@ -18,7 +18,7 @@ Quick guide: Integrate Memoir with your existing authentication system.
 ## 3-Line Integration
 
 <CodeBlock filename="auth-setup.ts" language="typescript" showLineNumbers highlightLines={[4, 5, 6, 11]}>
-{`import { Memoir, createAuthContext } from "@memoir/sdk";
+{`import { Memoir, createAuthContext } from "@getmemoir/sdk";
 
 // 1. Extract from YOUR existing auth (any system)
 const auth = createAuthContext({
@@ -64,7 +64,7 @@ Clerk, Auth0, NextAuth, Supabase Auth, Firebase Auth, Okta, WorkOS, Custom JWT â
       </Step>
       <Step title="Configure Memoir with Clerk">
         ```typescript
-        import { Memoir, createAuthContext } from '@memoir/sdk';
+        import { Memoir, createAuthContext } from '@getmemoir/sdk';
         import { auth } from '@clerk/nextjs';
         
         export async function getMemoirClient() {
@@ -272,7 +272,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
   <TabItem value="nextjs-app" label="Next.js App Router">
     ```typescript
     // app/api/memoir/route.ts
-    import { Memoir, createAuthContext } from '@memoir/sdk';
+    import { Memoir, createAuthContext } from '@getmemoir/sdk';
     import { auth } from '@clerk/nextjs';
     
     export async function POST(req: Request) {
@@ -290,7 +290,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
   <TabItem value="nextjs-pages" label="Next.js Pages Router">
     ```typescript
     // pages/api/memoir.ts
-    import { Memoir, createAuthContext } from '@memoir/sdk';
+    import { Memoir, createAuthContext } from '@getmemoir/sdk';
     import { getAuth } from '@clerk/nextjs/server';
     
     export default async function handler(req, res) {
@@ -308,7 +308,7 @@ See [Isolation Boundaries](/security/isolation-boundaries) for the complete mult
   <TabItem value="express" label="Express.js">
     ```typescript
     // middleware/memoir.ts
-    import { Memoir, createAuthContext } from '@memoir/sdk';
+    import { Memoir, createAuthContext } from '@getmemoir/sdk';
     
     export function memoirMiddleware(req, res, next) {
       req.memoir = new Memoir({

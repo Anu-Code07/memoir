@@ -45,7 +45,7 @@ The quickstart demonstrates:
 ### Installation
 
 ```bash
-npm install @memoir/vercel-ai-provider @memoir/sdk ai convex
+npm install @getmemoir/vercel-ai-provider @getmemoir/sdk ai convex
 ```
 
 ### AI SDK v6 Compatibility
@@ -59,7 +59,7 @@ import { openai } from "@ai-sdk/openai";
 import {
   createMemoirCallOptionsSchema,
   createMemoryPrepareCall,
-} from "@memoir/vercel-ai-provider";
+} from "@getmemoir/vercel-ai-provider";
 
 const memoryAgent = new ToolLoopAgent({
   model: openai("gpt-4o-mini"), // Use actual provider, not gateway string
@@ -102,7 +102,7 @@ This provider now supports all SDK v0.21.0 capabilities:
 1. **Deploy Memoir Backend to Convex:**
 
 ```bash
-npx @memoir/cli init
+npx @getmemoir/cli init
 # Follow the wizard to set up Convex backend
 ```
 
@@ -110,7 +110,7 @@ npx @memoir/cli init
 
 ```typescript
 // app/api/chat/route.ts
-import { createMemoirMemory } from "@memoir/vercel-ai-provider";
+import { createMemoirMemory } from "@getmemoir/vercel-ai-provider";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
@@ -516,7 +516,7 @@ FSL-1.1-Apache-2.0 - See [LICENSE.md](../../LICENSE.md)
 
 - [GitHub](https://github.com/Anu-Code07/memoir)
 - [Documentation](https://github.com/Anu-Code07/memoir/docs)
-- [Memoir SDK](https://www.npmjs.com/package/@memoir/sdk)
+- [Memoir SDK](https://www.npmjs.com/package/@getmemoir/sdk)
 - [Quickstart Demo](./quickstart)
 
 ---

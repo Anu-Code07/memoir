@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Memoir CLI completion script for Bash
-# Auto-installed by @memoir/cli
+# Auto-installed by @getmemoir/cli
 # Compatible with bash 3.2+ (macOS default)
 
 _memoir_deployments() {
