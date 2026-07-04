@@ -1,0 +1,297 @@
+/**
+ * Schema Sync Utility
+ *
+ * Syncs Convex schema files from @cortexmemory/sdk to the project's convex folder.
+ * This ensures the project always has the latest schema that matches the SDK version.
+ *
+ * For CLI development, you can override the SDK path using the CORTEX_SDK_DEV_PATH
+ * environment variable to point to a local SDK development directory:
+ *
+ *   export CORTEX_SDK_DEV_PATH=/path/to/Project-Cortex
+ *
+ * This will use the schema files from that directory's convex-dev folder instead
+ * of the installed @cortexmemory/sdk package.
+ */
+
+import { existsSync, readFileSync, readdirSync } from "fs";
+import { copyFile, mkdir } from "fs/promises";
+import { createHash } from "crypto";
+import { join, dirname } from "path";
+import pc from "picocolors";
+
+/**
+ * Result of schema sync operation
+ */
+export interface SchemaSyncResult {
+  /** Whether any files were synced */
+  synced: boolean;
+  /** List of files that were updated */
+  filesUpdated: string[];
+  /** List of files that were added (new) */
+  filesAdded: string[];
+  /** SDK version the schema came from */
+  sdkVersion: string;
+  /** Path to the SDK's convex-dev folder */
+  sdkConvexPath: string;
+  /** Path to the project's convex folder */
+  projectConvexPath: string;
+  /** Error message if sync failed */
+  error?: string;
+  /** Whether using development override path */
+  isDevOverride?: boolean;
+}
+
+/**
+ * Discover all syncable files from the SDK's convex-dev folder
+ * Includes all .ts files and tsconfig.json, excludes _generated/ directory
+ */
+function discoverSchemaFiles(sdkConvexPath: string): string[] {
+  try {
+    const entries = readdirSync(sdkConvexPath, { withFileTypes: true });
+    return entries
+      .filter((entry) => {
+        // Skip directories (like _generated/)
+        if (entry.isDirectory()) return false;
+        // Include .ts files and tsconfig.json
+        return entry.name.endsWith(".ts") || entry.name === "tsconfig.json";
+      })
+      .map((entry) => entry.name);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Find the @cortexmemory/sdk package
+ *
+ * Order of precedence:
+ * 1. CORTEX_SDK_DEV_PATH environment variable (for CLI development)
+ * 2. Project's node_modules/@cortexmemory/sdk
+ * 3. Walk up directory tree looking for node_modules
+ */
+function findSdkPath(projectPath: string): string | null {
+  // Check for development override first
+  const devPath = process.env.CORTEX_SDK_DEV_PATH;
+  if (devPath) {
+    if (existsSync(devPath)) {
+      return devPath;
+    }
+    // Dev path was set but doesn't exist - warn but continue with normal lookup
+    console.warn(
+      pc.yellow(`   ⚠ CORTEX_SDK_DEV_PATH set but path not found: ${devPath}`),
+    );
+  }
+
+  // Check in project's node_modules
+  const directPath = join(projectPath, "node_modules", "@cortexmemory", "sdk");
+  if (existsSync(directPath)) {
+    return directPath;
+  }
+
+  // Walk up the directory tree looking for node_modules
+  let currentPath = projectPath;
+  while (currentPath !== dirname(currentPath)) {
+    const parentModules = join(
+      currentPath,
+      "node_modules",
+      "@cortexmemory",
+      "sdk",
+    );
+    if (existsSync(parentModules)) {
+      return parentModules;
+    }
+    currentPath = dirname(currentPath);
+  }
+
+  return null;
+}
+
+/**
+ * Get the SDK version from package.json
+ */
+function getSdkVersion(sdkPath: string): string {
+  try {
+    const packageJsonPath = join(sdkPath, "package.json");
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    return packageJson.version || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Calculate MD5 hash of a file for comparison
+ */
+function getFileHash(filePath: string): string | null {
+  try {
+    const content = readFileSync(filePath);
+    return createHash("md5").update(content).digest("hex");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sync Convex schema files from SDK to project
+ *
+ * @param projectPath - Path to the project root (where convex/ folder should be)
+ * @param options - Sync options
+ * @returns Sync result with details about what was updated
+ */
+export async function syncConvexSchema(
+  projectPath: string,
+  options?: {
+    /** Only check, don't actually copy files */
+    dryRun?: boolean;
+    /** Force sync even if files match */
+    force?: boolean;
+    /** Quiet mode - don't print progress */
+    quiet?: boolean;
+  },
+): Promise<SchemaSyncResult> {
+  const result: SchemaSyncResult = {
+    synced: false,
+    filesUpdated: [],
+    filesAdded: [],
+    sdkVersion: "unknown",
+    sdkConvexPath: "",
+    projectConvexPath: join(projectPath, "convex"),
+    isDevOverride: false,
+  };
+
+  // Check if using development override
+  const devPath = process.env.CORTEX_SDK_DEV_PATH;
+  result.isDevOverride = !!devPath && existsSync(devPath);
+
+  // Find SDK package
+  const sdkPath = findSdkPath(projectPath);
+  if (!sdkPath) {
+    result.error =
+      "@cortexmemory/sdk not found in node_modules. Please install it first.";
+    return result;
+  }
+
+  // Check for convex-dev folder in SDK
+  const sdkConvexPath = join(sdkPath, "convex-dev");
+  if (!existsSync(sdkConvexPath)) {
+    result.error = `SDK convex-dev folder not found at ${sdkConvexPath}. SDK may be outdated.`;
+    return result;
+  }
+
+  result.sdkConvexPath = sdkConvexPath;
+  result.sdkVersion = getSdkVersion(sdkPath);
+
+  // Discover all syncable files from SDK
+  const schemaFiles = discoverSchemaFiles(sdkConvexPath);
+  if (schemaFiles.length === 0) {
+    result.error = `No schema files found in ${sdkConvexPath}`;
+    return result;
+  }
+
+  // Ensure project's convex folder exists
+  if (!existsSync(result.projectConvexPath)) {
+    if (!options?.dryRun) {
+      await mkdir(result.projectConvexPath, { recursive: true });
+    }
+  }
+
+  // Compare and sync each file
+  for (const fileName of schemaFiles) {
+    const sdkFilePath = join(sdkConvexPath, fileName);
+    const projectFilePath = join(result.projectConvexPath, fileName);
+
+    // Skip if SDK doesn't have this file
+    if (!existsSync(sdkFilePath)) {
+      continue;
+    }
+
+    const sdkHash = getFileHash(sdkFilePath);
+    const projectHash = getFileHash(projectFilePath);
+    const fileExists = existsSync(projectFilePath);
+
+    // Check if file needs updating
+    const needsUpdate = options?.force || sdkHash !== projectHash;
+
+    if (needsUpdate) {
+      if (!options?.dryRun) {
+        await copyFile(sdkFilePath, projectFilePath);
+      }
+
+      if (fileExists) {
+        result.filesUpdated.push(fileName);
+      } else {
+        result.filesAdded.push(fileName);
+      }
+      result.synced = true;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Print schema sync result to console
+ */
+export function printSyncResult(
+  result: SchemaSyncResult,
+  quiet?: boolean,
+): void {
+  if (quiet) return;
+
+  if (result.error) {
+    console.log(pc.red(`   ✗ Schema sync failed: ${result.error}`));
+    return;
+  }
+
+  // Show dev mode indicator
+  const devIndicator = result.isDevOverride
+    ? pc.magenta(" [DEV OVERRIDE]")
+    : "";
+
+  if (!result.synced) {
+    const source = result.isDevOverride
+      ? `local SDK${devIndicator}`
+      : `SDK v${result.sdkVersion}`;
+    console.log(pc.dim(`   Schema files are up to date (${source})`));
+    if (result.isDevOverride) {
+      console.log(pc.dim(`     Source: ${result.sdkConvexPath}`));
+    }
+    return;
+  }
+
+  const source = result.isDevOverride
+    ? `local SDK${devIndicator}`
+    : `@cortexmemory/sdk v${result.sdkVersion}`;
+  console.log(pc.cyan(`   ↓ Synced schema from ${source}`));
+
+  if (result.isDevOverride) {
+    console.log(pc.dim(`     Source: ${result.sdkConvexPath}`));
+  }
+
+  if (result.filesUpdated.length > 0) {
+    console.log(pc.dim(`     Updated: ${result.filesUpdated.join(", ")}`));
+  }
+
+  if (result.filesAdded.length > 0) {
+    console.log(pc.dim(`     Added: ${result.filesAdded.join(", ")}`));
+  }
+}
+
+/**
+ * Check if schema sync is needed (without modifying files)
+ */
+export async function checkSchemaSync(projectPath: string): Promise<{
+  needsSync: boolean;
+  filesOutdated: string[];
+  filesMissing: string[];
+  sdkVersion: string;
+}> {
+  const result = await syncConvexSchema(projectPath, { dryRun: true });
+
+  return {
+    needsSync: result.synced,
+    filesOutdated: result.filesUpdated,
+    filesMissing: result.filesAdded,
+    sdkVersion: result.sdkVersion,
+  };
+}

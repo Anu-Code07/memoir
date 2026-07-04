@@ -1,0 +1,50 @@
+FSL-1.1-Apache-2.0 Header Template for Source Files
+===================================================
+
+When creating new source code files (.ts, .js, .tsx, .jsx, etc.), 
+add this header at the top of each file:
+
+For TypeScript/JavaScript files:
+---------------------------------
+
+/**
+ * Copyright 2025 Nicholas Geil / Saint Nick LLC
+ *
+ * Licensed under FSL-1.1-Apache-2.0 (Functional Source License).
+ * See LICENSE.md for full license terms.
+ *
+ * This file becomes Apache 2.0 licensed two years after its release date.
+ */
+
+
+For Markdown files:
+-------------------
+
+<!--
+Copyright 2025 Nicholas Geil / Saint Nick LLC
+
+Licensed under FSL-1.1-Apache-2.0 (Functional Source License).
+See LICENSE.md for full license terms.
+
+This file becomes Apache 2.0 licensed two years after its release date.
+-->
+
+
+For Configuration files (JSON, YAML, etc.):
+--------------------------------------------
+
+#
+# Copyright 2025 Nicholas Geil / Saint Nick LLC
+# Licensed under FSL-1.1-Apache-2.0
+# See LICENSE.md for full license text
+#
+
+
+Notes:
+------
+1. This header identifies the license for all source files
+2. Not required for documentation (covered by CC BY 4.0)
+3. Automated tools can add these headers during build process
+4. See LICENSE.md for full license text
+5. Each version becomes Apache 2.0 licensed two years after release
+

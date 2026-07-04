@@ -1,0 +1,91 @@
+# Dependency Review Configuration
+# https://github.com/actions/dependency-review-action
+
+# Fail on high severity vulnerabilities
+fail-on-severity: high
+
+# Enable license checking
+license-check: true
+
+# Allow these licenses (standard SPDX identifiers)
+# Note: allow-licenses and deny-licenses are mutually exclusive.
+# Using allow-licenses is the recommended approach (deny-licenses is deprecated).
+# Any license NOT in this list will be flagged.
+allow-licenses:
+  - MIT
+  - Apache-2.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - ISC
+  - 0BSD
+  - CC0-1.0
+  - Unlicense
+  - Python-2.0
+  - BlueOak-1.0.0
+  - CC-BY-4.0
+
+# Allow our internal packages (FSL-1.1-Apache-2.0 is not a standard SPDX identifier)
+# These packages are internal workspace packages with custom licensing.
+# Note: Workspace packages may be identified by lockfile path OR npm name depending
+# on how the scanner resolves them, so we include both formats.
+allow-dependencies-licenses:
+  # Internal packages by npm name
+  - "pkg:npm/@cortexmemory/sdk"
+  - "pkg:npm/@cortexmemory/cli"
+  - "pkg:npm/@cortexmemory/vercel-ai-provider"
+  - "pkg:npm/@cortexmemory/vercel-ai-quickstart"
+  # Internal packages by workspace path (scanner sometimes uses lockfile paths)
+  - "pkg:npm/packages/cortex-cli"
+  - "pkg:npm/packages/vercel-ai-provider"
+  # Vercel AI SDK packages - Apache-2.0 licensed but scanner can't always
+  # resolve licenses from nested lockfiles or transitive dependencies.
+  - "pkg:npm/@ai-sdk/openai"
+  - "pkg:npm/@ai-sdk/react"
+  - "pkg:npm/@ai-sdk/gateway"
+  - "pkg:npm/@ai-sdk/provider"
+  - "pkg:npm/@ai-sdk/provider-utils"
+  - "pkg:npm/ai"
+  # Sharp image library - LGPL licensed native bindings (dynamically linked)
+  # Used by Next.js for image optimization. Not distributed with our software.
+  # Image optimization is disabled in quickstart via images.unoptimized: true
+  # but these may still appear in lockfile from earlier installs.
+  - "pkg:npm/@img/sharp-libvips-darwin-arm64"
+  - "pkg:npm/@img/sharp-libvips-darwin-x64"
+  - "pkg:npm/@img/sharp-libvips-linux-arm"
+  - "pkg:npm/@img/sharp-libvips-linux-arm64"
+  - "pkg:npm/@img/sharp-libvips-linux-ppc64"
+  - "pkg:npm/@img/sharp-libvips-linux-riscv64"
+  - "pkg:npm/@img/sharp-libvips-linux-s390x"
+  - "pkg:npm/@img/sharp-libvips-linux-x64"
+  - "pkg:npm/@img/sharp-libvips-linuxmusl-arm64"
+  - "pkg:npm/@img/sharp-libvips-linuxmusl-x64"
+  - "pkg:npm/@img/sharp-wasm32"
+  - "pkg:npm/@img/sharp-win32-arm64"
+  - "pkg:npm/@img/sharp-win32-ia32"
+  - "pkg:npm/@img/sharp-win32-x64"
+  - "pkg:npm/sharp"
+  # json-schema - AFL/BSD licensed (AFL is permissive, BSD already allowed)
+  # Transitive dependency, not distributed with our software.
+  - "pkg:npm/json-schema"
+  # Vercel packages for chat-sdk-quickstart template
+  # @vercel/analytics - MPL-2.0 (Mozilla Public License 2.0, permissive copyleft)
+  # Used in template for analytics tracking. Compatible with commercial use.
+  - "pkg:npm/@vercel/analytics"
+  # @vercel/otel - License detection issue, actually Apache-2.0
+  - "pkg:npm/@vercel/otel"
+  # geist - OFL-1.1 (SIL Open Font License), font-specific permissive license
+  # Used in template for Vercel's design system font. Free for commercial use.
+  - "pkg:npm/geist"
+  # Radix UI - MIT licensed but scanner has detection issues
+  - "pkg:npm/@radix-ui/react-icons"
+  # AI SDK packages - License detection issues, actually Apache-2.0
+  - "pkg:npm/@ai-sdk/anthropic"
+  # Security and utility packages with license detection issues
+  # bcrypt-ts - MIT licensed, scanner detection issue
+  - "pkg:npm/bcrypt-ts"
+  # lucide-react - ISC licensed, scanner detection issue
+  - "pkg:npm/lucide-react"
+  # streamdown - License detection issue
+  - "pkg:npm/streamdown"
+  # react-data-grid - MIT licensed beta package, scanner detection issue
+  - "pkg:npm/react-data-grid"
