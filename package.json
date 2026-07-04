@@ -1,0 +1,128 @@
+{
+  "name": "@memoir/sdk",
+  "version": "0.36.0",
+  "description": "AI agent memory SDK built on Convex - ACID storage, vector search, and conversation management",
+  "type": "module",
+  "workspaces": [
+    ".",
+    "packages/*"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "convex-dev",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "keywords": [
+    "ai",
+    "agents",
+    "memory",
+    "convex",
+    "sdk",
+    "typescript",
+    "conversations",
+    "vector-search",
+    "llm",
+    "chatbot",
+    "knowledge-graph",
+    "facts",
+    "hive-mode",
+    "memory-spaces",
+    "workflow-coordination",
+    "multi-agent",
+    "infinite-context"
+  ],
+  "author": "Anu-Code07",
+  "license": "FSL-1.1-Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anu-Code07/memoir.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Anu-Code07/memoir/issues"
+  },
+  "homepage": "https://github.com/Anu-Code07/memoir#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm test && npm run build",
+    "prepack": "npm run build",
+    "release": "pwsh -File scripts/release.ps1",
+    "dev": "node scripts/dev-runner.mjs",
+    "dev:local": "node scripts/dev-runner.mjs --local",
+    "dev:cloud": "node scripts/dev-runner.mjs --cloud",
+    "logs": "convex logs",
+    "logs:local": "convex logs --url http://127.0.0.1:3210",
+    "logs:cloud": "convex logs --prod",
+    "lint": "tsc --project tsconfig.lint.json --noEmit && eslint . --report-unused-disable-directives",
+    "test": "node scripts/test-runner.mjs",
+    "test:local": "cross-env CONVEX_TEST_MODE=local node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=debug",
+    "test:managed": "cross-env CONVEX_TEST_MODE=managed node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=debug",
+    "test:both": "npm run test:local && npm run test:managed",
+    "test:serial": "node scripts/test-runner.mjs --runInBand",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=debug --watch",
+    "test:interactive": "tsx tests/interactive-runner.ts",
+    "test:interactive:local": "cross-env CONVEX_URL=http://127.0.0.1:3210 tsx tests/interactive-runner.ts",
+    "test:interactive:cloud": "tsx tests/interactive-runner.ts",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=debug --coverage",
+    "test:debug": "cross-env TEST_DEBUG=true TEST_VERBOSE=true TEST_INSPECT=true node --experimental-vm-modules node_modules/jest/bin/jest.js debug --runInBand",
+    "test:stress": "npx tsx tests/resilience-stress.manual.ts",
+    "update-deps": "node scripts/update-deps.mjs",
+    "update-deps:dry": "node scripts/update-deps.mjs --dry-run"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "convex": "^1.31.6",
+    "openai": "^4.0.0 || ^5.0.0 || ^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "openai": {
+      "optional": true
+    },
+    "@anthropic-ai/sdk": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@convex-dev/eslint-plugin": "^1.1.1",
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.2",
+    "globals": "^17.1.0",
+    "jest": "^30.2.0",
+    "openai": "^6.16.0",
+    "rimraf": "^6.1.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "anthropic": "^0.0.0",
+    "neo4j-driver": "^6.0.1"
+  }
+}

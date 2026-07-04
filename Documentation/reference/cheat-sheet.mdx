@@ -1,0 +1,462 @@
+---
+id: cheat-sheet
+title: Cheat Sheet
+sidebar_position: 4
+description: Quick reference for Memoir SDK operations and common tasks
+---
+
+# Cheat Sheet
+
+Quick reference for the most common Memoir operations. Copy-paste ready!
+
+---
+
+## Setup
+
+### Import
+
+```typescript
+import { Memoir } from "@memoir/sdk";
+import type { MemoryEntry, UserProfile, Context } from "@memoir/sdk";
+```
+
+### Initialize
+
+<Tabs groupId="mode">
+<TabItem value="direct" label="Direct Mode">
+
+```typescript
+const memoir = new Memoir({
+  convexUrl: process.env.CONVEX_URL,
+});
+```
+
+</TabItem>
+<TabItem value="cloud" label="Cloud Mode">
+
+```typescript
+const memoir = new Memoir({
+  mode: "cloud",
+  apiKey: process.env.MEMOIR_CLOUD_KEY,
+});
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## Core Namespaces
+
+```typescript
+memoir.memory.*          // Layer 4: Memory convenience API (primary interface)
+memoir.memorySpaces.*    // Memory space management (Hive/Collaboration)
+memoir.conversations.*   // Layer 1a: ACID conversations (memorySpace-scoped)
+memoir.immutable.*       // Layer 1b: Shared versioned data (NO memorySpace)
+memoir.mutable.*         // Layer 1c: Shared live data (NO memorySpace)
+memoir.vector.*          // Layer 2: Vector index (memorySpace-scoped)
+memoir.facts.*           // Layer 3: Facts store (memorySpace-scoped, LLM extraction)
+memoir.users.*           // User profiles + GDPR (shared across all spaces)
+memoir.contexts.*        // Workflow coordination (cross-space support)
+memoir.a2a.*             // Inter-agent messaging
+memoir.governance.*      // Retention policies & compliance
+memoir.sessions.*        // Session lifecycle management
+memoir.agents.*          // Agent metadata registry (optional analytics/discovery)
+```
+
+---
+
+## Memory Operations
+
+The most commonly used API - handles Layers 1-3 automatically.
+
+```typescript
+// Store conversation (ACID + Vector)
+await memoir.memory.remember({
+  memorySpaceId,
+  participantId, // Optional: Hive Mode tracking
+  conversationId,
+  userMessage,
+  agentResponse,
+  userId,
+  userName,
+});
+
+// Store system memory
+await memoir.memories.store(memorySpaceId, {
+  content: "System announcement",
+  contentType: "raw",
+  embedding: await embed("System announcement"),
+  source: { type: "system" },
+  metadata: { importance: 50, tags: [] },
+});
+
+// Search
+await memoir.memory.search(memorySpaceId, query, {
+  embedding,
+  userId,
+  minImportance,
+  limit,
+  participantId, // Optional: Filter by participant
+});
+
+// Get
+await memoir.memory.get(memorySpaceId, memoryId, { includeConversation: true });
+
+// Update
+await memoir.memory.update(memorySpaceId, memoryId, { content, metadata });
+
+// Delete (preserves ACID)
+await memoir.memory.delete(memorySpaceId, memoryId);
+
+// Count
+await memoir.memory.count(memorySpaceId, filters);
+
+// List
+await memoir.memory.list(memorySpaceId, { limit, offset, sortBy });
+
+// Export
+await memoir.memory.export(memorySpaceId, { userId, format: "json" });
+```
+
+---
+
+## User Operations
+
+```typescript
+// Create/update
+await memoir.users.update(userId, {
+  displayName: 'Alex Johnson',
+  email: 'alex@example.com',
+  preferences: { theme: 'dark' },
+});
+
+// Get
+await memoir.users.get(userId);
+
+// Delete (Cloud Mode - cascade across all stores)
+await memoir.users.delete(userId, { cascade: true });
+
+// Search
+await memoir.users.search({ displayName: 'Alex' });
+
+// Count
+await memoir.users.count({ createdAfter: new Date("2025-01-01") });
+```
+
+---
+
+## Context Operations
+
+```typescript
+// Create workflow
+const ctx = await memoir.contexts.create({
+  purpose,
+  memorySpaceId, // Which memory space
+  userId,
+  parentId, // Cross-space parent allowed
+  data,
+});
+
+// Get with chain (supports cross-space traversal)
+await memoir.contexts.get(contextId, {
+  includeChain: true,
+});
+
+// Update status
+await memoir.contexts.update(contextId, { status: "completed", data });
+
+// Delete with children
+await memoir.contexts.delete(contextId, { cascadeChildren: true });
+
+// Search
+await memoir.contexts.search({
+  memorySpaceId,
+  status: "active",
+  userId: "user-456",
+});
+```
+
+---
+
+## A2A Communication
+
+```typescript
+// Send message
+await memoir.a2a.send({ from, to, message, importance, userId, contextId });
+
+// Request-response (requires pub/sub)
+const response = await memoir.a2a.request({ from, to, message, timeout });
+
+// Broadcast
+await memoir.a2a.broadcast({ from, to: [agent1, agent2, agent3], message });
+
+// Get conversation
+await memoir.a2a.getConversation(agent1, agent2, {
+  since,
+  minImportance,
+  tags,
+});
+```
+
+---
+
+## Immutable Store
+
+```typescript
+// Store versioned data
+await memoir.immutable.store({ type, id, data, userId, metadata });
+
+// Get current version
+await memoir.immutable.get(type, id);
+
+// Get specific version
+await memoir.immutable.getVersion(type, id, version);
+
+// Get history
+await memoir.immutable.getHistory(type, id);
+
+// Purge
+await memoir.immutable.purge(type, id);
+```
+
+---
+
+## Mutable Store
+
+```typescript
+// Set value
+await memoir.mutable.set(namespace, key, value, userId);
+
+// Get value
+await memoir.mutable.get(namespace, key);
+
+// Atomic update
+await memoir.mutable.update(namespace, key, (current) => current + 1);
+
+// Transaction
+await memoir.mutable.transaction([
+  { op: 'decrement', namespace: 'inventory', key: 'product-a', amount: 1 },
+  { op: 'increment', namespace: 'counters', key: 'sales', amount: 1 },
+]);
+
+// Delete
+await memoir.mutable.delete(namespace, key);
+```
+
+---
+
+## Sessions
+
+```typescript
+// Create session
+const session = await memoir.sessions.create({
+  userId,
+  metadata: { deviceType: 'web' },
+});
+
+// Get or create
+const session = await memoir.sessions.getOrCreate(userId, { deviceType: 'web' });
+
+// Touch (update activity)
+await memoir.sessions.touch(sessionId);
+
+// End session
+await memoir.sessions.end(sessionId);
+
+// Get active sessions
+await memoir.sessions.getActive(userId);
+
+// Expire idle sessions
+await memoir.sessions.expireIdle({ idleTimeout: 30 * 60 * 1000 });
+```
+
+---
+
+## Facts
+
+```typescript
+// Store fact
+await memoir.facts.store(memorySpaceId, {
+  fact: "User prefers dark mode",
+  subject: userId,
+  predicate: "preference",
+  object: "dark mode",
+  confidence: 95,
+});
+
+// Search facts
+await memoir.facts.search(memorySpaceId, query, { userId });
+
+// Belief revision with conflict resolution
+const result = await memoir.facts.revise({
+  memorySpaceId,
+  newFacts: [{ 
+    fact: "User prefers light mode",
+    factType: "preference",
+    subject: userId,
+    confidence: 90,
+  }],
+});
+
+// Get fact history
+await memoir.facts.getHistory(memorySpaceId, factId);
+```
+
+---
+
+## Universal Filters
+
+:::warning Filter Support Varies
+Not all filters are supported by all operations. Check the specific API documentation for each namespace to see which filters are available.
+:::
+
+Common filters that work across memory operations:
+
+```typescript
+const filters = {
+  userId: "user-123",
+  tags: ["preferences"],
+  minImportance: 50,
+  createdAfter: new Date("2025-10-01"),
+};
+
+// Use everywhere
+await memoir.memory.search(memorySpaceId, query, filters);
+await memoir.memory.count(memorySpaceId, filters);
+await memoir.memory.list(memorySpaceId, filters);
+await memoir.memory.export(memorySpaceId, filters);
+```
+
+**Supported Filters:**
+
+<DataTable
+  headers={["Filter", "Type", "Description", "Supported Operations"]}
+  rows={[
+    ["`userId`", "`string`", "Filter by user", "memory.*, contexts.*, facts.*"],
+    ["`tags`", "`string[]`", "Filter by tags (AND)", "memory.*"],
+    ["`minImportance`", "`number`", "Minimum importance (0-100)", "memory.*, facts.*"],
+    ["`maxImportance`", "`number`", "Maximum importance (0-100)", "memory.*, facts.*"],
+    ["`createdBefore`", "`Date`", "Created before date", "memory.*, contexts.*"],
+    ["`createdAfter`", "`Date`", "Created after date", "memory.*, contexts.*"],
+    ["`accessCount`", "`number`", "Minimum access count", "memory.*"],
+    ["`version`", "`number`", "Specific version", "immutable.*"],
+    ["`source.type`", "`string`", "Source type filter", "memory.*"],
+    ["`metadata.*`", "`any`", "Any metadata field", "memory.*, contexts.*"],
+  ]}
+/>
+
+---
+
+## Most Used Operations
+
+Quick copy-paste for the 5 most common operations:
+
+```typescript
+// 1. Remember conversation
+await memoir.memory.remember({
+  memorySpaceId,
+  participantId, // Optional: Hive Mode tracking
+  conversationId,
+  userMessage,
+  agentResponse,
+  userId,
+  userName,
+});
+
+// 2. Search memories (infinite context pattern)
+await memoir.memory.search(memorySpaceId, query, { embedding, filters });
+
+// 3. Update user profile
+await memoir.users.update(userId, { data });
+
+// 4. Send inter-space message (Collaboration Mode)
+await memoir.a2a.send({ from, to, message });
+
+// 5. Create context
+await memoir.contexts.create({ purpose, memorySpaceId, userId });
+```
+
+---
+
+## API Conventions
+
+### Naming Patterns
+
+<DataTable
+  headers={["Pattern", "Example", "Description"]}
+  rows={[
+    ["Operations", "`create`, `get`, `update`, `delete`, `search`", "Verb-based"],
+    ["Namespaces", "`conversations`, `users`, `contexts`", "Plural nouns"],
+    ["Options", "`SearchOptions`, `DeleteOptions`", "`*Options` suffix"],
+    ["Results", "`RememberResult`, `DeleteResult`", "`*Result` suffix"],
+    ["Filters", "`UniversalFilters`, `UserFilters`", "`*Filters` suffix"],
+  ]}
+/>
+
+### Return Values
+
+<DataTable
+  headers={["Pattern", "Type", "Example"]}
+  rows={[
+    ["Single item", "`Entity | null`", "`memoir.users.get()`"],
+    ["Multiple items", "`Entity[]`", "`memoir.users.search()`"],
+    ["Paginated", "`{ items, total, hasMore }`", "`memoir.memory.list()`"],
+    ["Operations", "`*Result`", "`memoir.memory.remember()`"],
+  ]}
+/>
+
+### Async/Await
+
+```typescript
+// Always use await
+const memory = await memoir.memory.get("agent-1", memoryId);
+
+// Don't forget await
+const memory = memoir.memory.get("agent-1", memoryId); // Returns Promise!
+```
+
+---
+
+## Error Handling
+
+```typescript
+import { MemoryValidationError, CircuitOpenError } from "@memoir/sdk";
+
+try {
+  await memoir.memory.store("agent-1", data);
+} catch (error) {
+  if (error instanceof MemoryValidationError) {
+    console.error(`Validation error: ${error.message}`);
+  } else if (error instanceof CircuitOpenError) {
+    console.error(`Service temporarily unavailable`);
+  }
+}
+```
+
+---
+
+## Related Resources
+
+<QuickNav>
+  <QuickNavItem
+    title="Patterns & Practices"
+    description="Common implementation patterns"
+    href="/reference/patterns-and-practices"
+  />
+  <QuickNavItem
+    title="Memory Operations"
+    description="Complete API reference"
+    href="/api-reference/memory-operations"
+  />
+  <QuickNavItem
+    title="Types & Interfaces"
+    description="TypeScript definitions"
+    href="/reference/types-interfaces"
+  />
+  <QuickNavItem
+    title="Error Handling"
+    description="Error codes and debugging"
+    href="/reference/error-handling"
+  />
+</QuickNav>

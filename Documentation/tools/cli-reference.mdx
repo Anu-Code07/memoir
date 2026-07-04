@@ -1,0 +1,3421 @@
+---
+id: cli-reference
+title: CLI Reference
+sidebar_position: 1
+description: Command-line tool for managing Memoir deployments
+---
+
+# Memoir CLI Reference
+
+<Callout type="info">
+
+**Last Updated**: 2026-01-08 | **CLI Version**: 0.27.4 | **Package**: `@memoir/cli`
+
+</Callout>
+
+## What is Memoir CLI?
+
+The Memoir CLI is a command-line tool for managing Memoir deployments, performing administrative tasks, and streamlining development workflows. It provides comprehensive functionality for:
+
+- **Project initialization** and lifecycle management
+- **Database operations** and statistics
+- **Memory management** (vector store operations)
+- **User data management** with GDPR compliance
+- **Deployment management** across multiple environments
+- **Interactive development** with live-reloading
+
+## Installation
+
+Install via Homebrew (Recommended):
+
+<Terminal>brew install memoir/tap/cli</Terminal>
+
+Or install globally via npm:
+
+<Terminal>npm install -g @memoir/cli</Terminal>
+
+Or use with npx (no installation needed):
+
+<Terminal>npx @memoir/cli &lt;command&gt;</Terminal>
+
+Or install as dev dependency in your project:
+
+<Terminal>npm install --save-dev @memoir/cli</Terminal>
+
+**Requirements**: Node.js >= 20
+
+## Quick Start
+
+The most common workflow for getting started:
+
+<Steps>
+  <Step title="Initialize a new Memoir project">
+    <Terminal>memoir init my-memoir-app</Terminal>
+  </Step>
+  <Step title="Start development services">
+    <Terminal>memoir start</Terminal>
+  </Step>
+  <Step title="Check status">
+    <Terminal>memoir status</Terminal>
+  </Step>
+  <Step title="View database statistics">
+    <Terminal>memoir db stats</Terminal>
+  </Step>
+  <Step title="List memory spaces">
+    <Terminal>memoir spaces list</Terminal>
+  </Step>
+</Steps>
+
+---
+
+## Command Categories
+
+### Project Lifecycle
+
+Commands for managing your Memoir project lifecycle:
+
+- [`memoir init`](#memoir-init) - Initialize a new Memoir project
+- [`memoir start`](#memoir-start) - Start development services
+- [`memoir stop`](#memoir-stop) - Stop background services
+- [`memoir dev`](#memoir-dev) - Interactive development mode (Expo-style)
+- [`memoir status`](#memoir-status) - Show status dashboard
+
+### Configuration
+
+Commands for managing CLI configuration:
+
+- [`memoir config`](#memoir-config) - Configuration management
+- [`memoir use`](#memoir-use) - Switch deployment context
+
+### Data Operations
+
+Commands for managing data:
+
+- [`memoir memory`](#memoir) - Memory operations (vector store)
+- [`memoir users`](#memoir-users) - User management with GDPR support
+- [`memoir spaces`](#memoir-spaces) - Memory space operations
+- [`memoir facts`](#memoir-facts) - Facts operations
+- [`memoir conversations`](#memoir-conversations-alias-convs) - Conversation operations
+
+### Database
+
+Commands for database-wide operations:
+
+- [`memoir db stats`](#memoir-db-stats) - Show database statistics
+- [`memoir db clear`](#memoir-db-clear) - Clear entire database
+- [`memoir db backup`](#memoir-db-backup) - Backup database
+- [`memoir db restore`](#memoir-db-restore) - Restore from backup
+- [`memoir db export`](#memoir-db-export) - Export all data
+
+### Deployment
+
+Commands for deploying and updating:
+
+- [`memoir deploy`](#memoir-deploy) - Deploy schema and functions
+- [`memoir update`](#memoir-update) - Update packages across deployments
+- [`memoir convex`](#memoir-convex) - Convex management
+
+---
+
+## Global Options
+
+These options work with **ALL** commands:
+
+<DataTable
+  headers={["Option", "Description"]}
+  rows={[
+    ["`-d, --deployment <name>`", "Use a named deployment from config"],
+    ["`--debug`", "Enable debug output"],
+    ["`-h, --help`", "Display help for command"],
+    ["`-V, --version`", "Output version number"],
+  ]}
+/>
+
+Most data operation commands also support:
+
+<DataTable
+  headers={["Option", "Description"]}
+  rows={[
+    ["`-f, --format <format>`", "Output format: `table`, `json`, `csv`"],
+    ["`-l, --limit <number>`", "Maximum number of results"],
+    ["`-y, --yes`", "Skip confirmation prompts"],
+  ]}
+/>
+
+---
+
+## Detailed Command Reference
+
+### Project Lifecycle Commands
+
+#### `memoir init`
+
+Initialize a new Memoir project with interactive setup wizard.
+
+**Usage:**
+
+```bash
+memoir init [directory] [options]
+```
+
+**Arguments:**
+
+- `directory` - Target directory (defaults to current directory)
+
+**Options:**
+
+- `--local` - Quick setup with local Convex only [default: false]
+- `--cloud` - Quick setup with cloud Convex only [default: false]
+- `--skip-graph` - Skip graph database setup [default: false]
+- `-t, --template <name>` - Template to use [default: "basic"]
+- `-y, --yes` - Skip confirmation prompts [default: false]
+- `--start` - Start Convex dev server after setup [default: false]
+
+**Available Templates:**
+
+<DataTable
+  headers={["Template", "Description"]}
+  rows={[
+    ["`basic`", "Interactive CLI + HTTP API server (default)"],
+    ["`vercel-ai-quickstart`", "Next.js ChatGPT-style web app with Vercel AI SDK"],
+    ["`chat-sdk`", "Full-featured chat app based on vercel/ai-chatbot with Memoir"],
+  ]}
+/>
+
+**Examples:**
+
+```bash
+# Interactive setup (recommended)
+memoir init
+
+# Create project with local Convex (fastest)
+memoir init my-app --local
+
+# Create project with cloud Convex
+memoir init my-app --cloud
+
+# Create and start immediately
+memoir init my-app --local --start
+
+# Skip graph database setup
+memoir init my-app --skip-graph
+
+# Use Chat SDK template (full-featured chat app)
+memoir init my-chatbot --template chat-sdk
+```
+
+**What It Does:**
+
+1. Creates project directory and copies template files
+2. Configures Convex backend (local or cloud)
+3. Optionally sets up graph database (Neo4j or Memgraph)
+4. Optionally configures OpenAI API key
+5. Installs dependencies
+6. Deploys Memoir backend functions
+7. Saves deployment configuration to `~/.memoirrc`
+8. Optionally installs Vercel AI quickstart demo
+
+**Related:**
+
+- [Getting Started: Installation](/getting-started/installation)
+- [Getting Started: Five Minute Quickstart](/getting-started/five-minute-quickstart)
+
+---
+
+#### `memoir start`
+
+Start development services for all enabled deployments.
+
+**Usage:**
+
+```bash
+memoir start [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Start a specific deployment only
+- `-l, --local` - Use Convex local beta mode (starts a new local backend) [default: false]
+- `-f, --foreground` - Run in foreground (only works with single deployment) [default: false]
+- `--convex-only` - Only start Convex servers [default: false]
+- `--graph-only` - Only start graph databases [default: false]
+
+**Examples:**
+
+```bash
+# Start all enabled deployments
+memoir start
+
+# Start specific deployment
+memoir start --deployment production
+
+# Start with local Convex
+memoir start --local
+
+# Start in foreground (see logs)
+memoir start --deployment local --foreground
+
+# Start only graph databases
+memoir start --graph-only
+```
+
+**What It Does:**
+
+1. Reads deployment configuration from `~/.memoirrc`
+2. For each enabled deployment:
+   - Starts graph database if configured
+   - Deploys functions to production (for cloud deployments)
+   - Starts Convex dev server in background
+3. Starts enabled template apps
+4. Saves process IDs for later management
+
+**Related:**
+
+- [Configuration: Managing Deployments](#memoir-config)
+- [`memoir stop`](#memoir-stop)
+- [`memoir dev`](#memoir-dev)
+
+---
+
+#### `memoir stop`
+
+Stop background services (Convex, graph database, and apps).
+
+**Usage:**
+
+```bash
+memoir stop [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Stop specific deployment only
+- `-a, --app <name>` - Stop specific app only
+- `--convex-only` - Only stop Convex server [default: false]
+- `--graph-only` - Only stop graph database [default: false]
+- `--apps-only` - Only stop template apps [default: false]
+
+**Examples:**
+
+```bash
+# Stop all services
+memoir stop
+
+# Stop specific deployment
+memoir stop --deployment local
+
+# Stop specific app
+memoir stop --app quickstart
+
+# Stop only Convex (leave graph running)
+memoir stop --convex-only
+```
+
+**What It Does:**
+
+1. Finds running processes using PID files
+2. Sends SIGTERM to Convex dev servers
+3. Stops Docker containers for graph databases
+4. Stops template apps
+5. Cleans up PID files
+
+**Related:**
+
+- [`memoir start`](#memoir-start)
+- [`memoir status`](#memoir-status)
+
+---
+
+#### `memoir dev`
+
+Start interactive development mode with Expo-style interface.
+
+**Usage:**
+
+```bash
+memoir dev [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Run specific deployment only
+- `-l, --local` - Force local Convex instance for all deployments [default: false]
+
+**Keyboard Shortcuts:**
+
+- `c` - Clear screen and show status
+- `s` - Show status dashboard
+- `r` - Restart all services
+- `g` - Toggle graph database
+- `k` - Kill Convex instances (port conflicts)
+- `q` - Quit (or Ctrl+C)
+- `?` or `h` - Show help
+
+**Examples:**
+
+```bash
+# Start interactive dev mode
+memoir dev
+
+# Dev mode for specific deployment
+memoir dev --deployment local
+
+# Force local mode
+memoir dev --local
+```
+
+**What It Does:**
+
+1. Syncs schema files from SDK
+2. Starts all enabled deployments and apps
+3. Displays live status dashboard
+4. Streams aggregated logs from all services
+5. Provides keyboard shortcuts for common actions
+6. Handles graceful shutdown on exit
+
+**Features:**
+
+- Multi-deployment support
+- Live status updates
+- Aggregated streaming logs
+- Keyboard shortcuts
+- Automatic schema sync
+- Graph database management
+
+**Related:**
+
+- [`memoir start`](#memoir-start)
+- [`memoir status`](#memoir-status)
+
+---
+
+#### `memoir status`
+
+Show Memoir setup status dashboard for all deployments.
+
+**Usage:**
+
+```bash
+memoir status [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Show status for specific deployment only
+- `--check` - Run health checks [default: false]
+- `-f, --format <format>` - Output format: `dashboard`, `json` [default: "dashboard"]
+
+**Examples:**
+
+```bash
+# Show status for all deployments
+memoir status
+
+# Status for specific deployment
+memoir status --deployment production
+
+# JSON output
+memoir status --format json
+```
+
+**What It Shows:**
+
+- All configured deployments
+- Convex backend status (running/stopped)
+- Graph database status (running/stopped/not configured)
+- Template apps status
+- SDK version information
+- Process IDs and ports
+- Dashboard URLs
+
+**Related:**
+
+- [`memoir start`](#memoir-start)
+- [`memoir config list`](#memoir-config-list)
+
+---
+
+### Configuration Commands
+
+#### `memoir config`
+
+Manage CLI configuration. The config command has multiple subcommands:
+
+##### `memoir config show`
+
+Show current configuration.
+
+**Usage:**
+
+```bash
+memoir config show [options]
+```
+
+**Options:**
+
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Show configuration
+memoir config show
+
+# JSON output
+memoir config show --format json
+```
+
+---
+
+##### `memoir config list`
+
+List all deployments in table format.
+
+**Usage:**
+
+```bash
+memoir config list
+```
+
+**Examples:**
+
+```bash
+# List all deployments and apps
+memoir config list
+```
+
+**Output:**
+
+- Deployment name, status, URL, key status, project path
+- Apps with their type, status, and port
+- Default deployment indicator (→)
+- Enabled/disabled status
+
+---
+
+##### `memoir config set`
+
+Set a configuration value.
+
+**Usage:**
+
+```bash
+memoir config set <key> <value>
+```
+
+**Examples:**
+
+```bash
+# Set default deployment
+memoir config set default production
+
+# Set output format
+memoir config set format json
+```
+
+---
+
+##### `memoir config test`
+
+Test connection to Convex deployment.
+
+**Usage:**
+
+```bash
+memoir config test [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Deployment to test
+
+**Examples:**
+
+```bash
+# Test default deployment
+memoir config test
+
+# Test specific deployment
+memoir config test --deployment production
+```
+
+---
+
+##### `memoir config add-deployment`
+
+Add a new deployment configuration.
+
+**Usage:**
+
+```bash
+memoir config add-deployment [name] [options]
+```
+
+**Options:**
+
+- `-u, --url <url>` - Convex deployment URL
+- `-k, --key <key>` - Convex deploy key
+- `--default` - Set as default deployment [default: false]
+- `--json-only` - Only save to ~/.memoirrc (skip .env.local) [default: false]
+
+**Examples:**
+
+```bash
+# Interactive mode
+memoir config add-deployment
+
+# Add cloud deployment
+memoir config add-deployment cloud \
+  --url https://my-app.convex.cloud \
+  --key "prod|abc123..."
+
+# Add and set as default
+memoir config add-deployment staging \
+  --url https://staging.convex.cloud \
+  --default
+```
+
+---
+
+##### `memoir config remove-deployment`
+
+Remove a deployment configuration.
+
+**Usage:**
+
+```bash
+memoir config remove-deployment [name] [options]
+```
+
+**Options:**
+
+- `--json-only` - Only remove from ~/.memoirrc (skip .env.local) [default: false]
+
+**Examples:**
+
+```bash
+# Interactive mode
+memoir config remove-deployment
+
+# Remove specific deployment
+memoir config remove-deployment staging
+```
+
+**Note:** Cannot remove the default deployment. Set a different default first.
+
+---
+
+##### `memoir config set-key`
+
+Set or update the deploy key for a deployment.
+
+**Usage:**
+
+```bash
+memoir config set-key [deployment] [options]
+```
+
+**Options:**
+
+- `-k, --key <key>` - Deploy key (will prompt if not provided)
+- `--json-only` - Only update ~/.memoirrc (skip .env.local) [default: false]
+
+**Examples:**
+
+```bash
+# Interactive mode
+memoir config set-key
+
+# Set key for specific deployment
+memoir config set-key production --key "prod|abc123..."
+```
+
+---
+
+##### `memoir config set-url`
+
+Set or update the URL for a deployment.
+
+**Usage:**
+
+```bash
+memoir config set-url [deployment] [options]
+```
+
+**Options:**
+
+- `-u, --url <url>` - Deployment URL (will prompt if not provided)
+- `--json-only` - Only update ~/.memoirrc (skip .env.local) [default: false]
+
+**Examples:**
+
+```bash
+# Interactive mode
+memoir config set-url
+
+# Set URL for specific deployment
+memoir config set-url production --url "https://new-app.convex.cloud"
+```
+
+---
+
+##### `memoir config set-path`
+
+Set project path for a deployment (enables `memoir start -d <name>` from anywhere).
+
+**Usage:**
+
+```bash
+memoir config set-path <deployment> [path]
+```
+
+**Examples:**
+
+```bash
+# Set path to current directory
+memoir config set-path production
+
+# Set specific path
+memoir config set-path production /path/to/project
+```
+
+---
+
+##### `memoir config enable`
+
+Enable a deployment or app (will be started with `memoir start`).
+
+**Usage:**
+
+```bash
+memoir config enable <name>
+```
+
+**Examples:**
+
+```bash
+# Enable deployment
+memoir config enable production
+
+# Enable app
+memoir config enable quickstart
+```
+
+---
+
+##### `memoir config disable`
+
+Disable a deployment or app (will not be started with `memoir start`).
+
+**Usage:**
+
+```bash
+memoir config disable <name>
+```
+
+**Examples:**
+
+```bash
+# Disable deployment
+memoir config disable staging
+
+# Disable app
+memoir config disable quickstart
+```
+
+---
+
+##### `memoir config path`
+
+Show configuration file paths.
+
+**Usage:**
+
+```bash
+memoir config path
+```
+
+**Shows:**
+
+- User config path (`~/.memoirrc`)
+- Project config paths
+- Environment variables
+
+---
+
+##### `memoir config reset`
+
+Reset configuration to defaults.
+
+**Usage:**
+
+```bash
+memoir config reset [options]
+```
+
+**Options:**
+
+- `-y, --yes` - Skip confirmation [default: false]
+
+**Examples:**
+
+```bash
+# Reset configuration
+memoir config reset
+```
+
+<Callout type="warning">
+This cannot be undone.
+</Callout>
+
+---
+
+#### `memoir use`
+
+Set current deployment for all commands (session context).
+
+**Usage:**
+
+```bash
+memoir use [deployment] [options]
+```
+
+**Options:**
+
+- `--clear` - Clear the current deployment setting
+
+**Examples:**
+
+```bash
+# Show current deployment
+memoir use
+
+# Switch to production
+memoir use production
+
+# Clear current deployment
+memoir use --clear
+```
+
+**What It Does:**
+
+- Sets a "current deployment" for the session
+- All subsequent commands will use this deployment by default
+- Stored separately from the default deployment in config
+
+---
+
+### Memory Commands
+
+#### `memoir memory`
+
+Manage memories (vector store). The memory command has multiple subcommands:
+
+##### `memoir memory list`
+
+List memories in a memory space.
+
+**Usage:**
+
+```bash
+memoir memory list [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-u, --user <id>` - Filter by user ID
+- `-l, --limit <number>` - Maximum number of results [default: 50]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+
+**Examples:**
+
+```bash
+# List memories in a space
+memoir memory list --space agent-1
+
+# Filter by user
+memoir memory list --space agent-1 --user user-123
+
+# Increase limit
+memoir memory list --space agent-1 --limit 100
+```
+
+**Related:**
+
+- [Core Features: Semantic Search](/core-features/semantic-search)
+- [API Reference: Memory Operations](/api-reference/memory-operations)
+
+---
+
+##### `memoir memory search`
+
+Search memories by content.
+
+**Usage:**
+
+```bash
+memoir memory search <query> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-u, --user <id>` - Filter by user ID
+- `-l, --limit <number>` - Maximum number of results [default: 20]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+
+**Examples:**
+
+```bash
+# Search memories
+memoir memory search "password preferences" --space agent-1
+
+# Search for specific user
+memoir memory search "API keys" --space agent-1 --user user-123
+
+# Increase results
+memoir memory search "configuration" --space agent-1 --limit 50
+```
+
+---
+
+##### `memoir memory get`
+
+Get details of a specific memory.
+
+**Usage:**
+
+```bash
+memoir memory get <memoryId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `--include-conversation` - Include source conversation [default: false]
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Get memory details
+memoir memory get mem-123 --space agent-1
+
+# Include source conversation
+memoir memory get mem-123 --space agent-1 --include-conversation
+```
+
+---
+
+##### `memoir memory delete`
+
+Delete a specific memory.
+
+**Usage:**
+
+```bash
+memoir memory delete <memoryId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `--cascade` - Also delete associated facts [default: false]
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Delete memory
+memoir memory delete mem-123 --space agent-1
+
+# Delete with cascade (also deletes facts)
+memoir memory delete mem-123 --space agent-1 --cascade
+```
+
+<Callout type="warning">
+Deletion is permanent and cannot be undone.
+</Callout>
+
+---
+
+##### `memoir memory clear`
+
+Clear multiple memories.
+
+**Usage:**
+
+```bash
+memoir memory clear [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-u, --user <id>` - Only clear memories for this user
+- `--source <type>` - Only clear memories of this source type
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Clear all memories in a space
+memoir memory clear --space agent-1
+
+# Clear memories for specific user
+memoir memory clear --space agent-1 --user user-123
+
+# Clear by source type
+memoir memory clear --space agent-1 --source conversation
+```
+
+<Callout type="warning">
+This operation is permanent and cannot be undone.
+</Callout>
+
+---
+
+##### `memoir memory export`
+
+Export memories to a file.
+
+**Usage:**
+
+```bash
+memoir memory export [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-u, --user <id>` - Only export memories for this user
+- `-o, --output <file>` - Output file path [default: "memories-export.json"]
+- `--include-facts` - Include associated facts [default: false]
+- `-f, --format <format>` - Export format: `json`, `csv` [default: "json"]
+
+**Examples:**
+
+```bash
+# Export memories
+memoir memory export --space agent-1 --output memories.json
+
+# Export with facts
+memoir memory export --space agent-1 --include-facts
+
+# Export as CSV
+memoir memory export --space agent-1 --format csv --output memories.csv
+```
+
+---
+
+##### `memoir memory stats`
+
+Show memory statistics for a space.
+
+**Usage:**
+
+```bash
+memoir memory stats [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Show statistics
+memoir memory stats --space agent-1
+
+# JSON output
+memoir memory stats --space agent-1 --format json
+```
+
+---
+
+##### `memoir memory archive`
+
+Archive a memory (soft delete).
+
+**Usage:**
+
+```bash
+memoir memory archive <memoryId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Archive memory
+memoir memory archive mem-123 --space agent-1
+```
+
+**Note:** Archived memories can be restored later using `memoir memory restore`.
+
+---
+
+##### `memoir memory restore`
+
+Restore an archived memory.
+
+**Usage:**
+
+```bash
+memoir memory restore <memoryId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+
+**Examples:**
+
+```bash
+# Restore memory
+memoir memory restore mem-123 --space agent-1
+```
+
+---
+
+### User Commands
+
+#### `memoir users`
+
+Manage user profiles and data with GDPR compliance support.
+
+##### `memoir users list`
+
+List all user profiles with usage stats.
+
+**Usage:**
+
+```bash
+memoir users list [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --limit <number>` - Maximum number of results [default: 50]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+- `--no-stats` - Skip gathering usage stats (faster)
+
+**Examples:**
+
+```bash
+# List users
+memoir users list
+
+# List without stats (faster)
+memoir users list --no-stats
+
+# Increase limit
+memoir users list --limit 100
+```
+
+**Related:**
+
+- [Core Features: User Profiles](/core-features/user-profiles)
+- [API Reference: User Operations](/api-reference/user-operations)
+
+---
+
+##### `memoir users get`
+
+Get user profile details.
+
+**Usage:**
+
+```bash
+memoir users get <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+- `--include-history` - Include version history [default: false]
+
+**Examples:**
+
+```bash
+# Get user profile
+memoir users get user-123
+
+# Include version history
+memoir users get user-123 --include-history
+```
+
+---
+
+##### `memoir users delete`
+
+Delete user profile with optional GDPR cascade deletion.
+
+**Usage:**
+
+```bash
+memoir users delete <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--cascade` - Delete all user data across all layers (GDPR) [default: false]
+- `--dry-run` - Preview what would be deleted without actually deleting [default: false]
+- `--verify` - Verify deletion completeness after cascade [default: true]
+- `-y, --yes` - Skip confirmation prompt (not recommended for cascade) [default: false]
+
+**Examples:**
+
+```bash
+# Delete user profile only
+memoir users delete user-123
+
+# GDPR cascade deletion (all user data)
+memoir users delete user-123 --cascade
+
+# Dry run to preview deletion
+memoir users delete user-123 --cascade --dry-run
+```
+
+<Callout type="warning">
+Cascade deletion permanently removes ALL user data:
+</Callout>
+
+- User profile
+- Conversations and messages
+- Memories (vector store)
+- Facts
+- Immutable records
+- Mutable records
+- Graph nodes (if configured)
+
+**Related:**
+
+- [GDPR Compliance](#gdpr-compliance)
+
+---
+
+##### `memoir users delete-many`
+
+Delete multiple users with optional GDPR cascade.
+
+**Usage:**
+
+```bash
+memoir users delete-many <userIds...> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--cascade` - Delete all user data across all layers [default: false]
+- `--dry-run` - Preview what would be deleted [default: false]
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Delete multiple users
+memoir users delete-many user-1 user-2 user-3
+
+# Delete with cascade
+memoir users delete-many user-1 user-2 --cascade
+
+# Dry run
+memoir users delete-many user-1 user-2 --cascade --dry-run
+```
+
+---
+
+##### `memoir users export`
+
+Export all user data (GDPR data portability).
+
+**Usage:**
+
+```bash
+memoir users export <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-o, --output <file>` - Output file path [default: "user-export.json"]
+
+**Examples:**
+
+```bash
+# Export user data
+memoir users export user-123
+
+# Custom output file
+memoir users export user-123 --output user-data.json
+```
+
+**Related:**
+
+- [GDPR Compliance](#gdpr-compliance)
+
+---
+
+##### `memoir users stats`
+
+Show statistics for a user.
+
+**Usage:**
+
+```bash
+memoir users stats <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Show user statistics
+memoir users stats user-123
+
+# JSON output
+memoir users stats user-123 --format json
+```
+
+---
+
+##### `memoir users update`
+
+Update user profile data.
+
+**Usage:**
+
+```bash
+memoir users update <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--data <json>` - JSON data to merge into profile
+- `-f, --file <path>` - JSON file with data to merge
+
+**Examples:**
+
+```bash
+# Update user data
+memoir users update user-123 --data '{"name":"John","role":"admin"}'
+
+# Update from file
+memoir users update user-123 --file user-data.json
+```
+
+---
+
+##### `memoir users create`
+
+Create a new user profile.
+
+**Usage:**
+
+```bash
+memoir users create <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--data <json>` - JSON data for the profile [default: "{}"]
+
+**Examples:**
+
+```bash
+# Create user
+memoir users create user-123
+
+# Create with data
+memoir users create user-123 --data '{"name":"John","email":"john@example.com"}'
+```
+
+---
+
+##### `memoir users exists`
+
+Check if a user exists.
+
+**Usage:**
+
+```bash
+memoir users exists <userId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+
+**Examples:**
+
+```bash
+# Check if user exists
+memoir users exists user-123
+```
+
+---
+
+### Memory Space Commands
+
+#### `memoir spaces`
+
+Manage memory spaces.
+
+##### `memoir spaces list`
+
+List all memory spaces.
+
+**Usage:**
+
+```bash
+memoir spaces list [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-t, --type <type>` - Filter by type: `personal`, `team`, `project`, `custom`
+- `-s, --status <status>` - Filter by status: `active`, `archived`
+- `-l, --limit <number>` - Maximum number of results [default: 100]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+
+**Examples:**
+
+```bash
+# List all memory spaces
+memoir spaces list
+
+# Filter by type
+memoir spaces list --type team
+
+# Filter by status
+memoir spaces list --status active
+```
+
+**Related:**
+
+- [Core Features: Memory Spaces](/core-features/memory-spaces)
+- [API Reference: Memory Space Operations](/api-reference/memory-space-operations)
+
+---
+
+##### `memoir spaces create`
+
+Create a new memory space.
+
+**Usage:**
+
+```bash
+memoir spaces create <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-t, --type <type>` - Space type: `personal`, `team`, `project`, `custom` **(required)**
+- `-n, --name <name>` - Human-readable name
+- `-m, --metadata <json>` - JSON metadata [default: "{}"]
+
+**Examples:**
+
+```bash
+# Create team space
+memoir spaces create team-alpha --type team --name "Team Alpha"
+
+# Create with metadata
+memoir spaces create project-1 --type project --metadata '{"owner":"user-123"}'
+```
+
+---
+
+##### `memoir spaces get`
+
+Get memory space details.
+
+**Usage:**
+
+```bash
+memoir spaces get <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Get space details
+memoir spaces get team-alpha
+
+# JSON output
+memoir spaces get team-alpha --format json
+```
+
+---
+
+##### `memoir spaces delete`
+
+Delete a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces delete <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--cascade` - Delete all data in the space (memories, facts, etc.) [default: false]
+- `-r, --reason <reason>` - Reason for deletion (for audit trail)
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Delete space
+memoir spaces delete team-alpha
+
+# Delete with cascade (all data)
+memoir spaces delete team-alpha --cascade --reason "Project completed"
+```
+
+<Callout type="warning">
+Cascade deletion permanently removes:
+</Callout>
+
+- All memories
+- All facts
+- All conversations
+- All contexts
+
+---
+
+##### `memoir spaces archive`
+
+Archive a memory space (soft delete).
+
+**Usage:**
+
+```bash
+memoir spaces archive <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-r, --reason <reason>` - Reason for archiving
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Archive space
+memoir spaces archive project-apollo --reason "Project completed"
+```
+
+---
+
+##### `memoir spaces reactivate`
+
+Reactivate an archived memory space.
+
+**Usage:**
+
+```bash
+memoir spaces reactivate <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+
+**Examples:**
+
+```bash
+# Reactivate space
+memoir spaces reactivate project-apollo
+```
+
+---
+
+##### `memoir spaces stats`
+
+Get statistics for a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces stats <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Get statistics
+memoir spaces stats team-alpha
+
+# JSON output
+memoir spaces stats team-alpha --format json
+```
+
+---
+
+##### `memoir spaces participants`
+
+List participants in a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces participants <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# List participants
+memoir spaces participants team-alpha
+```
+
+---
+
+##### `memoir spaces add-participant`
+
+Add a participant to a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces add-participant <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-i, --id <participantId>` - Participant ID **(required)**
+- `-t, --type <type>` - Participant type (e.g., `user`, `ai-tool`, `ai-agent`) **(required)**
+
+**Examples:**
+
+```bash
+# Add user participant
+memoir spaces add-participant team-alpha --id user-123 --type user
+
+# Add AI agent participant
+memoir spaces add-participant team-alpha --id agent-1 --type ai-agent
+```
+
+---
+
+##### `memoir spaces remove-participant`
+
+Remove a participant from a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces remove-participant <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-i, --id <participantId>` - Participant ID to remove **(required)**
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Remove participant
+memoir spaces remove-participant team-alpha --id user-123
+```
+
+---
+
+##### `memoir spaces update`
+
+Update a memory space.
+
+**Usage:**
+
+```bash
+memoir spaces update <spaceId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-n, --name <name>` - New name
+- `-s, --status <status>` - New status: `active`, `archived`
+- `-m, --metadata <json>` - JSON metadata to merge
+
+**Examples:**
+
+```bash
+# Update name
+memoir spaces update team-alpha --name "Team Alpha v2"
+
+# Update metadata
+memoir spaces update team-alpha --metadata '{"updated":true}'
+```
+
+---
+
+##### `memoir spaces count`
+
+Count memory spaces.
+
+**Usage:**
+
+```bash
+memoir spaces count [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-t, --type <type>` - Filter by type
+- `-s, --status <status>` - Filter by status
+
+**Examples:**
+
+```bash
+# Count all spaces
+memoir spaces count
+
+# Count by type
+memoir spaces count --type team
+```
+
+---
+
+##### `memoir spaces search`
+
+Search memory spaces by name.
+
+**Usage:**
+
+```bash
+memoir spaces search <query> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-t, --type <type>` - Filter by type
+- `-s, --status <status>` - Filter by status
+- `-l, --limit <number>` - Maximum results [default: 20]
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Search spaces
+memoir spaces search "alpha"
+
+# Search with filter
+memoir spaces search "team" --type team
+```
+
+---
+
+### Facts Commands
+
+#### `memoir facts`
+
+Manage extracted facts.
+
+##### `memoir facts list`
+
+List facts in a memory space.
+
+**Usage:**
+
+```bash
+memoir facts list [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-t, --type <type>` - Filter by fact type
+- `-u, --user <id>` - Filter by user ID
+- `-l, --limit <number>` - Maximum number of results [default: 50]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+
+**Examples:**
+
+```bash
+# List facts
+memoir facts list --space agent-1
+
+# Filter by type
+memoir facts list --space agent-1 --type preference
+
+# Filter by user
+memoir facts list --space agent-1 --user user-123
+```
+
+**Related:**
+
+- [Core Features: Fact Extraction](/core-features/fact-extraction)
+- [API Reference: Facts Operations](/api-reference/facts-operations)
+
+---
+
+##### `memoir facts search`
+
+Search facts by content.
+
+**Usage:**
+
+```bash
+memoir facts search <query> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-t, --type <type>` - Filter by fact type
+- `-l, --limit <number>` - Maximum number of results [default: 20]
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Search facts
+memoir facts search "dark mode" --space agent-1
+
+# Search by type
+memoir facts search "preference" --space agent-1 --type preference
+```
+
+---
+
+##### `memoir facts get`
+
+Get fact details.
+
+**Usage:**
+
+```bash
+memoir facts get <factId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Get fact details
+memoir facts get fact-123 --space agent-1
+
+# JSON output
+memoir facts get fact-123 --space agent-1 --format json
+```
+
+---
+
+##### `memoir facts delete`
+
+Delete a fact.
+
+**Usage:**
+
+```bash
+memoir facts delete <factId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Delete fact
+memoir facts delete fact-123 --space agent-1
+```
+
+---
+
+##### `memoir facts export`
+
+Export facts to a file.
+
+**Usage:**
+
+```bash
+memoir facts export [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-t, --type <type>` - Filter by fact type
+- `-o, --output <file>` - Output file path [default: "facts-export.json"]
+- `-f, --format <format>` - Export format: `json`, `csv` [default: "json"]
+
+**Examples:**
+
+```bash
+# Export facts
+memoir facts export --space agent-1 --output facts.json
+
+# Export as CSV
+memoir facts export --space agent-1 --format csv --output facts.csv
+```
+
+---
+
+##### `memoir facts count`
+
+Count facts in a memory space.
+
+**Usage:**
+
+```bash
+memoir facts count [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-t, --type <type>` - Filter by fact type
+
+**Examples:**
+
+```bash
+# Count facts
+memoir facts count --space agent-1
+
+# Count by type
+memoir facts count --space agent-1 --type preference
+```
+
+---
+
+##### `memoir facts clear`
+
+Clear all facts in a memory space.
+
+**Usage:**
+
+```bash
+memoir facts clear [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID **(required)**
+- `-t, --type <type>` - Only clear facts of this type
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Clear all facts
+memoir facts clear --space agent-1
+
+# Clear specific type
+memoir facts clear --space agent-1 --type preference
+```
+
+<Callout type="warning">
+This operation is permanent and cannot be undone.
+</Callout>
+
+---
+
+### Conversation Commands
+
+#### `memoir conversations` (alias: `convs`)
+
+Manage conversations.
+
+##### `memoir conversations list`
+
+List conversations.
+
+**Usage:**
+
+```bash
+memoir conversations list [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Filter by memory space ID
+- `-u, --user <id>` - Filter by user ID
+- `-t, --type <type>` - Filter by type: `user-agent`, `agent-agent`
+- `-l, --limit <number>` - Maximum number of results [default: 50]
+- `-f, --format <format>` - Output format: `table`, `json`, `csv`
+
+**Examples:**
+
+```bash
+# List conversations
+memoir conversations list
+
+# Filter by space
+memoir conversations list --space agent-1
+
+# Filter by user
+memoir conversations list --user user-123
+
+# Filter by type
+memoir conversations list --type user-agent
+```
+
+**Related:**
+
+- [Core Features: Conversation History](/core-features/conversation-history)
+- [API Reference: Conversation Operations](/api-reference/conversation-operations)
+
+---
+
+##### `memoir conversations get`
+
+Get conversation details with messages.
+
+**Usage:**
+
+```bash
+memoir conversations get <conversationId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-m, --messages <number>` - Number of messages to show [default: 20]
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Get conversation
+memoir conversations get conv-123
+
+# Show more messages
+memoir conversations get conv-123 --messages 50
+
+# JSON output
+memoir conversations get conv-123 --format json
+```
+
+---
+
+##### `memoir conversations delete`
+
+Delete a conversation.
+
+**Usage:**
+
+```bash
+memoir conversations delete <conversationId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Delete conversation
+memoir conversations delete conv-123
+```
+
+---
+
+##### `memoir conversations export`
+
+Export a conversation to a file.
+
+**Usage:**
+
+```bash
+memoir conversations export <conversationId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-o, --output <file>` - Output file path [default: "conversation-export.json"]
+- `-f, --format <format>` - Export format: `json`, `txt` [default: "json"]
+
+**Examples:**
+
+```bash
+# Export as JSON
+memoir conversations export conv-123
+
+# Export as text
+memoir conversations export conv-123 --format txt --output conv.txt
+```
+
+---
+
+##### `memoir conversations count`
+
+Count conversations.
+
+**Usage:**
+
+```bash
+memoir conversations count [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Filter by memory space ID
+- `-u, --user <id>` - Filter by user ID
+- `-t, --type <type>` - Filter by type
+
+**Examples:**
+
+```bash
+# Count all conversations
+memoir conversations count
+
+# Count by space
+memoir conversations count --space agent-1
+
+# Count by user
+memoir conversations count --user user-123
+```
+
+---
+
+##### `memoir conversations clear`
+
+Clear conversations.
+
+**Usage:**
+
+```bash
+memoir conversations clear [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-s, --space <id>` - Memory space ID (required)
+- `-u, --user <id>` - Only clear for this user
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Clear all conversations in space
+memoir conversations clear --space agent-1
+
+# Clear for specific user
+memoir conversations clear --space agent-1 --user user-123
+```
+
+<Callout type="warning">
+This operation is permanent and cannot be undone.
+</Callout>
+
+---
+
+##### `memoir conversations messages`
+
+List messages in a conversation.
+
+**Usage:**
+
+```bash
+memoir conversations messages <conversationId> [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --limit <number>` - Maximum number of messages [default: 50]
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# List messages
+memoir conversations messages conv-123
+
+# Show more messages
+memoir conversations messages conv-123 --limit 100
+```
+
+---
+
+### Database Commands
+
+#### `memoir db stats`
+
+Show database statistics.
+
+**Usage:**
+
+```bash
+memoir db stats [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-f, --format <format>` - Output format: `table`, `json`
+
+**Examples:**
+
+```bash
+# Show statistics
+memoir db stats
+
+# JSON output
+memoir db stats --format json
+```
+
+**Shows:**
+
+- Core entities (memory spaces, users, agents)
+- Memory data (memories, facts, contexts)
+- Conversations (conversations, messages)
+- Shared stores (immutable, mutable)
+- System tables (governance, graph sync)
+- Deployment info (URL, mode)
+
+---
+
+#### `memoir db clear`
+
+Clear entire database.
+
+**Usage:**
+
+```bash
+memoir db clear [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-y, --yes` - Skip confirmation prompt [default: false]
+
+**Examples:**
+
+```bash
+# Clear database (with confirmation)
+memoir db clear
+
+# Skip confirmation
+memoir db clear --yes
+```
+
+<Callout type="warning" title="DANGER">
+This permanently deletes:
+</Callout>
+
+- All memory spaces and memories
+- All conversations and messages
+- All facts and user profiles
+- All graph nodes (if configured)
+
+**This operation cannot be undone.**
+
+---
+
+#### `memoir db backup`
+
+Backup database to a file.
+
+**Usage:**
+
+```bash
+memoir db backup [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-o, --output <file>` - Output file path [default: "memoir-backup.json"]
+- `--include-all` - Include all data (may be large) [default: false]
+
+**Examples:**
+
+```bash
+# Backup (spaces and users only)
+memoir db backup
+
+# Full backup (all data)
+memoir db backup --include-all --output full-backup.json
+```
+
+**What It Backs Up:**
+
+- Always: Memory spaces, users
+- With `--include-all`: Conversations, memories, facts
+
+---
+
+#### `memoir db restore`
+
+Restore database from a backup file.
+
+**Usage:**
+
+```bash
+memoir db restore [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-i, --input <file>` - Backup file path **(required)**
+- `--dry-run` - Preview what would be restored [default: false]
+- `-y, --yes` - Skip confirmation [default: false]
+
+**Examples:**
+
+```bash
+# Preview restore
+memoir db restore --input backup.json --dry-run
+
+# Restore backup
+memoir db restore --input backup.json
+```
+
+<Callout type="warning">
+Existing data may be overwritten.
+</Callout>
+
+---
+
+#### `memoir db export`
+
+Export all data to JSON.
+
+**Usage:**
+
+```bash
+memoir db export [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-o, --output <file>` - Output file path [default: "memoir-export.json"]
+
+**Examples:**
+
+```bash
+# Export all data
+memoir db export
+
+# Custom output file
+memoir db export --output data-export.json
+```
+
+---
+
+### Deployment Commands
+
+#### `memoir deploy`
+
+Deploy schema and functions to Convex.
+
+**Usage:**
+
+```bash
+memoir deploy [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --local` - Deploy to local Convex instance [default: false]
+- `-p, --prod` - Deploy to production [default: false]
+- `--push` - Push without prompts [default: false]
+- `--skip-sync` - Skip automatic schema sync from SDK [default: false]
+
+**Examples:**
+
+```bash
+# Deploy to default deployment
+memoir deploy
+
+# Deploy to specific deployment
+memoir deploy --deployment production
+
+# Deploy to local
+memoir deploy --local
+
+# Deploy without prompts
+memoir deploy --push
+```
+
+**What It Does:**
+
+1. Syncs schema files from SDK (unless `--skip-sync`)
+2. Runs `convex deploy` in the project directory
+3. Deploys all Convex functions and schema
+
+**Related:**
+
+- [`memoir update`](#memoir-update)
+
+---
+
+#### `memoir update`
+
+Update `@memoir/sdk` and `convex` packages across all enabled deployments and apps.
+
+**Usage:**
+
+```bash
+memoir update [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target a specific deployment only
+- `-a, --app <name>` - Target a specific app only
+- `--apps-only` - Only update apps (skip deployments) [default: false]
+- `--deployments-only` - Only update deployments (skip apps) [default: false]
+- `--dev` - Use dev mode (link to local SDK via MEMOIR_SDK_DEV_PATH) [default: false]
+- `--sync-template` - Sync app template files (components, routes, etc.) [default: false]
+- `--sdk-version <version>` - Specific Memoir SDK version to install
+- `--convex-version <version>` - Specific Convex version to install
+- `--provider-version <version>` - Specific vercel-ai-provider version to install
+- `-y, --yes` - Auto-accept all updates [default: false]
+
+**Examples:**
+
+```bash
+# Update all (shows status dashboard)
+memoir update
+
+# Update specific deployment
+memoir update --deployment production
+
+# Update specific app
+memoir update --app quickstart
+
+# Update with template sync
+memoir update --app quickstart --sync-template
+
+# Specific versions
+memoir update --sdk-version 0.27.4 --convex-version 1.31.2
+
+# Dev mode (link to local SDK)
+export MEMOIR_SDK_DEV_PATH=/path/to/Project-Memoir
+memoir update --dev --app quickstart
+```
+
+**What It Does:**
+
+1. Checks current and latest versions
+2. Shows status dashboard for all deployments and apps
+3. Prompts for confirmation (unless `--yes`)
+4. Updates packages for selected targets
+5. Optionally syncs template files for apps
+
+**Related:**
+
+- [`memoir deploy`](#memoir-deploy)
+
+---
+
+### Convex Commands
+
+#### `memoir convex`
+
+Manage Convex deployments. The convex command has multiple subcommands:
+
+##### `memoir convex status`
+
+Check Convex deployment status.
+
+**Usage:**
+
+```bash
+memoir convex status [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+
+**Examples:**
+
+```bash
+# Check status
+memoir convex status
+
+# Specific deployment
+memoir convex status --deployment production
+```
+
+---
+
+##### `memoir convex dev`
+
+Start Convex in development mode.
+
+**Usage:**
+
+```bash
+memoir convex dev [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --local` - Use local Convex instance [default: false]
+- `--once` - Run once and exit [default: false]
+- `--skip-sync` - Skip automatic schema sync from SDK [default: false]
+
+**Examples:**
+
+```bash
+# Start dev server
+memoir convex dev
+
+# Local mode
+memoir convex dev --local
+
+# Run once (for CI)
+memoir convex dev --once
+```
+
+---
+
+##### `memoir convex logs`
+
+View Convex deployment logs.
+
+**Usage:**
+
+```bash
+memoir convex logs [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --local` - View local logs [default: false]
+- `-p, --prod` - View production logs [default: false]
+- `-t, --tail` - Tail logs continuously [default: false]
+- `-n, --lines <number>` - Number of lines to show [default: 50]
+
+**Examples:**
+
+```bash
+# View logs
+memoir convex logs
+
+# Tail logs
+memoir convex logs --tail
+
+# View production logs
+memoir convex logs --prod
+```
+
+---
+
+##### `memoir convex dashboard`
+
+Open Convex dashboard in browser.
+
+**Usage:**
+
+```bash
+memoir convex dashboard [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --local` - Open local dashboard [default: false]
+- `-p, --prod` - Open production dashboard [default: false]
+
+**Examples:**
+
+```bash
+# Open dashboard
+memoir convex dashboard
+
+# Open local dashboard
+memoir convex dashboard --local
+```
+
+---
+
+##### `memoir convex schema`
+
+View schema information.
+
+**Usage:**
+
+```bash
+memoir convex schema
+```
+
+**Examples:**
+
+```bash
+# View schema tables
+memoir convex schema
+```
+
+**Shows:**
+
+- All Memoir SDK tables
+- Table descriptions
+- Layer organization
+
+---
+
+##### `memoir convex init`
+
+Initialize Convex in current project.
+
+**Usage:**
+
+```bash
+memoir convex init [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `--skip-sync` - Skip automatic schema sync from SDK [default: false]
+
+**Examples:**
+
+```bash
+# Initialize Convex
+memoir convex init
+```
+
+---
+
+##### `memoir convex env`
+
+Manage environment variables.
+
+**Usage:**
+
+```bash
+memoir convex env [options]
+```
+
+**Options:**
+
+- `-d, --deployment <name>` - Target deployment
+- `-l, --list` - List environment variables
+- `-s, --set <key=value>` - Set environment variable
+- `-p, --prod` - Use production environment [default: false]
+
+**Examples:**
+
+```bash
+# List env vars
+memoir convex env --list
+
+# Set env var
+memoir convex env --set OPENAI_API_KEY=sk-...
+
+# Production env
+memoir convex env --list --prod
+```
+
+---
+
+## Configuration
+
+The CLI uses a hierarchical configuration system.
+
+### Configuration Priority (highest first)
+
+1. **CLI flags**: `--url`, `--key`, `--deployment`
+2. **Environment variables**: `CONVEX_URL`, `CONVEX_DEPLOY_KEY`
+3. **Project config**: `./memoir.config.json`
+4. **User config**: `~/.memoirrc`
+
+### User Config File
+
+**Location:** `~/.memoirrc`
+
+**Format:** JSON
+
+```json
+{
+  "deployments": {
+    "local": {
+      "url": "http://127.0.0.1:3210",
+      "deployment": "anonymous:anonymous-memoir-sdk-local",
+      "projectPath": "/Users/me/projects/my-memoir-app",
+      "enabled": true
+    },
+    "staging": {
+      "url": "https://staging.convex.cloud",
+      "key": "staging|...",
+      "projectPath": "/Users/me/projects/my-memoir-app",
+      "enabled": false
+    },
+    "production": {
+      "url": "https://prod.convex.cloud",
+      "key": "prod|...",
+      "projectPath": "/Users/me/projects/my-memoir-app",
+      "enabled": false
+    }
+  },
+  "apps": {
+    "quickstart": {
+      "type": "nextjs",
+      "projectPath": "/Users/me/projects/my-memoir-app",
+      "path": "quickstart",
+      "port": 3000,
+      "startCommand": "npm run dev",
+      "enabled": true
+    }
+  },
+  "default": "local",
+  "format": "table",
+  "confirmDangerous": true
+}
+```
+
+**Fields:**
+
+<DataTable
+  headers={["Field", "Type", "Description"]}
+  rows={[
+    ["`deployments`", "object", "Named deployment configurations"],
+    ["`deployments[name].url`", "string", "Convex deployment URL"],
+    ["`deployments[name].key`", "string", "Convex deploy key (optional for local)"],
+    ["`deployments[name].deployment`", "string", "Convex deployment name (optional)"],
+    ["`deployments[name].projectPath`", "string", "Path to project directory"],
+    ["`deployments[name].enabled`", "boolean", "Auto-start with `memoir start`"],
+    ["`apps`", "object", "Named app configurations"],
+    ["`apps[name].type`", "string", 'App type (e.g., "nextjs")'],
+    ["`apps[name].projectPath`", "string", "Path to project root"],
+    ["`apps[name].path`", "string", "Relative path to app"],
+    ["`apps[name].port`", "number", "Port number"],
+    ["`apps[name].startCommand`", "string", "Command to start app"],
+    ["`apps[name].enabled`", "boolean", "Auto-start with `memoir start`"],
+    ["`default`", "string", "Default deployment name"],
+    ["`format`", "string", "Default output format"],
+    ["`confirmDangerous`", "boolean", "Require confirmation for dangerous operations"],
+  ]}
+/>
+
+### Environment Variables
+
+The CLI recognizes these environment variables:
+
+<DataTable
+  headers={["Variable", "Description"]}
+  rows={[
+    ["`CONVEX_URL`", "Convex deployment URL"],
+    ["`CONVEX_DEPLOY_KEY`", "Convex deploy key"],
+    ["`CONVEX_DEPLOYMENT`", "Convex deployment name"],
+    ["`LOCAL_CONVEX_URL`", "Local Convex URL"],
+    ["`CLOUD_CONVEX_URL`", "Cloud Convex URL"],
+    ["`CLOUD_CONVEX_DEPLOY_KEY`", "Cloud deploy key"],
+    ["`NEO4J_URI`", "Neo4j connection URI"],
+    ["`NEO4J_USERNAME`", "Neo4j username"],
+    ["`NEO4J_PASSWORD`", "Neo4j password"],
+    ["`MEMGRAPH_URI`", "Memgraph connection URI"],
+    ["`MEMGRAPH_USERNAME`", "Memgraph username"],
+    ["`MEMGRAPH_PASSWORD`", "Memgraph password"],
+    ["`MEMOIR_GRAPH_SYNC`", 'Enable graph sync ("true"/"false")'],
+    ["`OPENAI_API_KEY`", "OpenAI API key"],
+    ["`MEMOIR_SDK_DEV_PATH`", "Path to local SDK for dev mode"],
+    ["`DEBUG`", "Enable debug output"],
+  ]}
+/>
+
+### Configuration Commands
+
+See [`memoir config`](#memoir-config) for managing configuration.
+
+---
+
+## Config Auto-Cleanup
+
+The CLI automatically validates and cleans stale entries from your configuration during normal operations. This prevents outdated deployments or apps from cluttering your config or causing errors.
+
+### When Cleanup Occurs
+
+Validation runs automatically when you use certain commands:
+
+<DataTable
+  headers={["Command", "Validation Type", "Description"]}
+  rows={[
+    ["`memoir status`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir config list`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir config show`", "Full", "Checks paths + Convex URL accessibility"],
+    ["`memoir start`", "Path only", "Checks paths only (faster startup)"],
+  ]}
+/>
+
+### What Gets Removed
+
+<Callout type="info">
+Entries are only removed when there's definitive evidence they're invalid. The CLI errs on the side of caution to prevent accidental data loss.
+</Callout>
+
+**Deployments are removed when:**
+- The `projectPath` directory no longer exists on your filesystem
+- The Convex URL returns an authentication error (401/403)
+
+**Apps are removed when:**
+- The combined `projectPath` + `path` directory no longer exists
+
+### Safety Rails
+
+To prevent accidental removal due to transient issues:
+
+<DataTable
+  headers={["Scenario", "Action", "Reason"]}
+  rows={[
+    ["Network error (ECONNREFUSED, etc.)", "Keep", "Server might be temporarily down"],
+    ["Timeout (>3s)", "Keep", "Slow network shouldn't delete config"],
+    ["DNS failure", "Keep", "Temporary DNS issues"],
+    ["Server errors (500, 502, 503, 504)", "Keep", "Backend issues are transient"],
+    ["Auth error (401, 403)", "Remove", "Indicates invalid credentials"],
+    ["Missing project path", "Remove", "Directory definitively doesn't exist"],
+  ]}
+/>
+
+### Default Deployment Reassignment
+
+When the default deployment is removed during auto-cleanup:
+1. Remaining deployments are sorted alphabetically
+2. The first one becomes the new default
+3. If no deployments remain, default becomes empty
+
+### Cleanup Notification
+
+When entries are removed, you'll see a notification:
+
+<Terminal>Cleaned 1 stale deployment(s): old-project</Terminal>
+
+Or when both deployments and apps are removed:
+
+<Terminal>Cleaned 2 stale deployment(s), 1 app(s)</Terminal>
+
+### Manual Cleanup
+
+You can also manually remove deployments and apps:
+
+Remove a deployment:
+
+<Terminal>memoir config remove-deployment &lt;name&gt;</Terminal>
+
+View current config to verify cleanup:
+
+<Terminal>memoir config show</Terminal>
+
+---
+
+## GDPR Compliance
+
+The CLI provides GDPR-compliant data management features.
+
+### Cascade Deletion
+
+When deleting users with the `--cascade` flag, ALL user data is permanently removed:
+
+<Terminal>memoir users delete user-123 --cascade</Terminal>
+
+**What Gets Deleted:**
+
+- User profile (all versions)
+- Conversations (all messages)
+- Memories (vector store)
+- Facts
+- Immutable records
+- Mutable records
+- Graph nodes (if configured)
+
+**Verification:**
+
+Use `--verify` (enabled by default) to check deletion completeness:
+
+<Terminal>memoir users delete user-123 --cascade --verify</Terminal>
+
+**Dry Run:**
+
+Preview what would be deleted without actually deleting:
+
+<Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
+
+### Data Portability
+
+Export all user data in machine-readable format:
+
+<Terminal>memoir users export user-123 --output user-data.json</Terminal>
+
+**Related:**
+
+- [`memoir users delete`](#memoir-users-delete)
+- [`memoir users export`](#memoir-users-export)
+
+---
+
+## Safety Features
+
+The CLI includes multiple safety features for dangerous operations:
+
+### Confirmation Prompts
+
+Dangerous operations require explicit confirmation:
+
+<Terminal>memoir db clear</Terminal>
+
+This prompts: "Clear ALL data from local?"
+
+Bypass with `--yes` flag (use carefully):
+
+<Terminal>memoir db clear --yes</Terminal>
+
+### Dry Run Mode
+
+Preview what would happen without executing:
+
+Preview user deletion:
+
+<Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
+
+Preview database restore:
+
+<Terminal>memoir db restore --input backup.json --dry-run</Terminal>
+
+### Exact Confirmation
+
+For cascade deletions, you must type the exact ID:
+
+<Terminal>memoir users delete user-123 --cascade</Terminal>
+
+This prompts: Type "user-123" to confirm cascade deletion.
+
+### Verification
+
+Automatic verification after cascade deletions:
+
+<Terminal>memoir users delete user-123 --cascade --verify</Terminal>
+
+This verifies all user data was deleted and reports any potential issues.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Command Not Found
+
+```
+memoir: command not found
+```
+
+**Solution:**
+
+Install via Homebrew (Recommended):
+
+<Terminal>brew install memoir/tap/cli</Terminal>
+
+Or install globally via npm:
+
+<Terminal>npm install -g @memoir/cli</Terminal>
+
+Or use npx:
+
+<Terminal>npx @memoir/cli &lt;command&gt;</Terminal>
+
+---
+
+#### No Deployments Configured
+
+```
+No deployments configured
+```
+
+**Solution:**
+
+Initialize a new project:
+
+<Terminal>memoir init</Terminal>
+
+Or add existing deployment:
+
+<Terminal>memoir config add-deployment</Terminal>
+
+---
+
+#### Connection Failed
+
+```
+Connection failed: ECONNREFUSED
+```
+
+**Solutions:**
+
+- Check if Convex is running: `memoir status`
+- Start Convex: `memoir start`
+- Verify URL: `memoir config show`
+- Test connection: `memoir config test`
+
+---
+
+#### PID File Stale
+
+```
+Convex was already stopped
+```
+
+**Cause:** Process stopped without cleaning up PID file.
+
+**Solution:**
+
+Clean up PID files:
+
+<Terminal>rm .convex-dev.pid .quickstart-app.pid</Terminal>
+
+Or use dev mode and press 'k' to kill processes by port:
+
+<Terminal>memoir dev</Terminal>
+
+---
+
+#### Schema Sync Failed
+
+```
+Schema sync failed: SDK not found
+```
+
+**Solutions:**
+
+Install SDK:
+
+<Terminal>npm install @memoir/sdk</Terminal>
+
+Or skip schema sync:
+
+<Terminal>memoir deploy --skip-sync</Terminal>
+
+---
+
+#### Graph Database Not Starting
+
+```
+Graph database configured but Docker not available
+```
+
+**Solutions:**
+
+- Start Docker Desktop
+- Check Docker: `docker ps`
+- Start manually: `docker-compose -f docker-compose.graph.yml up -d`
+
+---
+
+### Debug Mode
+
+Enable debug output for troubleshooting:
+
+Via flag:
+
+<Terminal>memoir &lt;command&gt; --debug</Terminal>
+
+Via environment variable:
+
+<Terminal>DEBUG=1 memoir &lt;command&gt;</Terminal>
+
+**Debug Output Includes:**
+
+- Environment variable loading
+- Configuration resolution
+- API request/response details
+- Process spawning details
+- File operations
+
+---
+
+### Getting Help
+
+General help:
+
+<Terminal>memoir --help</Terminal>
+
+Command help:
+
+<Terminal>memoir &lt;command&gt; --help</Terminal>
+
+Subcommand help:
+
+<Terminal>memoir &lt;command&gt; &lt;subcommand&gt; --help</Terminal>
+
+---
+
+## Real-World Workflows
+
+### Workflow 1: New Project Setup
+
+<Steps>
+  <Step title="Create new project with local Convex">
+    <Terminal>memoir init my-app --local</Terminal>
+  </Step>
+  <Step title="Navigate to project">
+    <Terminal>cd my-app</Terminal>
+  </Step>
+  <Step title="Start development services">
+    <Terminal>memoir start</Terminal>
+  </Step>
+  <Step title="Check status">
+    <Terminal>memoir status</Terminal>
+  </Step>
+  <Step title="View database statistics">
+    <Terminal>memoir db stats</Terminal>
+  </Step>
+</Steps>
+
+---
+
+### Workflow 2: Multi-Environment Setup
+
+<Steps>
+  <Step title="Add deployments">
+    <Terminal>memoir config add-deployment local --url http://127.0.0.1:3210</Terminal>
+    <Terminal>memoir config add-deployment staging --url https://staging.convex.cloud --key "staging|..."</Terminal>
+    <Terminal>memoir config add-deployment production --url https://prod.convex.cloud --key "prod|..."</Terminal>
+  </Step>
+  <Step title="Set project paths">
+    <Terminal>memoir config set-path local /path/to/project</Terminal>
+    <Terminal>memoir config set-path staging /path/to/project</Terminal>
+    <Terminal>memoir config set-path production /path/to/project</Terminal>
+  </Step>
+  <Step title="Enable only local for auto-start">
+    <Terminal>memoir config enable local</Terminal>
+    <Terminal>memoir config disable staging</Terminal>
+    <Terminal>memoir config disable production</Terminal>
+  </Step>
+  <Step title="Deploy to production">
+    <Terminal>memoir deploy --deployment production</Terminal>
+  </Step>
+  <Step title="View all deployments">
+    <Terminal>memoir config list</Terminal>
+  </Step>
+</Steps>
+
+---
+
+### Workflow 3: GDPR Data Export & Deletion
+
+<Steps>
+  <Step title="Search for user">
+    <Terminal>memoir users list | grep john@example.com</Terminal>
+  </Step>
+  <Step title="View user data">
+    <Terminal>memoir users stats user-123</Terminal>
+  </Step>
+  <Step title="Export user data (GDPR portability)">
+    <Terminal>memoir users export user-123 --output user-123-export.json</Terminal>
+  </Step>
+  <Step title="Preview deletion">
+    <Terminal>memoir users delete user-123 --cascade --dry-run</Terminal>
+  </Step>
+  <Step title="Delete user data (GDPR right to erasure)">
+    <Terminal>memoir users delete user-123 --cascade --verify</Terminal>
+  </Step>
+</Steps>
+
+---
+
+### Workflow 4: Interactive Development
+
+<Steps>
+  <Step title="Start interactive dev mode">
+    <Terminal>memoir dev</Terminal>
+    
+    **Keyboard shortcuts:**
+    - `c` - clear screen
+    - `s` - show status
+    - `r` - restart services
+    - `g` - toggle graph database
+    - `k` - kill stuck processes
+    - `q` - quit
+  </Step>
+  <Step title="Watch logs in real-time">
+    Logs are automatically displayed in the terminal.
+  </Step>
+  <Step title="Make code changes">
+    Convex auto-reloads when you save files.
+  </Step>
+  <Step title="Toggle graph database">
+    Press `g` key.
+  </Step>
+  <Step title="Quit gracefully">
+    Press `q` key.
+  </Step>
+</Steps>
+
+---
+
+### Workflow 5: Database Backup & Restore
+
+<Steps>
+  <Step title="Backup database">
+    <Terminal>memoir db backup --include-all --output backup-2026-01-01.json</Terminal>
+  </Step>
+  <Step title="Verify backup">
+    <Terminal>ls -lh backup-2026-01-01.json</Terminal>
+  </Step>
+  <Step title="Clear database for testing">
+    <Terminal>memoir db clear --deployment local</Terminal>
+  </Step>
+  <Step title="Restore from backup">
+    <Terminal>memoir db restore --input backup-2026-01-01.json --deployment local</Terminal>
+  </Step>
+</Steps>
+
+---
+
+### Workflow 6: Package Updates
+
+<Steps>
+  <Step title="Check current versions">
+    <Terminal>memoir update</Terminal>
+  </Step>
+  <Step title="Update specific deployment">
+    <Terminal>memoir update --deployment production</Terminal>
+  </Step>
+  <Step title="Update all with specific version">
+    <Terminal>memoir update --sdk-version 0.27.4 --yes</Terminal>
+  </Step>
+  <Step title="Update app with template sync">
+    <Terminal>memoir update --app quickstart --sync-template</Terminal>
+  </Step>
+  <Step title="Dev mode (link to local SDK)">
+    <Terminal>export MEMOIR_SDK_DEV_PATH=/path/to/Project-Memoir</Terminal>
+    <Terminal>memoir update --dev --app quickstart</Terminal>
+  </Step>
+</Steps>
+
+---
+
+## Examples
+
+### Example 1: Search and Clear Memories
+
+Search for sensitive data:
+
+<Terminal>memoir memory search "password" --space agent-1</Terminal>
+
+Review results and delete specific memory:
+
+<Terminal>memoir memory delete mem-456 --space agent-1</Terminal>
+
+Or clear all for a user:
+
+<Terminal>memoir memory clear --space agent-1 --user user-123</Terminal>
+
+---
+
+### Example 2: Manage Memory Spaces
+
+Create team space:
+
+<Terminal>memoir spaces create team-alpha --type team --name "Team Alpha"</Terminal>
+
+Add participants:
+
+<Terminal>memoir spaces add-participant team-alpha --id user-123 --type user</Terminal>
+<Terminal>memoir spaces add-participant team-alpha --id agent-1 --type ai-agent</Terminal>
+
+View statistics:
+
+<Terminal>memoir spaces stats team-alpha</Terminal>
+
+List participants:
+
+<Terminal>memoir spaces participants team-alpha</Terminal>
+
+Archive when done:
+
+<Terminal>memoir spaces archive team-alpha --reason "Project completed"</Terminal>
+
+---
+
+### Example 3: Export Conversations
+
+List conversations:
+
+<Terminal>memoir conversations list --space agent-1 --user user-123</Terminal>
+
+Get specific conversation:
+
+<Terminal>memoir conversations get conv-789</Terminal>
+
+Export to file:
+
+<Terminal>memoir conversations export conv-789 --format txt --output conv.txt</Terminal>
+
+---
+
+### Example 4: Database Statistics
+
+View overall stats:
+
+<Terminal>memoir db stats</Terminal>
+
+View space-specific stats:
+
+<Terminal>memoir spaces stats agent-1</Terminal>
+<Terminal>memoir memory stats --space agent-1</Terminal>
+
+View user-specific stats:
+
+<Terminal>memoir users stats user-123</Terminal>
+
+Export to JSON for analysis:
+
+<Terminal>memoir db stats --format json &gt; db-stats.json</Terminal>
+
+---
+
+## Version History
+
+### v0.27.4 (Current)
+
+- Interactive dev mode with keyboard shortcuts
+- Multi-deployment support for `memoir start`
+- Template app management
+- Automatic schema sync from SDK
+- Graph database integration
+- GDPR cascade deletion with verification
+- Improved status dashboard
+- Package update management across deployments and apps
+
+### Related
+
+- [Changelog](https://github.com/Anu-Code07/memoir/blob/main/CHANGELOG)
+- [GitHub Releases](https://github.com/Anu-Code07/memoir/releases)
+
+---
+
+## Additional Resources
+
+### Documentation
+
+- [Getting Started: Installation](/getting-started/installation)
+- [Getting Started: Five Minute Quickstart](/getting-started/five-minute-quickstart)
+- [Getting Started: Configuration](/getting-started/configuration)
+
+### Core Features
+
+- [Memory Spaces](/core-features/memory-spaces)
+- [Semantic Search](/core-features/semantic-search)
+- [User Profiles](/core-features/user-profiles)
+- [Conversation History](/core-features/conversation-history)
+- [Fact Extraction](/core-features/fact-extraction)
+
+### API Reference
+
+- [Memory Operations](/api-reference/memory-operations)
+- [Conversation Operations](/api-reference/conversation-operations)
+- [User Operations](/api-reference/user-operations)
+- [Memory Space Operations](/api-reference/memory-space-operations)
+- [Facts Operations](/api-reference/facts-operations)
+
+### Repository
+
+- [GitHub Repository](https://github.com/Anu-Code07/memoir)
+- [npm Package](https://www.npmjs.com/package/@memoir/cli)
+- [Report Issues](https://github.com/Anu-Code07/memoir/issues)
+
+---
+
+## Next Steps
+
+<QuickNav>
+  <QuickNavItem 
+    title="Installation" 
+    description="Install and configure Memoir" 
+    href="/getting-started/installation" 
+  />
+  <QuickNavItem 
+    title="Five Minute Quickstart" 
+    description="Get started quickly" 
+    href="/getting-started/five-minute-quickstart" 
+  />
+  <QuickNavItem 
+    title="Configuration" 
+    description="Configure your deployment" 
+    href="/getting-started/configuration" 
+  />
+</QuickNav>
+
+---
+
+## License
+
+Memoir CLI is licensed under the FSL-1.1-Apache-2.0 license.
+
+See [LICENSE.md](https://github.com/Anu-Code07/memoir/blob/main/LICENSE) for details.
