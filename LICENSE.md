@@ -6,7 +6,7 @@ FSL-1.1-Apache-2.0
 
 ## Notice
 
-Copyright 2025 Nicholas Geil / Anu-Code07
+Copyright 2025 Nicholas Geil
 
 ## Terms and Conditions
 
@@ -171,7 +171,7 @@ when referring to this software in accordance with the Trademarks section above
 
 For licensing questions or permissions:
 
-- Email: legal@github.com/Anu-Code07/memoir
+- Email: legal@memoir.dev
 - Website: https://github.com/Anu-Code07/memoir
 
 ---

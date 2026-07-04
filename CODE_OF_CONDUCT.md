@@ -54,7 +54,7 @@ This Code of Conduct also applies when an individual is officially representing 
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at:
 
-- **Email**: conduct@github.com/Anu-Code07/memoir
+- **Email**: conduct@memoir.dev
 - **Anonymous Form**: [Link to anonymous reporting form]
 
 All complaints will be reviewed and investigated promptly and fairly. All community leaders are obligated to respect the privacy and security of the reporter of any incident.
@@ -105,7 +105,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 If you believe you have been unfairly accused or sanctioned, you may appeal the decision by:
 
-1. Sending an email to **appeals@github.com/Anu-Code07/memoir**
+1. Sending an email to **appeals@memoir.dev**
 2. Including your reasoning and any relevant context
 3. Waiting for a response from a different community leader
 
@@ -126,7 +126,7 @@ Current community leaders can be found in [MAINTAINERS.md](https://github.com/An
 If you have questions about this Code of Conduct, please:
 
 - Open a discussion in [GitHub Discussions](https://github.com/Anu-Code07/memoir/discussions)
-- Email us at conduct@github.com/Anu-Code07/memoir
+- Email us at conduct@memoir.dev
 - Reach out in our [Discord](https://discord.gg/memoir)
 
 ## Attribution
