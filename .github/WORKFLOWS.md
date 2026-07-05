@@ -59,11 +59,23 @@ git commit -m "chore: bump Python SDK to 0.9.2"
 
 ## Required Secrets
 
-Configure in Settings → Secrets:
+Configure in Settings → Secrets and variables → Actions:
 
-- `CONVEX_URL` - Convex backend URL
-- `CONVEX_DEPLOY_KEY` - Convex deployment key
-- `NPM_TOKEN` - npm publishing token
+| Secret | Required | Purpose |
+|--------|----------|---------|
+| `CONVEX_URL` | Yes | Convex deployment URL (e.g. `https://your-project.convex.cloud`) |
+| `CONVEX_DEPLOY_KEY` | Yes | Deploy key from Convex dashboard → Settings → Deploy Key |
+| `NPM_TOKEN` | Recommended | npm automation token for `@getmemoir` packages |
+
+The Publishing workflow validates these secrets before attempting deploy or publish.
+If they are missing, the workflow fails immediately with setup instructions.
+
+### Getting Convex credentials (free tier)
+
+1. Create a project at [dashboard.convex.dev](https://dashboard.convex.dev)
+2. Copy your deployment URL → `CONVEX_URL`
+3. Settings → Deploy Key → create key → `CONVEX_DEPLOY_KEY`
+4. Re-run **Actions → Publishing → Run workflow**
 
 ## PyPI Trusted Publishing
 
