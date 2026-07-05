@@ -80,8 +80,72 @@ jobs:
           echo ""
           exit 1
 
-  check-version:
+  validate-secrets:
+    name: Validate Required Secrets
     needs: verify-security-passed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check publishing prerequisites
+        env:
+          CONVEX_URL: ${{ secrets.CONVEX_URL }}
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "  Publishing Prerequisites"
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+
+          MISSING=0
+
+          if [ -z "$CONVEX_URL" ]; then
+            echo "❌ CONVEX_URL is not set"
+            MISSING=1
+          else
+            echo "✅ CONVEX_URL is set"
+          fi
+
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
+            echo "❌ CONVEX_DEPLOY_KEY is not set"
+            MISSING=1
+          else
+            echo "✅ CONVEX_DEPLOY_KEY is set"
+          fi
+
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "⚠️  NPM_TOKEN is not set (OIDC trusted publishing may still work if configured on npm)"
+          else
+            echo "✅ NPM_TOKEN is set"
+          fi
+
+          echo ""
+
+          if [ "$MISSING" -ne 0 ]; then
+            echo "════════════════════════════════════════════════════════════"
+            echo "  ❌ PUBLISHING BLOCKED — Missing GitHub Secrets"
+            echo "════════════════════════════════════════════════════════════"
+            echo ""
+            echo "Add these in: Settings → Secrets and variables → Actions"
+            echo ""
+            echo "  CONVEX_URL"
+            echo "    Your Convex deployment URL"
+            echo "    Example: https://your-project.convex.cloud"
+            echo ""
+            echo "  CONVEX_DEPLOY_KEY"
+            echo "    Deploy key from Convex dashboard → Settings → Deploy Key"
+            echo ""
+            echo "  NPM_TOKEN (recommended)"
+            echo "    npm automation token for @getmemoir scope"
+            echo ""
+            echo "After adding secrets, re-run: Actions → Publishing → Run workflow"
+            echo ""
+            exit 1
+          fi
+
+          echo "✅ All required secrets are configured. Publishing can proceed."
+
+  check-version:
+    needs: [verify-security-passed, validate-secrets]
     runs-on: ubuntu-latest
     # workflow_run trigger already filters by branch, no extra guard needed
     outputs:
